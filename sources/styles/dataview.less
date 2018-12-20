@@ -1,0 +1,223 @@
+/* gallery-images-dataview */
+.gallery-images-dataview {
+  background: #f2f3f7;
+  .webix_dataview_item {
+    border: none;
+    cursor: default;
+    padding: 5px;
+  }
+  .thumbnails-name {
+    color: rgba(0,0,0,0.8);
+    font-weight: 500;
+    line-height: 20px;
+    padding: 5px 0 0 15px;
+    margin-right: 10px;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.gallery-images-container {
+  position: relative;
+  cursor: pointer;
+  height: 100px;
+  background: @main-bg;
+  .border-radius(3px);
+  text-align: center;
+
+  .gallery-image {
+    display: inline-block;
+  }
+
+  .gallery-images-info {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    display: none;
+  }
+  .gallery-images-star-icon {
+    position: absolute;
+    bottom: 13px;
+    right: 13px;
+    color: yellow;
+  }
+
+  &:hover {
+    .gallery-images-info {
+      display: block;
+    }
+  }
+
+  &.is-checked {
+    .gallery-images-info {
+      display: block;
+    }
+    .gallery-images-header {
+      .webix_icon {
+        visibility: visible;
+        color: #0288D1;
+      }
+    }
+  }
+
+}
+
+.gallery-images-buttons {
+  text-align: center;
+  margin-top: 40px;
+}
+.gallery-images-button-elem  {
+  display: inline-block;
+  vertical-align: top;
+  width: 22px;
+  height: 22px;
+  margin: 0 4px 0 -90px;
+}
+
+.gallery-images-button {
+  display: block;
+  .box-sizing(border-box);
+  width: 100%;
+  height: 100%;
+  line-height: 20px;
+  border: 1px solid @lines-color;
+  .border-radius(2px);
+  background-color: #FFFFFF;
+  text-align: center;
+  .transition(all .2s ease-in-out);
+
+  .gallery-icon-svg {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .gallery-icon-svg,
+  .gallery-icon-use {
+    width: 18px;
+    height: 18px;
+  }
+
+  .gallery-icon-use {
+    fill: #6E7480;
+  }
+
+  &:hover, &:focus {
+    border-color: @btn-hover;
+
+    .gallery-icon-use {
+      fill: @btn-hover;
+    }
+  }
+}
+
+.absolute-centered-image-template {
+  position: relative;
+
+  img {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+.large-image-name {
+  .webix_template {
+    padding-left: 10px;
+    .box-sizing(border-box);
+  }
+}
+
+.resize-icon .webix_icon {
+  color: #6E7480;
+}
+
+.webix_dataview_item.webix_selected {
+  color: #fff;
+  background: #0288D1;
+}
+
+.webix_column>div.webix_cell_select,
+.webix_column>div.webix_column_select,
+.webix_column>div.webix_row_select {
+  color: #fff;
+  background: #0288D1;
+}
+
+.webix_tree_item.webix_selected span {
+  padding: 4px 10px 4px 4px;
+  margin-left: -4px;
+  color: #fff;
+  background: #0288D1;
+}
+
+.webix_dt_editor input, .webix_dt_editor select {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 1px 8px 0 9px;
+  margin: 0;
+  border: 1px solid gold;
+  height: 28px;
+  font-family: 'PT Sans', Tahoma;
+  font-size: 15px;
+  color: #666;
+}
+
+.gallery-images-header {
+  padding-bottom: 5px;
+  background: rgba(255,255,255,.60);
+
+  .download-icon {
+    color: rgba(0,0,0,0.8);
+    line-height: 20px;
+    margin-right: 35px;
+    padding: 5px 0 0 15px;
+    text-align: left;
+  }
+  .webix_icon {
+    visibility: hidden;
+    margin-top: 3px;
+  }
+  .gallery-images-checkbox {
+    float: right;
+    padding-right: 12px;
+  }
+}
+.gallery-images-checkbox {
+  overflow: hidden;
+
+  .checkbox-ctrl {
+    .webix_el_group {
+      padding-bottom: 2px;
+      .box-sizing(border-box);
+    }
+  }
+}
+
+.edit-window-header {
+  .webix_template {
+    padding-left: 10px;
+    font-size: 17px;
+    .box-sizing(border-box);
+  }
+}
+
+.unselectable-dataview-items {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
