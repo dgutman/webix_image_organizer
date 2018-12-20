@@ -1,0 +1,258 @@
+/* MIXINS */
+
+// --------------------------------------------------
+// Flexbox LESS mixins
+// The spec: http://www.w3.org/TR/css3-flexbox
+// --------------------------------------------------
+
+// Flexbox display
+.flex-display(@display: flex) {
+  .old-flex-display(@display);
+  display: ~"-webkit-@{display}";
+  display: ~"-moz-@{display}";
+  display: ~"-ms-@{display}box"; // IE10 uses -ms-flexbox
+  display: ~"-ms-@{display}"; // IE11
+  display: @display;
+}
+.old-flex-display(@display) when (@display = inline-flex) {
+  display: ~"-webkit-inline-box";
+}
+.old-flex-display(@display) when (@display = flex) {
+  display: ~"-webkit-box";
+}
+
+// The 'flex' shorthand
+// - applies to: flex items
+// <positive-number>, initial, auto, or none
+.flex(@columns: initial) {
+  -webkit-flex: @columns;
+  -moz-flex: @columns;
+  -ms-flex: @columns;
+  flex: @columns;
+}
+
+// Flex Flow Direction
+// - applies to: flex containers
+// row | row-reverse | column | column-reverse
+.flex-direction(@direction: row) {
+  -webkit-flex-direction: @direction;
+  -moz-flex-direction: @direction;
+  -ms-flex-direction: @direction;
+  flex-direction: @direction;
+}
+
+// Flex Line Wrapping
+// - applies to: flex containers
+// nowrap | wrap | wrap-reverse
+.flex-wrap(@wrap: nowrap) {
+  -webkit-flex-wrap: @wrap;
+  -moz-flex-wrap: @wrap;
+  -ms-flex-wrap: @wrap;
+  flex-wrap: @wrap;
+}
+
+// Flex Direction and Wrap
+// - applies to: flex containers
+// <flex-direction> || <flex-wrap>
+.flex-flow(@flow) {
+  -webkit-flex-flow: @flow;
+  -moz-flex-flow: @flow;
+  -ms-flex-flow: @flow;
+  flex-flow: @flow;
+}
+
+// Display Order
+// - applies to: flex items
+// <integer>
+.flex-order(@order: 0) {
+  -webkit-order: @order;
+  -moz-order: @order;
+  -ms-order: @order;
+  order: @order;
+}
+
+// Flex grow factor
+// - applies to: flex items
+// <number>
+.flex-grow(@grow: 0) {
+  -webkit-flex-grow: @grow;
+  -moz-flex-grow: @grow;
+  -ms-flex-grow: @grow;
+  flex-grow: @grow;
+}
+
+// Flex shr
+// - applies to: flex itemsink factor
+// <number>
+.flex-shrink(@shrink: 1) {
+  -webkit-flex-shrink: @shrink;
+  -moz-flex-shrink: @shrink;
+  -ms-flex-shrink: @shrink;
+  flex-shrink: @shrink;
+}
+
+// Flex basis
+// - the initial main size of the flex item
+// - applies to: flex itemsnitial main size of the flex item
+// <width>
+.flex-basis(@width: auto) {
+  -webkit-flex-basis: @width;
+  -moz-flex-basis: @width;
+  -ms-flex-basis: @width;
+  flex-basis: @width;
+}
+
+// Axis Alignment
+// - applies to: flex containers
+// flex-start | flex-end | center | space-between | space-around
+.justify-content(@justify: flex-start) {
+  -ms-flex-pack: justify;
+  -webkit-justify-content: @justify;
+  -moz-justify-content: @justify;
+  -ms-justify-content: @justify;
+  justify-content: @justify;
+}
+
+// Packing Flex Lines
+// - applies to: multi-line flex containers
+// flex-start | flex-end | center | space-between | space-around | stretch
+.align-content(@align: stretch) {
+  -webkit-align-content: @align;
+  -moz-align-content: @align;
+  -ms-align-content: @align;
+  align-content: @align;
+}
+
+// Cross-axis Alignment
+// - applies to: flex containers
+// flex-start | flex-end | center | baseline | stretch
+.align-items(@align: stretch) {
+  -webkit-align-items: @align;
+  -moz-align-items: @align;
+  -ms-align-items: @align;
+  align-items: @align;
+}
+
+// Cross-axis Alignment
+// - applies to: flex items
+// auto | flex-start | flex-end | center | baseline | stretch
+.align-self(@align: auto) {
+  -webkit-align-self: @align;
+  -moz-align-self: @align;
+  -ms-align-self: @align;
+  align-self: @align;
+}
+
+
+
+///////////////////////////////////////////
+
+.cf {
+  &:before,
+  &:after {
+    content: ' ';
+    display: table;
+  }
+
+  &:after {
+    clear: both;
+  }
+}
+
+.box-sizing (@type: border-box) {
+  -webkit-box-sizing: @type;
+  -moz-box-sizing:    @type;
+  box-sizing:         @type;
+}
+
+.box-shadow (@string) {
+  -webkit-box-shadow: @string;
+  -moz-box-shadow:    @string;
+  box-shadow:         @string;
+}
+.box-shadow2 (@string1, @string2) {
+  -webkit-box-shadow: @string1, @string2;
+  -moz-box-shadow:    @string1, @string2;
+  box-shadow:         @string1, @string2;
+}
+
+.text-shadow (@string) {
+  -webkit-text-shadow: @string;
+  -moz-text-shadow:    @string;
+  text-shadow:         @string;
+}
+
+.border-radius (@radius: 0.4rem) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius:    @radius;
+  -o-border-radius: 	 @radius;
+  border-radius:         @radius;
+}
+.border-radiuses (@topleft: 0, @topright: 0, @bottomright: 0, @bottomleft: 0) {
+  -webkit-border-top-right-radius:    @topright;
+  -webkit-border-bottom-right-radius: @bottomright;
+  -webkit-border-bottom-left-radius:  @bottomleft;
+  -webkit-border-top-left-radius:     @topleft;
+  -moz-border-radius-topright:        @topright;
+  -moz-border-radius-bottomright:     @bottomright;
+  -moz-border-radius-bottomleft:      @bottomleft;
+  -moz-border-radius-topleft:         @topleft;
+  border-top-right-radius:            @topright;
+  border-bottom-right-radius:         @bottomright;
+  border-bottom-left-radius:          @bottomleft;
+  border-top-left-radius:             @topleft;
+}
+
+.background-size (@type) {
+  -webkit-background-size: @type;
+  -moz-background-size:    @type;
+  background-size:         @type;
+}
+
+.transition (@transition) {
+  -webkit-transition: @transition;
+  -moz-transition:    @transition;
+  -ms-transition:     @transition;
+  -o-transition:      @transition;
+  transition:         @transition;
+}
+.transitions2 (@transition1, @transition2) {
+  -webkit-transition: @transition1, @transition2;
+  -moz-transition:    @transition1, @transition2;
+  -ms-transition:     @transition1, @transition2;
+  -o-transition:      @transition1, @transition2;
+  transition:         @transition1, @transition2;
+}
+
+.transition-delay(@string) {
+  -webkit-transition-delay: @string;
+  -o-transition-delay:      @string;
+  -moz-transition-delay:    @string;
+  transition-delay:         @string;
+}
+
+.transform(@string){
+  -webkit-transform: @string;
+  -moz-transform: 	 @string;
+  -ms-transform: 	 @string;
+  -o-transform:      @string;
+  transform: 		 @string;
+}
+
+.transform-origin(@string){
+  -webkit-transform-origin:  @string;
+  -moz-transform-origin: 	 @string;
+  -ms-transform-origin: 	 @string;
+  -o-transform-origin:       @string;
+  transform-origin: 		 @string;
+}
+
+.backface-visibility(@string){
+  -webkit-backface-visibility: @string;
+  backface-visibility:         @string;
+}
+
+.perspective(@string) {
+  -webkit-perspective: @string;
+  perspective:         @string;
+}
