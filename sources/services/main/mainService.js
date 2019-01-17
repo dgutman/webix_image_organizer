@@ -212,8 +212,7 @@ class MainService {
 					}
 					helpingFunctions.putHostsCollectionInLocalStorage(this.collectionItem);
 					// define datatable columns
-					this._datatable.define("columns", datatableModel.getColumnsForDatatable());
-					this._datatable.refreshColumns();
+					this._datatable.refreshColumns(datatableModel.getColumnsForDatatable(this._datatable));
 					this._tree.parse(data);
 					this._view.hideProgress();
 				})

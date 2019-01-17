@@ -5,8 +5,8 @@ import UniqueValuesWindow from "../../views/dataview/windows/uniqueValuesWindow"
 import constants from "../../constants";
 import selectedDataviewItems from "../../models/selectDataviewItems";
 
-let metadataKeys = [];
 let columnsConfigForDelete = [];
+let datatableColumnsConfig = [];
 
 class DataviewService {
 	constructor(view, dataview, datatable, addColumnButton, exportButton, selectImagesTemplate, datatableImagesTemplate) {
@@ -34,50 +34,64 @@ class DataviewService {
 			let addButtonPromise = new Promise((success) => {
 				let existedColumns = webix.toArray(this._datatable.config.columns);
 				this._datatable.find((obj) => {
-					if (obj.meta) {
-						let keys;
-						if (obj.meta.groups) {
-							keys = Object.keys(obj.meta.groups);
-							this._checkObjectKeys(keys);
-						} else {
-							keys = Object.keys(obj.meta);
-							this._checkObjectKeys(keys);
-						}
+					if (obj.hasOwnProperty("meta")) {
+						this._createColumnsConfig(obj.meta);
+						return obj;
 					}
-				});
+				}, true);
 				existedColumns.each((columnConfig) => {
 					this._checkColumnsForDelete(columnConfig);
 				});
 				return success();
 			});
 			addButtonPromise.then(() => {
-				this._editColumnsWindow.showWindow(metadataKeys, columnsConfigForDelete, this._datatable);
-				metadataKeys = [];
+				this._editColumnsWindow.showWindow(datatableColumnsConfig, columnsConfigForDelete, this._datatable);
+				datatableColumnsConfig = [];
 				columnsConfigForDelete = [];
 			});
 		});
 
-		this._datatable.attachEvent("onAfterColumnDrop", (sourceId, targetId) => {
+		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
+			let newDatatableColumns = datatableModel.getColumnsForDatatable(this._datatable);
+			this._setColspansForColumnsHeader(newDatatableColumns);
+			datatableModel.putInLocalStorage(newDatatableColumns, authService.getUserInfo()._id);
+			this._datatable.refreshColumns(newDatatableColumns);
+		});
+
+		this._datatable.attachEvent("onBeforeColumnDrop", (sourceId, targetId) => {
 			let columnsConfig;
-			let localStorageColumnsConfig = datatableModel.getLocalStorageColumnsConfig();
+			const localStorageColumnsConfig = datatableModel.getLocalStorageColumnsConfig();
 			
 			if (localStorageColumnsConfig) {
 				columnsConfig = localStorageColumnsConfig;
 			} else {
 				columnsConfig = datatableModel.getInitialColumnsForDatatable();
 			}
-			let arrayLength = columnsConfig.length;
+			const arrayLength = columnsConfig.length;
 			let sourceIndex;
 			let targetIndex;
 			for (let index = 0; index < arrayLength; index++) {
+				const columnHeader = columnsConfig[index].header;
+				if (Array.isArray(columnHeader)) {
+					columnHeader.forEach((columnHeaderValue) => {
+						if (columnHeaderValue instanceof Object) {
+							delete columnHeaderValue.colspan;
+							delete columnHeaderValue.$colspan;
+							delete columnHeaderValue.css;
+						}
+					});
+				}
 				if (columnsConfig[index].id === sourceId) {
 					sourceIndex = index;
 				} else if (columnsConfig[index].id === targetId) {
 					targetIndex = index;
 				}
 			}
-			let newColumnsConfig = this._arrayMove(columnsConfig, arrayLength, sourceIndex, targetIndex);
-			datatableModel.putInLocalStorage(newColumnsConfig, this.userInfo._id);
+			const movedColumnsArray = this._arrayMove(columnsConfig, arrayLength, sourceIndex, targetIndex);
+			this._setColspansForColumnsHeader(movedColumnsArray);
+			datatableModel.putInLocalStorage(movedColumnsArray, this.userInfo._id);
+			const newDatatableColumns = datatableModel.getColumnsForDatatable(this._datatable);
+			this._datatable.refreshColumns(newDatatableColumns);
 		});
 
 		this._datatable.on_click["fa-pencil"] = (e, obj) => {
@@ -176,14 +190,6 @@ class DataviewService {
 		return array;
 	}
 
-	_checkObjectKeys(keys) {
-		keys.forEach((key) => {
-			if (!(metadataKeys.indexOf(key) > -1)) {
-				metadataKeys.push(key);
-			}
-		});
-	}
-
 	_checkColumnsForDelete(columnConfig) {
 		let hasPushed = false;
 		let length = columnsConfigForDelete.length;
@@ -212,6 +218,121 @@ class DataviewService {
 		selectedDataviewItems.clearAll();
 		this._view.$scope.app.callEvent("changedSelectedImagesCount");
 
+	}
+
+	_createColumnsConfig(obj, nestLevel = 0, header = [], path = "", objectKey) {
+		Object.entries(obj).forEach(([key, value]) => {
+			if (path.length === 0) {
+				path = key;
+			} else {
+				path+= `.${key}`;
+			}
+			if (value instanceof Object) {
+				header.push({text: key});
+				this._createColumnsConfig(value, nestLevel++, header, path, key);
+			} else {
+				if (!objectKey) {
+					path = key;
+					header = [];
+				}
+				datatableColumnsConfig.push({
+					id: path,
+					header: header.concat(key)
+				});
+				if (objectKey) {
+					path = path.substring(0, path.indexOf("."));
+				}
+			}
+		});
+	}
+
+	_setColspansForColumnsHeader(newDatatableColumns) {
+		let colspanInfoArray = [];
+		let colspanIndex = 0;
+		for (let index = 0; index < newDatatableColumns.length; index++) {
+
+			if (newDatatableColumns[index].metadataColumn) {
+				const columnHeader = newDatatableColumns[index].header;
+
+				if (Array.isArray(columnHeader)) {
+					let nextColumnIndex = index + 1;
+
+					while (nextColumnIndex) {
+						let unfoundValuesArray = [];
+						const nextColumnConfig = newDatatableColumns[nextColumnIndex];
+
+						if (nextColumnConfig && nextColumnConfig.metadataColumn) {
+							const nextColumnHeader = nextColumnConfig.header;
+							if (Array.isArray(nextColumnHeader)) {
+								columnHeader.forEach((headerValue, headerIndex) => {
+									if (headerValue instanceof Object && nextColumnHeader[headerIndex] instanceof Object) {
+										if (headerValue.text === nextColumnHeader[headerIndex].text) {
+											if (colspanInfoArray.length === 0 || !colspanInfoArray[colspanIndex]) {
+												colspanInfoArray.push([{
+													columnIndex: index,
+													headerIndex: headerIndex,
+													colspanValue: 2
+												}]);
+											} else {
+												const neededHeaderIndex = colspanInfoArray[colspanIndex].findIndex(colspanInfoValues => colspanInfoValues.headerIndex === headerIndex);
+												if (neededHeaderIndex !== -1) {
+													++colspanInfoArray[colspanIndex][neededHeaderIndex].colspanValue;
+												} else {
+													colspanInfoArray[colspanIndex].push({
+														columnIndex: index,
+														headerIndex: headerIndex,
+														colspanValue: 2
+													});
+												}
+											}
+										} else {
+											unfoundValuesArray.push("nothing has found");
+										}
+									} else {
+										unfoundValuesArray.push("nothing has found");
+									}
+								});
+
+							} else {
+								if (colspanInfoArray.length !== 0) {
+									index = nextColumnIndex;
+								}
+								break;
+							}
+							if (unfoundValuesArray.length === columnHeader.length) {
+								if (colspanInfoArray.length !== 0) {
+									index = nextColumnIndex;
+								}
+								break;
+							} else {
+								++nextColumnIndex;
+							}
+						} else {
+							if (colspanInfoArray.length !== 0) {
+								index = nextColumnIndex;
+							}
+							break;
+						}
+					}
+				}
+				if (colspanInfoArray.length !== 0) {
+					++colspanIndex;
+				}
+			}
+		}
+
+		colspanInfoArray.forEach((colspanInfo) => {
+			colspanInfo.forEach((colspanInfoValues) => {
+				const columnIndex = colspanInfoValues.columnIndex;
+				const headerIndex = colspanInfoValues.headerIndex;
+				const colspanValue = colspanInfoValues.colspanValue;
+				const headerForcolspan = newDatatableColumns[columnIndex].header[headerIndex];
+				if (headerForcolspan instanceof Object) {
+					headerForcolspan["colspan"] = colspanValue;
+					headerForcolspan["css"] = "column-header-top-name";
+				}
+			});
+		});
 	}
 }
 
