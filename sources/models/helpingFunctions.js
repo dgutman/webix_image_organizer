@@ -1,6 +1,7 @@
 import views from "./dataViews";
 import projectMetadata from "../models/projectMetadata";
 import dataviewFilterModel from "../models/dataviewFilterModel";
+import constants from "../constants";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -186,12 +187,10 @@ function getHostsCollectionFromLocalStorage() {
 function collapseViews(collapserTemplate, viewsToCollapse, hiddenViews) {
 	if (hiddenViews) {
 		viewsToCollapse.show();
-		webix.html.removeCss(collapserTemplate.getNode(), "hidden-views");
-		webix.html.addCss(collapserTemplate.getNode(), "showed-views");
+		removeAndAddClassFromCollapsedElement("show", collapserTemplate.getNode());
 	} else {
 		viewsToCollapse.hide();
-		webix.html.removeCss(collapserTemplate.getNode(), "showed-views");
-		webix.html.addCss(collapserTemplate.getNode(), "hidden-views");
+		removeAndAddClassFromCollapsedElement("hide", collapserTemplate.getNode());
 	}
 	collapserTemplate.refresh();
 }
@@ -211,6 +210,30 @@ function showOrHideImageSelectionTemplate(action, template) {
 	}
 }
 
+function showOrHideTemplateCollapsedViews(className, element) {
+	const propertiesElement = document.getElementsByClassName(className)[1];
+
+	if (propertiesElement.offsetParent === null) {
+		//show properties template
+		removeAndAddClassFromCollapsedElement("show", element);
+		propertiesElement.style.display = "block";
+	} else {
+		//hide properties template
+		removeAndAddClassFromCollapsedElement("hide", element);
+		propertiesElement.style.display = "none";
+	}
+}
+
+function removeAndAddClassFromCollapsedElement(action, element) {
+	if (action === "hide") {
+		webix.html.removeCss(element, "showed-views");
+		webix.html.addCss(element, "hidden-views");
+	} else if (action === "show") {
+		webix.html.removeCss(element, "hidden-views");
+		webix.html.addCss(element, "showed-views");
+	}
+}
+
 export default {
 	searchForFileType,
 	showAlert,
@@ -224,5 +247,6 @@ export default {
 	getHostsCollectionFromLocalStorage,
 	collapseViews,
 	getCssCollapsedClass,
-	showOrHideImageSelectionTemplate
+	showOrHideImageSelectionTemplate,
+	showOrHideTemplateCollapsedViews
 };

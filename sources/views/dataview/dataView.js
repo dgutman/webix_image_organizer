@@ -6,6 +6,7 @@ import constants from "../../constants";
 import selectedDataviewItems from "../../models/selectDataviewItems";
 import collapser from "../components/collapser";
 import tableRightPanel from "./tableRightPanel";
+import dataViews from "../../models/dataViews";
 
 const collapserName = "tableTemplateCollapser";
 
@@ -61,8 +62,13 @@ export default class DataTableView extends JetView {
 					width: 20,
 					height: 30,
 					on: {
-						onItemClick: (id) => {
-							this.getDataView().callEvent("onCheckboxClicked", [id]);
+						onChange(value, oldValue) {
+							if (value !== oldValue) {
+								const item = dataViews.getDataview().getItem(this.config.$masterId);
+								item.markCheckbox = value;
+								selectedDataviewItems.add(item.id);
+								dataViews.getDataview().callEvent("onCheckboxClicked", [item, value]);
+							}
 						}
 					}
 				}

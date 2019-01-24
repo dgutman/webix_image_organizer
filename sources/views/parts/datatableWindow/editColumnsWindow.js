@@ -4,10 +4,11 @@ import authService from "../../../services/authentication";
 import helpingFunctions from "../../../models/helpingFunctions";
 import constants from "../../../constants";
 
-const WIDTH = 300;
+const WIDTH = 330;
 
 const columnsForDatatableToAdd = datatableConfig.getColumnsForDatatableToAddCollection();
 const columnsForDatatableToRemove = datatableConfig.getColumnsForDatatableToRemove();
+let headerValueForDataToDelete;
 
 export default class EditColumnsWindow extends JetView {
 	config() {
@@ -39,7 +40,7 @@ export default class EditColumnsWindow extends JetView {
 
 		const scrollWindowView = {
 			view: "scrollview",
-			height: 325,
+			height: 330,
 			scroll: true,
 			body: windowForm
 		};
@@ -105,39 +106,12 @@ export default class EditColumnsWindow extends JetView {
 		return window;
 	}
 
-	setSelectFilterOptions(filterType, columnValue) {
-		let options = [];
-		if (filterType === "select") {
-			options = [
-				{
-					id: "", value: ""
-				}
-			];
-			this.editedDatable.data.order.forEach((itemId) => {
-				if (itemId) {
-					let datatableItem = this.editedDatable.getItem(itemId);
-					let metadataValue = datatableItem.meta.groups[columnValue];
-					let index = options.map((obj) => obj.value).indexOf(metadataValue);
-					if (index === -1) {
-						if (datatableItem.meta.groups) {
-							options.push({
-								id: datatableItem.meta.groups[columnValue], value: datatableItem.meta.groups[columnValue]
-							});
-						}
-					}
-				}
-			});
-		}
-		return options;
-	}
 	//generating columns config to add to the datatable
-	generateColumnConfig(columnValue, headerValue, filterTypeValue) {
+	generateColumnConfig(columnValue, headerValue, filterTypeValue, metadataColumnConfig) {
 		let filterType;
-		let header;
-		let placeholder = "";
-		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-			placeholder = "mm/dd/yyyy";
-		}
+		let header = metadataColumnConfig.header;
+		const columnId = metadataColumnConfig.id;
+
 		switch(filterTypeValue) {
 			case constants.FILTER_TYPE_TEXT: {
 				filterType = "text";
@@ -152,108 +126,82 @@ export default class EditColumnsWindow extends JetView {
 				break;
 			}
 		}
-		if (filterType) {
-			header = [`${headerValue}<span style='text-align: right; width: 60%;' class="webix_icon fa-pencil"></span>`,
-				{content:`${filterType}Filter`, options: this.setSelectFilterOptions(filterType, columnValue), placeholder: placeholder, compare: (value, filter, obj) => {
-					if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-						return obj.meta.groups[columnValue].toString().indexOf(filter) !== -1;
-					} else if (filterType === "text") {
-						return obj.meta.groups[columnValue].toString().toLowerCase().indexOf(filter) !== -1;
-					} else if (filterType === "select") {
-						return obj.meta.groups[columnValue].toString() === filter;
-					}
-				}}];
-		} else {
-			header = `${headerValue}<span style='text-align:right; width: 60%;' class="webix_icon fa-pencil"></span>`;
+
+		if (header) {
+			if (!Array.isArray(header)) {
+				header = [header];
+			}
+
+			if (header.length === 0) {
+				header.push("");
+			}
+
+			header[header.length - 1] = `${headerValue}<span style='text-align: right; width: 60%;' class="webix_icon fa-pencil"></span>`;
+			if (filterType) {
+				header.push({content:`${filterType}Filter`});
+			}
 		}
+
 		let columnConfig;
 		let initialConfig = false;
-		this.initialColumnsConfig.forEach((initialColumnConfig) => {
+		this.initialColumnsConfig.find((initialColumnConfig) => {
 			if (initialColumnConfig.id === columnValue) {
 				initialConfig = true;
 				columnConfig = initialColumnConfig;
 				if (filterType) {
-					let headerText;
-					headerText = initialColumnConfig.header[0].text;
-					if (!headerText) {
-						headerText = initialColumnConfig.header;
+					if (!Array.isArray(columnConfig.header)) {
+						columnConfig.header = [columnConfig.header];
 					}
-					columnConfig.header = [headerText, {content: `${filterType}Filter`, placeholder: placeholder, compare: (value, filter, obj) => {
-						if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-							let dateValue = value.toString();
-							let timeIndex = dateValue.indexOf("T");
-							let newDateValue = dateValue.slice(0, timeIndex);
-							let yearIndex = newDateValue.search("-");
-							let year = newDateValue.slice(0, yearIndex);
-							let monthIndex = newDateValue.slice(yearIndex + 1).search("-") + yearIndex + 1;
-							let month = newDateValue.slice(yearIndex + 1, monthIndex);
-							let day = newDateValue.slice(monthIndex +1);
-							let dateToCompare = `${month}/${day}/${year}`;
-							return dateToCompare.indexOf(filter) !== -1;
-						} else if (filterType === "text") {
-							return obj[columnValue].toString().toLowerCase().indexOf(filter) !== -1;
-						} else if (filterType === "select") {
-							return obj[columnValue].toString().toLowerCase() === filter;
-						}
-					}}];
+					columnConfig.header.push({content: `${filterType}Filter`});
+					columnConfig.filterType = filterType;
+					columnConfig.filterTypeValue = filterTypeValue;
 				}
+				return true;
 			}
 		});
 		if (!initialConfig) {
 			columnConfig = {
-				id: columnValue,
+				id: columnId,
 				header: header,
 				width: 145,
 				editor: "text",
-				metadataColumn: true,
-				template: (obj) => {
-					if (obj.meta) {
-						const columnValueColor = helpingFunctions.getMetadataColumnColor(obj, columnValue);
-						if (obj.meta.groups) {
-							return `<span style="color: ${columnValueColor}">${obj.meta.groups[columnValue]}</span>`;
-						} else {
-							return `<span style="color: ${columnValueColor}">${obj.meta[columnValue]}</span>`;
-						}
-
-					} else return "No metadata for item";
-				}
+				filterType: filterType,
+				filterTypeValue: filterTypeValue,
+				metadataColumn: true
 			};
 		}
 		return columnConfig;
 	}
 
 	//adding new column to the datatable
-	createNewDatatableColumns(configValues) {
-		let columnValue = configValues.columnValue;
-		let headerValue = configValues.headerValue;
-		let filterTypeValue = configValues.filterTypeValue;
-		this.existedColumns.insertAt(this.generateColumnConfig(columnValue, headerValue, filterTypeValue));
-		this.existedColumns.each((columnConfig) => {
+	createNewDatatableColumns(columnValue, headerValue, filterTypeValue, metadataColumnHeader) {
+		this.existedColumns.push(this.generateColumnConfig(columnValue, headerValue, filterTypeValue, metadataColumnHeader));
+		this.existedColumns.forEach((columnConfig) => {
 			columnsForDatatableToRemove.data.each((configValues) => {
 				if (columnConfig.id === configValues.columnValue) {
 					columnsForDatatableToRemove.remove(configValues.id);
 				}
 			});
 		});
-		this.editedDatable.refreshColumns();
+
+		datatableConfig.clearColumnsInLocalStorage(this.userInfo._id);
 		datatableConfig.putInLocalStorage(this.existedColumns, this.userInfo._id);
 	}
 
 	//removing datatable columns from datatable
-	removeOldDatatableColumns(configValues) {
-		let columnValue = configValues.columnValue;
-		this.existedColumns.each((columnConfig) => {
+	removeOldDatatableColumns(columnValue) {
+		this.existedColumns.forEach((columnConfig, columnsIndex) => {
 			if (columnConfig && (columnConfig.id === columnValue)) {
-				this.existedColumns.remove(columnConfig);
+				this.existedColumns.splice(columnsIndex, 1);
 			}
+
 			columnsForDatatableToAdd.data.each((configValues) => {
 				if (columnConfig.id === configValues.columnValue) {
 					columnsForDatatableToAdd.remove(configValues.id);
 				}
 			});
 		});
-
-		this.editedDatable.refreshColumns();
+		datatableConfig.clearColumnsInLocalStorage(this.userInfo._id);
 		datatableConfig.putInLocalStorage(this.existedColumns, this.userInfo._id);
 	}
 
@@ -266,7 +214,7 @@ export default class EditColumnsWindow extends JetView {
 		return columnConfig;
 	}
 
-	checkForTheReplies(elementsArray, columnConfig, columnsForEdit, buttonIcon, filterValue) {
+	checkForTheReplies(elementsArray, columnConfig, columnsForEdit, buttonIcon, filterValue, metadataColumnConfig) {
 		if (!helpingFunctions.isObjectEmpty(columnConfig)) {
 			columnsForEdit.data.each((column) => {
 				if (column.columnValue === columnConfig.columnName) {
@@ -285,7 +233,7 @@ export default class EditColumnsWindow extends JetView {
 		}
 		let regExp = /<.*$/;
 		let replacedHeaderName = columnConfig.headerName.replace(regExp, "");
-		elementsArray.push(this.createElementForTheForm(columnConfig.columnName, replacedHeaderName, buttonIcon, true, filterValue));
+		elementsArray.push(this.createElementForTheForm(columnConfig.columnName, replacedHeaderName, buttonIcon, true, filterValue, metadataColumnConfig));
 	}
 
 	//filling form view with new dynamic elements
@@ -295,9 +243,9 @@ export default class EditColumnsWindow extends JetView {
 		let hasValue = false;
 		let elementsArray = [];
 		let lengthForRemoveColumns = columnsForDatatableToRemove.count();
-		dataToAdd.forEach((name) => {
-			columnConfig = this.createColumnConfigForElements(name, name, hasValue);
-			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "plus");
+		dataToAdd.forEach((metadataColumnConfig) => {
+			columnConfig = this.createColumnConfigForElements(metadataColumnConfig.id, metadataColumnConfig.header[metadataColumnConfig.header.length - 1], hasValue);
+			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "plus", "", metadataColumnConfig);
 		});
 		if (lengthForRemoveColumns > 0) {
 			columnsForDatatableToRemove.data.each((deletedColumn) => {
@@ -320,17 +268,32 @@ export default class EditColumnsWindow extends JetView {
 		}
 		dataToDelete.forEach((obj) => {
 			let filterValue;
-			if (obj.header[1]) {
-				if (obj.header[1].placeholder) {
+			let metadataColumnConfig;
+			let penultimateItemIndex;
+			const objHeaderLength = obj.header.length !== 0 ? obj.header.length : 0;
+			if (obj.header[objHeaderLength - 1] && obj.header[objHeaderLength - 1].hasOwnProperty("content")) {
+				penultimateItemIndex = objHeaderLength - 2;
+				if (obj.header[objHeaderLength - 1].placeholder) {
 					filterValue = constants.FILTER_TYPE_DATE;
-				} else if (obj.header[1].content === "textFilter") {
+				} else if (obj.header[objHeaderLength - 1].content === "textFilter") {
 					filterValue = constants.FILTER_TYPE_TEXT;
-				} else if (obj.header[1].content === "selectFilter") {
+				} else if (obj.header[objHeaderLength - 1].content === "selectFilter") {
 					filterValue = constants.FILTER_TYPE_SELECT;
 				}
+			} else {
+				penultimateItemIndex = objHeaderLength !== 0 ? objHeaderLength - 1 : 0;
 			}
-			columnConfig = this.createColumnConfigForElements(obj.id, obj.header[0].text, hasValue);
-			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToRemove, "minus", filterValue);
+
+			this.getHeaderValueForElement(obj.header, penultimateItemIndex);
+			columnConfig = this.createColumnConfigForElements(obj.id, headerValueForDataToDelete, hasValue);
+
+			if (obj.metadataColumn) {
+				metadataColumnConfig = {
+					id: obj.id,
+					header: obj.header
+				};
+			}
+			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToRemove, "minus", filterValue, metadataColumnConfig);
 		});
 		webix.ui(elementsArray, formView);
 	}
@@ -360,7 +323,7 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	//creating element config that will be parsed to the form view
-	createElementForTheForm(columnNameValue, headerNameValue, buttonIcon, disabledForHeader, filterValue) {
+	createElementForTheForm(columnNameValue, headerNameValue, buttonIcon, disabledForHeader, filterValue, metadataColumnConfig) {
 		let element = {
 			cols: [
 				{
@@ -372,6 +335,7 @@ export default class EditColumnsWindow extends JetView {
 							label: "Column",
 							labelAlign: "right",
 							disabled: true,
+							metadataColumnConfig: metadataColumnConfig ? metadataColumnConfig : "",
 							value: columnNameValue,
 							height: 25,
 						},
@@ -418,14 +382,14 @@ export default class EditColumnsWindow extends JetView {
 						let filterTypeValue = filterTypeField.getValue();
 						if (actionButton.config.icon === "minus") {
 							columnsForDatatableToRemove.add({columnValue, headerValue});
-							this.removeOldDatatableColumns({columnValue, headerValue});
+							this.removeOldDatatableColumns(columnValue);
 							actionButton.define("icon", "plus");
 							actionButton.refresh();
 							filterTypeField.enable();
 						} else if (actionButton.config.icon === "plus") {
 							filterTypeField.disable();
 							columnsForDatatableToAdd.add({columnValue, headerValue});
-							this.createNewDatatableColumns({columnValue, headerValue, filterTypeValue});
+							this.createNewDatatableColumns(columnValue, headerValue, filterTypeValue, columnField.config.metadataColumnConfig);
 							actionButton.define("icon", "minus");
 							actionButton.refresh();
 						}
@@ -437,20 +401,34 @@ export default class EditColumnsWindow extends JetView {
 		return element;
 	}
 
-	showWindow(metadataKeys, columnsToDelete, datatable) {
+	getHeaderValueForElement(header, itemIndex) {
+		if (header[itemIndex]) {
+			if (header[itemIndex].hasOwnProperty("text")) {
+				headerValueForDataToDelete = header[itemIndex].text;
+			} else {
+				headerValueForDataToDelete = header[itemIndex];
+			}
+		} else {
+			this.getHeaderValueForElement(header, itemIndex - 1);
+		}
+	}
+
+	showWindow(datatableColumnsConfig, columnsToDelete, datatable) {
 		let dataToAdd = [];
-		this.editedDatable = datatable;
-		this.existedColumns = webix.toArray(this.editedDatable.config.columns);
+		this.existedColumns = datatableConfig.getLocalStorageColumnsConfig();
 		this.initialColumnsConfig = datatableConfig.getInitialColumnsForDatatable();
+		if (!this.existedColumns) {
+			this.existedColumns = webix.copy(this.initialColumnsConfig);
+		}
 		this.userInfo = authService.getUserInfo();
-		metadataKeys.forEach((columnId) => {
+		datatableColumnsConfig.forEach((columnConfig) => {
 			this.existedColumns.forEach((existedColumn) => {
-				if (existedColumn.id === columnId) {
-					columnId = "existed";
+				if (existedColumn.id === columnConfig.id) {
+					columnConfig.existed = true;
 				}
 			});
-			if (columnId !== "existed") {
-				dataToAdd.push(columnId);
+			if (!columnConfig.existed) {
+				dataToAdd.push(columnConfig);
 			}
 		});
 		this.fillInFormElements(dataToAdd, columnsToDelete);

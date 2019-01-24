@@ -2,7 +2,6 @@ import helpingFunctions from "./helpingFunctions";
 import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
-import "../views/components/datatableEditor";
 
 const columnsForDatatableToAddCollection = new webix.DataCollection();
 const columnsForDatatableToRemoveCollection = new webix.DataCollection();
@@ -13,14 +12,6 @@ function getColumnsForDatatableToAddCollection() {
 
 function getColumnsForDatatableToRemove() {
 	return columnsForDatatableToRemoveCollection;
-}
-
-function clearColumnsForDatatableToAddCollection() {
-	columnsForDatatableToAddCollection.clearAll();
-}
-
-function clearColumnsForDatatableToRemoveCollection() {
-	columnsForDatatableToRemoveCollection.clearAll();
 }
 
 function setFaIconsForDatatable(obj) {
@@ -91,44 +82,82 @@ function getInitialColumnsForDatatable() {
 	return initialColumnsConfig;
 }
 
-function getColumnsForDatatable() {
+function getColumnsForDatatable(datatable) {
 	let columnConfig = [];
-	let initialColumnsConfig = getInitialColumnsForDatatable();
-	let localStorageColumnsConfig = getLocalStorageColumnsConfig();
+	const initialColumnsConfig = getInitialColumnsForDatatable();
+	const localStorageColumnsConfig = getLocalStorageColumnsConfig();
 	if (localStorageColumnsConfig && !helpingFunctions.isObjectEmpty(localStorageColumnsConfig)) {
 		localStorageColumnsConfig.forEach((localColumnConfig) => {
+			const filterType = localColumnConfig.filterType;
+			const filterTypeValue = localColumnConfig.filterTypeValue;
+			const columnId = localColumnConfig.id;
+			const metadataColumn = localColumnConfig.metadataColumn;
+			let placeholder;
+
+			if(filterTypeValue === constants.FILTER_TYPE_DATE) {
+				placeholder = "mm/dd/yy";
+			}
+
 			initialColumnsConfig.forEach((initialColumnConfig) => {
 				if (localColumnConfig.id === initialColumnConfig.id) {
 					localColumnConfig.wasInitial = true;
+					let localColumnHeader = localColumnConfig.header;
+					initialColumnConfig.header = localColumnConfig.header;
+
+					if (!Array.isArray(localColumnHeader)) {
+						localColumnHeader = [localColumnHeader];
+					}
+
+					const initialColumnHeaderLength = initialColumnConfig.header.length;
+					const lastHeaderItem = localColumnHeader[initialColumnHeaderLength - 1];
+
+					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
+						localColumnHeader.pop();
+						localColumnHeader.push({content:`${filterType}Filter`,
+							options: setSelectFilterOptions(filterType, columnId, datatable),
+							placeholder: placeholder, compare: (value, filter, obj) => {
+								return compareInitialColumnFilter(value, filter, obj, columnId, filterType, filterTypeValue, initialColumnConfig.id);
+							}});
+					}
+
+					initialColumnConfig.header = localColumnHeader;
 					columnConfig.push(initialColumnConfig);
+
 				}
 			});
 			if (!localColumnConfig.wasInitial) {
-				let headerConfig;
-				if (localColumnConfig.header[1]) {
-					headerConfig = localColumnConfig.header;
-				} else {
-					headerConfig = `${localColumnConfig.header[0].text}`;
-				}
-				let newColumnConfig = {
-					id: localColumnConfig.id,
-					header: headerConfig,
-					fillspace: true,
-					editor: "text",
-					minWidth: 145,
-					template: (obj) => {
-						if (obj.meta) {
-							const columnValueColor = helpingFunctions.getMetadataColumnColor(obj, localColumnConfig.id);
-							if (obj.meta.groups) {
-								return `<span style="color: ${columnValueColor}">${obj.meta.groups[localColumnConfig.id]}</span>`;
-							} else {
-								return `<span style="color: ${columnValueColor}">${obj.meta[localColumnConfig.id]}</span>`;
-							}
-
-						} else return "No metadata for item";
+				let headerConfig = localColumnConfig.header;
+				if (headerConfig) {
+					if (!Array.isArray(headerConfig)) {
+						headerConfig = [headerConfig];
 					}
-				};
-				columnConfig.push(newColumnConfig);
+
+					const headerConfigLength = headerConfig.length;
+					const lastHeaderItem = headerConfig[headerConfigLength - 1];
+
+					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
+						headerConfig.pop();
+						headerConfig.push({content:`${filterType}Filter`,
+							options: setSelectFilterOptions(filterType, columnId, datatable),
+							placeholder: placeholder, compare: (value, filter, obj) => {
+								return compareMetadataColumnFilter(value, filter, obj, columnId, filterType);
+							}});
+					}
+					const newColumnConfig = {
+						id: columnId,
+						header: headerConfig,
+						fillspace: true,
+						editor: "text",
+						filterType: filterType,
+						minWidth: 145,
+						metadataColumn: metadataColumn,
+						template: (obj) => {
+							const columnValue = getColumnValue(newColumnConfig.id);
+							return getMetadataColumnTemplate(obj, columnValue, newColumnConfig);
+						}
+					};
+					columnConfig.push(newColumnConfig);
+				}
 			}
 		});
 	} else {
@@ -141,13 +170,97 @@ function putInLocalStorage(newColumnsConfig, userId) {
 	webix.storage.local.put(`${constants.STORAGE_COLUMNS_CONFIG}-${userId}-${helpingFunctions.getHostsCollectionFromLocalStorage()._id}`, newColumnsConfig.map(column => column));
 }
 
+function clearColumnsInLocalStorage(userId) {
+	webix.storage.local.remove(`${constants.STORAGE_COLUMNS_CONFIG}-${userId}-${helpingFunctions.getHostsCollectionFromLocalStorage()._id}`);
+}
+
+function getColumnValue(columnId) {
+	const splittedColumnId = columnId.split(".");
+	return splittedColumnId[splittedColumnId.length - 1];
+}
+
+function getMetadataColumnValue(obj, valuePath) {
+	const pathArray = valuePath.split(".");
+	let result = obj;
+	for (let i = 0; i < pathArray.length; i++ ) {
+		if (typeof result === "object" && result.hasOwnProperty(pathArray[i])) {
+			result = result[pathArray[i]];
+		}
+	}
+	return result;
+}
+
+function setSelectFilterOptions(filterType, columnId, datatable) {
+	let options = [];
+	if (filterType === "select") {
+		options = [
+			{
+				id: "", value: ""
+			}
+		];
+		datatable.data.each((item) => {
+			if (item) {
+				if (item.hasOwnProperty("meta")) {
+					let metadataValue = getMetadataColumnValue(item.meta, `meta.${columnId}`);
+					let index = options.map((obj) => obj.value).indexOf(metadataValue);
+					if (index === -1) {
+						options.push({
+							id: metadataValue, value: metadataValue
+						});
+
+					}
+				}
+			}
+		});
+	}
+	return options;
+}
+
+function compareMetadataColumnFilter(obj, filter, columnId, filterType, filterTypeValue) {
+	if (obj.hasOwnProperty("meta")) {
+		const metadataColumnValue = getMetadataColumnValue(obj.meta, `meta.${columnId}`);
+		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
+			return metadataColumnValue.toString().indexOf(filter) !== -1;
+		} else if (filterType === "text") {
+			return metadataColumnValue.toString().toLowerCase().indexOf(filter) !== -1;
+		} else if (filterType === "select") {
+			return metadataColumnValue.toString() === filter;
+		}
+	}
+}
+
+function getMetadataColumnTemplate(obj, columnValue, columnConfig) {
+	if (obj.hasOwnProperty("meta")) {
+		const columnValueColor = helpingFunctions.getMetadataColumnColor(obj, columnValue);
+		const metadataColumnValue = getMetadataColumnValue(obj, `meta.${columnConfig.id}`);
+		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
+			return `<span style="color: ${columnValueColor};">${metadataColumnValue}</span>`;
+		} else {
+			return "No present metadata";
+		}
+	}
+}
+
+function compareInitialColumnFilter(value, filter, obj, columnId, filterType, filterTypeValue, columnValue) {
+	if (filterTypeValue === constants.FILTER_TYPE_DATE) {
+		const date = new Date(value);
+		const formatToSting = webix.Date.dateToStr("%m/%d/%y");
+		const dateToCompare = formatToSting(date);
+		return dateToCompare.indexOf(filter) !== -1;
+	} else if (filterType === "text") {
+		return obj[columnValue].toString().toLowerCase().indexOf(filter) !== -1;
+	} else if (filterType === "select") {
+		return obj[columnValue].toString().toLowerCase() === filter;
+	}
+}
+
 export default {
 	getInitialColumnsForDatatable,
 	getColumnsForDatatable,
 	getLocalStorageColumnsConfig,
 	getColumnsForDatatableToAddCollection,
 	getColumnsForDatatableToRemove,
-	clearColumnsForDatatableToAddCollection,
-	clearColumnsForDatatableToRemoveCollection,
-	putInLocalStorage
+	putInLocalStorage,
+	clearColumnsInLocalStorage,
+	getMetadataColumnValue
 };

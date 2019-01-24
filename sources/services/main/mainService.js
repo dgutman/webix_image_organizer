@@ -76,6 +76,7 @@ class MainService {
 		this._tableTemplateCollapser = this._dataview.$scope.getTableTemplateCollapser();
 		this._makeLargeImageButtonLayout = this._view.$scope.getSubGalleryFeaturesView().getMakeLargeImageButtonLayout();
 		this._galleryImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
+		this._projectFolderWindowButton = this._view.$scope.getSubPagerAndSwitcherView().getProjectFolderWindowButton();
 
 		dataviewFilterModel.setRichselectDataviewFilter(this._dataviewRichselectFilter);
 
@@ -209,11 +210,14 @@ class MainService {
 					projectMetadata.clearWrongMetadata();
 					if (projectMetadataFolder) {
 						projectMetadataCollection.add(projectMetadataFolder);
+						this._projectFolderWindowButton.show();
+					} else {
+						this._projectFolderWindowButton.hide();
 					}
 					helpingFunctions.putHostsCollectionInLocalStorage(this.collectionItem);
 					// define datatable columns
-					this._datatable.define("columns", datatableModel.getColumnsForDatatable());
-					this._datatable.refreshColumns();
+					const datatableColumns = datatableModel.getColumnsForDatatable(this._datatable);
+					this._datatable.refreshColumns(datatableColumns);
 					this._tree.parse(data);
 					this._view.hideProgress();
 				})
@@ -441,42 +445,48 @@ class MainService {
 			});
 		}
 
-		this._dataview.attachEvent("onCheckboxClicked", (checkBoxId, dataviewItemId, checkBoxValue) => {
-			let itemId;
-			let value;
-			if (dataviewItemId) {
-				itemId = dataviewItemId;
-				value = checkBoxValue;
-			} else {
-				this._checkbox = $$(checkBoxId);
-				itemId = this._checkbox.config.$masterId;
-				value = this._checkbox.config.value;
+		this._dataview.attachEvent("onCheckboxClicked", (items, value) => {
+			if (!Array.isArray(items)) {
+				items = [items];
 			}
-			const item = this._dataview.getItem(itemId);
-			item.markCheckbox = value;
-			if (value) {
-				selectDataviewItems.add(item._id);
-			}
-			else {
-				selectDataviewItems.remove(item._id);
-			}
-			webix.dp(this._tree).ignore(() => {
-				this._dataview.updateItem(itemId, item);
+			items.forEach((item) => {
+				this._dataview.find((obj) => {
+					if (obj._id === item._id) {
+						item.id = obj.id;
+						webix.dp(this._tree).ignore(() => {
+							this._dataview.updateItem(item.id, item);
+						});
+					}
+				});
 			});
-			if (value) {
-				if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
-					this._cartViewButton.show();
-					this._cartViewButton.callEvent("onItemClick");
-				}
-				this._view.$scope.app.callEvent("changedSelectedImagesCount");
-				this._cartList.parse(item);
-			} else if (!value && helpingFunctions.findItemInList(item._id, this._cartList)) {
-				this._cartList.callEvent("onDeleteButtonClick", [item]);
-			}
 
+			if (helpingFunctions.isObjectEmpty(this._cartList.data.pull) && value) {
+				this._cartViewButton.callEvent("onItemClick", ["checkboxClicked"]);
+			}
+			if (items.length === 1) {
+				if (items[0].markCheckbox) {
+					this._cartList.add(items[0]);
+				}
+				else if (!items[0].markCheckbox && helpingFunctions.findItemInList(items[0]._id, this._cartList)) {
+					this._cartList.callEvent("onDeleteButtonClick", [items[0]]);
+				}
+			}
+			else if (items.length > 1) {
+				if (value) {
+					this._cartList.parse(items);
+				}
+				else {
+					items.forEach((item) => {
+						this._cartList.remove(item.id);
+					});
+					if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
+						this._view.$scope.getSubCartView().hideList();
+					}
+				}
+			}
 		});
 
-		this._cartViewButton.attachEvent("onItemClick", () => {
+		this._cartViewButton.attachEvent("onItemClick", (clicked) => {
 			let label = this._cartViewButton.config.label;
 			if ((!label || label === "Show Cart") && selectDataviewItems.count() > 0)  {
 				this._view.$scope.getSubCartView().showList();
@@ -486,6 +496,9 @@ class MainService {
 				this._view.$scope.getSubCartView().hideList();
 				this._cartViewButton.define("label", "Show Cart");
 				this._cartViewButton.refresh();
+			}
+			if (clicked === "checkboxClicked") {
+				this._cartViewButton.show();
 			}
 		});
 
@@ -693,22 +706,27 @@ class MainService {
 			});
 		});
 
-		this._datatable.attachEvent("onAfterEditStart", (obj) => {
-			let columnId = obj.column;
-			let rowId = obj.row;
-			let rowToEdit = this._datatable.getItem(rowId);
-			let editor = this._datatable.getEditor();
-			let rowToEditValue = rowToEdit.meta.groups[columnId];
-			editor.setValue(rowToEditValue);
+		this._datatable.attachEvent("onAfterEditStart", (infoObject) => {
+			const columnId = infoObject.column;
+			const editor = this._datatable.getEditor();
+			const rowId = infoObject.row;
+			const item = this._datatable.getItem(rowId);
+			let editValue;
+
+			if (item.hasOwnProperty("meta")) {
+				editValue = datatableModel.getMetadataColumnValue(item, `meta.${columnId}`);
+			}
+
+			editor.setValue(editValue);
 		});
 
 		this._datatable.attachEvent("onBeforeEditStop", (values, obj) => {
 			if (values.old !== values.value) {
-				let columnId = obj.column;
-				let rowId = obj.row;
-				let itemToEdit = this._datatable.getItem(rowId);
-				let copyOfAnItemToEdit = webix.copy(itemToEdit);
-				let metadataTags = this._findMetadataTags(itemToEdit, columnId);
+				const columnId = obj.column;
+				const rowId = obj.row;
+				const itemToEdit = this._datatable.getItem(rowId);
+				const copyOfAnItemToEdit = webix.copy(itemToEdit);
+				const metadataTags = this._findMetadataTags(itemToEdit, columnId);
 				if (metadataTags) {
 					if (metadataTags.metaKey) {
 						itemToEdit.meta[metadataTags.metaTag][metadataTags.metaKey] = values.value;

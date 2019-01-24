@@ -53,4 +53,7 @@ export default {
 	LABEL_DATAVIEW_IMAGES: "Display LABEL images",
 	MACRO_DATAVIEW_IMAGES: "Display MACRO images",
 	MACRO_AND_LABEL_DATAVIEW_IMAGES: "Display LABEL & MACRO images",
+
+	MAIN_PROPERTIES_CLASS_NAME: "main-properties",
+	METADATA_PROPERTIES_CLASS_NAME: "metadata-properties"
 };
