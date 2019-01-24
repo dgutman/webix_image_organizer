@@ -16,3 +16,8 @@ From the javacsript console you can just type:
 localStorage.clear()
 
 
+### Currently tested on..
+
+I am running Ubuntu 16.04 on my laptop..
+npm --version is showing 6.4.1
+nodejs --version is showing v6.14.4
