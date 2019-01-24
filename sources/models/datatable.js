@@ -2,7 +2,6 @@ import helpingFunctions from "./helpingFunctions";
 import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
-import "../views/components/datatableEditor";
 
 const columnsForDatatableToAddCollection = new webix.DataCollection();
 const columnsForDatatableToRemoveCollection = new webix.DataCollection();
@@ -127,31 +126,38 @@ function getColumnsForDatatable(datatable) {
 				}
 			});
 			if (!localColumnConfig.wasInitial) {
-				const headerConfig = localColumnConfig.header;
-				const headerConfigLength = headerConfig.length;
-				const lastHeaderItem = headerConfig[headerConfigLength - 1];
-				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
-					headerConfig.pop();
-					headerConfig.push({content:`${filterType}Filter`,
-						options: setSelectFilterOptions(filterType, columnId, datatable),
-						placeholder: placeholder, compare: (value, filter, obj) => {
-							return compareMetadataColumnFilter(value, filter, obj, columnId, filterType);
-						}});
-				}
-				const newColumnConfig = {
-					id: columnId,
-					header: headerConfig,
-					fillspace: true,
-					editor: "text",
-					filterType: filterType,
-					minWidth: 145,
-					metadataColumn: metadataColumn,
-					template: (obj) => {
-						const columnValue = getColumnValue(newColumnConfig.id);
-						return getMetadataColumnTemplate(obj, columnValue, newColumnConfig);
+				let headerConfig = localColumnConfig.header;
+				if (headerConfig) {
+					if (!Array.isArray(headerConfig)) {
+						headerConfig = [headerConfig];
 					}
-				};
-				columnConfig.push(newColumnConfig);
+
+					const headerConfigLength = headerConfig.length;
+					const lastHeaderItem = headerConfig[headerConfigLength - 1];
+
+					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
+						headerConfig.pop();
+						headerConfig.push({content:`${filterType}Filter`,
+							options: setSelectFilterOptions(filterType, columnId, datatable),
+							placeholder: placeholder, compare: (value, filter, obj) => {
+								return compareMetadataColumnFilter(value, filter, obj, columnId, filterType);
+							}});
+					}
+					const newColumnConfig = {
+						id: columnId,
+						header: headerConfig,
+						fillspace: true,
+						editor: "text",
+						filterType: filterType,
+						minWidth: 145,
+						metadataColumn: metadataColumn,
+						template: (obj) => {
+							const columnValue = getColumnValue(newColumnConfig.id);
+							return getMetadataColumnTemplate(obj, columnValue, newColumnConfig);
+						}
+					};
+					columnConfig.push(newColumnConfig);
+				}
 			}
 		});
 	} else {
@@ -192,11 +198,10 @@ function setSelectFilterOptions(filterType, columnId, datatable) {
 				id: "", value: ""
 			}
 		];
-		datatable.data.each((itemId) => {
-			if (itemId) {
-				let datatableItem = datatable.getItem(itemId);
-				if (datatableItem.hasOwnProperty("meta")) {
-					let metadataValue = getMetadataColumnValue(datatableItem.meta, `meta.${columnId}`);
+		datatable.data.each((item) => {
+			if (item) {
+				if (item.hasOwnProperty("meta")) {
+					let metadataValue = getMetadataColumnValue(item.meta, `meta.${columnId}`);
 					let index = options.map((obj) => obj.value).indexOf(metadataValue);
 					if (index === -1) {
 						options.push({
@@ -256,5 +261,6 @@ export default {
 	getColumnsForDatatableToAddCollection,
 	getColumnsForDatatableToRemove,
 	putInLocalStorage,
-	clearColumnsInLocalStorage
+	clearColumnsInLocalStorage,
+	getMetadataColumnValue
 };

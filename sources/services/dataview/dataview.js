@@ -119,11 +119,14 @@ class DataviewService {
 				this._unselectImages();
 			},
 			"gallery-select-all-images": () => {
-				let limit = this._dataview.data.$max;
+				const value = 1;
+				const limit = this._dataview.data.$max;
+				const dataviewData = this._dataview.data.order;
 				let offset = this._dataview.data.$min;
 				let isNeedShowAlert = true;
-				let dataviewData = this._dataview.data.order;
 				let length;
+				let items = [];
+
 				if (dataviewData.length < limit) {
 					length = dataviewData.length;
 				} else {
@@ -131,30 +134,32 @@ class DataviewService {
 				}
 				for (; offset < length; offset ++) {
 					let item = this._dataview.getItem(dataviewData[offset]);
-					if (item.markCheckbox) {
-						return;
-					}
-					if (selectedDataviewItems.count() < constants.MAX_COUNT_IMAGES_SELECTION) {
-						item.markCheckbox = 1;
-						let checkBoxValue = 1;
-						let checkBoxId = "1";
-						this._dataview.callEvent("onCheckboxClicked", [checkBoxId, item.id, checkBoxValue]);
-					}
-					else if (isNeedShowAlert) {
-						isNeedShowAlert = false;
-						webix.alert({
-							text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
-						});
+					if (!item.markCheckbox) {
+						if (selectedDataviewItems.count() < constants.MAX_COUNT_IMAGES_SELECTION) {
+							item.markCheckbox = value;
+							items.push(item);
+							selectedDataviewItems.add(item.id);
+						}
+						else if (isNeedShowAlert) {
+							isNeedShowAlert = false;
+							webix.alert({
+								text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
+							});
+						}
 					}
 				}
+
+				this._dataview.callEvent("onCheckboxClicked", [items, value]);
 				this._dataview.refresh();
 				this._view.$scope.app.callEvent("changedSelectedImagesCount");
 			},
 			"gallery-select-first-count-images": () => {
-				selectedDataviewItems.clearAll();
-				let limit = constants.MAX_COUNT_IMAGES_SELECTION;
-				let dataviewData = this._dataview.data.order;
+				const value = 1;
+				const limit = constants.MAX_COUNT_IMAGES_SELECTION;
+				const dataviewData = this._dataview.data.order;
 				let length;
+				let items = [];
+
 				if (dataviewData.length < limit) {
 					length = dataviewData.length;
 				} else {
@@ -162,12 +167,14 @@ class DataviewService {
 				}
 				for (let offset = 0; offset < length; offset ++) {
 					let item = this._dataview.getItem(dataviewData[offset]);
-					item.markCheckbox = 1;
-					let checkBoxValue = 1;
-					let checkBoxId = 1;
-					this._dataview.callEvent("onCheckboxClicked", [checkBoxId, item.id, checkBoxValue]);
-
+					if (!item.markCheckbox) {
+						item.markCheckbox = value;
+						items.push(item);
+						selectedDataviewItems.add(item.id);
+					}
 				}
+
+				this._dataview.callEvent("onCheckboxClicked", [items, value]);
 				this._dataview.refresh();
 				this._view.$scope.app.callEvent("changedSelectedImagesCount");
 			}
@@ -208,12 +215,14 @@ class DataviewService {
 	}
 
 	_unselectImages() {
+		const value = 0;
+		let items = [];
 		this._dataview.data.each((item) => {
-			item.markCheckbox = 0;
-			let checkBoxValue = 0;
-			let checkBoxId = 1;
-			this._dataview.callEvent("onCheckboxClicked", [checkBoxId, item.id, checkBoxValue]);
+			item.markCheckbox = value;
+			items.push(item);
 		});
+
+		this._dataview.callEvent("onCheckboxClicked", [items, value]);
 		this._dataview.refresh();
 		selectedDataviewItems.clearAll();
 		this._view.$scope.app.callEvent("changedSelectedImagesCount");

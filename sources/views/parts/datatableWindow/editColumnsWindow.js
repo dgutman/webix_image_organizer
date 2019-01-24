@@ -144,7 +144,7 @@ export default class EditColumnsWindow extends JetView {
 
 		let columnConfig;
 		let initialConfig = false;
-		this.initialColumnsConfig.forEach((initialColumnConfig) => {
+		this.initialColumnsConfig.find((initialColumnConfig) => {
 			if (initialColumnConfig.id === columnValue) {
 				initialConfig = true;
 				columnConfig = initialColumnConfig;
@@ -156,6 +156,7 @@ export default class EditColumnsWindow extends JetView {
 					columnConfig.filterType = filterType;
 					columnConfig.filterTypeValue = filterTypeValue;
 				}
+				return true;
 			}
 		});
 		if (!initialConfig) {
@@ -175,9 +176,7 @@ export default class EditColumnsWindow extends JetView {
 	//adding new column to the datatable
 	createNewDatatableColumns(columnValue, headerValue, filterTypeValue, metadataColumnHeader) {
 		this.existedColumns.push(this.generateColumnConfig(columnValue, headerValue, filterTypeValue, metadataColumnHeader));
-		this.existedColumns.forEach((columnConfig, columnsIndex) => {
-			//columnConfig.header = this.removeNullFromColumnsHeader(columnConfig.header, this.existedColumns, columnsIndex);
-
+		this.existedColumns.forEach((columnConfig) => {
 			columnsForDatatableToRemove.data.each((configValues) => {
 				if (columnConfig.id === configValues.columnValue) {
 					columnsForDatatableToRemove.remove(configValues.id);
@@ -196,7 +195,6 @@ export default class EditColumnsWindow extends JetView {
 				this.existedColumns.splice(columnsIndex, 1);
 			}
 
-			//columnConfig.header = this.removeNullFromColumnsHeader(columnConfig.header, this.existedColumns, columnsIndex);
 			columnsForDatatableToAdd.data.each((configValues) => {
 				if (columnConfig.id === configValues.columnValue) {
 					columnsForDatatableToAdd.remove(configValues.id);
@@ -415,40 +413,12 @@ export default class EditColumnsWindow extends JetView {
 		}
 	}
 
-	//because of webix bug with header
-	// removeNullFromColumnsHeader(columnsHeader, columnsConfig, columnsIndex) {
-	// 	columnsHeader.forEach((columnHeaderValue, headerIndex) => {
-	// 		if (!columnHeaderValue && headerIndex !== 0) {
-	// 			if (columnsHeader[headerIndex - 1] && columnsHeader[headerIndex - 1].rowspan) {
-	// 				columnsHeader.splice(headerIndex, 1);
-	// 			} else {
-	// 				this.replaceNullHeaderAfterColspan(columnsHeader, columnsConfig, columnsIndex, headerIndex);
-	// 			}
-	// 		} else {
-	// 			this.replaceNullHeaderAfterColspan(columnsHeader, columnsConfig, columnsIndex, headerIndex);
-	// 		}
-	// 	});
-	// 	return columnsHeader;
-	// }
-	//
-	// replaceNullHeaderAfterColspan(columnsHeader, columnsConfig, columnsIndex, headerIndex) {
-	// 	if (columnsIndex !== 0) {
-	// 		const previousColumnHeader = columnsConfig[columnsIndex - 1].header;
-	//
-	// 		if (previousColumnHeader[headerIndex] instanceof Object) {
-	// 			if (previousColumnHeader[headerIndex].hasOwnProperty("colspan") && previousColumnHeader[headerIndex].hasOwnProperty("text"))
-	// 				columnsHeader.splice(headerIndex, 1, {text: previousColumnHeader[headerIndex].text});
-	// 		}
-	// 	}
-	// }
-
 	showWindow(datatableColumnsConfig, columnsToDelete, datatable) {
 		let dataToAdd = [];
-		this.editedDatable = datatable;
 		this.existedColumns = datatableConfig.getLocalStorageColumnsConfig();
 		this.initialColumnsConfig = datatableConfig.getInitialColumnsForDatatable();
 		if (!this.existedColumns) {
-			this.existedColumns = this.initialColumnsConfig;
+			this.existedColumns = webix.copy(this.initialColumnsConfig);
 		}
 		this.userInfo = authService.getUserInfo();
 		datatableColumnsConfig.forEach((columnConfig) => {

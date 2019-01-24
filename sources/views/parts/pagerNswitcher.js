@@ -1,7 +1,20 @@
 import {JetView} from "webix-jet";
+import ProjectMetadataWindow from "./projectMetadataWindow/projectMetadataWindow";
 
 export default class PagerSwitcherView extends JetView {
 	config() {
+		const projectFolderWindowButton = {
+			view: "button",
+			css: "transparent-button",
+			value: "Show Project Folder",
+			name: "projectFolderWindowButtonName",
+			width: 160,
+			hidden: true,
+			click: () => {
+				this.projectMetadataWindow.showWindow();
+			}
+		};
+
 		const switchButton = {
 			view: "switch",
 			value: 0,
@@ -35,6 +48,8 @@ export default class PagerSwitcherView extends JetView {
 			name: "pagerAndSwitcherViewClass",
 			padding: 5,
 			cols: [
+				{width: 75},
+				projectFolderWindowButton,
 				{},
 				switchButton,
 				{},
@@ -44,6 +59,10 @@ export default class PagerSwitcherView extends JetView {
 				{width: 40}
 			]
 		};
+	}
+
+	ready() {
+		this.projectMetadataWindow = this.ui(ProjectMetadataWindow);
 	}
 
 	getItemsCount(pagerObj) {
@@ -71,5 +90,9 @@ export default class PagerSwitcherView extends JetView {
 
 	getCartButton() {
 		return this.getRoot().queryView({name: "hideOrShowCartListButtonName"});
+	}
+
+	getProjectFolderWindowButton() {
+		return this.getRoot().queryView({name: "projectFolderWindowButtonName"});
 	}
 }
