@@ -1,7 +1,6 @@
 export default {
 
 	KEY_TOKEN: "girderToken",
-	KEY_ACCEPT_TERMS: "acceptTerms",
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",

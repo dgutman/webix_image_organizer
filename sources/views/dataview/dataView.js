@@ -7,6 +7,7 @@ import selectedDataviewItems from "../../models/selectDataviewItems";
 import collapser from "../components/collapser";
 import tableRightPanel from "./tableRightPanel";
 import dataViews from "../../models/dataViews";
+import state from "../../models/state";
 
 const collapserName = "tableTemplateCollapser";
 
@@ -64,10 +65,22 @@ export default class DataTableView extends JetView {
 					on: {
 						onChange(value, oldValue) {
 							if (value !== oldValue) {
-								const item = dataViews.getDataview().getItem(this.config.$masterId);
+								const dataview = dataViews.getDataview();
+								const item = dataview.getItem(this.config.$masterId);
+								if (value && selectedDataviewItems.count() >= constants.MAX_COUNT_IMAGES_SELECTION) {
+									dataview.updateItem(item.id, {markCheckbox: oldValue});
+									webix.alert({
+										text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
+									});
+								}
 								item.markCheckbox = value;
-								selectedDataviewItems.add(item.id);
-								dataViews.getDataview().callEvent("onCheckboxClicked", [item, value]);
+								if (value) {
+									selectedDataviewItems.add(item.id);
+								} else {
+									selectedDataviewItems.remove(item.id);
+								}
+								dataview.callEvent("onCheckboxClicked", [item, value]);
+								state.app.callEvent("changedSelectedImagesCount");
 							}
 						}
 					}

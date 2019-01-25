@@ -179,20 +179,22 @@ class MainService {
 
 		// setting onChange event for hosts
 		this._hostBox.attachEvent("onChange", (newId, oldId) => {
-			webix.confirm({
-				title: "Attention!",
-				text: "Are you sure you want to change host? All data will be cleared.",
-				callback: (result) => {
-					if (result) {
-						webix.storage.local.put("hostId", newId);
-						this._view.$scope.app.refresh();
-					} else {
-						this._hostBox.blockEvent();
-						this._hostBox.setValue(oldId);
-						this._hostBox.unblockEvent();
+			if (newId !== oldId) {
+				webix.confirm({
+					title: "Attention!",
+					text: "Are you sure you want to change host? All data will be cleared.",
+					callback: (result) => {
+						if (result) {
+							this._putValuesAfterHostChange(newId);
+							this._view.$scope.app.refresh();
+						} else {
+							this._hostBox.blockEvent();
+							this._hostBox.setValue(oldId);
+							this._hostBox.unblockEvent();
+						}
 					}
-				}
-			});
+				});
+			}
 		});
 
 		// setting onChange event for collection
@@ -481,6 +483,7 @@ class MainService {
 					});
 					if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
 						this._view.$scope.getSubCartView().hideList();
+						this._cartViewButton.hide();
 					}
 				}
 			}
@@ -855,17 +858,22 @@ class MainService {
 				this._dataview.refresh();
 			}
 		});
+	}
 
+	_putValuesAfterHostChange(hostId) {
+		const hostBoxItem = this._hostBox.getList().getItem(hostId);
+		const hostAPI = hostBoxItem.hostAPI;
+		webix.storage.local.put("hostId", hostId);
+		webix.storage.local.put("hostAPI", hostAPI);
 	}
 
 	// setting hosts value and parsing data to collection and tree
 	_setValueAndParseData() {
-		const value = webix.storage.local.get("hostId");
-		if (!value) {
-			this._hostBox.setValue("1");
-		} else {
-			this._hostBox.setValue(value);
-		}
+		const localStorageHostId = webix.storage.local.get("hostId");
+		const firstHostItemId = process.env.SERVER_LIST[0].id;
+		const hostId =  localStorageHostId ? localStorageHostId : firstHostItemId;
+		this._putValuesAfterHostChange(hostId);
+		this._hostBox.setValue(hostId);
 		this._view.$scope.getSubSelectView().parseCollectionData();
 	}
 

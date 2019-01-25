@@ -69,8 +69,10 @@ module.exports = function (env) {
 				PRODUCTION: production
 			}),
 			new webpack.EnvironmentPlugin({
-				FIRST_HOST_API_URL: "http://dermannotator.org:8080/api/v1",
-				SECOND_HOST_API_URL: "http://candygram.neurology.emory.edu:8080/api/v1",
+				SERVER_LIST: [
+					{id: "1", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
+					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
+				]
 			})
 		]
 	};

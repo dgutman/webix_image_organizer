@@ -1,8 +1,5 @@
 import authService from "./authentication";
 
-const FIRST_API_URL = process.env.FIRST_HOST_API_URL;
-const SECOND_API_URL = process.env.SECOND_HOST_API_URL;
-
 function parseError(xhr) {
 	let message;
 	switch (xhr.status) {
@@ -38,12 +35,7 @@ webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, pro
 class AjaxActions {
 
 	getHostApiUrl() {
-		let hostId = webix.storage.local.get("hostId");
-		if (!hostId || hostId === "1") {
-			return FIRST_API_URL;
-		} else if (hostId === "2") {
-			return SECOND_API_URL;
-		}
+		return webix.storage.local.get("hostAPI");
 	}
 
 	setTokenIntoUrl(token, symbol) {
