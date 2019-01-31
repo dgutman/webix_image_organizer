@@ -1,8 +1,10 @@
 import {JetView} from "webix-jet";
 import projectMetadata from "../../../models/projectMetadata";
 import helpingFunctions from "../../../models/helpingFunctions";
+import "../editableTemplate";
 
 let projectKeys;
+const collapsedTemplatesCollection = new webix.DataCollection();
 
 export default class ProjectMetadataWindow extends JetView {
 	config() {
@@ -37,18 +39,26 @@ export default class ProjectMetadataWindow extends JetView {
 				borderless: true,
 				rows: [
 					{
-						view: "template",
+						view: "editabletemplate",
 						name: "projectMetadataTemplateName",
 						css: {"overflow": "auto"},
+						editable: true,
+						editor: "text",
+						editaction: "click",
 						template: (obj) => {
 							if (!helpingFunctions.isObjectEmpty(obj)) {
 								let stringToReturn = "";
 								projectKeys.forEach((key) => {
-									let validationValues = obj.projectSchema[key].join("<br>");
-									stringToReturn+=`<div class="collapssible-accordion ${key} hidden-views project-metadata-window-collapser">
+									if (Array.isArray(obj[key])) {
+										const validationValues = obj[key].map((value, index) => {
+											return `<p data-edit=${key}-${index}>${value}</p>`;
+										}).join("");
+										const showedOrHiddenCssClass = this.getShowedOrHiddenCssClass(key);
+										stringToReturn+=`<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
 														<span class="collpaser-text">${key}</span>
 													</div>
 													<div class="validation-values-template ${key}" style="">${validationValues}</div>\n`;
+									}
 								});
 								return stringToReturn;
 							}
@@ -58,6 +68,11 @@ export default class ProjectMetadataWindow extends JetView {
 								projectKeys.forEach((key) => {
 									if (element.className.indexOf(key) !== -1) {
 										helpingFunctions.showOrHideTemplateCollapsedViews(key, element);
+										if (element.className.indexOf("showed-views") !== -1) {
+											collapsedTemplatesCollection.add(element);
+										} else {
+											collapsedTemplatesCollection.remove(key);
+										}
 									}
 								});
 							}
@@ -70,16 +85,20 @@ export default class ProjectMetadataWindow extends JetView {
 	}
 
 	showWindow() {
-		const projectMetadataTemplate = this.getProjectMetadataTemplate();
+		this.projectMetadataTemplate = this.getProjectMetadataTemplate();
 		const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 		const projectMetadataFolder = projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
 		if (projectMetadataFolder instanceof Object && projectMetadataFolder.hasOwnProperty("meta")) {
 			const projectSchema = projectMetadataFolder.meta.projectSchema;
 			projectKeys = Object.keys(projectSchema);
-			projectMetadataTemplate.parse({
-				projectSchema: projectSchema,
-			});
+			this.projectMetadataTemplate.parse(projectSchema);
 			this.getRoot().show();
+			this.projectMetadataTemplate.attachEvent("onAfterRender", () => {
+				collapsedTemplatesCollection.find((elementNode) => {
+					const key = elementNode.id;
+					helpingFunctions.showOrHideTemplateCollapsedViews(key, elementNode);
+				});
+			});
 		} else {
 			webix.alert({
 				title: "Error",
@@ -94,7 +113,17 @@ export default class ProjectMetadataWindow extends JetView {
 		return this.getRoot().queryView({name: "projectMetadataTemplateName"});
 	}
 
+	getShowedOrHiddenCssClass(key) {
+		const templatesToShow = collapsedTemplatesCollection.find(elementNode => elementNode.id === key);
+		if (templatesToShow.length !== 0) {
+			return "showed-views";
+		} else {
+			return "hidden-views";
+		}
+	}
+
 	close() {
+		this.projectMetadataTemplate.detachEvent("onAfterRender");
 		this.getRoot().hide();
 	}
 

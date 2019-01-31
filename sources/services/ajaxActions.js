@@ -191,6 +191,12 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
+	updateFolderMetadata(folderId, metadata) {
+		return this._ajax()
+			.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
+			.then(result => this._parseData(result));
+	}
+
 }
 
 const instance = new AjaxActions();
