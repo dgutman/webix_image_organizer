@@ -739,7 +739,7 @@ class MainService {
 					}
 				}
 				this._view.showProgress();
-				ajaxActions.putNewMetadata(itemToEdit._id, itemToEdit.meta)
+				ajaxActions.updateItemMetadata(itemToEdit._id, itemToEdit.meta)
 					.then(() => {
 						this._datatable.updateItem(rowId, itemToEdit);
 						webix.message({

@@ -38,9 +38,7 @@ if (!webix.ui.editabletemplate) {
 			}
 		},
 		getItem(id) {
-			const splittedId = id.split("-");
-			const objectKey = splittedId[0];
-			const valueIndex = splittedId[1];
+			const [objectKey, valueIndex] = id.split("-");
 			return {value: this.data[objectKey][valueIndex]};
 		},
 		showItem(id) {
@@ -53,9 +51,7 @@ if (!webix.ui.editabletemplate) {
 			return this.getNode().querySelector(`[data-edit="${id}"]`);
 		},
 		updateItem(id, value) {
-			const splittedId = id.split("-");
-			const objectKey = splittedId[0];
-			const valueIndex = splittedId[1];
+			const [objectKey, valueIndex] = id.split("-");
 			const previousValues = webix.copy(this.data);
 			const projectFolderMetadataCollection = projectMetadata.getProjectFolderMetadata();
 			const projectSchemaFolder = projectFolderMetadataCollection.getItem(projectFolderMetadataCollection.getLastId());

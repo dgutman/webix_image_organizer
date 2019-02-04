@@ -173,7 +173,7 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	putNewMetadata(itemId, metadataObject) {
+	updateItemMetadata(itemId, metadataObject) {
 		let objectToPut = {
 			metadata: metadataObject
 		};

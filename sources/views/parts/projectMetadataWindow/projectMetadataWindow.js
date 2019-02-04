@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 import projectMetadata from "../../../models/projectMetadata";
 import helpingFunctions from "../../../models/helpingFunctions";
-import "../editableTemplate";
+import "../../components/editableTemplate";
 
 let projectKeys;
 const collapsedTemplatesCollection = new webix.DataCollection();

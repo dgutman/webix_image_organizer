@@ -34,6 +34,7 @@
     "codemirror": "^5.39.2",
     "file-saver": "^2.0.0",
     "json-formatter-js": "^2.2.0",
+    "jsoneditor": "git+https://github.com/dverkhovsky13/jsoneditor.git#set_debounce_interval",
     "openseadragon": "^2.3.1",
     "webix-jet": "^1.5.3",
     "webpack": "^3.12.0",
