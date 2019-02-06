@@ -14,7 +14,7 @@ module.exports = function (env) {
 		entry: "./sources/app.js",
 		output: {
 			path: path.join(__dirname, "codebase"),
-			publicPath: "/codebase/",
+			publicPath: "",
 			filename: "app.js"
 		},
 		devtool: "inline-source-map",
