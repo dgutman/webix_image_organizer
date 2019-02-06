@@ -1,7 +1,6 @@
 import views from "./dataViews";
 import projectMetadata from "../models/projectMetadata";
 import dataviewFilterModel from "../models/dataviewFilterModel";
-import constants from "../constants";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();

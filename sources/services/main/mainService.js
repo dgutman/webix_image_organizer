@@ -20,9 +20,12 @@ import dataviewFilterModel from "../../models/dataviewFilterModel";
 import MakeLargeImageWindow from "../../views/parts/makeLargeImageWindow/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
+import imagesTagsModel from "../../models/imagesTagsModel";
+import setImagesTagsWindow from "../../views/cartView/setImagesTagsWindow/setImagesTagsWindow";
 
 let contextToFolder;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
+const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 
 class MainService {
 	constructor(view, hostBox, collectionBox, switcher, pager, dataview, datatable, tree, metaTemplate, collapser, scrollview, cartList) {
@@ -61,6 +64,7 @@ class MainService {
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubDataView().getSelectImagesTemplate();
 		this._nonModalWindow = this._view.$scope.ui(NonModalWindow);
+		this._setImagesTagsWindow = this._view.$scope.ui(setImagesTagsWindow);
 		this._contextMenu = this._view.$scope.ui(ContextMenu).getRoot();
 		this._cartViewButton = this._view.$scope.getSubPagerAndSwitcherView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartView().getDownloadingMenu();
@@ -415,9 +419,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message({
-									text: "Something went wrong!",
-								});
 								this.treeFolder.name = values.old;
 								this._tree.refresh();
 								this._dataview.refresh();
@@ -434,9 +435,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message({
-									text: "Something went wrong!",
-								});
 								this.treeItem.name = values.old;
 								this._tree.refresh();
 								this._dataview.refresh();
@@ -622,6 +620,10 @@ class MainService {
 					document.execCommand("copy");
 					document.body.removeChild(dummy);
 					webix.message("Copied");
+					break;
+				}
+				case constants.ADD_TAG_TO_IMAGES_MENU_ID: {
+					this._setImagesTagsWindow.showWindow(imagesTagsCollection, this._cartList);
 				}
 			}
 		});
@@ -750,10 +752,6 @@ class MainService {
 					})
 					.fail(() => {
 						this._datatable.updateItem(rowId, copyOfAnItemToEdit);
-						webix.message({
-							text: "Something went wrong while updating metadata!",
-							expire: 2000
-						});
 						this._view.hideProgress();
 					});
 			}
@@ -821,7 +819,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message("Something went wrong!");
 								this._view.hideProgress();
 							});
 						break;

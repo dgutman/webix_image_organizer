@@ -413,7 +413,7 @@ export default class EditColumnsWindow extends JetView {
 		}
 	}
 
-	showWindow(datatableColumnsConfig, columnsToDelete, datatable) {
+	showWindow(datatableColumnsConfig, columnsToDelete) {
 		let dataToAdd = [];
 		this.existedColumns = datatableConfig.getLocalStorageColumnsConfig();
 		this.initialColumnsConfig = datatableConfig.getInitialColumnsForDatatable();

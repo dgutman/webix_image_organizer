@@ -347,3 +347,32 @@ input::-ms-clear {
   white-space: pre;
   text-align: center;
 }
+
+.list-of-tags-template {
+  font-size:17px;
+  font-style:italic;
+  padding-left: 17px;
+}
+
+.images-tags-active-list {
+  .webix_list_item {
+    border-bottom: 1px solid #dddddd;
+  }
+  .active-list-name {
+    padding-left: 7px;
+    font-size: 15px;
+    padding-top: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .active-list-delete-button {
+    float: right;
+    padding-top: 2px;
+    margin-right: -10px;
+    .delete-icon-button .webix_icon_btn {
+      color: #606060;
+    }
+  }
+}
