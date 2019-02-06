@@ -211,7 +211,8 @@ function showOrHideImageSelectionTemplate(action, template) {
 }
 
 function showOrHideTemplateCollapsedViews(className, element) {
-	const propertiesElement = document.getElementsByClassName(className)[1];
+	const foundElements = document.getElementsByClassName(className);
+	const propertiesElement = foundElements[1] ? foundElements[1] : foundElements[0];
 
 	if (propertiesElement.offsetParent === null) {
 		//show properties template
@@ -225,11 +226,11 @@ function showOrHideTemplateCollapsedViews(className, element) {
 }
 
 function removeAndAddClassFromCollapsedElement(action, element) {
+	webix.html.removeCss(element, "showed-views");
+	webix.html.removeCss(element, "hidden-views");
 	if (action === "hide") {
-		webix.html.removeCss(element, "showed-views");
 		webix.html.addCss(element, "hidden-views");
 	} else if (action === "show") {
-		webix.html.removeCss(element, "hidden-views");
 		webix.html.addCss(element, "showed-views");
 	}
 }

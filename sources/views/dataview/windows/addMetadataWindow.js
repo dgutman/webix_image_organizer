@@ -117,7 +117,7 @@ export default class AddMetadataWindow extends JetView {
 					//use encoded if there will be a problem with previous json object
 					//let encodedMetadataToParse = encodeURI(JSON.stringify(objectToPost));
 					this.view.showProgress();
-					ajaxActions.putNewMetadata(itemId, objectToPost)
+					ajaxActions.updateItemMetadata(itemId, objectToPost)
 						.then(() => {
 							this.view.hideProgress();
 						})

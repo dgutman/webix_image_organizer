@@ -3,6 +3,10 @@ import constants from "../../constants";
 import format from "../../utils/formats";
 import AddMetadataWindow from "./windows/addMetadataWindow";
 import helpingFunctions from "../../models/helpingFunctions";
+import JSONEditor from "jsoneditor";
+import "jsoneditor/dist/jsoneditor.min.css";
+import ajaxActions from "../../services/ajaxActions";
+import dataViews from "../../models/dataViews";
 
 let itemId;
 const mainPropertiesClassName = constants.MAIN_PROPERTIES_CLASS_NAME;
@@ -11,6 +15,7 @@ const metadataPropertiesClassName = constants.METADATA_PROPERTIES_CLASS_NAME;
 export default class MetadataTemplateView extends JetView {
 
 	config() {
+
 		const showAddMetadataWindowButton = {
 			view: "button",
 			name: "showAddMetadataWindowButtonName",
@@ -29,8 +34,12 @@ export default class MetadataTemplateView extends JetView {
 		const templateView = {
 			view: "template",
 			name: "templateViewName",
+			css: "metadata-template",
 			width: 350,
 			template: (obj) => {
+				this.jsonEditor.set(obj.meta);
+				this.jsonEditor.setName("Metadata Properties");
+				this.jsonEditor.collapseAll();
 				itemId = obj._id;
 				let template = `<div class="templateMain">
 									<div class="templateName">Metadata</div>
@@ -49,14 +58,6 @@ export default class MetadataTemplateView extends JetView {
 											<p>folderId: ${obj.folderId || ""}</p>
 											<p>size: ${obj.size || "0"} B</p>
 											<p>updated: ${format.formatDateString(obj.updated) || ""}</p>
-										</div>
-										<div style="display: ${this.displayMetadataProperties(obj)}">
-											<div class="collapssible-accordion ${metadataPropertiesClassName} hidden-views metadata-template-collpaser">
-												<span class="collpaser-text">Metadata Properties</span>
-											</div>
-											<div class="${metadataPropertiesClassName} metadata-info-template">
-												meta: ${JSON.stringify(obj.meta, null, 2)}
-											</div>
 										</div>
 									</div>
 							</div>`;
@@ -91,6 +92,31 @@ export default class MetadataTemplateView extends JetView {
 
 	ready() {
 		this.addMetadataWindow = this.ui(AddMetadataWindow);
+		const metadataTemplate = this.getTemplateView();
+		webix.extend(metadataTemplate, webix.ProgressBar);
+
+		this.jsonEditor = new JSONEditor(metadataTemplate.getNode(), {
+			navigationBar: false,
+			mainMenuBar: false,
+			debounceInterval: 1000,
+			onChangeJSON: (updatedMetadata) => {
+				const itemId = metadataTemplate.getValues()._id;
+
+				metadataTemplate.showProgress();
+				ajaxActions.updateItemMetadata(itemId, updatedMetadata)
+					.then(() => {
+						webix.message("Metadata was successfully updated!");
+						metadataTemplate.hideProgress();
+					})
+					.fail(() => {
+						const previousItemMetadata = metadataTemplate.getValues().meta;
+						this.jsonEditor.set(previousItemMetadata);
+						webix.message("Something went wrong!");
+						metadataTemplate.hideProgress();
+					});
+			}
+		});
+
 	}
 
 	getScrollView() {
@@ -104,13 +130,4 @@ export default class MetadataTemplateView extends JetView {
 	getShowAddMetadataWindowButton() {
 		return this.getRoot().queryView({name: "showAddMetadataWindowButtonName"});
 	}
-
-	displayMetadataProperties(obj) {
-		if (!helpingFunctions.isObjectEmpty(obj) && obj.hasOwnProperty("meta")) {
-			return "block";
-		} else {
-			return "none";
-		}
-	}
-
 }

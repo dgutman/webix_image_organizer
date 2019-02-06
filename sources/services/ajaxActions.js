@@ -173,7 +173,7 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	putNewMetadata(itemId, metadataObject) {
+	updateItemMetadata(itemId, metadataObject) {
 		let objectToPut = {
 			metadata: metadataObject
 		};
@@ -188,6 +188,12 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}`, params)
+			.then(result => this._parseData(result));
+	}
+
+	updateFolderMetadata(folderId, metadata) {
+		return this._ajax()
+			.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
 			.then(result => this._parseData(result));
 	}
 
