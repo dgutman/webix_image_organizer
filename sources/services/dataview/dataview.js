@@ -184,6 +184,11 @@ class DataviewService {
 			const currentItem = this._datatable.getItem(id);
 			this._datatableImagesTemplate.parse(currentItem);
 		});
+
+		this._datatable.attachEvent("onAfterLoad", () => {
+			const newDatatableColumns = datatableModel.getColumnsForDatatable(this._datatable);
+			this._datatable.refreshColumns(newDatatableColumns);
+		});
 	}
 
 	_arrayMove (array, length, oldIndex, newIndex) {
@@ -274,7 +279,7 @@ class DataviewService {
 							const nextColumnHeader = nextColumnConfig.header;
 							if (Array.isArray(nextColumnHeader)) {
 								columnHeader.forEach((headerValue, headerIndex) => {
-									if (headerValue instanceof Object && nextColumnHeader[headerIndex] instanceof Object) {
+									if (headerValue instanceof Object && nextColumnHeader[headerIndex] instanceof Object && !headerValue.hasOwnProperty("content")) {
 										if (headerValue.text === nextColumnHeader[headerIndex].text) {
 											if (colspanInfoArray.length === 0 || !colspanInfoArray[colspanIndex]) {
 												colspanInfoArray.push([{

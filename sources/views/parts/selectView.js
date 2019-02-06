@@ -3,6 +3,7 @@ import ajax from "../../services/ajaxActions";
 import helpingFunctions from "../../models/helpingFunctions";
 
 let hiddenViews = true;
+const serverListData = process.env.SERVER_LIST;
 
 export default class DropDownBoxes extends JetView {
 	config() {
@@ -31,10 +32,7 @@ export default class DropDownBoxes extends JetView {
 			width: 300,
 			options: {
 				template: "#value#",
-				data: [
-					{id: "1", value: "Girder"},
-					{id: "2", value: "Cancer digital slide archive"}
-				]
+				data: serverListData
 			}
 		};
 
