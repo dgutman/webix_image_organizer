@@ -6,6 +6,9 @@ import iconsPopup from "./iconsPopup";
 const minTagValuesCount = 2;
 const newTagName = "newTagName";
 const popupIconButtonName = "popupIconButtonName";
+const spacerHeightForPlusButtonFirstElement = 34;
+const spacerHeightForPlusMinusButtons = 3;
+const spacerHeightForPlusButtonOtherElements = 11;
 let newTagsData = [];
 let tagsItem;
 
@@ -289,9 +292,9 @@ export default class ImagesTagsWindow extends JetView {
 
 	getPlusButtonTopSpacerHeight(count) {
 		if (Number.isInteger(count)) {
-			return count === 0 ? 34 : 11;
+			return count === 0 ? spacerHeightForPlusButtonFirstElement : spacerHeightForPlusButtonOtherElements;
 		} else {
-			return 3;
+			return spacerHeightForPlusMinusButtons;
 		}
 	}
 
