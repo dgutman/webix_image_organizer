@@ -46,11 +46,28 @@ export default class CartView extends JetView {
 				}
 			}
 		};
+
+		const createNewTagButton = {
+			view: "button",
+			type: "icon",
+			icon: "plus",
+			name: "createNewTagButtonName",
+			label: "Create new tag",
+			height: 30
+		};
+
 		return {
 			name: "cartViewClass",
 			rows: [
 				downloadingMenu,
-				cartList
+				cartList,
+				{
+					css: "create-new-tag-button",
+					rows: [
+						createNewTagButton
+					]
+				}
+
 			]
 		};
 	}
@@ -65,6 +82,10 @@ export default class CartView extends JetView {
 
 	getDownloadingMenu() {
 		return this.getRoot().queryView({view: "menu"});
+	}
+
+	getCreateNewTagButton() {
+		return this.getRoot().queryView({name: "createNewTagButtonName"});
 	}
 
 	showList() {

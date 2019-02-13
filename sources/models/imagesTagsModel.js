@@ -28,6 +28,7 @@ const INK_TAGS = [
 (function addTagsToCollection(options = {MARKER_TAGS, STICKER_COLORS, INK_TAGS}) {
 	imagesTagsCollection.add(options);
 })();
+//TODO add onChange event on datacollection after API fixes
 
 function getImagesTagsCollection() {
 	return imagesTagsCollection;

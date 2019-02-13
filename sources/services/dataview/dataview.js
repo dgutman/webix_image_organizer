@@ -227,7 +227,7 @@ class DataviewService {
 			items.push(item);
 		});
 
-		this._dataview.callEvent("onCheckboxClicked", [items, value]);
+		this._dataview.callEvent("onCheckboxClicked", [items, value, true]);
 		this._dataview.refresh();
 		selectedDataviewItems.clearAll();
 		this._view.$scope.app.callEvent("changedSelectedImagesCount");
