@@ -6,7 +6,6 @@ import helpingFunctions from "../../models/helpingFunctions";
 import JSONEditor from "jsoneditor";
 import "jsoneditor/dist/jsoneditor.min.css";
 import ajaxActions from "../../services/ajaxActions";
-import dataViews from "../../models/dataViews";
 
 let itemId;
 const mainPropertiesClassName = constants.MAIN_PROPERTIES_CLASS_NAME;
@@ -111,7 +110,6 @@ export default class MetadataTemplateView extends JetView {
 					.fail(() => {
 						const previousItemMetadata = metadataTemplate.getValues().meta;
 						this.jsonEditor.set(previousItemMetadata);
-						webix.message("Something went wrong!");
 						metadataTemplate.hideProgress();
 					});
 			}

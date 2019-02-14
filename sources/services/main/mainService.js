@@ -20,9 +20,12 @@ import dataviewFilterModel from "../../models/dataviewFilterModel";
 import MakeLargeImageWindow from "../../views/parts/makeLargeImageWindow/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
+import imagesTagsModel from "../../models/imagesTagsModel";
+import ImagesTagsWindow from "../../views/cartView/imagesTagsWindow/ImagesTagsWindow";
 
 let contextToFolder;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
+const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 
 class MainService {
 	constructor(view, hostBox, collectionBox, switcher, pager, dataview, datatable, tree, metaTemplate, collapser, scrollview, cartList) {
@@ -61,6 +64,7 @@ class MainService {
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubDataView().getSelectImagesTemplate();
 		this._nonModalWindow = this._view.$scope.ui(NonModalWindow);
+		this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
 		this._contextMenu = this._view.$scope.ui(ContextMenu).getRoot();
 		this._cartViewButton = this._view.$scope.getSubPagerAndSwitcherView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartView().getDownloadingMenu();
@@ -77,6 +81,7 @@ class MainService {
 		this._makeLargeImageButtonLayout = this._view.$scope.getSubGalleryFeaturesView().getMakeLargeImageButtonLayout();
 		this._galleryImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope.getSubPagerAndSwitcherView().getProjectFolderWindowButton();
+		this._createNewTagButton = this._view.$scope.getSubCartView().getCreateNewTagButton();
 
 		dataviewFilterModel.setRichselectDataviewFilter(this._dataviewRichselectFilter);
 
@@ -162,6 +167,8 @@ class MainService {
 						});
 				}
 			}
+
+			const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
 			return `<div class='unselectable-dataview-items'>
 						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
 									<div class="gallery-images-info">
@@ -169,6 +176,7 @@ class MainService {
 											<div class="gallery-images-checkbox"> ${common.markCheckbox(obj, common)}</div>
 											<div class="download-icon"><span class="webix_icon fa-download"></span></div>
 										</div>
+										${imageTagDiv}
 									</div>
 							${starHtml}
 							<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
@@ -415,9 +423,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message({
-									text: "Something went wrong!",
-								});
 								this.treeFolder.name = values.old;
 								this._tree.refresh();
 								this._dataview.refresh();
@@ -434,9 +439,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message({
-									text: "Something went wrong!",
-								});
 								this.treeItem.name = values.old;
 								this._tree.refresh();
 								this._dataview.refresh();
@@ -447,7 +449,7 @@ class MainService {
 			});
 		}
 
-		this._dataview.attachEvent("onCheckboxClicked", (items, value) => {
+		this._dataview.attachEvent("onCheckboxClicked", (items, value, unselectAll) => {
 			if (!Array.isArray(items)) {
 				items = [items];
 			}
@@ -478,9 +480,14 @@ class MainService {
 					this._cartList.parse(items);
 				}
 				else {
-					items.forEach((item) => {
-						this._cartList.remove(item.id);
-					});
+					if (unselectAll) {
+						this._cartList.clearAll();
+					} else {
+						items.forEach((item) => {
+							this._cartList.remove(item.id);
+						});
+					}
+
 					if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
 						this._view.$scope.getSubCartView().hideList();
 						this._cartViewButton.hide();
@@ -622,6 +629,11 @@ class MainService {
 					document.execCommand("copy");
 					document.body.removeChild(dummy);
 					webix.message("Copied");
+					break;
+				}
+				case constants.ADD_TAG_TO_IMAGES_MENU_ID: {
+					const windowAction = "set";
+					this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
 				}
 			}
 		});
@@ -701,6 +713,7 @@ class MainService {
 					this._makeLargeImageButtonLayout.hide();
 				}
 			}
+
 			this._dataview.data.each((obj) => {
 				if (selectDataviewItems.isSelected(obj._id) && !obj.markCheckbox) {
 					obj.markCheckbox = 1;
@@ -750,10 +763,6 @@ class MainService {
 					})
 					.fail(() => {
 						this._datatable.updateItem(rowId, copyOfAnItemToEdit);
-						webix.message({
-							text: "Something went wrong while updating metadata!",
-							expire: 2000
-						});
 						this._view.hideProgress();
 					});
 			}
@@ -821,7 +830,6 @@ class MainService {
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								webix.message("Something went wrong!");
 								this._view.hideProgress();
 							});
 						break;
@@ -857,6 +865,11 @@ class MainService {
 			if (newValue !== oldValue) {
 				this._dataview.refresh();
 			}
+		});
+
+		this._createNewTagButton.attachEvent("onItemClick", () => {
+			const windowAction = "create";
+			this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection);
 		});
 	}
 
@@ -915,6 +928,45 @@ class MainService {
 				}
 			}
 		}
+	}
+
+	_getImagesTagDiv(obj, imageHeight) {
+		let iconsDivLeft = "";
+		let iconsDivRight = "";
+
+		const itemContainerHeight = 20;
+		const tagKeys = Object.keys(obj.tag);
+		const tagsImageId = imagesTagsCollection.getLastId();
+		const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+		const maxTagsOnSide = Math.round(imageHeight/itemContainerHeight - 2);
+		const maxTagsOnItem = maxTagsOnSide * 2;
+
+		tagKeys.forEach((tagKey, tagIndex) => {
+			for (let tagsImageKey in tagsImage) {
+				if (tagsImageKey === tagKey) {
+					if (Array.isArray(tagsImage[tagsImageKey]) && tagIndex < maxTagsOnItem) {
+						let foundObjectIcon = tagsImage[tagsImageKey].find(obj => obj.tagIcon);
+						if (tagIndex < maxTagsOnSide) {
+							iconsDivLeft+= `<div style="height: ${itemContainerHeight}px;">
+											<span class="webix_icon fa-${foundObjectIcon.tagIcon} tag-align-left"></span>
+										</div>`;
+						} else {
+							if (obj.starColor && obj.starColor.length > 0 && (tagIndex >= maxTagsOnSide - 1)) {
+								break;
+							}
+							iconsDivRight+= `<div style="height: ${itemContainerHeight}px;">
+											<span class="webix_icon fa-${foundObjectIcon.tagIcon} tag-align-right"></span>
+										</div>`;
+						}
+					} else {
+						break;
+					}
+				}
+			}
+		});
+
+		return `<div style='float: left'>${iconsDivLeft}</div>
+		        <div style='float: right'>${iconsDivRight}</div>`;
 	}
 }
 

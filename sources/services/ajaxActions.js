@@ -17,7 +17,7 @@ function parseError(xhr) {
 				message = xhr.response;
 				console.log("Not JSON response for request to " + xhr.responseURL);
 			}
-			webix.message({type: "error", text: message, expire: 5000});
+			webix.message({text: message, expire: 5000});
 			break;
 		}
 	}
@@ -87,12 +87,14 @@ class AjaxActions {
 	getCollection() {
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/collection`)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
 	getFolder(parentType, parentId) {
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}`)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -102,6 +104,7 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/item?folderId=${folderId}`, params)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -125,6 +128,7 @@ class AjaxActions {
 	getImageTiles(itemId) {
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -142,6 +146,7 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/item/${itemId}/download`, params)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -155,6 +160,7 @@ class AjaxActions {
 		} : {};
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/resource/${folderId}/items`, params)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -164,12 +170,14 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/folder/${folderId}`, params)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
 	makeLargeImage(itemId) {
 		return this._ajax()
 			.post(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -179,6 +187,7 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, objectToPut)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -188,12 +197,21 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}`, params)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
 	updateFolderMetadata(folderId, metadata) {
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	updateItemTag(itemId, itemTag) {
+		return this._ajax()
+			.put(`${this.getHostApiUrl()}/item/${itemId}/aperio`, itemTag)
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 

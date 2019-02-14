@@ -1,10 +1,13 @@
 /* gallery-images-dataview */
 .gallery-images-dataview {
-  background: #f2f3f7;
+
   .webix_dataview_item {
     border: none;
     cursor: default;
-    padding: 5px;
+    padding: 5px 5px 15px 5px;
+  }
+  .webix_selected .thumbnails-name {
+    color: white;
   }
   .thumbnails-name {
     color: rgba(0,0,0,0.8);
@@ -20,6 +23,7 @@
 }
 
 .gallery-images-container {
+
   position: relative;
   cursor: pointer;
   height: 100px;
@@ -32,6 +36,7 @@
   }
 
   .gallery-images-info {
+    background: rgba(255,255,255, .60);
     position: absolute;
     top: 0;
     left: 0;
@@ -42,9 +47,21 @@
   }
   .gallery-images-star-icon {
     position: absolute;
-    bottom: 13px;
+    bottom: 6px;
     right: 13px;
     color: yellow;
+  }
+
+  .tag-align-left {
+    height: 20px;
+    color: #0288D1;
+    padding-left: 13px;
+  }
+
+  .tag-align-right {
+    height: 20px;
+    color: #0288D1;
+    padding-right: 13px;
   }
 
   &:hover {
@@ -174,7 +191,6 @@
 
 .gallery-images-header {
   padding-bottom: 5px;
-  background: rgba(255,255,255,.60);
 
   .download-icon {
     color: rgba(0,0,0,0.8);

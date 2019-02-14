@@ -18,7 +18,8 @@ export default class CartView extends JetView {
 					submenu: [
 						constants.IMAGES_ONLY_MENU_ID,
 						constants.IMAGES_AND_METADATA_MENU_ID,
-						constants.COPY_TO_CLIPBOARD_MENU_ID
+						constants.COPY_TO_CLIPBOARD_MENU_ID,
+						constants.ADD_TAG_TO_IMAGES_MENU_ID
 					]
 				}
 			],
@@ -45,11 +46,28 @@ export default class CartView extends JetView {
 				}
 			}
 		};
+
+		const createNewTagButton = {
+			view: "button",
+			type: "icon",
+			icon: "plus",
+			name: "createNewTagButtonName",
+			label: "Create new tag",
+			height: 30
+		};
+
 		return {
 			name: "cartViewClass",
 			rows: [
 				downloadingMenu,
-				cartList
+				cartList,
+				{
+					css: "create-new-tag-button",
+					rows: [
+						createNewTagButton
+					]
+				}
+
 			]
 		};
 	}
@@ -64,6 +82,10 @@ export default class CartView extends JetView {
 
 	getDownloadingMenu() {
 		return this.getRoot().queryView({view: "menu"});
+	}
+
+	getCreateNewTagButton() {
+		return this.getRoot().queryView({name: "createNewTagButtonName"});
 	}
 
 	showList() {

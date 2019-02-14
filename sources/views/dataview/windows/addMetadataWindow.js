@@ -122,7 +122,6 @@ export default class AddMetadataWindow extends JetView {
 							this.view.hideProgress();
 						})
 						.fail(() => {
-							webix.message("Something went wrong while adding metadata");
 							this.view.hideProgress();
 						});
 

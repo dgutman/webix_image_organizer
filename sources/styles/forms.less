@@ -210,7 +210,7 @@ input::-ms-clear {
     line-height: 29px;
     cursor: pointer;
     color: rgba(0, 0, 0, 0.8);
-    background: #E8EBF1;
+    background: #F2F3F7;
     text-align: left;
     width: auto !important;
     height: 30px !important;
@@ -346,4 +346,44 @@ input::-ms-clear {
   display: none;
   white-space: pre;
   text-align: center;
+}
+
+.list-of-tags-template {
+  font-size:17px;
+  font-style:italic;
+  padding-left: 17px;
+}
+
+.images-tags-active-list {
+  .webix_list_item {
+   border-bottom: 1px solid #dddddd;
+  }
+  .active-list-name {
+    padding-left: 7px;
+    font-size: 15px;
+    padding-top: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .active-list-delete-button {
+    float: right;
+    padding-top: 2px;
+    margin-right: -10px;
+    .delete-icon-button .webix_icon_btn {
+      color: #606060;
+    }
+  }
+}
+
+.icon-popup-button-layout {
+  padding-top: 6px;
+  padding-left: 3px;
+}
+
+.new-tag-name-template {
+  .webix_template {
+    padding-left: 2px;
+  }
 }

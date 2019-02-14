@@ -144,7 +144,6 @@ export default class ImageWindowView extends JetView {
 					this.createOpenSeadragonViewer(obj, templateNode.firstChild);
 					this.view.hideProgress();
 				}).fail((error) => {
-					console.log(error);
 					this.view.hideProgress();
 				});
 		} else if (viewer === "jsonviewer") {
@@ -156,7 +155,6 @@ export default class ImageWindowView extends JetView {
 					this.createJSONViewer(data, templateNode.firstChild);
 					this.view.hideProgress();
 				}).fail((error) => {
-					console.log(error);
 					this.view.hideProgress();
 				});
 		}
