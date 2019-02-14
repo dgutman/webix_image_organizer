@@ -75,9 +75,9 @@ export default class DataTableView extends JetView {
 								}
 								item.markCheckbox = value;
 								if (value) {
-									selectedDataviewItems.add(item.id);
+									selectedDataviewItems.add(item._id);
 								} else {
-									selectedDataviewItems.remove(item.id);
+									selectedDataviewItems.remove(item._id);
 								}
 								dataview.callEvent("onCheckboxClicked", [item, value]);
 								state.app.callEvent("changedSelectedImagesCount");
