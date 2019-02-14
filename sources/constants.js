@@ -19,6 +19,7 @@ export default {
 	IMAGES_ONLY_MENU_ID: "Download Selected Items only",
 	IMAGES_AND_METADATA_MENU_ID: "Download Selected Items and Metadata",
 	COPY_TO_CLIPBOARD_MENU_ID: "Copy Selected Items",
+	ADD_TAG_TO_IMAGES_MENU_ID: "Add tag to images",
 
 	EDIT_COLUMN_MODE_ADD: "addColumn",
 	EDIT_COLUMN_MODE_DELETE: "deleteColumn",
@@ -54,5 +55,5 @@ export default {
 	MACRO_AND_LABEL_DATAVIEW_IMAGES: "Display LABEL & MACRO images",
 
 	MAIN_PROPERTIES_CLASS_NAME: "main-properties",
-	METADATA_PROPERTIES_CLASS_NAME: "metadata-properties"
+	METADATA_PROPERTIES_CLASS_NAME: "metadata-properties",
 };

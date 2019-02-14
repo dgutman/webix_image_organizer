@@ -71,7 +71,6 @@ if (!webix.ui.editabletemplate) {
 				})
 				.fail(() => {
 					this.setValues(previousValues, true);
-					webix.message("Something went wrong!");
 					mainView.hideProgress();
 				});
 		},
