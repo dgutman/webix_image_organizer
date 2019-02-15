@@ -1,0 +1,6 @@
+.idea/
+codebase/
+node_modules/
+package-lock.json
+*.log
+*.lock

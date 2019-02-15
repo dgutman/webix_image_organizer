@@ -1,0 +1,343 @@
+/* FORMS FIELDS STYLES */
+
+.webix_invalid {
+  .webix_inp_bottom_label {
+    padding-left: 4px;
+  }
+}
+
+input[type="password"]::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+.line-height-38 {
+  line-height: 38px;
+}
+
+.webix_form {
+  .left-label {
+    padding-left: 5px;
+  }
+  .left-label-template {
+    .webix_template {
+      padding-left: 5px;
+    }
+  }
+}
+/* select-field */
+.select-field,
+.select-field-reverce {
+  .webix_inp_static,
+  input {
+    .border-radius(0);
+    font-size: 14px;
+    cursor: pointer;
+
+    &:focus {
+      .box-shadow(none);
+    }
+  }
+  .webix_placeholder {
+    font-size: 14px;
+  }
+  span.webix_input_icon {
+    background: none;
+    cursor: pointer;
+  }
+}
+.select-field {
+  .webix_inp_static,
+  input {
+    border-color: @lines-color;
+    color: @main-color-light;
+
+    &:focus {
+      border-color: @lines-color;
+    }
+  }
+  .webix_placeholder {
+    color: @main-color-light;
+  }
+  span.webix_input_icon {
+    color: @main-color-light;
+  }
+}
+.select-field-reverce {
+  .webix_inp_label {
+    color: @white-txt-lightblur;
+    font-weight: 500;
+  }
+  .webix_inp_static,
+  input {
+    border-color: @middle-dark-bg;
+    color: @white-txt-blur;
+    background: @middle-dark-bg;
+
+    &:focus {
+      border-color: @middle-dark-bg;
+    }
+  }
+  .webix_placeholder {
+    color: @white-txt-blur;
+  }
+  span.webix_input_icon {
+    color: @white-txt-blur;
+  }
+}
+
+
+
+/* text-field */
+.text-field {
+  &.webix_invalid.webix_el_text {
+    input {
+      border-color: @lines-color-invalid;
+    }
+  }
+  &.webix_el_text {
+    input {
+      border-color: @lines-color;
+      .border-radius(0);
+      font-size: 14px;
+      color: @main-color-light;
+
+      &:focus {
+        border-color: @lines-color;
+        .box-shadow(none);
+      }
+
+      &::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+
+      &:focus::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+    }
+  }
+}
+
+/* search-field */
+.search-field {
+  &.webix_el_search {
+    input {
+      border-color: @lines-color;
+      .border-radius(0);
+
+      &:focus {
+        border-color: @lines-color;
+        .box-shadow(none);
+      }
+    }
+    input[type="text"]::-webkit-input-placeholder {color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.3s ease;}
+    input[type="text"]::-moz-placeholder          {color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.3s ease;}
+    input[type="text"]:-ms-input-placeholder      {color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.3s ease;}
+    input[type="text"]:focus::-webkit-input-placeholder {opacity: 0; transition: opacity 0.3s ease;}
+    input[type="text"]:focus::-moz-placeholder          {opacity: 0; transition: opacity 0.3s ease;}
+    input[type="text"]:focus:-ms-input-placeholder      {opacity: 0; transition: opacity 0.3s ease;}
+
+    .webix_input_icon {
+      color: @lines-color;
+    }
+  }
+}
+
+
+/* textarea-field */
+.textarea-field {
+  .webix_el_box {
+    textarea {
+      border-color: @lines-color;
+      .border-radius(0);
+      font-size: 14px;
+      color: @main-color-light;
+
+      &:focus {
+        border-color: @lines-color;
+        .box-shadow(none);
+      }
+
+      &::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+
+      &:focus::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+    }
+  }
+}
+
+.pager-info {
+  display: inline-block;
+  vertical-align: top;
+  border: 1px solid #BDC4D4;
+  color: @main-color-light;
+  padding: 3px 15px;
+  height: 24px;
+}
+
+.webix_tree_item.webix_selected {
+  background: #0288D1;
+}
+.cart-list-view {
+  .webix_list_item {
+    margin: 5px;
+    box-sizing: border-box;
+    padding: 2px 10px;
+    line-height: 29px;
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0.8);
+    background: #F2F3F7;
+    text-align: left;
+    width: auto !important;
+    height: 30px !important;
+    overflow: hidden !important;
+  }
+  .cart-image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100px;
+    height: 100px;
+  }
+  .card-list-name {
+    width: 125px;
+    margin-top: -30px;
+    margin-left: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.checkbox-ctrl {
+  .webix_label_right {
+    color: @main-color-light;
+    font-size: 14px;
+    padding-left: 8px;
+    cursor: pointer;
+    /*line-height: 16px;
+    padding: 10px 0 0 10px;*/
+  }
+
+  .webix_custom_checkbox {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #6E7480;
+    .border-radius(2px);
+    background: none;
+    .box-sizing(border-box);
+    cursor: pointer;
+    .transition(.2s all ease-in-out);
+
+    &:before {
+      content: "\f00c";
+      font-family: 'Fontawesome';
+      font-size: 12px;
+      line-height: 1;
+      color: #fff;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: -6.5px 0 0 -6.5px;
+      visibility: hidden;
+    }
+
+    &:focus,
+    &:hover {
+      border-color: #0288D1;
+    }
+  }
+
+  .webix_checkbox_1 .webix_custom_checkbox {
+    background-color: #0288D1;
+    border-color: #0288D1;
+
+    &:before {
+      visibility: visible;
+    }
+  }
+}
+
+.downloading-menu.webix_view {
+  width: 202px !important;
+  .webix_list_item {
+    line-height: 28px;
+    .border-radius(2px);
+    background: @btn;
+    border-color: @btn;
+    &:hover, &:focus {
+      background: @btn-hover;
+      border-color: @btn-hover;
+    }
+
+    .webix_submenu_icon {
+      margin-top: 0;
+    }
+  }
+}
+
+.large-image-window {
+  .image-window-list-name {
+    padding-left: 5px;
+    font-size: 17px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .image-window-checkbox {
+    padding-top: 3px;
+    float: left;
+  }
+}
+
+.column-header-top-name {
+  text-align: center;
+}
+
+.collpaser-text {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+
+
+.project-metadata-window-collapser {
+  padding: 5px 0 8px 20px;
+  margin-left: 20px;
+}
+
+.images-tags-active-list {
+  .webix_list_item {
+   border-bottom: 1px solid #dddddd;
+  }
+  .active-list-name {
+    padding-left: 7px;
+    font-size: 15px;
+    padding-top: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .active-list-delete-button {
+    float: right;
+    padding-top: 2px;
+    margin-right: -10px;
+    .delete-icon-button .webix_icon_btn {
+      color: #606060;
+    }
+  }
+}
+
+.icon-popup-button-layout {
+  padding-top: 6px;
+  padding-left: 3px;
+}
