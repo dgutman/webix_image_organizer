@@ -71,7 +71,9 @@ module.exports = function (env) {
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
+					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
+					{id: "3", value: "ComputableBrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
+					{id: "4", value: "Cancer Imaging Data Commons", hostAPI: "http://cancer.imagingdatacommons.org:8080/api/v1"}
 				]
 			})
 		]
