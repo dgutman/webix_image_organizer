@@ -60,12 +60,16 @@ function filterData(dataview, value) {
 			const objTagsLength = obj.meta.tag.length;
 			for (let index = 0; index < objTagsLength; index++) {
 				const tags = obj.meta.tag[index];
-				for (let key in tags) {
-					if (tagId) {
-						break;
+				if (tagId) {
+					for (let key in tags) {
+						if (tags.hasOwnProperty(key)) {
+							tagId = getTagValue(tagsImage, value, key, "value", "id");
+							tagKey = key;
+							if (tagId) {
+								break;
+							}
+						}
 					}
-					tagId = getTagValue(tagsImage, value, key, "value", "id");
-					tagKey = key;
 				}
 			}
 
