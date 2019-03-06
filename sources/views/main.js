@@ -1,16 +1,15 @@
 import {JetView} from "webix-jet";
 import header from "./header/header";
-import selectView from "./parts/selectView";
-import treeView from "./dataview/treeView";
-import datatableView from "./dataview/dataView";
-import pagerNswitcher from "./parts/pagerNswitcher";
-import metadataView from "./dataview/metadataView";
+import hostsCollectionAndThemes from "./subviews/hostsCollectionThemes/hostsCollectionsThemes";
+import finderView from "./subviews/finder/finderView";
+import multiview from "./subviews/multiDataView/multiDataView";
+import dataviewActionPanel from "./subviews/dataviewActionPanel/dataviewActionPanel";
+import metadataTemplateView from "./subviews/metadataPanel/metadataTemplateView";
 import collapser from "./components/collapser";
 import constants from "../constants";
 import MainService from "../services/main/mainService";
-import cartView from "./cartView/cardView";
-import galleryFeatures from "./parts/galleryFeatures";
-
+import cartList from "./subviews/cartList/cardList";
+import galleryFeatures from "./subviews/galleryFeatures/galleryFeatures";
 const collapserName = "metadataCollapser";
 
 export default class MainView extends JetView {
@@ -20,16 +19,16 @@ export default class MainView extends JetView {
 		return {
 			rows: [
 				header,
-				selectView,
+				hostsCollectionAndThemes,
 				galleryFeatures,
-				pagerNswitcher,
+				dataviewActionPanel,
 				{
 					cols: [
-						treeView,
-						datatableView,
+						finderView,
+						multiview,
 						rightCollapser,
-						metadataView,
-						cartView
+						metadataTemplateView,
+						cartList
 					]
 				},
 				{height: 12}
@@ -39,62 +38,69 @@ export default class MainView extends JetView {
 
 	ready(view) {
 		// init child views
-		const hostBox = this.getSubSelectView().getHostBox();
-		const collectionBox = this.getSubSelectView().getCollectionBox();
-		const switcher = this.getSubPagerAndSwitcherView().getSwitcherView();
-		const pager = this.getSubPagerAndSwitcherView().getPagerView();
-		const dataview = this.getSubDataView().getDataView();
-		const datatable = this.getSubDataView().getDataTableView();
-		const tree = this.getSubTreeView().getTreeRoot();
-		const scrollview = this.getSubMetadataView().getScrollView();
-		const metaTemplate = this.getSubMetadataView().getTemplateView();
+		const hostBox = this.getSubHostsCollectionThemesView().getHostBox();
+		const collectionBox = this.getSubHostsCollectionThemesView().getCollectionBox();
+		const multiviewSwither = this.getSubDataviewActionPanelView().getSwitcherView();
+		const galleryDataviewPager = this.getSubDataviewActionPanelView().getPagerView();
+		const galleryDataview = this.getSubGalleryView().getDataView();
+		const metadataTable = this.getSubMetadataTableView().getDataTableView();
+		const finder = this.getSubFinderView().getTreeRoot();
+		const metadataPanelScrollView = this.getSubMetadataPanelView().getScrollView();
+		const metadataTemplate = this.getSubMetadataPanelView().getTemplateView();
 		const metadataCollapser = this.getSubCollapserView();
-		const cartList = this.getSubCartView().getCartListView();
+		const cartList = this.getSubCartListView().getCartListView();
 
 		this._mainService = new MainService(
 			view,
 			hostBox,
 			collectionBox,
-			switcher,
-			pager,
-			dataview,
-			datatable,
-			tree,
-			metaTemplate,
+			multiviewSwither,
+			galleryDataviewPager,
+			galleryDataview,
+			metadataTable,
+			finder,
+			metadataTemplate,
 			metadataCollapser,
-			scrollview,
+			metadataPanelScrollView,
 			cartList
 		);
 	}
 
 	// getting child views
-	getSubSelectView() {
-		return this.getRoot().queryView({name: "selectViewClass"}).$scope;
+	getSubHostsCollectionThemesView() {
+		return this.getRoot().queryView({name: "hostsCollectionThemesClass"}).$scope;
 	}
 
-	getSubPagerAndSwitcherView() {
-		return this.getRoot().queryView({name: "pagerAndSwitcherViewClass"}).$scope;
+	getSubDataviewActionPanelView() {
+		return this.getRoot().queryView({name: "dataviewActionPanelClass"}).$scope;
 	}
 
-	getSubTreeView() {
-		return this.getRoot().queryView({name: "treeViewClass"}).$scope;
+	getSubFinderView() {
+		return this.getRoot().queryView({name: "finderClass"}).$scope;
 	}
 
-
-	getSubDataView() {
-		return this.getRoot().queryView({name: "multiDataviewClass"}).$scope;
+	getSubMetadataTableView() {
+		return this.getRoot().queryView({name: "metadataTableCell"}).$scope;
 	}
 
-	getSubMetadataView() {
-		return this.getRoot().queryView({name: "metadataViewClass"}).$scope;
+	getSubMultiDataView() {
+		return this.getRoot().queryView({name: "multiDataViewClass"}).$scope;
+	}
+
+	getSubGalleryView() {
+		return this.getRoot().queryView({name: "galleryCell"}).$scope;
+	}
+
+	getSubMetadataPanelView() {
+		return this.getRoot().queryView({name: "metadataPanelClass"}).$scope;
 	}
 
 	getSubCollapserView() {
 		return this.getRoot().queryView({name: collapserName});
 	}
 
-	getSubCartView() {
-		return this.getRoot().queryView({name: "cartViewClass"}).$scope;
+	getSubCartListView() {
+		return this.getRoot().queryView({name: "cartListViewClass"}).$scope;
 	}
 
 	getSubGalleryFeaturesView() {

@@ -1,11 +1,11 @@
-import helpingFunctions from "./helpingFunctions";
+import utils from "../utils/utils";
 
 function getNonImageUrl(obj) {
 	let srcForImage;
 	if (obj._modelType === "folder") {
 		srcForImage = "sources/images/folder.png";
 	} else {
-		let fileType = helpingFunctions.searchForFileType(obj);
+		let fileType = utils.searchForFileType(obj);
 		switch (fileType) {
 			case "pdf": {
 				srcForImage = "sources/images/pdf.png";

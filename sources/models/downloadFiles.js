@@ -1,15 +1,16 @@
-import helpingFunctions from "./helpingFunctions";
 import authService from "../services/authentication";
+import utils from "../utils/utils";
+import ajaxActions from "../services/ajaxActions";
 
-function openOrDownloadFiles(item, ajaxActions, utils, imageWindow, nonModalWindow) {
-	const itemType = helpingFunctions.searchForFileType(item);
+function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
+	const itemType = utils.searchForFileType(item);
 	switch (itemType) {
 		case "png":
 		case "jpeg":
 		case "jpg": {
 			if (item.largeImage) {
 				imageWindow.showWindow(item, "standard");
-			} else helpingFunctions.showAlert();
+			} else utils.showAlert();
 			break;
 		}
 		case "csv": {
@@ -25,7 +26,7 @@ function openOrDownloadFiles(item, ajaxActions, utils, imageWindow, nonModalWind
 			break;
 		}
 		case "pdf": {
-			nonModalWindow.showWindow(item);
+			pdfViewerWindow.showWindow(item);
 			break;
 		}
 		case "json": {
@@ -33,7 +34,7 @@ function openOrDownloadFiles(item, ajaxActions, utils, imageWindow, nonModalWind
 			break;
 		}
 		default: {
-			helpingFunctions.showAlert();
+			utils.showAlert();
 			break;
 		}
 	}
