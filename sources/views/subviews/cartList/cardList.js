@@ -62,7 +62,7 @@ export default class CartView extends JetView {
 				downloadingMenu,
 				cartList,
 				{
-					css: "button-icon-button",
+					css: "button-icon-button add-tag-button-icon",
 					rows: [
 						createNewTagButton
 					]

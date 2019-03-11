@@ -3,6 +3,7 @@ import FileSaver from "file-saver";
 import projectMetadata from "../models/projectMetadata";
 import galleryDataviewFilterModel from "../models/galleryDataviewFilterModel";
 import webixViews from "../models/webixViews";
+import metadataTableModel from "../models/metadataTableModel";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -158,71 +159,36 @@ function parseDataToViews(data, linearData) {
 }
 
 function findStarColorForItem(item) {
-	let arrayOfWrongData = [];
 	let hasFoundMissingKey = false;
 	let hasFoundIncorrectKey = false;
 	let starColor;
+
 	if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
 		const projectSchema = projectMetadataCollection.getItem(projectMetadataCollection.getLastId()).meta.projectSchema;
-		for (let key in projectSchema) {
-			const metaTag = key.substr(0, key.indexOf("."));
-			const metaKey = key.substr(key.indexOf(".") + 1, key.length);
-			if (metaKey !== metaTag) {
-				if (item.meta[metaTag]) {
-					if (item.meta[metaTag][metaKey] !== undefined) {
-						const correctValue = projectSchema[key].find((correctValue) => item.meta[metaTag][metaKey] === correctValue);
-						if (!correctValue) {
-							arrayOfWrongData.push({
-								incorrectKey: metaKey
-							});
-							const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
-							if (wrongMetadataItem) {
-								wrongMetadataItem.incorrectKeys.push(metaKey);
-							} else {
-								wrongMetadataCollection.add({
-									id: item._id,
-									incorrectKeys: [metaKey]
-								});
-							}
 
-						}
+		for (let key in projectSchema) {
+			const metadataValue = metadataTableModel.getOrEditMetadataColumnValue(item.meta, `meta.${key}`);
+
+			if (metadataValue !== undefined) {
+				const correctValue = projectSchema[key].find((correctValue) => metadataValue === correctValue);
+				const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
+
+				if (!correctValue) {
+					if (wrongMetadataItem) {
+						wrongMetadataItem.incorrectKeys.push(key);
 					} else {
-						arrayOfWrongData.push({
-							missingKey: metaKey
+						wrongMetadataCollection.add({
+							id: item._id,
+							incorrectKeys: [key]
 						});
 					}
+
+					hasFoundIncorrectKey = true;
 				}
 			} else {
-				if (item.meta[metaTag]) {
-					const correctValue = projectSchema[key].find((correctValue) => item.meta[metaTag] === correctValue);
-					if (!correctValue) {
-						arrayOfWrongData.push({
-							incorrectKey: metaKey
-						});
-						const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
-						if (wrongMetadataItem) {
-							wrongMetadataItem.incorrectKeys.push(metaKey);
-						} else {
-							wrongMetadataCollection.add({
-								id: item._id,
-								incorrectKeys: [metaKey]
-							});
-						}
-					}
-				} else {
-					arrayOfWrongData.push({
-						missingKey: metaKey
-					});
-				}
+				hasFoundMissingKey = true;
 			}
 		}
-		arrayOfWrongData.forEach((wrongData) => {
-			if (wrongData.missingKey && !hasFoundMissingKey) {
-				hasFoundMissingKey = true;
-			} else if (wrongData.incorrectKey && !hasFoundIncorrectKey) {
-				hasFoundIncorrectKey = true;
-			}
-		});
 
 		if (!hasFoundIncorrectKey && !hasFoundMissingKey) {
 			starColor = "green";
@@ -242,8 +208,9 @@ function findStarColorForItem(item) {
 function getMetadataColumnColor(obj, columnId) {
 	const wrongMetadataItem = wrongMetadataCollection.getItem(obj._id);
 	if (wrongMetadataItem) {
-		const wrongColumnId = wrongMetadataItem.incorrectKeys.find(incorrectKey => incorrectKey === columnId);
-		if (wrongColumnId) {
+		const foundKey = wrongMetadataItem.incorrectKeys.some(incorrectKey => incorrectKey === columnId);
+
+		if (foundKey) {
 			return "red";
 		}
 	}

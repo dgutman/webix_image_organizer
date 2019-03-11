@@ -152,8 +152,7 @@ function getColumnsForDatatable(datatable) {
 						minWidth: 145,
 						metadataColumn: metadataColumn,
 						template: (obj) => {
-							const columnValue = getColumnValue(newColumnConfig.id);
-							return getMetadataColumnTemplate(obj, columnValue, newColumnConfig);
+							return getMetadataColumnTemplate(obj, columnId);
 						}
 					};
 					columnConfig.push(newColumnConfig);
@@ -174,12 +173,7 @@ function clearColumnsInLocalStorage(userId) {
 	webix.storage.local.remove(`${constants.STORAGE_COLUMNS_CONFIG}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
 }
 
-function getColumnValue(columnId) {
-	const splittedColumnId = columnId.split(".");
-	return splittedColumnId[splittedColumnId.length - 1];
-}
-
-function getMetadataColumnValue(obj, valuePath, editValue) {
+function getOrEditMetadataColumnValue(obj, valuePath, editValue) {
 	const pathArray = valuePath.split(".");
 	let result = obj;
 	for (let index = 0; index < pathArray.length; index++ ) {
@@ -205,7 +199,7 @@ function setSelectFilterOptions(filterType, columnId, datatable) {
 		datatable.data.each((item) => {
 			if (item) {
 				if (item.hasOwnProperty("meta")) {
-					let metadataValue = getMetadataColumnValue(item.meta, `meta.${columnId}`);
+					let metadataValue = getOrEditMetadataColumnValue(item.meta, `meta.${columnId}`);
 					let index = options.map((obj) => obj.value).indexOf(metadataValue);
 					if (index === -1) {
 						options.push({
@@ -222,7 +216,7 @@ function setSelectFilterOptions(filterType, columnId, datatable) {
 
 function compareMetadataColumnFilter(obj, filter, columnId, filterType, filterTypeValue) {
 	if (obj.hasOwnProperty("meta")) {
-		const metadataColumnValue = getMetadataColumnValue(obj.meta, `meta.${columnId}`);
+		const metadataColumnValue = getOrEditMetadataColumnValue(obj.meta, `meta.${columnId}`);
 		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
 			return metadataColumnValue.toString().indexOf(filter) !== -1;
 		} else if (filterType === "text") {
@@ -233,12 +227,13 @@ function compareMetadataColumnFilter(obj, filter, columnId, filterType, filterTy
 	}
 }
 
-function getMetadataColumnTemplate(obj, columnValue, columnConfig) {
+function getMetadataColumnTemplate(obj, columnId) {
 	if (obj.hasOwnProperty("meta")) {
-		const columnValueColor = utils.getMetadataColumnColor(obj, columnValue);
-		const metadataColumnValue = getMetadataColumnValue(obj, `meta.${columnConfig.id}`);
+		const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
+		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
+
 		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
-			return `<span style="color: ${columnValueColor};">${metadataColumnValue}</span>`;
+			return `<span class="metadata-column-template" style="color: ${columnValueColor};">${metadataColumnValue}</span>`;
 		} else {
 			return "No present metadata";
 		}
@@ -266,5 +261,5 @@ export default {
 	getColumnsForDatatableToRemove,
 	putInLocalStorage,
 	clearColumnsInLocalStorage,
-	getMetadataColumnValue
+	getOrEditMetadataColumnValue
 };

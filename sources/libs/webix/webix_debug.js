@@ -1631,7 +1631,7 @@ webix.skin.air = {
 	tabbarHeight: 36,
 	rowHeight:34,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, gallery, etc.
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:34,
 	inputPadding: 2,
 	menuHeight: 34,
@@ -1670,7 +1670,7 @@ webix.skin["aircompact"] = {
 	tabbarHeight: 26,
 	rowHeight:26,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, gallery, etc.
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:29,
 	inputPadding: 2,
 	menuHeight: 25,
@@ -1711,7 +1711,7 @@ webix.skin.web = {
 	tabbarHeight: 30,
 	rowHeight:30,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, gallery, etc.
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:28,
 	inputPadding: 2,
 	menuMargin: 0,
@@ -1752,7 +1752,7 @@ webix.skin.clouds = {
 	tabbarHeight: 46,
 	rowHeight:34,
 	toolbarHeight:22,
-	listItemHeight:32,		//list, grouplist, gallery, etc.
+	listItemHeight:32,		//list, grouplist, dataview, etc.
 	inputHeight:30,
 	inputPadding: 2,
 	menuHeight: 34,
@@ -1790,7 +1790,7 @@ webix.skin.terrace = {
 	tabbarHeight: 39,
 	rowHeight:38,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, gallery, etc.
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:30,
 	inputPadding: 2,
 	menuMargin: 0,
@@ -1830,7 +1830,7 @@ webix.skin.metro = {
 	tabbarHeight: 46,
 	rowHeight:34,
 	toolbarHeight:36,
-	listItemHeight:32,		//list, grouplist, gallery, etc.
+	listItemHeight:32,		//list, grouplist, dataview, etc.
 	inputHeight:30,
 	buttonHeight: 45,
 	inputPadding: 2,
@@ -1871,7 +1871,7 @@ webix.skin.light = {
 	tabbarHeight: 46,
 	rowHeight:32,
 	toolbarHeight:36,
-	listItemHeight:32,		//list, grouplist, gallery, etc.
+	listItemHeight:32,		//list, grouplist, dataview, etc.
 	inputHeight:34,
 	buttonHeight: 45,
 	inputPadding: 3,
@@ -1913,7 +1913,7 @@ webix.skin.glamour = {
 	tabbarHeight: 39,
 	rowHeight:32,
 	toolbarHeight:39,
-	listItemHeight:32,		//list, grouplist, gallery, etc.
+	listItemHeight:32,		//list, grouplist, dataview, etc.
 	inputHeight:34,
 	buttonHeight: 34,
 	inputPadding: 3,
@@ -1954,7 +1954,7 @@ webix.skin.touch = {
 	tabbarHeight: 50,
 	rowHeight:42,
 	toolbarHeight: 42,
-	listItemHeight:42,		//list, grouplist, gallery, etc.
+	listItemHeight:42,		//list, grouplist, dataview, etc.
 	inputHeight:42,
 	inputPadding: 4,
 	menuHeight: 42,
@@ -1996,7 +1996,7 @@ webix.skin.flat = {
 	tabbarHeight: 46,
 	rowHeight:34,
 	toolbarHeight:46,
-	listItemHeight:34,		//list, grouplist, gallery, etc.
+	listItemHeight:34,		//list, grouplist, dataview, etc.
 	inputHeight: 38,
 	buttonHeight: 38,
 	inputPadding: 3,
@@ -2043,7 +2043,7 @@ webix.skin.compact = {
 	tabbarHeight: 34,
 	rowHeight:24,
 	toolbarHeight:34,
-	listItemHeight:28,		//list, grouplist, gallery, etc.
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight: 30,
 	buttonHeight: 30,
 	inputPadding: 3,
@@ -2089,7 +2089,7 @@ webix.skin.material = {
 	tabbarHeight:47,
 	rowHeight:38,
 	toolbarHeight:22,
-	listItemHeight:34,		//list, grouplist, gallery, etc.
+	listItemHeight:34,		//list, grouplist, dataview, etc.
 	inputHeight:38,
 	buttonHeight:38,
 	inputPadding: 2,
@@ -2133,7 +2133,7 @@ webix.skin.contrast = {
 	tabbarHeight: 46,
 	rowHeight:34,
 	toolbarHeight:46,
-	listItemHeight:34,		// list, grouplist, gallery, etc.
+	listItemHeight:34,		// list, grouplist, dataview, etc.
 	inputHeight: 38,
 	buttonHeight: 38,
 	inputPadding: 3,
@@ -6522,7 +6522,7 @@ webix.animate.formLine=function(next, current, animation){
 };
 webix.animate.breakLine=function(line){
 	if(arguments[1])
-		line[1].style.display = "none"; // 'keepViews' multiDataView mode
+		line[1].style.display = "none"; // 'keepViews' multiview mode
 	else
 		webix.html.remove(line[1]); // 1 = current
 	webix.animate.clear(line[0]);
@@ -32764,7 +32764,7 @@ webix.protoUI({
 		if (index < this._active_cell)
 			this._active_cell--;
 	},
-	//necessary, as we want to ignore hide calls for elements in multiDataView
+	//necessary, as we want to ignore hide calls for elements in multiview
 	_hide:function(){},
 	_parse_cells:function(collection){
 		collection = collection || this._collection; 
@@ -35253,7 +35253,7 @@ webix.markup = {
 						json.head = obj.rows ? obj.rows[0] : obj.template;
 					else if (obj.view == "body"){
 						if (this._view_has_method(json.view, "addView")){
-							//multiDataView, accordion
+							//multiview, accordion
 
 							//subtag or plain value
 							//in case of multiple sub tags, only first will be used
@@ -36813,7 +36813,7 @@ webix.ui.fullScreen = function(){
 })();
 
 /*
-	Behavior:History - change multiDataView state on 'back' button
+	Behavior:History - change multiview state on 'back' button
 
  */
 

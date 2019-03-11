@@ -125,7 +125,7 @@ class MetadataTableService {
 			let editValue = "";
 
 			if (item.hasOwnProperty("meta")) {
-				editValue = metadataTableModel.getMetadataColumnValue(item, `meta.${columnId}`);
+				editValue = metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`);
 			}
 
 			editor.setValue(editValue);
@@ -139,7 +139,8 @@ class MetadataTableService {
 				const copyOfAnItemToEdit = webix.copy(itemToEdit);
 
 				if (copyOfAnItemToEdit.hasOwnProperty("meta")) {
-					metadataTableModel.getMetadataColumnValue(copyOfAnItemToEdit.meta, `meta.${columnId}`, values.value);
+					metadataTableModel.getOrEditMetadataColumnValue(copyOfAnItemToEdit.meta, `meta.${columnId}`, values.value);
+
 					this._view.showProgress();
 					ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
 						.then(() => {

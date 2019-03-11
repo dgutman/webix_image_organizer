@@ -640,7 +640,7 @@ button,
   -webkit-user-select: text;
   user-select: text;
 }
-/*default item in gallery*/
+/*default item in dataview*/
 .webix_dataview_item {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
