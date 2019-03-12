@@ -844,7 +844,7 @@ class MainService {
 		const hostId =  localStorageHostId ? localStorageHostId : firstHostItemId;
 		this._putValuesAfterHostChange(hostId);
 		this._hostBox.setValue(hostId);
-		this._view.$scope.getSubHostsCollectionThemesView().parseCollectionData();
+		this._view.$scope.getSubHeaderView().parseCollectionData();
 	}
 
 	_setDataviewColumns(width, height) {
