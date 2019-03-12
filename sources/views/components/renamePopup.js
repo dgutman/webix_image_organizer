@@ -1,5 +1,5 @@
 import {JetView} from "webix-jet";
-import dataViews from "../../models/dataViews";
+import webixViews from "../../models/webixViews";
 
 let oldName;
 
@@ -24,6 +24,7 @@ export default class RenamePopup extends JetView {
 
 		this.renamePopup.attachEvent("onHide", () => {
 			let newName = this.renameTextView.getValue();
+
 			if (newName !== oldName) {
 				let valuesObject = {
 					value: newName,
@@ -32,7 +33,7 @@ export default class RenamePopup extends JetView {
 				let objectInGallery = {
 					inGallery: true
 				};
-				this.treeView.callEvent("onAfterEditStop", [valuesObject, objectInGallery]);
+				this.finderView.callEvent("onAfterEditStop", [valuesObject, objectInGallery]);
 			}
 		});
 		this.renameTextView.attachEvent("onKeyPress", (keyCode) => {
@@ -55,18 +56,21 @@ export default class RenamePopup extends JetView {
 	}
 
 	showPopup(itemClientRect, documentWidth, oldValue) {
-		this.treeView = dataViews.getTree();
 		oldName = oldValue;
+		this.finderView = webixViews.getFinderView();
 		this.renameTextView.setValue(oldName);
+
 		let xPosition;
 		let yPosition = itemClientRect.bottom - 7;
 		let renamePopupWidth = this.renamePopup.$width;
 		let widthWithPopup = renamePopupWidth + itemClientRect.right;
+
 		if (widthWithPopup > documentWidth) {
 			xPosition = documentWidth - renamePopupWidth;
 		} else {
 			xPosition = itemClientRect.right - 20;
 		}
+
 		this.renamePopup.setPosition(xPosition, yPosition);
 		this.renamePopup.show();
 	}

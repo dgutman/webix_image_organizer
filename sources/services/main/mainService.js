@@ -1,45 +1,44 @@
 import ajaxActions from "../ajaxActions";
 import utils from "../../utils/utils";
 import galleryImageUrl from "../../models/galleryImageUrls";
-import ImageWindow from "../../views/parts/imageWindow/imageWindow";
-import NonModalWindow from "../../views/parts/nonModalWindow";
-import ContextMenu from "../../views/components/treeContextMenu";
+import ImageWindow from "../../views/subviews/gallery/windows/imageWindow";
+import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
+import FinderContextMenu from "../../views/components/finderContextMenu";
 import authService from "../authentication";
-import selectDataviewItems from "../../models/selectDataviewItems";
+import selectDataviewItems from "../../models/selectGalleryDataviewItems";
 import constants from "../../constants";
-import treeModel from "../../models/treeview";
-import datatableModel from "../../models/datatable";
+import finderModel from "../../models/finderModel";
+import metadataTableModel from "../../models/metadataTableModel";
 import nonImageUrls from "../../models/nonImageUrls";
 import downloadFiles from "../../models/downloadFiles";
-import helpingFunctions from "../../models/helpingFunctions";
 import modifiedObjects from "../../models/modifiedObjects";
-import dataViews from "../../models/dataViews";
-import DatatableContextMenu from "../../views/components/datatableContextMenu";
-import DataviewContextMenu from "../../views/components/dataviewContextMenu";
-import dataviewFilterModel from "../../models/dataviewFilterModel";
-import MakeLargeImageWindow from "../../views/parts/makeLargeImageWindow/makeLargeImageWindow";
+import webixViews from "../../models/webixViews";
+import MetadataTableContextMenu from "../../views/components/metadataTableContextMenu";
+import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
+import galleryDataviewFilterModel from "../../models/galleryDataviewFilterModel";
+import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
 import imagesTagsModel from "../../models/imagesTagsModel";
-import ImagesTagsWindow from "../../views/cartView/imagesTagsWindow/ImagesTagsWindow";
+import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
 
 let contextToFolder;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 
 class MainService {
-	constructor(view, hostBox, collectionBox, switcher, pager, dataview, datatable, tree, metaTemplate, collapser, scrollview, cartList) {
+	constructor(view, hostBox, collectionBox, multiviewSwither, galleryDataviewPager, galleryDataview, metadataTable, finder, metadataTemplate, collapser, metadataPanelScrollView, cartList) {
 		this._view = view;
 		this._hostBox = hostBox;
 		this._collectionBox = collectionBox;
-		this._switcher = switcher;
-		this._pager = pager;
-		this._dataview = dataview;
-		this._datatable = datatable;
-		this._tree = tree;
-		this._metaTemplate = metaTemplate;
+		this._multiviewSwither = multiviewSwither;
+		this._galleryDataviewPager = galleryDataviewPager;
+		this._galleryDataview = galleryDataview;
+		this._metadataTable = metadataTable;
+		this._finder = finder;
+		this._metadataTemplate = metadataTemplate;
 		this._collapser = collapser;
-		this._scrollview = scrollview;
+		this._metadataPanelScrollView = metadataPanelScrollView;
 		this._cartList = cartList;
 		this._ready();
 	}
@@ -47,47 +46,47 @@ class MainService {
 	_ready() {
 		let filesToLargeImage = [];
 
-		const scrollPosition = this._tree.getScrollState();
+		const scrollPosition = this._finder.getScrollState();
 		webix.extend(this._view, webix.ProgressBar);
-		this._scrollview.hide();
+		this._metadataPanelScrollView.hide();
 		this._setValueAndParseData();
 
-		dataViews.setDataview(this._dataview);
-		dataViews.setDatatable(this._datatable);
-		dataViews.setTreeview(this._tree);
-		dataViews.setPagerView(this._pager);
-		dataViews.setMainView(this._view);
+		webixViews.setGalleryDataview(this._galleryDataview);
+		webixViews.setMetadataTable(this._metadataTable);
+		webixViews.setFinderView(this._finder);
+		webixViews.setGalleryPager(this._galleryDataviewPager);
+		webixViews.setMainView(this._view);
 
-		const datatableCell = this._view.$scope.getSubDataView().getDatatableCell();
-		const dataviewCell = this._view.$scope.getSubDataView().getDataviewCell();
+		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
+		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
-		this._selectImagesTemplate = this._view.$scope.getSubDataView().getSelectImagesTemplate();
-		this._nonModalWindow = this._view.$scope.ui(NonModalWindow);
+		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
+		this._pdfViewerWindow = this._view.$scope.ui(PdfViewerWindow);
 		this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
-		this._contextMenu = this._view.$scope.ui(ContextMenu).getRoot();
-		this._cartViewButton = this._view.$scope.getSubPagerAndSwitcherView().getCartButton();
-		this._downloadingMenu = this._view.$scope.getSubCartView().getDownloadingMenu();
-		this._dataviewYCountSelection = this._view.$scope.getSubGalleryFeaturesView().getDataviewYCountSelection();
-		this._datatableContextMenu = this._view.$scope.ui(DatatableContextMenu).getRoot();
-		this._dataviewContextMenu = this._view.$scope.ui(DataviewContextMenu).getRoot();
-		this._dataviewRichselectFilter = this._view.$scope.getSubGalleryFeaturesView().getFilterBySelectionView();
-		this._showMetadataWindowButton = this._view.$scope.getSubMetadataView().getShowAddMetadataWindowButton();
-		this._dataviewSearch = this._view.$scope.getSubGalleryFeaturesView().getFilterByNameView();
+		this._finderContextMenu = this._view.$scope.ui(FinderContextMenu).getRoot();
+		this._cartViewButton = this._view.$scope.getSubDataviewActionPanelView().getCartButton();
+		this._downloadingMenu = this._view.$scope.getSubCartListView().getDownloadingMenu();
+		this._galleryDataviewYCountSelection = this._view.$scope.getSubGalleryFeaturesView().getDataviewYCountSelection();
+		this._metadataTableContextMenu = this._view.$scope.ui(MetadataTableContextMenu).getRoot();
+		this._galleryDataviewContextMenu = this._view.$scope.ui(GalleryDataviewContextMenu).getRoot();
+		this._galleryDataviewRichselectFilter = this._view.$scope.getSubGalleryFeaturesView().getFilterBySelectionView();
+		this._showMetadataWindowButton = this._view.$scope.getSubMetadataPanelView().getShowAddMetadataWindowButton();
+		this._galleryDataviewSearch = this._view.$scope.getSubGalleryFeaturesView().getFilterByNameView();
 		this._makeLargeImageWindow = this._view.$scope.ui(MakeLargeImageWindow);
 		this._makeLargeImageButton = this._view.$scope.getSubGalleryFeaturesView().getMakeLargeImageButton();
 		this._renamePopup = this._view.$scope.ui(RenamePopup);
-		this._tableTemplateCollapser = this._dataview.$scope.getTableTemplateCollapser();
+		this._tableTemplateCollapser = this._metadataTable.$scope.getTableTemplateCollapser();
 		this._makeLargeImageButtonLayout = this._view.$scope.getSubGalleryFeaturesView().getMakeLargeImageButtonLayout();
-		this._galleryImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
-		this._projectFolderWindowButton = this._view.$scope.getSubPagerAndSwitcherView().getProjectFolderWindowButton();
-		this._createNewTagButton = this._view.$scope.getSubCartView().getCreateNewTagButton();
+		this._galleryDataviewImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
+		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
+		this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
 
-		dataviewFilterModel.setRichselectDataviewFilter(this._dataviewRichselectFilter);
+		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 
-		this._view.$scope.getSubTreeView().setTreePosition(scrollPosition.x);
+		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
 
-		this._pager.attachEvent("onAfterRender", function () {
+		this._galleryDataviewPager.attachEvent("onAfterRender", function () {
 			const currentPager = this;
 			const node = this.getNode();
 			const inputNode = node.getElementsByClassName("pager-input")[0];
@@ -109,9 +108,9 @@ class MainService {
 		});
 
 		// connecting pager to data view
-		this._dataview.define("pager", this._pager);
+		this._galleryDataview.define("pager", this._galleryDataviewPager);
 
-		this._dataview.define("template", (obj, common) => {
+		this._galleryDataview.define("template", (obj, common) => {
 			let dataviewNewImageHeight = utils.getNewImageHeight();
 			let dataviewNewItemWidth = utils.getDataviewItemWidth();
 			let IMAGE_HEIGHT;
@@ -132,7 +131,7 @@ class MainService {
 			}
 			const checkedClass = obj.markCheckbox ? "is-checked" : "";
 			const starHtml = obj.starColor ? `<span class='webix_icon fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
-			const imageViewerValue = this._galleryImageViewer.getValue();
+			const imageViewerValue = this._galleryDataviewImageViewer.getValue();
 			switch(imageViewerValue) {
 				case constants.THUMBNAIL_DATAVIEW_IMAGES: {
 					getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
@@ -162,7 +161,7 @@ class MainService {
 						.then((data) => {
 							if (data.type === "image/jpeg") {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
-								this._dataview.refresh();
+								this._galleryDataview.refresh();
 							}
 						});
 				}
@@ -208,11 +207,11 @@ class MainService {
 		// setting onChange event for collection
 		this._collectionBox.attachEvent("onChange", (id) => {
 			this.collectionItem = this._collectionBox.getList().getItem(id);
-			this._tree.clearAll();
-			this._dataview.clearAll();
-			this._datatable.clearAll();
+			this._finder.clearAll();
+			this._galleryDataview.clearAll();
+			this._metadataTable.clearAll();
 			this._view.showProgress();
-			this._view.$scope.getSubTreeView()
+			this._view.$scope.getSubFinderView()
 				.loadTreeFolders("collection", this.collectionItem._id)
 				.then((data) => {
 					const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
@@ -224,11 +223,11 @@ class MainService {
 					} else {
 						this._projectFolderWindowButton.hide();
 					}
-					helpingFunctions.putHostsCollectionInLocalStorage(this.collectionItem);
+					utils.putHostsCollectionInLocalStorage(this.collectionItem);
 					// define datatable columns
-					const datatableColumns = datatableModel.getColumnsForDatatable(this._datatable);
-					this._datatable.refreshColumns(datatableColumns);
-					this._tree.parse(data);
+					const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+					this._metadataTable.refreshColumns(datatableColumns);
+					this._finder.parse(data);
 					this._view.hideProgress();
 				})
 				.fail(() => {
@@ -238,97 +237,97 @@ class MainService {
 		});
 
 		// switching between data table and data view
-		this._switcher.attachEvent("onChange", (value) => {
+		this._multiviewSwither.attachEvent("onChange", (value) => {
 			if (value) {
-				datatableCell.show();
+				metadataTableCell.show();
 				this._collapser.hide();
-				this._scrollview.hide();
+				this._metadataPanelScrollView.hide();
 				this._tableTemplateCollapser.show();
 			} else {
-				dataviewCell.show();
+				galleryDataviewCell.show();
 				this._collapser.show({closed: true});
 				this._tableTemplateCollapser.hide();
 			}
 		});
 
-		this._tree.attachEvent("onBeforeOpen", (id) => {
-			this._tree.blockEvent();
-			this._tree.select(id);
-			this._tree.unblockEvent();
-			treeModel.loadBranch(id, this._view);
+		this._finder.attachEvent("onBeforeOpen", (id) => {
+			this._finder.blockEvent();
+			this._finder.select(id);
+			this._finder.unblockEvent();
+			finderModel.loadBranch(id, this._view);
 			return false;
 		});
 
 
 		//after opening the tree branch we fire this event
-		this._tree.attachEvent("onAfterSelect", (id) => {
-			const item = this._tree.getItem(id);
+		this._finder.attachEvent("onAfterSelect", (id) => {
+			const item = this._finder.getItem(id);
 			if (item._modelType === "item") {
-				helpingFunctions.parseDataToViews(item);
+				utils.parseDataToViews(item);
 			} else if (item._modelType === "folder") {
-				treeModel.loadBranch(id, this._view);
+				finderModel.loadBranch(id, this._view);
 			}
 		});
 
-		this._tree.attachEvent("onAfterClose", (id) => {
-			this._tree.unselect(id);
+		this._finder.attachEvent("onAfterClose", (id) => {
+			this._finder.unselect(id);
 			let items = [];
-			const folder  = this._tree.getItem(id);
+			const folder  = this._finder.getItem(id);
 			if (folder.linear && !folder.hasOpened) {
 				folder.linear = false;
-				helpingFunctions.findAndRemove(id, folder, items);
+				utils.findAndRemove(id, folder, items);
 			} else if (!folder.linear && folder.hasOpened) {
-				this._pager.hide();
-				this._dataview.clearAll();
-				this._datatable.clearAll();
+				this._galleryDataviewPager.hide();
+				this._galleryDataview.clearAll();
+				this._metadataTable.clearAll();
 			}
-			helpingFunctions.showOrHideImageSelectionTemplate("hide", this._selectImagesTemplate);
+			utils.showOrHideImageSelectionTemplate("hide", this._selectImagesTemplate);
 		});
 
 		// parsing data to metadata template next to data view
-		this._dataview.attachEvent("onAfterSelect", (id) => {
-			let item = this._dataview.getItem(id);
-			this._metaTemplate.parse(item);
+		this._galleryDataview.attachEvent("onAfterSelect", (id) => {
+			let item = this._galleryDataview.getItem(id);
+			this._metadataTemplate.parse(item);
 			if (authService.isLoggedIn() && authService.getUserInfo().admin) {
 				this._showMetadataWindowButton.show();
 			}
 		});
 
-		this._dataview.attachEvent("onItemDblClick", (id) => {
-			let item = this._dataview.getItem(id);
-			downloadFiles.openOrDownloadFiles(item, ajaxActions, utils, this._imageWindow, this._nonModalWindow);
+		this._galleryDataview.attachEvent("onItemDblClick", (id) => {
+			let item = this._galleryDataview.getItem(id);
+			downloadFiles.openOrDownloadFiles(item, this._imageWindow, this._pdfViewerWindow);
 		});
 
-		this._datatable.attachEvent("onItemDblClick", (id) => {
-			const item = this._datatable.getItem(id);
-			downloadFiles.openOrDownloadFiles(item, ajaxActions, utils, this._imageWindow, this._nonModalWindow);
+		this._metadataTable.attachEvent("onItemDblClick", (id) => {
+			const item = this._metadataTable.getItem(id);
+			downloadFiles.openOrDownloadFiles(item, this._imageWindow, this._pdfViewerWindow);
 		});
 
 		if (authService.isLoggedIn()) {
-			this._contextMenu.attachTo(this._tree);
+			this._finderContextMenu.attachTo(this._finder);
 
-			this._tree.attachEvent("onBeforeContextMenu", (id) => {
-				const item = this._tree.getItem(id);
+			this._finder.attachEvent("onBeforeContextMenu", (id) => {
+				const item = this._finder.getItem(id);
 				if (item._modelType === "folder") {
 					if (authService.getUserInfo().admin) {
-						this._contextMenu.clearAll();
-						this._contextMenu.parse([
+						this._finderContextMenu.clearAll();
+						this._finderContextMenu.parse([
 							constants.RENAME_CONTEXT_MENU_ID,
 							{$template: "Separator"},
 							constants.LINEAR_CONTEXT_MENU_ID
 						]);
 					} else {
-						this._contextMenu.clearAll();
-						this._contextMenu.parse(["Make linear structure"]);
+						this._finderContextMenu.clearAll();
+						this._finderContextMenu.parse(["Make linear structure"]);
 					}
 					contextToFolder = true;
-					this.treeFolder = item;
+					this._finderFolder = item;
 				} else {
 					if (authService.getUserInfo().admin) {
-						this._contextMenu.clearAll();
-						this._contextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
+						this._finderContextMenu.clearAll();
+						this._finderContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
 						contextToFolder = false;
-						this.treeItem = item;
+						this._finderItem = item;
 					} else {
 						return false;
 					}
@@ -336,20 +335,20 @@ class MainService {
 
 			});
 
-			this._contextMenu.attachEvent("onItemClick", (id) => {
+			this._finderContextMenu.attachEvent("onItemClick", (id) => {
 				let items = [];
 				let itemId;
 				let folderId;
-				const item = this._contextMenu.getItem(id);
+				const item = this._finderContextMenu.getItem(id);
 				const value = item.value;
 				if (contextToFolder) {
-					folderId = this.treeFolder.id;
+					folderId = this._finderFolder.id;
 				} else {
-					itemId = this.treeItem.id;
+					itemId = this._finderItem.id;
 				}
 				switch (value) {
 					case constants.RENAME_CONTEXT_MENU_ID: {
-						this._tree.edit(folderId);
+						this._finder.edit(folderId);
 						break;
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
@@ -357,91 +356,95 @@ class MainService {
 							sort: "_id"
 						};
 						this._view.showProgress();
-						if (this.treeFolder.hasOpened || this.treeFolder.open) {
-							helpingFunctions.findAndRemove(folderId, this.treeFolder, items);
-							this.treeFolder.hasOpened = false;
+						if (this._finderFolder.hasOpened || this._finderFolder.open) {
+							utils.findAndRemove(folderId, this._finderFolder, items);
+							this._finderFolder.hasOpened = false;
 						}
-						this._tree.blockEvent();
-						this._tree.data.blockEvent();
-						this._tree.select(folderId);
-						this._tree.open(folderId);
-						this._tree.data.unblockEvent();
-						this._tree.unblockEvent();
-						ajaxActions.getLinearStucture(this.treeFolder._id, sourceParams)
+						this._finder.blockEvent();
+						this._finder.data.blockEvent();
+						this._finder.select(folderId);
+						this._finder.open(folderId);
+						this._finder.data.unblockEvent();
+						this._finder.unblockEvent();
+						ajaxActions.getLinearStucture(this._finderFolder._id, sourceParams)
 							.then((data) => {
-								this.treeFolder.linear = true;
+								this._finderFolder.linear = true;
+
 								if (data.length === 0) {
-									this._tree.parse({
+									this._finder.parse({
 										name: "Nothing to display", parent: folderId
 									});
 								} else {
-									this._tree.parse({
+									this._finder.parse({
 										data: webix.copy(data), parent: folderId
 									});
-									treeModel.setRealScrollPosition(
-										treeModel.defineSizesAndPositionForDynamicScroll(this.treeFolder)
+
+									finderModel.setRealScrollPosition(
+										finderModel.defineSizesAndPositionForDynamicScroll(this._finderFolder)
 									);
-									this._tree.attachEvent("onAfterScroll", () => {
-										const positionX = this._view.$scope.getSubTreeView().getTreePositionX();
-										const scrollState = this._tree.getScrollState();
+
+									this._finder.attachEvent("onAfterScroll", () => {
+										const positionX = this._view.$scope.getSubFinderView().getTreePositionX();
+										const scrollState = this._finder.getScrollState();
 										if (positionX !== scrollState.x) {
-											this._view.$scope.getSubTreeView().setTreePosition(scrollState.x);
+											this._view.$scope.getSubFinderView().setTreePosition(scrollState.x);
 											return false;
 										}
-										treeModel.attachOnScrollEvent(scrollState, this.treeFolder, this._view, ajaxActions);
+										finderModel.attachOnScrollEvent(scrollState, this._finderFolder, this._view, ajaxActions);
 									});
-									helpingFunctions.parseDataToViews(webix.copy(data));
+
+									utils.parseDataToViews(webix.copy(data));
 								}
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								this._tree.parse({name: "error"});
+								this._finder.parse({name: "error"});
 								this._view.hideProgress();
 							});
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
-						this._tree.edit(itemId);
+						this._finder.edit(itemId);
 						break;
 					}
 				}
 
 			});
 
-			this._tree.attachEvent("onAfterEditStop", (values, object) => {
+			this._finder.attachEvent("onAfterEditStop", (values, object) => {
 				const newValue = values.value;
 				if (newValue !== values.old) {
 					this._view.showProgress();
 					if (contextToFolder && !object.inGallery) {
-						ajaxActions.putNewFolderName(this.treeFolder._id, newValue)
+						ajaxActions.putNewFolderName(this._finderFolder._id, newValue)
 							.then(() => {
 								webix.message({
 									text: "Folder name was successfully updated!",
 								});
-								this._tree.refresh();
-								this._dataview.refresh();
+								this._finder.refresh();
+								this._galleryDataview.refresh();
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								this.treeFolder.name = values.old;
-								this._tree.refresh();
-								this._dataview.refresh();
+								this._finderFolder.name = values.old;
+								this._finder.refresh();
+								this._galleryDataview.refresh();
 								this._view.hideProgress();
 							});
 					} else {
-						ajaxActions.putNewItemName(this.treeItem._id, newValue)
+						ajaxActions.putNewItemName(this._finderItem._id, newValue)
 							.then(() => {
 								webix.message({
 									text: "Item name was successfully updated!",
 								});
-								this._tree.refresh();
-								this._dataview.refresh();
+								this._finder.refresh();
+								this._galleryDataview.refresh();
 								this._view.hideProgress();
 							})
 							.fail(() => {
-								this.treeItem.name = values.old;
-								this._tree.refresh();
-								this._dataview.refresh();
+								this._finderItem.name = values.old;
+								this._finder.refresh();
+								this._galleryDataview.refresh();
 								this._view.hideProgress();
 							});
 					}
@@ -449,29 +452,29 @@ class MainService {
 			});
 		}
 
-		this._dataview.attachEvent("onCheckboxClicked", (items, value, unselectAll) => {
+		this._galleryDataview.attachEvent("onCheckboxClicked", (items, value, unselectAll) => {
 			if (!Array.isArray(items)) {
 				items = [items];
 			}
 			items.forEach((item) => {
-				this._dataview.find((obj) => {
+				this._galleryDataview.find((obj) => {
 					if (obj._id === item._id) {
 						item.id = obj.id;
-						webix.dp(this._tree).ignore(() => {
-							this._dataview.updateItem(item.id, item);
+						webix.dp(this._finder).ignore(() => {
+							this._galleryDataview.updateItem(item.id, item);
 						});
 					}
 				});
 			});
 
-			if (helpingFunctions.isObjectEmpty(this._cartList.data.pull) && value) {
+			if (utils.isObjectEmpty(this._cartList.data.pull) && value) {
 				this._cartViewButton.callEvent("onItemClick", ["checkboxClicked"]);
 			}
 			if (items.length === 1) {
 				if (items[0].markCheckbox) {
 					this._cartList.add(items[0]);
 				}
-				else if (!items[0].markCheckbox && helpingFunctions.findItemInList(items[0]._id, this._cartList)) {
+				else if (!items[0].markCheckbox && utils.findItemInList(items[0]._id, this._cartList)) {
 					this._cartList.callEvent("onDeleteButtonClick", [items[0]]);
 				}
 			}
@@ -488,8 +491,8 @@ class MainService {
 						});
 					}
 
-					if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
-						this._view.$scope.getSubCartView().hideList();
+					if (utils.isObjectEmpty(this._cartList.data.pull)) {
+						this._view.$scope.getSubCartListView().hideList();
 						this._cartViewButton.hide();
 					}
 				}
@@ -499,11 +502,11 @@ class MainService {
 		this._cartViewButton.attachEvent("onItemClick", (clicked) => {
 			let label = this._cartViewButton.config.label;
 			if ((!label || label === "Show Cart") && selectDataviewItems.count() > 0)  {
-				this._view.$scope.getSubCartView().showList();
+				this._view.$scope.getSubCartListView().showList();
 				this._cartViewButton.define("label", "Hide Cart");
 				this._cartViewButton.refresh();
 			} else if (label === "Hide Cart") {
-				this._view.$scope.getSubCartView().hideList();
+				this._view.$scope.getSubCartListView().hideList();
 				this._cartViewButton.define("label", "Show Cart");
 				this._cartViewButton.refresh();
 			}
@@ -514,7 +517,7 @@ class MainService {
 
 		this._cartList.define("template", (obj, common) => {
 			return `<div>
-						<span class='webix_icon ${helpingFunctions.angleIconChange(obj)}' style="color: rgba(0, 0, 0, 0.8) !important;"></span>
+						<span class='webix_icon ${utils.angleIconChange(obj)}' style="color: rgba(0, 0, 0, 0.8) !important;"></span>
 						<div style='float: right'>${common.deleteButton(obj, common)}</div>
  						<div class='card-list-name'>${obj.name}</div>
  						<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
@@ -542,18 +545,18 @@ class MainService {
 		this._cartList.data.attachEvent("onAfterDeleteItem", (id) => {
 			const value = 0;
 			let item;
-			let dataviewItem = this._dataview.getItem(id);
+			let dataviewItem = this._galleryDataview.getItem(id);
 			let listItem = this._cartList.getItem(id);
 			if (dataviewItem) {
 				item = dataviewItem;
 				item.markCheckbox = value;
-				this._dataview.updateItem(id, item);
+				this._galleryDataview.updateItem(id, item);
 			} else {
 				item = listItem;
-				this._dataview.find((obj) => {
+				this._galleryDataview.find((obj) => {
 					if (obj._id === item._id) {
 						obj.markCheckbox = value;
-						this._dataview.updateItem(obj.id, obj);
+						this._galleryDataview.updateItem(obj.id, obj);
 					}
 				});
 			}
@@ -564,7 +567,7 @@ class MainService {
 				}
 			});
 			this._view.$scope.app.callEvent("changedSelectedImagesCount");
-			if (helpingFunctions.isObjectEmpty(this._cartList.data.pull)) {
+			if (utils.isObjectEmpty(this._cartList.data.pull)) {
 				this._cartViewButton.callEvent("onItemClick");
 				this._cartViewButton.hide();
 			}
@@ -638,35 +641,35 @@ class MainService {
 			}
 		});
 
-		this._tree.attachEvent("onAfterRender", () => {
-			const treeWidth = this._tree.$width;
-			const dataviewMinWidth = this._dataview.config.minWidth;
+		this._finder.attachEvent("onAfterRender", () => {
+			const treeWidth = this._finder.$width;
+			const dataviewMinWidth = this._galleryDataview.config.minWidth;
 			this._minCurrentTargenInnerWidth = dataviewMinWidth + treeWidth;
 		});
 
 		let dataviewSelectionId = utils.getDataviewSelectionId();
 		if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-			this._dataviewYCountSelection.blockEvent();
-			this._dataviewYCountSelection.setValue(dataviewSelectionId);
-			this._dataviewYCountSelection.unblockEvent();
+			this._galleryDataviewYCountSelection.blockEvent();
+			this._galleryDataviewYCountSelection.setValue(dataviewSelectionId);
+			this._galleryDataviewYCountSelection.unblockEvent();
 		}
 
 		window.addEventListener("resize", (event) => {
 			if (event.currentTarget.innerWidth >= this._minCurrentTargenInnerWidth) {
 				const dataviewSelectionId = utils.getDataviewSelectionId();
 				if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-					this._dataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
+					this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
 				}
 			}
 		});
 
-		this._dataviewYCountSelection.attachEvent("onChange", (id) => {
+		this._galleryDataviewYCountSelection.attachEvent("onChange", (id) => {
 			let newitemWidth;
 			let newItemHeight;
-			const previousItemWidth = this._dataview.type.width;
-			const previousItemHeight = this._dataview.type.height;
+			const previousItemWidth = this._galleryDataview.type.width;
+			const previousItemHeight = this._galleryDataview.type.height;
 			let multiplier = previousItemHeight / previousItemWidth;
-			let dataviewWidth = this._dataview.$width;
+			let dataviewWidth = this._galleryDataview.$width;
 
 			switch (id) {
 				case constants.THREE_DATAVIEW_COLUMNS: {
@@ -692,15 +695,15 @@ class MainService {
 			this._setDataviewColumns(newitemWidth, newItemHeight);
 		});
 
-		this._dataview.attachEvent("onAfterLoad", () => {
-			helpingFunctions.showOrHideImageSelectionTemplate("show", this._selectImagesTemplate);
+		this._galleryDataview.attachEvent("onAfterLoad", () => {
+			utils.showOrHideImageSelectionTemplate("show", this._selectImagesTemplate);
 			let dataviewSelectionId = utils.getDataviewSelectionId();
 			if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-				this._dataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
+				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
 			}
 			if (authService.isLoggedIn() && authService.getUserInfo().admin) {
-				filesToLargeImage = this._dataview.find((obj) => {
-					let itemType = helpingFunctions.searchForFileType(obj);
+				filesToLargeImage = this._galleryDataview.find((obj) => {
+					let itemType = utils.searchForFileType(obj);
 					if (!obj.largeImage) {
 						if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
 							return obj;
@@ -714,76 +717,30 @@ class MainService {
 				}
 			}
 
-			this._dataview.data.each((obj) => {
+			this._galleryDataview.data.each((obj) => {
 				if (selectDataviewItems.isSelected(obj._id) && !obj.markCheckbox) {
 					obj.markCheckbox = 1;
-					this._dataview.updateItem(obj.id, obj);
+					this._galleryDataview.updateItem(obj.id, obj);
 				}
 			});
-		});
-
-		this._datatable.attachEvent("onAfterEditStart", (infoObject) => {
-			const columnId = infoObject.column;
-			const editor = this._datatable.getEditor();
-			const rowId = infoObject.row;
-			const item = this._datatable.getItem(rowId);
-			let editValue;
-
-			if (item.hasOwnProperty("meta")) {
-				editValue = datatableModel.getMetadataColumnValue(item, `meta.${columnId}`);
-			}
-
-			editor.setValue(editValue);
-		});
-
-		this._datatable.attachEvent("onBeforeEditStop", (values, obj) => {
-			if (values.old !== values.value) {
-				const columnId = obj.column;
-				const rowId = obj.row;
-				const itemToEdit = this._datatable.getItem(rowId);
-				const copyOfAnItemToEdit = webix.copy(itemToEdit);
-				const metadataTags = this._findMetadataTags(itemToEdit, columnId);
-				if (metadataTags) {
-					if (metadataTags.metaKey) {
-						itemToEdit.meta[metadataTags.metaTag][metadataTags.metaKey] = values.value;
-					}
-					else {
-						itemToEdit.meta[metadataTags.metaTag] = values.value;
-					}
-				}
-				this._view.showProgress();
-				ajaxActions.updateItemMetadata(itemToEdit._id, itemToEdit.meta)
-					.then(() => {
-						this._datatable.updateItem(rowId, itemToEdit);
-						webix.message({
-							text: `${columnId} column was successfully updated!`,
-							expire: 2000
-						});
-						this._view.hideProgress();
-					})
-					.fail(() => {
-						this._datatable.updateItem(rowId, copyOfAnItemToEdit);
-						this._view.hideProgress();
-					});
-			}
 		});
 
 		if (authService.isLoggedIn()) {
 			let columnId;
 			let rowId;
-			this._datatableContextMenu.attachTo(this._datatable);
+			this._metadataTableContextMenu.attachTo(this._metadataTable);
 
-			this._datatable.attachEvent("onBeforeContextMenu", (object) => {
+			this._metadataTable.attachEvent("onBeforeContextMenu", (object) => {
 				columnId = object.column;
 				rowId = object.row;
-				const columnConfig = this._datatable.getColumnConfig(columnId);
+				const columnConfig = this._metadataTable.getColumnConfig(columnId);
 				if (!columnConfig.editor) {
 					return false;
 				}
 			});
 
-			this._datatableContextMenu.attachEvent("onItemClick", () => {
-				this._datatable.edit({
+			this._metadataTableContextMenu.attachEvent("onItemClick", () => {
+				this._metadataTable.edit({
 					column: columnId,
 					row: rowId
 				});
@@ -791,17 +748,17 @@ class MainService {
 		}
 
 		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
-			this._dataviewContextMenu.attachTo(this._dataview);
+			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
 			let itemId;
-			this._dataview.attachEvent("onBeforeContextMenu", (id) => {
-				let item = this._dataview.getItem(id);
-				let itemType = helpingFunctions.searchForFileType(item);
+			this._galleryDataview.attachEvent("onBeforeContextMenu", (id) => {
+				let item = this._galleryDataview.getItem(id);
+				let itemType = utils.searchForFileType(item);
 				if (item) {
-					this.dataViewItem = item;
-					this._dataviewContextMenu.clearAll();
-					this._dataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
+					this._galleryDataviewItem = item;
+					this._galleryDataviewContextMenu.clearAll();
+					this._galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
 					if (!item.largeImage) {
-						this._dataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
+						this._galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
 						if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
 							itemId = item._id;
 						}
@@ -811,22 +768,22 @@ class MainService {
 				}
 			});
 
-			this._dataviewContextMenu.attachEvent("onItemClick", (id) => {
+			this._galleryDataviewContextMenu.attachEvent("onItemClick", (id) => {
 				switch (id) {
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
-						this.treeItem = this.dataViewItem;
-						let itemClientRect = this._dataview.getItemNode(this.dataViewItem.id).getBoundingClientRect();
+						this._finderItem = this._galleryDataviewItem;
+						let itemClientRect = this._galleryDataview.getItemNode(this._galleryDataviewItem.id).getBoundingClientRect();
 						let documentWidth = document.body.clientWidth;
-						let oldName = this.dataViewItem.name;
+						let oldName = this._galleryDataviewItem.name;
 						this._renamePopup.showPopup(itemClientRect, documentWidth, oldName);
-						this._dataview.select(this.dataViewItem.id);
+						this._galleryDataview.select(this._galleryDataviewItem.id);
 						break;
 					}
 					case constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: {
 						this._view.showProgress();
 						ajaxActions.makeLargeImage(itemId)
 							.then(() => {
-								this._dataview.refresh();
+								this._galleryDataview.refresh();
 								this._view.hideProgress();
 							})
 							.fail(() => {
@@ -839,31 +796,31 @@ class MainService {
 			});
 		}
 
-		this._dataviewRichselectFilter.attachEvent("onChange", (value) => {
-			dataviewFilterModel.filterData(this._dataview, value);
+		this._galleryDataviewRichselectFilter.attachEvent("onChange", (value) => {
+			galleryDataviewFilterModel.filterData(this._galleryDataview, value);
 		});
 
-		this._dataviewSearch.attachEvent("onChange", (value) => {
-			dataviewFilterModel.filterByName(this._dataview, value);
+		this._galleryDataviewSearch.attachEvent("onChange", (value) => {
+			galleryDataviewFilterModel.filterByName(this._galleryDataview, value);
 		});
 
 		this._makeLargeImageButton.attachEvent("onItemClick", () => {
 			this._makeLargeImageWindow.showWindow(filesToLargeImage);
 		});
 
-		this._tree.getNode().addEventListener("contextmenu", (event) => {
+		this._finder.getNode().addEventListener("contextmenu", (event) => {
 			event.preventDefault();
 			return false;
 		}, false);
 
-		this._dataview.getNode().addEventListener("contextmenu", (event) => {
+		this._galleryDataview.getNode().addEventListener("contextmenu", (event) => {
 			event.preventDefault();
 			return false;
 		}, false);
 
-		this._galleryImageViewer.attachEvent("onChange", (newValue, oldValue) => {
+		this._galleryDataviewImageViewer.attachEvent("onChange", (newValue, oldValue) => {
 			if (newValue !== oldValue) {
-				this._dataview.refresh();
+				this._galleryDataview.refresh();
 			}
 		});
 
@@ -887,11 +844,11 @@ class MainService {
 		const hostId =  localStorageHostId ? localStorageHostId : firstHostItemId;
 		this._putValuesAfterHostChange(hostId);
 		this._hostBox.setValue(hostId);
-		this._view.$scope.getSubSelectView().parseCollectionData();
+		this._view.$scope.getSubHostsCollectionThemesView().parseCollectionData();
 	}
 
 	_setDataviewColumns(width, height) {
-		this._dataview.customize({
+		this._galleryDataview.customize({
 			width: width,
 			height: height
 		});
@@ -899,7 +856,7 @@ class MainService {
 		galleryImageUrl.clearPreviewLabelUrls();
 		galleryImageUrl.clearPreviewMacroImageUrl();
 		utils.setDataviewItemDimensions(width, height);
-		this._dataview.refresh();
+		this._galleryDataview.refresh();
 	}
 
 	_checkForImageHeight(imageHeight) {
@@ -907,26 +864,6 @@ class MainService {
 			return imageHeight + 10;
 		} else {
 			return imageHeight;
-		}
-	}
-
-	_findMetadataTags(itemToEdit, columnId) {
-		let objectWithKeysToReturn;
-		for (let key in itemToEdit.meta) {
-			if (key === columnId) {
-				return objectWithKeysToReturn = {
-					metaTag: key
-				};
-			} else if (key !== columnId && typeof(itemToEdit.meta[key]) === "object") {
-				for (let metaKey in itemToEdit.meta[key]) {
-					if (metaKey === columnId) {
-						return objectWithKeysToReturn = {
-							metaTag: key,
-							metaKey: metaKey
-						};
-					}
-				}
-			}
 		}
 	}
 

@@ -1670,7 +1670,7 @@ webix.skin["aircompact"] = {
 	tabbarHeight: 26,
 	rowHeight:26,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, dataview, etc. 
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:29,
 	inputPadding: 2,
 	menuHeight: 25,
@@ -1711,7 +1711,7 @@ webix.skin.web = {
 	tabbarHeight: 30,
 	rowHeight:30,
 	toolbarHeight:22,
-	listItemHeight:28,		//list, grouplist, dataview, etc. 
+	listItemHeight:28,		//list, grouplist, dataview, etc.
 	inputHeight:28,
 	inputPadding: 2,
 	menuMargin: 0,

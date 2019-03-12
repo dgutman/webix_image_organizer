@@ -4,7 +4,7 @@
 //
 import ajaxActions from "../../services/ajaxActions";
 import projectMetadata from "../../models/projectMetadata";
-import dataViews from "../../models/dataViews";
+import webixViews from "../../models/webixViews";
 
 if (!webix.ui.editabletemplate) {
 	webix.protoUI({
@@ -57,7 +57,7 @@ if (!webix.ui.editabletemplate) {
 			const projectSchemaFolder = projectFolderMetadataCollection.getItem(projectFolderMetadataCollection.getLastId());
 			const newMetadata = projectSchemaFolder.meta;
 			const folderId = projectSchemaFolder._id;
-			const mainView = dataViews.getMainView();
+			const mainView = webixViews.getMainView();
 
 			webix.extend(mainView, webix.ProgressBar);
 			this.data[objectKey][valueIndex] = value.value;

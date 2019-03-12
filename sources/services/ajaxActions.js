@@ -182,11 +182,11 @@ class AjaxActions {
 	}
 
 	updateItemMetadata(itemId, metadataObject) {
-		let objectToPut = {
+		const metadata = metadataObject ? {
 			metadata: metadataObject
-		};
+		} : {};
 		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, objectToPut)
+			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, metadata)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
@@ -208,12 +208,13 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	updateItemTag(itemId, itemTag) {
+	// update when API fixes
+	/*updateItemTag(itemId, itemTag) {
 		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}/aperio`, itemTag)
+			.put(`${this.getHostApiUrl()}/item/${itemId}/aperio?tag=${itemTag}`)
 			.fail(parseError)
 			.then(result => this._parseData(result));
-	}
+	}*/
 
 }
 
