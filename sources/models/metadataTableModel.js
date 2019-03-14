@@ -2,6 +2,7 @@ import utils from "../utils/utils";
 import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
+import instance from "../services/ajaxActions";
 
 const columnsForDatatableToAddCollection = new webix.DataCollection();
 const columnsForDatatableToRemoveCollection = new webix.DataCollection();
@@ -116,7 +117,7 @@ function getColumnsForDatatable(datatable) {
 						localColumnHeader.push({content:`${filterType}Filter`,
 							options: setSelectFilterOptions(filterType, columnId, datatable),
 							placeholder: placeholder, compare: (value, filter, obj) => {
-								return compareInitialColumnFilter(value, filter, obj, columnId, filterType, filterTypeValue, initialColumnConfig.id);
+								return compareInitialColumnFilter(obj, filter, columnId, filterType, filterTypeValue, initialColumnConfig.id);
 							}});
 					}
 
@@ -140,7 +141,7 @@ function getColumnsForDatatable(datatable) {
 						headerConfig.push({content:`${filterType}Filter`,
 							options: setSelectFilterOptions(filterType, columnId, datatable),
 							placeholder: placeholder, compare: (value, filter, obj) => {
-								return compareMetadataColumnFilter(value, filter, obj, columnId, filterType);
+								return compareMetadataColumnFilter(obj, filter, columnId, filterType);
 							}});
 					}
 					const newColumnConfig = {
@@ -201,11 +202,12 @@ function setSelectFilterOptions(filterType, columnId, datatable) {
 				if (item.hasOwnProperty("meta")) {
 					let metadataValue = getOrEditMetadataColumnValue(item.meta, `meta.${columnId}`);
 					let index = options.map((obj) => obj.value).indexOf(metadataValue);
-					if (index === -1) {
-						options.push({
-							id: metadataValue, value: metadataValue
-						});
-
+					if (!(metadataValue instanceof Object)) {
+						if (index === -1) {
+							options.push({
+								id: metadataValue, value: metadataValue
+							});
+						}
 					}
 				}
 			}
@@ -215,8 +217,11 @@ function setSelectFilterOptions(filterType, columnId, datatable) {
 }
 
 function compareMetadataColumnFilter(obj, filter, columnId, filterType, filterTypeValue) {
-	if (obj.hasOwnProperty("meta")) {
-		const metadataColumnValue = getOrEditMetadataColumnValue(obj.meta, `meta.${columnId}`);
+	if (obj && obj.hasOwnProperty("meta")) {
+		let metadataColumnValue = getOrEditMetadataColumnValue(obj.meta, `meta.${columnId}`);
+		if (!metadataColumnValue && metadataColumnValue !== 0 && metadataColumnValue !== "") {
+			metadataColumnValue = "null";
+		}
 		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
 			return metadataColumnValue.toString().indexOf(filter) !== -1;
 		} else if (filterType === "text") {

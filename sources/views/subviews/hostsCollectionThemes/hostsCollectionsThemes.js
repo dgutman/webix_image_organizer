@@ -1,3 +1,4 @@
+/*
 import {JetView} from "webix-jet";
 import ajax from "../../../services/ajaxActions";
 import utils from "../../../utils/utils";
@@ -152,3 +153,4 @@ export default class HostsCollectionThemesClass extends JetView {
 	}
 
 }
+*/

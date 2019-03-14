@@ -7,6 +7,7 @@ import LogoutPanel from "./parts/logoutPanel";
 
 const LOGOUT_PANEL_NAME = "logout-panel";
 const LOGIN_PANEL_NAME = "login-panel";
+const serverListData = process.env.SERVER_LIST;
 
 export default class Header extends JetView {
 	config() {
@@ -52,18 +53,87 @@ export default class Header extends JetView {
 			]
 		};
 
+		const hostDropDownBox = {
+			view: "richselect",
+			name: "hostBoxName",
+			css: "select-field",
+			label: "Hosts",
+			labelWidth: 70,
+			width: 300,
+			options: {
+				template: "#value#",
+				data: serverListData
+			}
+		};
+
+		const collectionDropDownBox = {
+			view: "richselect",
+			name: "collectionBoxName",
+			css: "select-field",
+			label: "Collections",
+			width: 330,
+			labelWidth: 100,
+			options: {
+				body: {
+					template: obj => obj.name || ""
+				}
+			}
+		};
+
+		/*const skinSwitcher = {
+			name: "skin",
+			labelWidth: 70,
+			width: 300,
+			view: "richselect",
+			css: "select-field",
+			value: this.app.getService("theme").getTheme(),
+			label: "Theme",
+			options: [
+				{id: "flat", value: "flat"},
+				{id: "compact", value: "compact"},
+				{id: "aircompact", value: "aircompact"},
+				{id: "clouds", value: "clouds"},
+				{id: "air", value: "air"},
+				{id: "glamour", value: "glamour"},
+				{id: "light", value: "light"},
+				{id: "metro", value: "metro"},
+				{id: "terrace", value: "terrace"},
+				{id: "touch", value: "touch"},
+				{id: "web", value: "web"}
+			],
+			on: {
+				onChange: () => this.toggleTheme()
+			}
+		};*/
+
 		const header = {
 			height: 60,
 			width: 1220,
 			css: "main-header",
 			cols: [
 				logo,
+				{
+					rows: [
+						{height: 12},
+						hostDropDownBox,
+						{height: 18}
+					]
+				},
+				{width: 50},
+				{
+					rows: [
+						{height: 12},
+						collectionDropDownBox,
+						{height: 18}
+					]
+				},
 				userPanel
 			]
 		};
 
 		return {
 			css: "global-header",
+			name: "headerClass",
 			rows: [
 				{
 					cols: [
@@ -89,5 +159,35 @@ export default class Header extends JetView {
 			this.headerService.showLogoutPanel();
 			ajax.getUserInfo();
 		}
+	}
+
+	loadCollectionData() {
+		return ajax.getCollection().then(collections => collections);
+	}
+
+	parseToList(collections) {
+		this.getCollectionBox().getList().clearAll();
+		this.getCollectionBox().getList().parse(collections);
+	}
+
+	getHostBox() {
+		return this.getRoot().queryView({name: "hostBoxName"});
+	}
+
+	getCollectionBox() {
+		return this.getRoot().queryView({name: "collectionBoxName"});
+	}
+
+	parseCollectionData() {
+		this.loadCollectionData()
+			.then((data) => {
+				this.parseToList({
+					data: webix.copy(data)
+				});
+				let collectionList = this.getCollectionBox().getList();
+				let firstId = collectionList.getFirstId();
+				collectionList.select(firstId);
+				this.getCollectionBox().setValue(firstId);
+			});
 	}
 }

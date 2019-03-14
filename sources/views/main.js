@@ -19,7 +19,6 @@ export default class MainView extends JetView {
 		return {
 			rows: [
 				header,
-				hostsCollectionAndThemes,
 				galleryFeatures,
 				dataviewActionPanel,
 				{
@@ -38,8 +37,8 @@ export default class MainView extends JetView {
 
 	ready(view) {
 		// init child views
-		const hostBox = this.getSubHostsCollectionThemesView().getHostBox();
-		const collectionBox = this.getSubHostsCollectionThemesView().getCollectionBox();
+		const hostBox = this.getSubHeaderView().getHostBox();
+		const collectionBox = this.getSubHeaderView().getCollectionBox();
 		const multiviewSwither = this.getSubDataviewActionPanelView().getSwitcherView();
 		const galleryDataviewPager = this.getSubDataviewActionPanelView().getPagerView();
 		const galleryDataview = this.getSubGalleryView().getDataView();
@@ -105,6 +104,10 @@ export default class MainView extends JetView {
 
 	getSubGalleryFeaturesView() {
 		return this.getRoot().queryView({name: "galleryFeaturesClass"}).$scope;
+	}
+
+	getSubHeaderView() {
+		return this.getRoot().queryView({name: "headerClass"}).$scope;
 	}
 
 }
