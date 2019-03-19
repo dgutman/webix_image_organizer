@@ -4,6 +4,9 @@ This is using npm to run a local web server; to install necessary packages first
 
     npm install
     ## Then...
+
+[![Join the chat at https://gitter.im/webix_image_organizer/community](https://badges.gitter.im/webix_image_organizer/community.svg)](https://gitter.im/webix_image_organizer/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
     npm run start
 
 
