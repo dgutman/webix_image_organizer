@@ -3,6 +3,7 @@ let galleryDataview;
 let galleryPager;
 let metadataTable;
 let mainView;
+let imageWindow;
 
 function setMainView(view) {
 	mainView = view;
@@ -44,6 +45,14 @@ function getMainView() {
 	return mainView;
 }
 
+function getImageWindow() {
+	return imageWindow;
+}
+
+function setImageWindow(imageWindowView) {
+	imageWindow = imageWindowView;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -54,5 +63,7 @@ export default {
 	getFinderView,
 	getGalleryPager,
 	setMainView,
-	getMainView
+	getMainView,
+	getImageWindow,
+	setImageWindow
 };

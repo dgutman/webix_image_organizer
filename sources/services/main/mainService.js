@@ -51,12 +51,6 @@ class MainService {
 		this._metadataPanelScrollView.hide();
 		this._setValueAndParseData();
 
-		webixViews.setGalleryDataview(this._galleryDataview);
-		webixViews.setMetadataTable(this._metadataTable);
-		webixViews.setFinderView(this._finder);
-		webixViews.setGalleryPager(this._galleryDataviewPager);
-		webixViews.setMainView(this._view);
-
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
 
@@ -81,6 +75,13 @@ class MainService {
 		this._galleryDataviewImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
 		this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
+
+		webixViews.setGalleryDataview(this._galleryDataview);
+		webixViews.setMetadataTable(this._metadataTable);
+		webixViews.setFinderView(this._finder);
+		webixViews.setGalleryPager(this._galleryDataviewPager);
+		webixViews.setMainView(this._view);
+		webixViews.setImageWindow(this._imageWindow);
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 
@@ -746,6 +747,10 @@ class MainService {
 				});
 			});
 		}
+
+		this._galleryDataview.attachEvent("onBeforeContextMenu", (...args) => {
+			console.log(args)
+		})
 
 		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
 			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
