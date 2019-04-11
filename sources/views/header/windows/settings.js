@@ -1,7 +1,12 @@
 import {JetView} from "webix-jet";
+<<<<<<< HEAD
 import webixViews from "../../../models/webixViews";
 import utils from "../../../utils/utils";
 import constants from "../../../constants";
+=======
+import viewEvents from "../../../utils/viewEvents";
+import webixViews from "../../../models/webixViews";
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 
 const mouseOptions = [
 	{id: "open", value: "Image open in new window"},
@@ -19,7 +24,11 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
+<<<<<<< HEAD
 					name: constants.MOUSE_LEFT_SINGLE_CLICK,
+=======
+					name: "mouseLeftSingle",
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
@@ -27,13 +36,21 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button single click",
 					options: mouseOptions,
 					on: {
+<<<<<<< HEAD
 						//onChange: this.onChangeMouseClicks
+=======
+						onChange: this.onChangeMouseClicks
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					}
 				},
 				{
 					view: "richselect",
 					css: "select-field",
+<<<<<<< HEAD
 					name: constants.MOUSE_RIGHT_SINGLE_CLICK,
+=======
+					name: "mouseRightSingle",
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
@@ -41,13 +58,21 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse right button single click",
 					options: mouseOptions,
 					on: {
+<<<<<<< HEAD
 						//onChange: this.onChangeMouseClicks
+=======
+						onChange: this.onChangeMouseClicks
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					}
 				},
 				{
 					view: "richselect",
 					css: "select-field",
+<<<<<<< HEAD
 					name: constants.MOUSE_LEFT_DOUBLE_CLICK,
+=======
+					name: "mouseLeftDouble",
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
@@ -55,7 +80,11 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button double click",
 					options: mouseOptions,
 					on: {
+<<<<<<< HEAD
 						//onChange: this.onChangeMouseClicks
+=======
+						onChange: this.onChangeMouseClicks
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					}
 				}
 			]
@@ -70,11 +99,18 @@ export default class SettingsWindow extends JetView {
 			width: 100,
 			click: () => {
 				if (this.settingsForm.validate()) {
+<<<<<<< HEAD
 					const values = this.settingsForm.getValues();
 					const galleryDataview = webixViews.getGalleryDataview();
 					const metadataTable = webixViews.getMetadataTableView();
 
 					utils.setMouseSettingsEvents(galleryDataview, metadataTable, values);
+=======
+					const galleryDataview = webixViews.getGalleryDataview();
+					const metadataTable = webixViews.getMetadataTableView();
+					viewEvents.setDataviewEvent(galleryDataview, "open", "onItemClick");
+					viewEvents.setDatatableEvent(metadataTable, "open", "onItemClick");
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 					this.getRoot().hide();
 				}
 			}
@@ -143,6 +179,10 @@ export default class SettingsWindow extends JetView {
 				]
 			}
 		};
+<<<<<<< HEAD
+=======
+
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 		return settingsWindow;
 	}
 
@@ -175,8 +215,11 @@ export default class SettingsWindow extends JetView {
 	}
 
 	showWindow() {
+<<<<<<< HEAD
 		const settingsFromValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
 		this.settingsForm.setValues(settingsFromValues);
+=======
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 		this.getRoot().show();
 	}
 

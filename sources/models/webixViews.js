@@ -4,8 +4,11 @@ let galleryPager;
 let metadataTable;
 let mainView;
 let imageWindow;
+<<<<<<< HEAD
 let galleryDataviewContextMenu;
 let metadataTableThumbnailTemplate;
+=======
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 
 function setMainView(view) {
 	mainView = view;
@@ -55,6 +58,7 @@ function setImageWindow(imageWindowView) {
 	imageWindow = imageWindowView;
 }
 
+<<<<<<< HEAD
 function setGalleryDataviewContextMenu(galleryContextMenu) {
 	galleryDataviewContextMenu = galleryContextMenu;
 }
@@ -71,6 +75,8 @@ function getMetadataTableThumbnailTemplate() {
 	return metadataTableThumbnailTemplate;
 }
 
+=======
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -83,9 +89,13 @@ export default {
 	setMainView,
 	getMainView,
 	getImageWindow,
+<<<<<<< HEAD
 	setImageWindow,
 	setGalleryDataviewContextMenu,
 	getGalleryDataviewContextMenu,
 	setMetadataTableThumbnailTemplate,
 	getMetadataTableThumbnailTemplate
+=======
+	setImageWindow
+>>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 };
