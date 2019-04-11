@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 import authService from "../../../services/authentication";
+import SettingsWindow from "../windows/settings";
 
 export default class LogoutPanelView extends JetView {
 	config() {
@@ -12,11 +13,14 @@ export default class LogoutPanelView extends JetView {
 					{
 						view: "menu",
 						width: this.calcUserMenuWidth(this.getUserName()),
+						openAction: "click",
 						data: [
 							{
 								id: "name",
 								value: this.getUserName(),
 								submenu: [
+									{id: "settings", value: "<span class='webix_icon fa-cog'></span> Settings"},
+									{$template: "Separator"},
 									{id: "logout", value: "<span class='webix_icon fa-arrow-right'></span> Logout"}
 								]
 							}
@@ -25,8 +29,12 @@ export default class LogoutPanelView extends JetView {
 							subsign: true
 						},
 						on: {
-							onMenuItemClick(id) {
+							onMenuItemClick: (id) => {
 								switch (id) {
+									case "settings": {
+										this.settingsWindow.showWindow();
+										break;
+									}
 									case "logout": {
 										authService.logout();
 										break;
@@ -44,6 +52,10 @@ export default class LogoutPanelView extends JetView {
 		];
 
 		return {cols};
+	}
+
+	ready() {
+		this.settingsWindow = this.ui(SettingsWindow);
 	}
 
 	getUserName() {

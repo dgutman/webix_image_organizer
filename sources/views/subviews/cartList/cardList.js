@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import "../../components/activeList";
 import constants from "../../../constants";
 import utils from "../../../utils/utils";
+import modifiedObjects from "../../../models/modifiedObjects";
 
 export default class CartView extends JetView {
 	config() {
@@ -42,6 +43,26 @@ export default class CartView extends JetView {
 					height: 25,
 					click: (...args) => {
 						this.getCartListView().callEvent("onDeleteButtonClick", args);
+					}
+				}
+			},
+			onClick: {
+				"webix_icon": function (e, id, node) {
+					const item = this.getItem(id);
+					const itemNode = this.getItemNode(id);
+					const listTextNode = itemNode.firstChild.children[2];
+					if (!item.imageShown) {
+						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
+						listTextNode.setAttribute("style", "margin-left: 17px; width: 115px;");
+						node.setAttribute("class", "webix_icon fa-angle-down");
+						item.imageShown = true;
+						modifiedObjects.add(item);
+					} else {
+						itemNode.setAttribute("style", "height: 30px !important; color: rgba(0, 0, 0, 0.8);");
+						listTextNode.setAttribute("style", "margin-left: 12px; width: 125px;");
+						node.setAttribute("class", "webix_icon fa-angle-right");
+						item.imageShown = false;
+						modifiedObjects.remove(item);
 					}
 				}
 			}

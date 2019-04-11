@@ -13,7 +13,6 @@ import nonImageUrls from "../../models/nonImageUrls";
 import downloadFiles from "../../models/downloadFiles";
 import modifiedObjects from "../../models/modifiedObjects";
 import webixViews from "../../models/webixViews";
-import MetadataTableContextMenu from "../../views/components/metadataTableContextMenu";
 import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
 import galleryDataviewFilterModel from "../../models/galleryDataviewFilterModel";
 import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
@@ -51,12 +50,6 @@ class MainService {
 		this._metadataPanelScrollView.hide();
 		this._setValueAndParseData();
 
-		webixViews.setGalleryDataview(this._galleryDataview);
-		webixViews.setMetadataTable(this._metadataTable);
-		webixViews.setFinderView(this._finder);
-		webixViews.setGalleryPager(this._galleryDataviewPager);
-		webixViews.setMainView(this._view);
-
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
 
@@ -68,7 +61,6 @@ class MainService {
 		this._cartViewButton = this._view.$scope.getSubDataviewActionPanelView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartListView().getDownloadingMenu();
 		this._galleryDataviewYCountSelection = this._view.$scope.getSubGalleryFeaturesView().getDataviewYCountSelection();
-		this._metadataTableContextMenu = this._view.$scope.ui(MetadataTableContextMenu).getRoot();
 		this._galleryDataviewContextMenu = this._view.$scope.ui(GalleryDataviewContextMenu).getRoot();
 		this._galleryDataviewRichselectFilter = this._view.$scope.getSubGalleryFeaturesView().getFilterBySelectionView();
 		this._showMetadataWindowButton = this._view.$scope.getSubMetadataPanelView().getShowAddMetadataWindowButton();
@@ -82,9 +74,28 @@ class MainService {
 		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
 		this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
 
+		webixViews.setGalleryDataview(this._galleryDataview);
+		webixViews.setMetadataTable(this._metadataTable);
+		webixViews.setFinderView(this._finder);
+		webixViews.setGalleryPager(this._galleryDataviewPager);
+		webixViews.setMainView(this._view);
+		webixViews.setImageWindow(this._imageWindow);
+		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
+
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 
 		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
+
+		// disable context menu for webix elements
+		this._metadataTable.getNode().addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+		});
+
+		this._galleryDataview.getNode().addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+		});
+
+		this._setInitSettingsMouseEvents();
 
 		this._galleryDataviewPager.attachEvent("onAfterRender", function () {
 			const currentPager = this;
@@ -105,6 +116,11 @@ class MainService {
 					}
 				}
 			});
+		});
+
+		// prevent select for datatable
+		this._metadataTable.attachEvent("onBeforeSelect", () => {
+			return false;
 		});
 
 		// connecting pager to data view
@@ -259,7 +275,7 @@ class MainService {
 		});
 
 
-		//after opening the tree branch we fire this event
+		// after opening the tree branch we fire this event
 		this._finder.attachEvent("onAfterSelect", (id) => {
 			const item = this._finder.getItem(id);
 			if (item._modelType === "item") {
@@ -293,38 +309,29 @@ class MainService {
 			}
 		});
 
-		this._galleryDataview.attachEvent("onItemDblClick", (id) => {
-			let item = this._galleryDataview.getItem(id);
-			downloadFiles.openOrDownloadFiles(item, this._imageWindow, this._pdfViewerWindow);
-		});
-
-		this._metadataTable.attachEvent("onItemDblClick", (id) => {
-			const item = this._metadataTable.getItem(id);
-			downloadFiles.openOrDownloadFiles(item, this._imageWindow, this._pdfViewerWindow);
-		});
-
 		if (authService.isLoggedIn()) {
 			this._finderContextMenu.attachTo(this._finder);
 
 			this._finder.attachEvent("onBeforeContextMenu", (id) => {
 				const item = this._finder.getItem(id);
+				this._finderContextMenu.clearAll();
 				if (item._modelType === "folder") {
+					this._finderContextMenu.clearAll();
+					this._finderContextMenu.parse([
+						constants.REFRESH_FOLDER_CONTEXT_MENU_ID,
+						{$template: "Separator"},
+						constants.LINEAR_CONTEXT_MENU_ID
+					]);
 					if (authService.getUserInfo().admin) {
-						this._finderContextMenu.clearAll();
 						this._finderContextMenu.parse([
-							constants.RENAME_CONTEXT_MENU_ID,
 							{$template: "Separator"},
-							constants.LINEAR_CONTEXT_MENU_ID
+							constants.RENAME_CONTEXT_MENU_ID
 						]);
-					} else {
-						this._finderContextMenu.clearAll();
-						this._finderContextMenu.parse(["Make linear structure"]);
 					}
 					contextToFolder = true;
 					this._finderFolder = item;
 				} else {
 					if (authService.getUserInfo().admin) {
-						this._finderContextMenu.clearAll();
 						this._finderContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
 						contextToFolder = false;
 						this._finderItem = item;
@@ -358,7 +365,6 @@ class MainService {
 						this._view.showProgress();
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
 							utils.findAndRemove(folderId, this._finderFolder, items);
-							this._finderFolder.hasOpened = false;
 						}
 						this._finder.blockEvent();
 						this._finder.data.blockEvent();
@@ -407,8 +413,17 @@ class MainService {
 						this._finder.edit(itemId);
 						break;
 					}
+					case constants.REFRESH_FOLDER_CONTEXT_MENU_ID: {
+						this._view.showProgress();
+						setTimeout(() => {
+							if (this._finderFolder.hasOpened || this._finderFolder.open) {
+								utils.findAndRemove(folderId, this._finderFolder, items);
+							}
+							this._finder.open(folderId);
+						}, 100);
+						break;
+					}
 				}
-
 			});
 
 			this._finder.attachEvent("onAfterEditStop", (values, object) => {
@@ -573,25 +588,6 @@ class MainService {
 			}
 		});
 
-		this._cartList.on_click["webix_icon"] = (e, id, node) => {
-			let item = this._cartList.getItem(id);
-			let itemNode = this._cartList.getItemNode(id);
-			let listTextNode = itemNode.firstChild.children[2];
-			if (!item.imageShown) {
-				itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
-				listTextNode.setAttribute("style", "margin-left: 17px; width: 115px;");
-				node.setAttribute("class", "webix_icon fa-angle-down");
-				item.imageShown = true;
-				modifiedObjects.add(item);
-			} else {
-				itemNode.setAttribute("style", "height: 30px !important; color: rgba(0, 0, 0, 0.8);");
-				listTextNode.setAttribute("style", "margin-left: 12px; width: 125px;");
-				node.setAttribute("class", "webix_icon fa-angle-right");
-				item.imageShown = false;
-				modifiedObjects.remove(item);
-			}
-		};
-
 		this._cartList.attachEvent("onAfterRender", () => {
 			if (modifiedObjects.count() > 0) {
 				modifiedObjects.getObjects().forEach((obj) => {
@@ -725,75 +721,8 @@ class MainService {
 			});
 		});
 
-		if (authService.isLoggedIn()) {
-			let columnId;
-			let rowId;
-			this._metadataTableContextMenu.attachTo(this._metadataTable);
-
-			this._metadataTable.attachEvent("onBeforeContextMenu", (object) => {
-				columnId = object.column;
-				rowId = object.row;
-				const columnConfig = this._metadataTable.getColumnConfig(columnId);
-				if (!columnConfig.editor) {
-					return false;
-				}
-			});
-
-			this._metadataTableContextMenu.attachEvent("onItemClick", () => {
-				this._metadataTable.edit({
-					column: columnId,
-					row: rowId
-				});
-			});
-		}
-
 		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
 			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
-			let itemId;
-			this._galleryDataview.attachEvent("onBeforeContextMenu", (id) => {
-				let item = this._galleryDataview.getItem(id);
-				let itemType = utils.searchForFileType(item);
-				if (item) {
-					this._galleryDataviewItem = item;
-					this._galleryDataviewContextMenu.clearAll();
-					this._galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
-					if (!item.largeImage) {
-						this._galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
-						if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
-							itemId = item._id;
-						}
-					}
-				} else {
-					return false;
-				}
-			});
-
-			this._galleryDataviewContextMenu.attachEvent("onItemClick", (id) => {
-				switch (id) {
-					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
-						this._finderItem = this._galleryDataviewItem;
-						let itemClientRect = this._galleryDataview.getItemNode(this._galleryDataviewItem.id).getBoundingClientRect();
-						let documentWidth = document.body.clientWidth;
-						let oldName = this._galleryDataviewItem.name;
-						this._renamePopup.showPopup(itemClientRect, documentWidth, oldName);
-						this._galleryDataview.select(this._galleryDataviewItem.id);
-						break;
-					}
-					case constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: {
-						this._view.showProgress();
-						ajaxActions.makeLargeImage(itemId)
-							.then(() => {
-								this._galleryDataview.refresh();
-								this._view.hideProgress();
-							})
-							.fail(() => {
-								this._view.hideProgress();
-							});
-						break;
-					}
-				}
-
-			});
 		}
 
 		this._galleryDataviewRichselectFilter.attachEvent("onChange", (value) => {
@@ -904,6 +833,11 @@ class MainService {
 
 		return `<div style='float: left'>${iconsDivLeft}</div>
 		        <div style='float: right'>${iconsDivRight}</div>`;
+	}
+
+	_setInitSettingsMouseEvents() {
+		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
+		utils.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
 	}
 }
 
