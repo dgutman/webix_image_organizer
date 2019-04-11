@@ -80,10 +80,7 @@ class MainService {
 		webixViews.setGalleryPager(this._galleryDataviewPager);
 		webixViews.setMainView(this._view);
 		webixViews.setImageWindow(this._imageWindow);
-<<<<<<< HEAD
 		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
-=======
->>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 
@@ -724,35 +721,6 @@ class MainService {
 			});
 		});
 
-<<<<<<< HEAD
-=======
-		if (authService.isLoggedIn()) {
-			let columnId;
-			let rowId;
-			this._metadataTableContextMenu.attachTo(this._metadataTable);
-
-			this._metadataTable.attachEvent("onBeforeContextMenu", (object) => {
-				columnId = object.column;
-				rowId = object.row;
-				const columnConfig = this._metadataTable.getColumnConfig(columnId);
-				if (!columnConfig.editor) {
-					return false;
-				}
-			});
-
-			this._metadataTableContextMenu.attachEvent("onItemClick", () => {
-				this._metadataTable.edit({
-					column: columnId,
-					row: rowId
-				});
-			});
-		}
-
-		this._galleryDataview.attachEvent("onBeforeContextMenu", (...args) => {
-			console.log(args)
-		})
-
->>>>>>> a43c0359131ee95b214c2d18f5e2cc5da3eb88a4
 		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
 			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
 		}
