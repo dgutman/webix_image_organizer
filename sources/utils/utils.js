@@ -4,6 +4,8 @@ import projectMetadata from "../models/projectMetadata";
 import galleryDataviewFilterModel from "../models/galleryDataviewFilterModel";
 import webixViews from "../models/webixViews";
 import metadataTableModel from "../models/metadataTableModel";
+import viewMouseEvents from "./viewMouseEvents";
+import constants from "../constants";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -96,19 +98,21 @@ function showAlert() {
 
 function findAndRemove(id, folder, array) {
 	const finderView = webixViews.getFinderView();
-	finderView.data.eachChild(id, (item) =>{
+	finderView.data.eachChild(id, (item) => {
 		array.push(item.id);
 	}, finderView, true);
+
 	const length = array.length;
 	for (let i = 0; i < length; i++) {
 		finderView.remove(array[i]);
 	}
 	folder.$count = 1;
-	folder.hasOpened = 0;
+	folder.hasOpened = false;
 
 	webix.dp(finderView).ignore(() => {
 		finderView.updateItem(folder.id, folder);
 	});
+
 	webixViews.getGalleryPager().hide();
 	webixViews.getMetadataTableView().clearAll();
 	webixViews.getGalleryDataview().clearAll();
@@ -276,6 +280,48 @@ function removeAndAddClassFromCollapsedElement(action, element) {
 	}
 }
 
+
+function setLocalStorageSettingsValues(values) {
+	webix.storage.local.put("mouseSettingsValues", values);
+}
+
+function getLocalStorageSettingsValues() {
+	return webix.storage.local.get("mouseSettingsValues");
+}
+
+function getDefaultMouseSettingsValues() {
+	const mouseSettingsValues = {
+		[constants.MOUSE_LEFT_SINGLE_CLICK]: "select",
+		[constants.MOUSE_RIGHT_SINGLE_CLICK]: "edit",
+		[constants.MOUSE_LEFT_DOUBLE_CLICK]: "open"
+	};
+	return mouseSettingsValues;
+}
+
+function setMouseSettingsEvents(dataview, datatable, values) {
+	for (let key in values) {
+		let event;
+		switch (key) {
+			case constants.MOUSE_LEFT_SINGLE_CLICK: {
+				event = "onItemClick";
+				break;
+			}
+			case constants.MOUSE_RIGHT_SINGLE_CLICK: {
+				event = "onBeforeContextMenu";
+				break;
+			}
+			case constants.MOUSE_LEFT_DOUBLE_CLICK: {
+				event = "onItemDblClick";
+				break;
+			}
+		}
+		viewMouseEvents.setDataviewMouseEvents(dataview, values[key], event);
+		viewMouseEvents.setDatatableMouseEvents(datatable, values[key], event);
+	}
+
+	setLocalStorageSettingsValues(values);
+}
+
 export default {
 	openInNewTab,
 	downloadByLink,
@@ -301,5 +347,9 @@ export default {
 	collapseViews,
 	getCssCollapsedClass,
 	showOrHideImageSelectionTemplate,
-	showOrHideTemplateCollapsedViews
+	showOrHideTemplateCollapsedViews,
+	setMouseSettingsEvents,
+	getDefaultMouseSettingsValues,
+	setLocalStorageSettingsValues,
+	getLocalStorageSettingsValues
 };

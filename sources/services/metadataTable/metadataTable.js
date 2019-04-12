@@ -3,6 +3,7 @@ import metadataTableModel from "../../models/metadataTableModel";
 import authService from "../authentication";
 import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
 import ajaxActions from "../ajaxActions";
+import webixViews from "../../models/webixViews";
 
 let columnsConfigForDelete = [];
 let datatableColumnsConfig = [];
@@ -25,17 +26,19 @@ class MetadataTableService {
 		}
 		webix.extend(this._view, webix.ProgressBar);
 
+		webixViews.setMetadataTableThumbnailTemplate(this._metadataTableThumbnailsTemplate);
+
 		this._editColumnsWindow = this._view.$scope.ui(EditColumnsWindow);
 		this._uniqueValuesWindow = this._view.$scope.ui(UniqueValuesWindow);
 		this._addColumnButton.attachEvent("onItemClick", () => {
-			let addButtonPromise = new Promise((success) => {
+			const addButtonPromise = new Promise((success) => {
 				let existedColumns = webix.toArray(this._metadataTable.config.columns);
 				this._metadataTable.find((obj) => {
 					if (obj.hasOwnProperty("meta")) {
 						this._createColumnsConfig(obj.meta);
 						return obj;
 					}
-				}, true);
+				});
 				existedColumns.each((columnConfig) => {
 					this._checkColumnsForDelete(columnConfig);
 				});
@@ -49,7 +52,7 @@ class MetadataTableService {
 		});
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
-			let newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 			this._setColspansForColumnsHeader(newDatatableColumns);
 			metadataTableModel.putInLocalStorage(newDatatableColumns, authService.getUserInfo()._id);
 			this._metadataTable.refreshColumns(newDatatableColumns);
@@ -105,11 +108,6 @@ class MetadataTableService {
 
 		this._exportButton.attachEvent("onItemClick", () => {
 			this._view.$scope.exportToExcel();
-		});
-
-		this._metadataTable.attachEvent("onAfterSelect", (id) => {
-			const currentItem = this._metadataTable.getItem(id);
-			this._metadataTableThumbnailsTemplate.parse(currentItem);
 		});
 
 		this._metadataTable.attachEvent("onAfterLoad", () => {

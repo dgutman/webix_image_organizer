@@ -13,6 +13,7 @@ export default class LogoutPanelView extends JetView {
 					{
 						view: "menu",
 						width: this.calcUserMenuWidth(this.getUserName()),
+						openAction: "click",
 						data: [
 							{
 								id: "name",

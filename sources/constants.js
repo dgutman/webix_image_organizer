@@ -13,6 +13,7 @@ export default {
 	RENAME_CONTEXT_MENU_ID: "Rename folder",
 	LINEAR_CONTEXT_MENU_ID: "Make linear structure",
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
+	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 
@@ -56,4 +57,8 @@ export default {
 
 	MAIN_PROPERTIES_CLASS_NAME: "main-properties",
 	METADATA_PROPERTIES_CLASS_NAME: "metadata-properties",
+
+	MOUSE_LEFT_SINGLE_CLICK: "mouseLeftSingle",
+	MOUSE_RIGHT_SINGLE_CLICK: "mouseRightSingle",
+	MOUSE_LEFT_DOUBLE_CLICK: "mouseLeftDouble"
 };

@@ -1,4 +1,6 @@
 import {JetView} from "webix-jet";
+import utils from "../../../utils/utils";
+import constants from "../../../constants";
 import viewEvents from "../../../utils/viewEvents";
 import webixViews from "../../../models/webixViews";
 
@@ -18,45 +20,37 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
-					name: "mouseLeftSingle",
+					name: constants.MOUSE_LEFT_SINGLE_CLICK,
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button single click",
 					options: mouseOptions,
-					on: {
-						onChange: this.onChangeMouseClicks
-					}
 				},
 				{
 					view: "richselect",
 					css: "select-field",
-					name: "mouseRightSingle",
+					name: constants.MOUSE_RIGHT_SINGLE_CLICK,
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse right button single click",
 					options: mouseOptions,
-					on: {
-						onChange: this.onChangeMouseClicks
-					}
 				},
 				{
 					view: "richselect",
 					css: "select-field",
-					name: "mouseLeftDouble",
+					name: constants.MOUSE_LEFT_DOUBLE_CLICK,
 					placeholder: "Choose action",
 					labelWidth: 200,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button double click",
-					options: mouseOptions,
-					on: {
-						onChange: this.onChangeMouseClicks
-					}
+					options: mouseOptions
 				}
+
 			]
 		};
 
@@ -69,10 +63,10 @@ export default class SettingsWindow extends JetView {
 			width: 100,
 			click: () => {
 				if (this.settingsForm.validate()) {
+					const values = this.settingsForm.getValues();
 					const galleryDataview = webixViews.getGalleryDataview();
 					const metadataTable = webixViews.getMetadataTableView();
-					viewEvents.setDataviewEvent(galleryDataview, "open", "onItemClick");
-					viewEvents.setDatatableEvent(metadataTable, "open", "onItemClick");
+					utils.setMouseSettingsEvents(galleryDataview, metadataTable, values);
 					this.getRoot().hide();
 				}
 			}
@@ -141,7 +135,6 @@ export default class SettingsWindow extends JetView {
 				]
 			}
 		};
-
 		return settingsWindow;
 	}
 
@@ -163,17 +156,9 @@ export default class SettingsWindow extends JetView {
 		return value || true;
 	}
 
-	onChangeMouseClicks(value, oldValue) {
-		if (value !== oldValue) {
-			if (!this.validate()) {
-				this.blockEvent();
-				this.setValue("");
-				this.unblockEvent();
-			}
-		}
-	}
-
 	showWindow() {
+		const settingsFromValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
+		this.settingsForm.setValues(settingsFromValues);
 		this.getRoot().show();
 	}
 
