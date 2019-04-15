@@ -54,7 +54,6 @@ def clean_ocr_output(raw_string):
     clean_string = re.sub(r'\n', ' ', clean_string)
     clean_string = re.sub('\s{2,}', ' ', clean_string)
 
-    print(clean_string)
     return clean_string.upper()
 
 
@@ -64,11 +63,15 @@ def robust_ocr(img, scheme):
     results. It will stop when regex captures output or when it exhausts
     all attempts."""
     angles = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]
+    ocrRawText = None
     goodResults = {}  # Output
     for a in angles:  # for each angle
         # Rotate
         rotated = imutils.rotate(img, a)
         results = clean_ocr_output(pytesseract.image_to_string(rotated))  # Check OCR
+
+        if results and ocrRawText is None:
+            ocrRawText = results
 
         m = check_scheme(results, scheme)
         if m:
@@ -97,7 +100,7 @@ def robust_ocr(img, scheme):
         if m:
             goodResults = m
             break
-    return goodResults
+    return goodResults, ocrRawText
 
 
 def clean_m(dict_input, tags):
@@ -114,7 +117,7 @@ def clean_m(dict_input, tags):
 
 
 def set_metatags(image, item, gc, override=False):
-    results = robust_ocr(image, regex1)
+    results, ocrRawText = robust_ocr(image, regex1)
     metadata = {} if 'meta' not in item else item['meta']
     if override:
         tags = metadataTags  # replace all tags if possible
@@ -123,5 +126,6 @@ def set_metatags(image, item, gc, override=False):
         tags = [t for t in metadataTags if t not in metadata or metadata[t] == '']
     if override or len(tags) > 0:
         m = clean_m(results, tags)
+        m['ocrRawText'] = ocrRawText
         gc.addMetadataToItem(item['_id'], m)  # uncomment to have this push metadata
     return results
