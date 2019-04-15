@@ -128,4 +128,4 @@ def set_metatags(image, item, gc, override=False):
         m = clean_m(results, tags)
         m['ocrRawText'] = ocrRawText
         gc.addMetadataToItem(item['_id'], m)  # uncomment to have this push metadata
-    return results
+    return results, ocrRawText
