@@ -6,12 +6,11 @@ import marker_search
 import sticker_search
 import ocr
 
-
 with open('config.json') as config_data:
     config = json.load(config_data)
 
 importlib.import_module('colors')
-from flask import Flask, jsonify, request, g, render_template, send_from_directory, send_file
+from flask import Flask, jsonify, request
 
 import girder_client
 import numpy as np
@@ -47,6 +46,8 @@ def get_image(gc, _id, width=256, height=256, array=False, label=False):
     content = gc.get(url % (_id), jsonResp=False)
     img_array = np.fromstring(content.content, dtype=np.uint8)
     image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+
     return image
 
 
@@ -74,8 +75,6 @@ def login(private=True):
 
 
 gc = login(config['apiUrl'])
-
-
 
 
 @app.route("/label")
@@ -107,7 +106,7 @@ def get_stickers():
     for id in ids:
         try:
             item = gc.getItem(id)
-            image = get_image(gc, item['_id'])
+            image = get_image(gc, [], item['_id'])
 
             results = sticker_search.get_image_sticker_colors(image)
 
@@ -128,13 +127,12 @@ def get_marker():
 
         try:
             item = gc.getItem(id)
-            image = get_image(gc, item['_id'])
+            image = get_image(gc, [], item['_id'])
             results = marker_search.haveImageMarker(image)
             gc.addMetadataToItem(item['_id'], {'marker': results})  # uncomment to have this push metadata
             status.append({'status': 'ok', 'id': id, 'results': results})
         except Exception as e:
             status.append({'status': 'error', 'id': id, 'error': str(e)})
             continue
-
 
     return jsonify(status)

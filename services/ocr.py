@@ -56,51 +56,51 @@ def clean_ocr_output(raw_string):
 
     return clean_string.upper()
 
+def remove_skewness(img):
+    ret, thresh = cv2.threshold(img, 150, 255, 0)
+    coords = np.column_stack(np.where(thresh > 0))
+
+    angle = cv2.minAreaRect(coords)[-1]
+
+    if angle < -45:
+        angle = -(90 + angle)
+
+    # otherwise, just take the inverse of the angle to make
+    # it positive
+    else:
+        angle = -angle
+
+    (h, w) = img.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(img, M, (w, h),
+                             flags=cv2.INTER_CUBIC, borderMode=1)
+
+    return rotated
+
+def crop_only_text(img):
+    _, thresh = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY)
+
+    contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnt = contours[0]
+    x, y, w, h = cv2.boundingRect(cnt)
+    crop = img[y:y + h, x:x + w]
+    return  crop
 
 def robust_ocr(img, scheme):
-    """Performs a multitude of preprocessing of the image (different angle
-    skewness, removing shadows, horizontal stretching) and tests OCR+Regex
-    results. It will stop when regex captures output or when it exhausts
-    all attempts."""
-    angles = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5]
-    ocrRawText = None
+
     goodResults = {}  # Output
-    for a in angles:  # for each angle
-        # Rotate
-        rotated = imutils.rotate(img, a)
-        results = clean_ocr_output(pytesseract.image_to_string(rotated))  # Check OCR
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    without_skew = remove_skewness(gray)
 
-        if results and ocrRawText is None:
-            ocrRawText = results
+    crop_text = crop_only_text(without_skew)
 
-        m = check_scheme(results, scheme)
-        if m:
-            goodResults = m
-            break
-        # Remove shadows
-        rotatedShadowless = remove_shadows(rotated)
 
-        results = clean_ocr_output(pytesseract.image_to_string(rotatedShadowless))  # Check OCR
-
-        m = check_scheme(results, scheme)
-        if m:
-            goodResults = m
-            break
-        # With original rotated image, stretch.
-        stretched = cv2.resize(rotated, None, fx=2, fy=1)
-        results = clean_ocr_output(pytesseract.image_to_string(stretched))  # Check OCR
-        m = check_scheme(results, scheme)
-        if m:
-            goodResults = m
-            break
-        # Remove shadows from stretched.
-        stretchedShadowless = remove_shadows(stretched)
-        results = clean_ocr_output(pytesseract.image_to_string(stretchedShadowless))  # Check OCR
-        m = check_scheme(results, scheme)
-        if m:
-            goodResults = m
-            break
-    return goodResults, ocrRawText
+    results = clean_ocr_output(pytesseract.image_to_string(crop_text))
+    m = check_scheme(results, scheme)
+    if m:
+        goodResults = m
+    return goodResults, results
 
 
 def clean_m(dict_input, tags):
@@ -129,3 +129,7 @@ def set_metatags(image, item, gc, override=False):
         m['ocrRawText'] = ocrRawText
         gc.addMetadataToItem(item['_id'], m)  # uncomment to have this push metadata
     return results, ocrRawText
+
+
+
+
