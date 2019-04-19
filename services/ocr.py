@@ -50,6 +50,7 @@ def clean_ocr_output(raw_string):
     # Remove non alpha-numeric character (backslash and colon are exceptions).
     # Replaces multiple white spaces and new line characters with single space.
     # Converts to all upper case.
+    print(raw_string)
     clean_string = re.sub(r'[^A-Za-z\d//:\s]+', '', raw_string)
     clean_string = re.sub(r'\n', ' ', clean_string)
     clean_string = re.sub('\s{2,}', ' ', clean_string)
@@ -90,6 +91,7 @@ def crop_only_text(img):
 def robust_ocr(img, scheme):
 
     goodResults = {}  # Output
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     without_skew = remove_skewness(gray)
 
@@ -101,6 +103,7 @@ def robust_ocr(img, scheme):
     if m:
         goodResults = m
     return goodResults, results
+
 
 
 def clean_m(dict_input, tags):
