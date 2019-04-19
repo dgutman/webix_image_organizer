@@ -12,12 +12,14 @@ with open('config.json') as config_data:
 
 importlib.import_module('colors')
 from flask import Flask, jsonify, request, g, render_template, send_from_directory, send_file
+from  flask_cors import CORS
 
 import girder_client
 import numpy as np
 
-app = Flask(__name__)
 
+app = Flask(__name__)
+CORS(app)
 
 def get_image(gc, _id, width=256, height=256, array=False, label=False):
     """get_label_image()

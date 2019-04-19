@@ -50,6 +50,7 @@ def clean_ocr_output(raw_string):
     # Remove non alpha-numeric character (backslash and colon are exceptions).
     # Replaces multiple white spaces and new line characters with single space.
     # Converts to all upper case.
+    print(raw_string)
     clean_string = re.sub(r'[^A-Za-z\d//:\s]+', '', raw_string)
     clean_string = re.sub(r'\n', ' ', clean_string)
     clean_string = re.sub('\s{2,}', ' ', clean_string)
@@ -67,9 +68,10 @@ def robust_ocr(img, scheme):
     goodResults = {}  # Output
     for a in angles:  # for each angle
         # Rotate
+        print("Testing angle",a)
         rotated = imutils.rotate(img, a)
         results = clean_ocr_output(pytesseract.image_to_string(rotated))  # Check OCR
-
+        print(results)
         if results and ocrRawText is None:
             ocrRawText = results
 
