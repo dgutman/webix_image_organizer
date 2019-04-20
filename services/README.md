@@ -12,7 +12,7 @@ API:
 1. URL: `/label?ids=id1,id2…` <br>
  Descr: label recognition <br>
   Return: array of statuses and results of ocr <br>
-  ` [{id: 'id1', status: 'ok', results: []},{id: 'id2', status: 'error', error: 'error decr.'}]`
+  ` [{id: 'id1', status: 'ok', results: {}, ocrRawText: 'string result'}, {id: 'id2', status: 'error', error: 'error decr.'}]`
 2. URL:` /marker?ids=id1,id2` <br>
 Descr: detection of markers l <br>
 Note: Color of image marker is fixed. For images with same marker but different colors algorithm should be updated by adding colors.
