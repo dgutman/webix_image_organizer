@@ -6,4 +6,4 @@ opencv-python==3.4.3.18
 pyparsing==2.3.0
 pytesseract==0.2.6
 Flask-Cors==3.0.7
-
+pylibdmtx==0.1.9

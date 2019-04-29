@@ -1,4 +1,4 @@
-{  "apiUrl": "http://dermannotator.org:8080/api/v1",
-  "USER": "webix",
-  "PASSWORD": "xbsxbs"
+{  "apiUrl": "http://transplant.digitalslidearchive.emory.edu:8080/api/v1",
+  "USER": "admin",
+  "PASSWORD": "password"
 }

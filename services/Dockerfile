@@ -11,7 +11,7 @@ RUN  apt-get install -y \
     tesseract-ocr
 
 RUN  apt-get install -y \
-    tesseract-ocr-eng
+    tesseract-ocr-eng libdmtx-*
 
 # Copy the current directory contents into the container at /app
 COPY requirements.txt /app

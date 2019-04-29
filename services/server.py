@@ -91,7 +91,7 @@ def label_ocr():
         for id in ids:
             try:
                 item = gc.getItem(id)
-                image = get_image(gc, item['_id'])
+                image = get_image(gc, item['_id'],label=True)
                 results, ocrRawText = ocr.set_metatags(image, item, gc)
                 status.append({'status': 'ok', 'id': id, 'results': results, 'ocrRawText': ocrRawText})
             except Exception as e:

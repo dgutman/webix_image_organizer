@@ -4,6 +4,8 @@ import cv2
 import imutils
 import numpy as np
 from pytesseract import pytesseract
+from pylibdmtx.pylibdmtx import decode
+
 
 regexFormat1 = '.*?(?P<BrainID>FOX\d{1,2}[A-Z])? ?' + \
                '(?P<Hemi>(LH MID|LH FRONTAL|LH FRONT|LH POST FRONTAL|CAUDAL|LH MISC|MISC|LH CAUDAL|LH))? ?' + \
@@ -79,7 +81,8 @@ def remove_skewness(img):
 
     return rotated
 
-def crop_only_text(img):
+def crop_only_text(img,cropBox=(0,0,1,0.6)):
+    ## The cropbox is specified as x,y,w,h and as a percentages of the image
     _, thresh = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY)
 
     contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -88,17 +91,26 @@ def crop_only_text(img):
     crop = img[y:y + h, x:x + w]
     return  crop
 
-def robust_ocr(img, scheme):
-
+def robust_ocr(img, scheme,deskew=False,cropText=None):
+    ##Crop text expects a tuple of x,y,w,h in relative percentages
     goodResults = {}  # Output
 
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    without_skew = remove_skewness(gray)
+    #procImg is a processed image using the above transformations
 
-    crop_text = crop_only_text(without_skew)
+    procImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
 
+    if deskew:
+        procImg = remove_skewness(procImg)
 
-    results = clean_ocr_output(pytesseract.image_to_string(crop_text))
+    if cropText:
+        procImg = crop_only_text(procImg)
+
+    ##Look for a datamatrix code and print the output
+    dataMatrixOutput = decode(img)
+    print(dataMatrixOutput)
+
+    results = clean_ocr_output(pytesseract.image_to_string(procImg))
     m = check_scheme(results, scheme)
     if m:
         goodResults = m
