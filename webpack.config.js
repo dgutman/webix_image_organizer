@@ -72,7 +72,8 @@ module.exports = function (env) {
 				SERVER_LIST: [
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
 					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
-					{id: "3", value: "Computable Brain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"}
+					{id: "3", value: "Computable Brain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
+					{id: "4", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"}
 
 				]
 			})

@@ -91,7 +91,7 @@ def crop_only_text(img,cropBox=(0,0,1,0.6)):
     crop = img[y:y + h, x:x + w]
     return  crop
 
-def robust_ocr(img, scheme,deskew=False,cropText=None):
+def robust_ocr(img, scheme,deskew=False,cropText=False,fixedCrop=True):
     ##Crop text expects a tuple of x,y,w,h in relative percentages
     goodResults = {}  # Output
 
@@ -99,12 +99,26 @@ def robust_ocr(img, scheme,deskew=False,cropText=None):
 
     procImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     
+    print(procImg.shape)
 
     if deskew:
         procImg = remove_skewness(procImg)
 
     if cropText:
         procImg = crop_only_text(procImg)
+
+
+    if fixedCrop:
+        (w,h) = procImg.shape
+
+
+        wStart = int(w*0.05)
+        wEnd = int(w*0.8)
+        hStart = int(h*0)
+        hEnd = int(h*0.55)
+
+        procImg = procImg[hStart:hEnd,wStart:wEnd]
+
 
     ##Look for a datamatrix code and print the output
     dataMatrixOutput = decode(img)
@@ -114,9 +128,29 @@ def robust_ocr(img, scheme,deskew=False,cropText=None):
     m = check_scheme(results, scheme)
     if m:
         goodResults = m
-    return goodResults, results
+    return goodResults, results,dataMatrixOutput
 
 
+def basic_ocr(img, fixedCrop=True,clean_output=False):
+    ### This is a more basic implementation that runs OCR and Datamatrix generation
+    ## only parameter is if/how to crop the input Image
+    procImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    if fixedCrop:
+        (w,h) = procImg.shape
+        wStart = int(w*0.05)
+        wEnd = int(w*0.8)
+        hStart = int(h*0)
+        hEnd = int(h*0.55)
+        procImg = procImg[hStart:hEnd,wStart:wEnd]
+
+    ##Look for a datamatrix code and print the output
+    dataMatrixOutput = decode(img)
+
+    results = pytesseract.image_to_string(procImg)
+    print(results,dataMatrixOutput)
+    
+    return results, results,dataMatrixOutput
 
 def clean_m(dict_input, tags):
     # Pulls out the keys in regex results that need to be updated/added.
@@ -131,8 +165,17 @@ def clean_m(dict_input, tags):
     return dict_output
 
 
-def set_metatags(image, item, gc, override=False):
-    results, ocrRawText = robust_ocr(image, regex1)
+def set_metatags(image, item, gc, override=False,useRegex=False,mode='Simple'):
+    ## In certain cases, I don't have a template I am trying to match so I only want the raw ocr and 
+    ##data matrix output
+
+    ## In simple mode I only generate the raw OCR and DataMatrix Codes
+
+    if (mode=='Simple'):
+        results, ocrRawText,dataMatrixOutput = basic_ocr(image)
+    else:
+        results, ocrRawText,dataMatrixOutput = robust_ocr(image, regex1)
+
     metadata = {} if 'meta' not in item else item['meta']
     if override:
         tags = metadataTags  # replace all tags if possible
@@ -142,6 +185,7 @@ def set_metatags(image, item, gc, override=False):
     if override or len(tags) > 0:
         m = clean_m(results, tags)
         m['ocrRawText'] = ocrRawText
+        m['dataMatrixOutput'] = str(dataMatrixOutput[0].data)  ## it's a named tuple, I'm just using the first data it returns
         gc.addMetadataToItem(item['_id'], m)  # uncomment to have this push metadata
     return results, ocrRawText
 

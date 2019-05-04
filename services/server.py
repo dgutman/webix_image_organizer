@@ -1,7 +1,6 @@
 import importlib
 import cv2
 import json
-
 import marker_search
 import sticker_search
 import ocr
@@ -14,10 +13,8 @@ importlib.import_module('colors')
 from flask import Flask, jsonify, request
 from  flask_cors import CORS
 
-
 import girder_client
 import numpy as np
-
 
 app = Flask(__name__)
 CORS(app)
@@ -50,10 +47,7 @@ def get_image(gc, _id, width=256, height=256, array=False, label=False):
     content = gc.get(url % (_id), jsonResp=False)
     img_array = np.fromstring(content.content, dtype=np.uint8)
     image = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-
-
     return image
-
 
 def login(private=True):
     """login()
@@ -77,13 +71,13 @@ def login(private=True):
         gc.authenticate(username=config['USER'], password=config['PASSWORD'])
     return gc
 
-
 gc = login(config['apiUrl'])
-
 
 @app.route("/label")
 def label_ocr():
     ids = request.args.get('ids')
+    override = request.args.get('override')
+    print("override was set to",override)
 
     status = []
     if ids:
@@ -97,7 +91,7 @@ def label_ocr():
             except Exception as e:
                 status.append({'status': 'error', 'id': id, 'error': str(e)})
                 continue
-
+    print(status)
     return jsonify(status)
 
 
