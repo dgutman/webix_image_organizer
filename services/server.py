@@ -42,7 +42,7 @@ def get_image(gc, _id, width=256, height=256, array=False, label=False):
         Label image.
     """
 
-    url = 'item/%s/tiles/images/label?encoding=JPEG' if label else 'item/%s/tiles/thumbnail'
+    url = 'item/%s/tiles/images/label?encoding=JPEG&width=256'  if label else 'item/%s/tiles/thumbnail'
 
     content = gc.get(url % (_id), jsonResp=False)
     img_array = np.fromstring(content.content, dtype=np.uint8)

@@ -52,7 +52,7 @@ def clean_ocr_output(raw_string):
     # Remove non alpha-numeric character (backslash and colon are exceptions).
     # Replaces multiple white spaces and new line characters with single space.
     # Converts to all upper case.
-    print(raw_string)
+    #print(raw_string)
     clean_string = re.sub(r'[^A-Za-z\d//:\s]+', '', raw_string)
     clean_string = re.sub(r'\n', ' ', clean_string)
     clean_string = re.sub('\s{2,}', ' ', clean_string)
@@ -98,7 +98,6 @@ def robust_ocr(img, scheme,deskew=False,cropText=False,fixedCrop=True):
     #procImg is a processed image using the above transformations
 
     procImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
     print(procImg.shape)
 
     if deskew:
@@ -135,7 +134,7 @@ def basic_ocr(img, fixedCrop=True,clean_output=False):
     ### This is a more basic implementation that runs OCR and Datamatrix generation
     ## only parameter is if/how to crop the input Image
     procImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    
+   
     if fixedCrop:
         (w,h) = procImg.shape
         wStart = int(w*0.05)
@@ -149,7 +148,6 @@ def basic_ocr(img, fixedCrop=True,clean_output=False):
 
     results = pytesseract.image_to_string(procImg)
     print(results,dataMatrixOutput)
-    
     return results, results,dataMatrixOutput
 
 def clean_m(dict_input, tags):
@@ -185,7 +183,12 @@ def set_metatags(image, item, gc, override=False,useRegex=False,mode='Simple'):
     if override or len(tags) > 0:
         m = clean_m(results, tags)
         m['ocrRawText'] = ocrRawText
-        m['dataMatrixOutput'] = str(dataMatrixOutput[0].data)  ## it's a named tuple, I'm just using the first data it returns
+	   ## Need to add code to deal with no data matrix outut        
+        try:
+            m['dataMatrixOutput'] = str(dataMatrixOutput[0].data)  ## it's a named tuple, I'm just using the first data it returns
+        except:
+            m['dataMatrixOutput'] = "NoDataMatrixFound"
+        
         gc.addMetadataToItem(item['_id'], m)  # uncomment to have this push metadata
     return results, ocrRawText
 
