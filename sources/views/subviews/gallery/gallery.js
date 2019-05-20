@@ -5,6 +5,7 @@ import constants from "../../../constants";
 import selectedDataviewItems from "../../../models/selectGalleryDataviewItems";
 import webixViews from "../../../models/webixViews";
 import state from "../../../models/state";
+import utils from "../../../utils/utils";
 
 export default class GalleryViewClass extends JetView {
 
@@ -47,6 +48,7 @@ export default class GalleryViewClass extends JetView {
 					on: {
 						onChange(value, oldValue) {
 							if (value !== oldValue) {
+								let imagesArray = [];
 								const dataview = webixViews.getGalleryDataview();
 								const item = dataview.getItem(this.config.$masterId);
 								if (value && selectedDataviewItems.count() >= constants.MAX_COUNT_IMAGES_SELECTION) {
@@ -57,11 +59,26 @@ export default class GalleryViewClass extends JetView {
 								}
 								item.markCheckbox = value;
 								if (value) {
-									selectedDataviewItems.add(item._id);
+									if (state.toSelectByShift) {
+										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
+									} else {
+										imagesArray = [item];
+									}
+									selectedDataviewItems.add(imagesArray);
 								} else {
-									selectedDataviewItems.remove(item._id);
+									const deletedItemsDataCollection = selectedDataviewItems.getDeletedItemsDataCollection();
+									if (state.toSelectByShift) {
+										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
+									} else {
+										deletedItemsDataCollection.clearAll();
+										deletedItemsDataCollection.add(item);
+										imagesArray = [item];
+									}
+									imagesArray.forEach((item) => {
+										selectedDataviewItems.remove(item._id);
+									});
 								}
-								dataview.callEvent("onCheckboxClicked", [item, value]);
+								dataview.callEvent("onCheckboxClicked", [imagesArray, value]);
 								state.app.callEvent("changedSelectedImagesCount");
 							}
 						}

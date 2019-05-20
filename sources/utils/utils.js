@@ -322,6 +322,110 @@ function setMouseSettingsEvents(dataview, datatable, values) {
 	setLocalStorageSettingsValues(values);
 }
 
+function getSelectedDataviewImages(selectedImages) {
+	let	selectedDataviewImages = selectedImages.getSelectedImages();
+	let	selectedImagesLength = selectedImages.count();
+	return [selectedDataviewImages, selectedImagesLength];
+}
+
+function getImagesToSelectByShift(item, selectedImages, dataview, value) {
+	let isNeedShowAlert = true;
+	let imagesArrayToReturn = [];
+	const [selectedDataviewImages, selectedImagesLength] = getSelectedDataviewImages(selectedImages);
+	const deletedItemsDataCollection = selectedImages.getDeletedItemsDataCollection();
+
+	if (selectedImagesLength) {
+		let indexOfLastActionItem;
+		let lastActionItem;
+		let indexOfLastItemToAction;
+		if (deletedItemsDataCollection.count() && !value) {
+			const lastItemId = deletedItemsDataCollection.getLastId();
+			lastActionItem = deletedItemsDataCollection.getItem(lastItemId);
+			indexOfLastItemToAction = dataview.getIndexById(item.id);
+		} else {
+			lastActionItem = selectedDataviewImages[selectedImagesLength - 1];
+			indexOfLastItemToAction = dataview.getIndexById(item.id);
+		}
+		dataview.data.each((image, index) => {
+			if (image._id === lastActionItem._id) {
+				indexOfLastActionItem = index;
+			}
+		}, true);
+
+		let startIndex;
+		let finishIndex;
+		if (indexOfLastActionItem > indexOfLastItemToAction) {
+			startIndex = indexOfLastItemToAction;
+			finishIndex = indexOfLastActionItem;
+		} else {
+			startIndex = indexOfLastActionItem;
+			finishIndex = indexOfLastItemToAction;
+		}
+		for (;startIndex <= finishIndex; startIndex++) {
+			const imagesArrayToReturnLength = imagesArrayToReturn.length;
+			if (!value || imagesArrayToReturnLength + selectedImagesLength <= constants.MAX_COUNT_IMAGES_SELECTION - 2) {
+				let dataviewItemId = dataview.getIdByIndex(startIndex);
+				let dataviewItem = dataview.getItem(dataviewItemId);
+				if (dataviewItem && dataviewItem.markCheckbox !== value) {
+					dataviewItem.markCheckbox = value;
+					imagesArrayToReturn.push(dataviewItem);
+				}
+			} else if (isNeedShowAlert) {
+				isNeedShowAlert = false;
+				webix.alert({
+					text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
+				});
+			}
+		}
+		imagesArrayToReturn.push(item);
+		deletedItemsDataCollection.clearAll();
+		return imagesArrayToReturn;
+	} else {
+		return [item];
+	}
+}
+
+/**
+ * Set the value for the given object for the given path
+ * where the path can be a nested key represented with dot notation
+ *
+ * @param {object} obj   The object on which to set the given value
+ * @param {string} path  The dot notation path to the nested property where the value should be set
+ * @param {mixed}  value The value that should be set
+ * @return {mixed}
+ *
+ */
+function setObjectProperty(obj, path, value) {
+	// protect against being something unexpected
+	obj = typeof obj === "object" ? obj : {};
+	// split the path into and array if its not one already
+	const keys = Array.isArray(path) ? path : path.split(".");
+	// keep up with our current place in the object
+	// starting at the root object and drilling down
+	let curStep = obj;
+	// loop over the path parts one at a time
+	// but, dont iterate the last part,
+	const lastItemIndex = keys.length - 1;
+	for (let i = 0; i < lastItemIndex; i++) {
+		// get the current path part
+		const key = keys[i];
+
+		// if nothing exists for this key, make it an empty object or array
+		if (!curStep[key] && !Object.prototype.hasOwnProperty.call(curStep, key)){
+			// get the next key in the path, if its numeric, make this property an empty array
+			// otherwise, make it an empty object
+			const nextKey = keys[i+1];
+			const useArray = /^\+?(0|[1-9]\d*)$/.test(nextKey);
+			curStep[key] = useArray ? [] : {};
+		}
+		// update curStep to point to the new level
+		curStep = curStep[key];
+	}
+	// set the final key to our value
+	const finalStep = keys[lastItemIndex];
+	curStep[finalStep] = value;
+}
+
 export default {
 	openInNewTab,
 	downloadByLink,
@@ -351,5 +455,7 @@ export default {
 	setMouseSettingsEvents,
 	getDefaultMouseSettingsValues,
 	setLocalStorageSettingsValues,
-	getLocalStorageSettingsValues
+	getLocalStorageSettingsValues,
+	getImagesToSelectByShift,
+	setObjectProperty
 };

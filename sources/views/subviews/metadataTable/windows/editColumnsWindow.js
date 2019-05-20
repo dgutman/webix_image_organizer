@@ -136,7 +136,7 @@ export default class EditColumnsWindow extends JetView {
 				header.push("");
 			}
 
-			header[header.length - 1] = `${headerValue}<span style='text-align: right; width: 60%;' class="webix_icon fa-pencil"></span>`;
+			header[header.length - 1] = `${headerValue}<span style='float: right; padding-top: 12px; width:17px;' class="webix_icon fa-pencil"></span>`;
 			if (filterType) {
 				header.push({content:`${filterType}Filter`});
 			}

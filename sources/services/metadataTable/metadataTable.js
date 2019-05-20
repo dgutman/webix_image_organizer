@@ -4,9 +4,11 @@ import authService from "../authentication";
 import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
 import ajaxActions from "../ajaxActions";
 import webixViews from "../../models/webixViews";
+import utils from "../../utils/utils";
 
 let columnsConfigForDelete = [];
 let datatableColumnsConfig = [];
+let editUniqueClick;
 
 class MetadataTableService {
 	constructor(view, metadataTable, addColumnButton, exportButton, metadataTableThumbnailsTemplate) {
@@ -104,7 +106,16 @@ class MetadataTableService {
 				}
 			});
 			this._uniqueValuesWindow.showWindow(columnId, uniqueValuesArray);
+			editUniqueClick = true;
 		};
+
+		this._metadataTable.attachEvent("onBeforeSort", () => {
+			if (editUniqueClick) {
+				editUniqueClick = false;
+				return false;
+			}
+			return true;
+		});
 
 		this._exportButton.attachEvent("onItemClick", () => {
 			this._view.$scope.exportToExcel();
@@ -120,13 +131,9 @@ class MetadataTableService {
 			const editor = this._metadataTable.getEditor();
 			const rowId = infoObject.row;
 			const item = this._metadataTable.getItem(rowId);
-			let editValue = "";
-
-			if (item.hasOwnProperty("meta")) {
-				editValue = metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`);
-			}
-
-			editor.setValue(editValue);
+			const editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
+			if (editValue && typeof editValue !== "object")
+				editor.setValue(editValue);
 		});
 
 		this._metadataTable.attachEvent("onBeforeEditStop", (values, obj) => {
@@ -135,21 +142,19 @@ class MetadataTableService {
 				const rowId = obj.row;
 				const itemToEdit = this._metadataTable.getItem(rowId);
 				const copyOfAnItemToEdit = webix.copy(itemToEdit);
+				// insert new metadata value or edit already existed
+				utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
+				this._view.showProgress();
+				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
+					.then(() => {
+						this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
+						webix.message(`${columnId} column was successfully updated!`);
+						this._view.hideProgress();
+					})
+					.fail(() => {
+						this._view.hideProgress();
+					});
 
-				if (copyOfAnItemToEdit.hasOwnProperty("meta")) {
-					metadataTableModel.getOrEditMetadataColumnValue(copyOfAnItemToEdit.meta, `meta.${columnId}`, values.value);
-
-					this._view.showProgress();
-					ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
-						.then(() => {
-							this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
-							webix.message(`${columnId} column was successfully updated!`);
-							this._view.hideProgress();
-						})
-						.fail(() => {
-							this._view.hideProgress();
-						});
-				}
 			}
 		});
 	}

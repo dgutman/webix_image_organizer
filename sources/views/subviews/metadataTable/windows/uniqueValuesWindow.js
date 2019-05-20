@@ -164,9 +164,12 @@ export default class UniqueValuesWindow extends JetView {
 		this.datatable = webixViews.getMetadataTableView();
 		this.columnId = columnId;
 		uniqueValuesArray = valuesArray;
-		let createdFormElements = this.createFormElements();
-		webix.ui(createdFormElements, this.formOfUniqueValues);
-		this.getRoot().show();
+		if (uniqueValuesArray.length !== 0) {
+			let createdFormElements = this.createFormElements();
+			webix.ui(createdFormElements, this.formOfUniqueValues);
+
+			this.getRoot().show();
+		}
 	}
 
 	hideWindow() {

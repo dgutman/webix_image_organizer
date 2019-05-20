@@ -1,8 +1,7 @@
 import {JetView} from "webix-jet";
+import webixViews from "../../../models/webixViews";
 import utils from "../../../utils/utils";
 import constants from "../../../constants";
-import viewEvents from "../../../utils/viewEvents";
-import webixViews from "../../../models/webixViews";
 
 const mouseOptions = [
 	{id: "open", value: "Image open in new window"},
@@ -27,6 +26,9 @@ export default class SettingsWindow extends JetView {
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button single click",
 					options: mouseOptions,
+					on: {
+						//onChange: this.onChangeMouseClicks
+					}
 				},
 				{
 					view: "richselect",
@@ -38,6 +40,9 @@ export default class SettingsWindow extends JetView {
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse right button single click",
 					options: mouseOptions,
+					on: {
+						//onChange: this.onChangeMouseClicks
+					}
 				},
 				{
 					view: "richselect",
@@ -48,9 +53,11 @@ export default class SettingsWindow extends JetView {
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button double click",
-					options: mouseOptions
+					options: mouseOptions,
+					on: {
+						//onChange: this.onChangeMouseClicks
+					}
 				}
-
 			]
 		};
 
@@ -66,6 +73,7 @@ export default class SettingsWindow extends JetView {
 					const values = this.settingsForm.getValues();
 					const galleryDataview = webixViews.getGalleryDataview();
 					const metadataTable = webixViews.getMetadataTableView();
+
 					utils.setMouseSettingsEvents(galleryDataview, metadataTable, values);
 					this.getRoot().hide();
 				}
@@ -154,6 +162,16 @@ export default class SettingsWindow extends JetView {
 			}
 		}
 		return value || true;
+	}
+
+	onChangeMouseClicks(value, oldValue) {
+		if (value !== oldValue) {
+			if (!this.validate()) {
+				this.blockEvent();
+				this.setValue("");
+				this.unblockEvent();
+			}
+		}
 	}
 
 	showWindow() {
