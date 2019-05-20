@@ -18,6 +18,7 @@ export default class MetadataTableCellClass extends JetView {
 			drag: true,
 			select: true,
 			editaction: "custom",
+			css: "metadata-table",
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,

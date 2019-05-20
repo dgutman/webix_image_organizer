@@ -1,18 +1,23 @@
 let selectedItems = [];
+const deletedItemsCollection = new webix.DataCollection();
 
-function add(element) {
-	selectedItems.push(element);
+function add(elements) {
+	if (!Array.isArray(elements)) {
+		elements = [elements];
+	}
+	selectedItems = selectedItems.concat(elements);
 }
 
 function remove(element) {
-	const index = selectedItems.indexOf(element);
+	const index = selectedItems.findIndex((item) => item._id === element);
 	if (index > -1) {
 		selectedItems.splice(index, 1);
 	}
 }
 
 function isSelected(element) {
-	return selectedItems.indexOf(element) > -1;
+	const index = selectedItems.findIndex((item) => item._id === element);
+	return index > -1;
 }
 
 function clearAll() {
@@ -24,7 +29,16 @@ function count() {
 }
 
 function getURIEncoded() {
-	return encodeURI(JSON.stringify(selectedItems));
+	const selectedImagesIds = Array.from(selectedItems, selectedImage => selectedImage._id);
+	return encodeURI(JSON.stringify(selectedImagesIds));
+}
+
+function getDeletedItemsDataCollection() {
+	return deletedItemsCollection;
+}
+
+function getSelectedImages() {
+	return selectedItems;
 }
 
 export default {
@@ -33,5 +47,7 @@ export default {
 	isSelected,
 	clearAll,
 	count,
-	getURIEncoded
+	getURIEncoded,
+	getDeletedItemsDataCollection,
+	getSelectedImages
 };

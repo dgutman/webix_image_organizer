@@ -38,7 +38,7 @@ class GalleryService {
 						if (selectedDataviewItems.count() < constants.MAX_COUNT_IMAGES_SELECTION) {
 							item.markCheckbox = value;
 							items.push(item);
-							selectedDataviewItems.add(item.id);
+							selectedDataviewItems.add(item);
 						}
 						else if (isNeedShowAlert) {
 							isNeedShowAlert = false;
@@ -70,7 +70,7 @@ class GalleryService {
 					if (!item.markCheckbox) {
 						item.markCheckbox = value;
 						items.push(item);
-						selectedDataviewItems.add(item.id);
+						selectedDataviewItems.add(item);
 					}
 				}
 

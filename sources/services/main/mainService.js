@@ -714,7 +714,7 @@ class MainService {
 			}
 
 			this._galleryDataview.data.each((obj) => {
-				if (selectDataviewItems.isSelected(obj._id) && !obj.markCheckbox) {
+				if (selectDataviewItems.isSelected(obj) && !obj.markCheckbox) {
 					obj.markCheckbox = 1;
 					this._galleryDataview.updateItem(obj.id, obj);
 				}

@@ -55,27 +55,38 @@ function getLocalStorageColumnsConfig() {
 function getInitialColumnsForDatatable() {
 	let initialColumnsConfig = [
 		{
-			id: constants.INITIAL_COLUMNS_IDS.NAME, header: "Name", fillspace: true, minWidth: 300, template: (obj) => {
+			id: constants.INITIAL_COLUMNS_IDS.NAME,
+			header: "Name",
+			sort: "text",
+			fillspace: true,
+			minWidth: 300,
+			template: (obj) => {
 				return `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${setFaIconsForDatatable(obj)}</div>`;
 			}
 		},
-		{id: constants.INITIAL_COLUMNS_IDS.ID, header: "id", width: 250},
-		{id: constants.INITIAL_COLUMNS_IDS.MODEL_TYPE, header: "Model type", width: 100, template: (obj) => {
-			return obj._modelType || "item";
-		}},
+		{id: constants.INITIAL_COLUMNS_IDS.ID, header: "id", sort: "text", width: 250},
 		{
-			id: constants.INITIAL_COLUMNS_IDS.CREATED, header: "Created", width: 235, template: (obj) => {
+			id: constants.INITIAL_COLUMNS_IDS.MODEL_TYPE,
+			header: "Model type",
+			sort: "text",
+			width: 100,
+			template: (obj) => {
+				return obj._modelType || "item";
+			}
+		},
+		{
+			id: constants.INITIAL_COLUMNS_IDS.CREATED, header: "Created", sort: "text", width: 235, template: (obj) => {
 				return format.formatDateString(obj.created);
 			}
 		},
 		{
-			id: constants.INITIAL_COLUMNS_IDS.UPDATED, header: "Updated", width: 235, template: (obj) => {
+			id: constants.INITIAL_COLUMNS_IDS.UPDATED, header: "Updated", sort: "text", width: 235, template: (obj) => {
 				return format.formatDateString(obj.updated);
 			}
 		},
-		{id: constants.INITIAL_COLUMNS_IDS.PARENT_TYPE, header: "Parent type", width: 100},
+		{id: constants.INITIAL_COLUMNS_IDS.PARENT_TYPE, header: "Parent type", sort: "text", width: 100},
 		{
-			id: constants.INITIAL_COLUMNS_IDS.SIZE, header: "Size", width: 120, template: (obj) => {
+			id: constants.INITIAL_COLUMNS_IDS.SIZE, header: "Size", width: 120, sort: "text", template: (obj) => {
 				return `${obj.size} B`;
 			}
 		}
@@ -95,7 +106,7 @@ function getColumnsForDatatable(datatable) {
 			const metadataColumn = localColumnConfig.metadataColumn;
 			let placeholder;
 
-			if(filterTypeValue === constants.FILTER_TYPE_DATE) {
+			if (filterTypeValue === constants.FILTER_TYPE_DATE) {
 				placeholder = "mm/dd/yy";
 			}
 
@@ -114,11 +125,13 @@ function getColumnsForDatatable(datatable) {
 
 					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
 						localColumnHeader.pop();
-						localColumnHeader.push({content:`${filterType}Filter`,
+						localColumnHeader.push({
+							content: `${filterType}Filter`,
 							options: setSelectFilterOptions(filterType, columnId, datatable),
 							placeholder: placeholder, compare: (value, filter, obj) => {
 								return compareInitialColumnFilter(obj, filter, columnId, filterType, filterTypeValue, initialColumnConfig.id);
-							}});
+							}
+						});
 					}
 
 					initialColumnConfig.header = localColumnHeader;
@@ -138,17 +151,20 @@ function getColumnsForDatatable(datatable) {
 
 					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
 						headerConfig.pop();
-						headerConfig.push({content:`${filterType}Filter`,
+						headerConfig.push({
+							content: `${filterType}Filter`,
 							options: setSelectFilterOptions(filterType, columnId, datatable),
 							placeholder: placeholder, compare: (value, filter, obj) => {
 								return compareMetadataColumnFilter(obj, filter, columnId, filterType);
-							}});
+							}
+						});
 					}
 					const newColumnConfig = {
 						id: columnId,
 						header: headerConfig,
 						fillspace: true,
 						editor: "text",
+						sort: "text",
 						filterType: filterType,
 						minWidth: 145,
 						metadataColumn: metadataColumn,
@@ -174,16 +190,14 @@ function clearColumnsInLocalStorage(userId) {
 	webix.storage.local.remove(`${constants.STORAGE_COLUMNS_CONFIG}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
 }
 
-function getOrEditMetadataColumnValue(obj, valuePath, editValue) {
+function getOrEditMetadataColumnValue(obj, valuePath) {
 	const pathArray = valuePath.split(".");
 	let result = obj;
-	for (let index = 0; index < pathArray.length; index++ ) {
-		if (typeof result === "object" && result.hasOwnProperty(pathArray[index])) {
-			if (index === pathArray.length - 1 && editValue) {
-				result[pathArray[index]] = editValue;
-				return obj;
+	for (let index = 0; index < pathArray.length; index++) {
+		if (typeof result === "object") {
+			if (result.hasOwnProperty(pathArray[index])) {
+				result = result[pathArray[index]];
 			}
-			result = result[pathArray[index]];
 		}
 	}
 	return result;
