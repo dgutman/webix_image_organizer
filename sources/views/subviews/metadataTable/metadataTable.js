@@ -22,6 +22,7 @@ export default class MetadataTableCellClass extends JetView {
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,
+			tooltip: true,
 			columns: [] //init in mainService.js
 		};
 

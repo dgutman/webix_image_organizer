@@ -157,6 +157,25 @@ class MetadataTableService {
 
 			}
 		});
+
+		this._metadataTable.attachEvent("onKeyPress", (keyCode) => {
+			if (keyCode === 38 || keyCode === 40) {
+				const editor = this._metadataTable.getEditor();
+				if (editor) {
+					const rowId = editor.row;
+					const columnId = editor.column;
+					const columnConfig = this._metadataTable.getColumnConfig(columnId);
+					if (!columnConfig.editor) {
+						return false;
+					}
+					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(rowId) : this._metadataTable.getNextId(rowId);
+					this._metadataTable.edit({
+						column: columnId,
+						row: nextRowId
+					});
+				}
+			}
+		});
 	}
 
 	_arrayMove (array, length, oldIndex, newIndex) {

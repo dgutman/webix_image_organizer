@@ -43,7 +43,7 @@ function setFaIconsForDatatable(obj) {
 			break;
 		}
 	}
-	return `<span class='webix_icon ${icon}'> ${obj.name}</span>`;
+	return `<span class='webix_icon ${icon}'></span> ${obj.name}`;
 }
 
 function getLocalStorageColumnsConfig() {
