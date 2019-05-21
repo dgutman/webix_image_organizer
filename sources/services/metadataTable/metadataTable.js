@@ -126,6 +126,10 @@ class MetadataTableService {
 			this._metadataTable.refreshColumns(newDatatableColumns);
 		});
 
+		this._metadataTable.attachEvent("onBeforeEditStart", (infoObject) => {
+			this._selectDatatableItem(infoObject.row);
+		});
+
 		this._metadataTable.attachEvent("onAfterEditStart", (infoObject) => {
 			const columnId = infoObject.column;
 			const editor = this._metadataTable.getEditor();
@@ -161,6 +165,7 @@ class MetadataTableService {
 		this._metadataTable.attachEvent("onKeyPress", (keyCode) => {
 			if (keyCode === 38 || keyCode === 40) {
 				const editor = this._metadataTable.getEditor();
+				const selectedId = this._metadataTable.getSelectedId() ? this._metadataTable.getSelectedId() : this._metadataTable.getFirstId();
 				if (editor) {
 					const rowId = editor.row;
 					const columnId = editor.column;
@@ -173,6 +178,9 @@ class MetadataTableService {
 						column: columnId,
 						row: nextRowId
 					});
+				} else {
+					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(selectedId) : this._metadataTable.getNextId(selectedId);
+					this._selectDatatableItem(nextRowId);
 				}
 			}
 		});
@@ -319,6 +327,15 @@ class MetadataTableService {
 				}
 			});
 		});
+	}
+
+	_selectDatatableItem(rowId) {
+		this._metadataTable.blockEvent();
+		const metadataTableThumbnailsTemplate = webixViews.getMetadataTableThumbnailTemplate();
+		this._metadataTable.select(rowId);
+		const currentItem = this._metadataTable.getItem(rowId);
+		metadataTableThumbnailsTemplate.parse(currentItem);
+		this._metadataTable.unblockEvent();
 	}
 }
 
