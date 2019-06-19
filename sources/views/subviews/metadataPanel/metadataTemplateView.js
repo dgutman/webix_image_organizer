@@ -107,7 +107,6 @@ export default class MetadataPanelClass extends JetView {
 						.then((item) => {
 							const galleryDataview = webixViews.getGalleryDataview();
 							galleryDataview.updateItem(itemGalleryDataviewId, item);
-							webix.message("Metadata was successfully updated!");
 							this.metadataTemplate.hideProgress();
 						})
 						.fail(() => {

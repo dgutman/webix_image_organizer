@@ -1,6 +1,6 @@
 // for storing tempraraly blob urls for gallery images
 let previewUrls = {};
-const normalUrls = {};
+let normalUrls = {};
 let previewLabelUrls = {};
 let previewMacroUrls = {};
 
@@ -47,8 +47,6 @@ function setPreviewMacroImageUrl(imageId, url) {
 function clearPreviewMacroImageUrl() {
 	previewMacroUrls = {};
 }
-
-
 
 export default {
 	setPreviewImageUrl,

@@ -20,17 +20,19 @@ import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
 import imagesTagsModel from "../../models/imagesTagsModel";
 import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
+import metadataTableFilterModel from "../../models/metadataTableFilterModel";
 
 let contextToFolder;
+let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 
 class MainService {
-	constructor(view, hostBox, collectionBox, multiviewSwither, galleryDataviewPager, galleryDataview, metadataTable, finder, metadataTemplate, collapser, metadataPanelScrollView, cartList) {
+	constructor(view, hostBox, collectionBox, multiviewSwitcher, galleryDataviewPager, galleryDataview, metadataTable, finder, metadataTemplate, collapser, metadataPanelScrollView, cartList) {
 		this._view = view;
 		this._hostBox = hostBox;
 		this._collectionBox = collectionBox;
-		this._multiviewSwither = multiviewSwither;
+		this._multiviewSwitcher = multiviewSwitcher;
 		this._galleryDataviewPager = galleryDataviewPager;
 		this._galleryDataview = galleryDataview;
 		this._metadataTable = metadataTable;
@@ -73,6 +75,9 @@ class MainService {
 		this._galleryDataviewImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
 		this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
+		this._galleryFeaturesView = this._view.$scope.getSubGalleryFeaturesView().getRoot();
+		this._filterTableView = this._view.$scope.getSubDataviewActionPanelView().getFilterTableView();
+
 
 		webixViews.setGalleryDataview(this._galleryDataview);
 		webixViews.setMetadataTable(this._metadataTable);
@@ -80,9 +85,11 @@ class MainService {
 		webixViews.setGalleryPager(this._galleryDataviewPager);
 		webixViews.setMainView(this._view);
 		webixViews.setImageWindow(this._imageWindow);
+		webixViews.setPdfViewerWindow(this._pdfViewerWindow);
 		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
+		metadataTableFilterModel.setMetadataTableFilter(this._filterTableView);
 
 		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
 
@@ -253,35 +260,40 @@ class MainService {
 		});
 
 		// switching between data table and data view
-		this._multiviewSwither.attachEvent("onChange", (value) => {
+		this._multiviewSwitcher.attachEvent("onChange", (value) => {
 			if (value) {
 				metadataTableCell.show();
 				this._collapser.hide();
 				this._metadataPanelScrollView.hide();
 				this._tableTemplateCollapser.show();
+				this._filterTableView.show();
+				this._galleryFeaturesView.hide();
 			} else {
 				galleryDataviewCell.show();
 				this._collapser.show({closed: true});
 				this._tableTemplateCollapser.hide();
+				this._galleryDataviewPager.show();
+				this._galleryFeaturesView.show();
 			}
 		});
 
-		this._finder.attachEvent("onBeforeOpen", (id) => {
-			this._finder.blockEvent();
-			this._finder.select(id);
-			this._finder.unblockEvent();
-			finderModel.loadBranch(id, this._view);
-			return false;
+		this._finder.attachEvent("onBeforeSelect", () => {
+			this._setLastSelectedFolderId();
 		});
 
+		this._finder.attachEvent("onBeforeOpen", (id) => {
+			this._finder.select(id);
+		});
 
 		// after opening the tree branch we fire this event
 		this._finder.attachEvent("onAfterSelect", (id) => {
 			const item = this._finder.getItem(id);
 			if (item._modelType === "item") {
 				utils.parseDataToViews(item);
+				this._highlightLastSelectedFolder();
 			} else if (item._modelType === "folder") {
-				finderModel.loadBranch(id, this._view);
+				finderModel.loadBranch(id, this._view)
+					.then(() => this._highlightLastSelectedFolder());
 			}
 		});
 
@@ -298,6 +310,13 @@ class MainService {
 				this._metadataTable.clearAll();
 			}
 			utils.showOrHideImageSelectionTemplate("hide", this._selectImagesTemplate);
+
+			if (lastSelectedFolderId) {
+				const lastSelectedFolderNode = this._finder.getItemNode(lastSelectedFolderId);
+				webix.html.removeCss(lastSelectedFolderNode, "last-selected-folder");
+			}
+			lastSelectedFolderId = id;
+			this._highlightLastSelectedFolder();
 		});
 
 		// parsing data to metadata template next to data view
@@ -368,6 +387,7 @@ class MainService {
 						}
 						this._finder.blockEvent();
 						this._finder.data.blockEvent();
+						this._setLastSelectedFolderId();
 						this._finder.select(folderId);
 						this._finder.open(folderId);
 						this._finder.data.unblockEvent();
@@ -400,6 +420,7 @@ class MainService {
 									});
 
 									utils.parseDataToViews(webix.copy(data));
+									this._highlightLastSelectedFolder(this._finderFolder._id);
 								}
 								this._view.hideProgress();
 							})
@@ -733,6 +754,10 @@ class MainService {
 			galleryDataviewFilterModel.filterByName(this._galleryDataview, value);
 		});
 
+		this._filterTableView.attachEvent("onChange", (value) => {
+			metadataTableFilterModel.filterData(this._metadataTable, value);
+		});
+
 		this._makeLargeImageButton.attachEvent("onItemClick", () => {
 			this._makeLargeImageWindow.showWindow(filesToLargeImage);
 		});
@@ -838,6 +863,28 @@ class MainService {
 	_setInitSettingsMouseEvents() {
 		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
 		utils.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
+	}
+
+	_setLastSelectedFolderId() {
+		if (lastSelectedFolderId) {
+			const lastSelectedFolderNode = this._finder.getItemNode(lastSelectedFolderId);
+			webix.html.removeCss(lastSelectedFolderNode, "last-selected-folder");
+		}
+
+		const currentItemId = this._finder.getSelectedId();
+		if (currentItemId) {
+			const currentItem = this._finder.getItem(currentItemId);
+			if (currentItem._modelType === "folder") {
+				lastSelectedFolderId = currentItemId;
+			}
+		}
+	}
+
+	_highlightLastSelectedFolder() {
+		if (lastSelectedFolderId) {
+			const lastItemNode = this._finder.getItemNode(lastSelectedFolderId);
+			if (lastItemNode) webix.html.addCss(lastItemNode, "last-selected-folder");
+		}
 	}
 }
 

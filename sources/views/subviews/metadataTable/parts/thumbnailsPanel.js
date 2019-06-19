@@ -41,9 +41,9 @@ export default class TableRightPanelView extends JetView {
 					}
 					return `<div class='datatable-template'>
 							<span class='datatable-template-text'>Thumnail Image:</span>
-							<img class='datatable-template-image' src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
+							<img class='datatable-template-image' imageType='thumbnail-image' src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
 							<span class='datatable-template-text'>Label Image:</span>
-							<img class ='datatable-template-image' src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
+							<img class='datatable-template-image' imageType='label-image' src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
 						</div>`;
 				} else {
 					return  `<div class='datatable-template' style='position: relative; top: 50%;'>
@@ -53,7 +53,6 @@ export default class TableRightPanelView extends JetView {
 								</span></center>
 							</div>`;
 				}
-
 			}
 		};
 

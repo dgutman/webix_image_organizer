@@ -1,6 +1,7 @@
 import utils from "../utils/utils";
 import webixViews from "./webixViews";
 import dataviewFilterModel from "./galleryDataviewFilterModel";
+import metadataTableFilterModel from "./metadataTableFilterModel";
 
 let realScrollPosition;
 
@@ -15,11 +16,11 @@ function loadBranch(id, view) {
 	const item = finderView.getItem(id);
 	if (!item.hasOpened && !item.linear) {
 		view.showProgress();
-		view.$scope.getSubFinderView()
+		return view.$scope.getSubFinderView()
 			.loadTreeFolders("folder", item._id)
 			.then((results) => {
 				array.push(...results);
-				view.$scope.getSubFinderView()
+				return view.$scope.getSubFinderView()
 					.getFolderItems(item)
 					.then((items) => {
 						if (items) {
@@ -45,15 +46,18 @@ function loadBranch(id, view) {
 				view.hideProgress();
 			});
 	} else if (item.hasOpened) {
-		finderView.blockEvent();
-		finderView.open(id);
-		finderView.unblockEvent();
-		finderView.find((obj) => {
-			if (obj._modelType === "item" && obj.folderId === item._id) {
-				itemsArray.push(obj);
-			}
+		return new Promise((resolve) => {
+			finderView.blockEvent();
+			finderView.open(id);
+			finderView.unblockEvent();
+			finderView.find((obj) => {
+				if (obj._modelType === "item" && obj.folderId === item._id) {
+					itemsArray.push(obj);
+				}
+			});
+			utils.parseDataToViews(itemsArray);
+			resolve();
 		});
-		utils.parseDataToViews(itemsArray);
 	}
 }
 
@@ -100,13 +104,17 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 					setRealScrollPosition(defineSizesAndPositionForDynamicScroll(treeFolder));
 					utils.parseDataToViews(webix.copy(data), true);
 					webix.copy(data).forEach((item) => {
-						let itemType = utils.searchForFileType(item);
+						const itemType = utils.searchForFileType(item);
 						dataviewFilterModel.addFilterValue(itemType);
 					});
 					dataviewFilterModel.parseFilterToRichSelectList();
-					let filterValue = dataviewFilterModel.getRichselectDataviewFilter().getValue();
-					if (filterValue && filterValue.length !== 0) {
+					const filterValue = dataviewFilterModel.getRichselectDataviewFilter().getValue();
+					const tableFilterValue = metadataTableFilterModel.getMetadataTableFilter().getValue();
+					if (filterValue) {
 						dataviewFilterModel.getRichselectDataviewFilter().callEvent("onChange", [filterValue]);
+					}
+					if (tableFilterValue) {
+						metadataTableFilterModel.getMetadataTableFilter().callEvent("onChange", [filterValue]);
 					}
 				} else {
 					finderView.detachEvent("onAfterScroll");
