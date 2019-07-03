@@ -1,4 +1,5 @@
 /* COMMON STYLES */
+
 html, body {
   font-family: @main-font;
   font-weight: 400;
@@ -6,7 +7,6 @@ html, body {
   color: @main-color-light;
   overflow-x: auto !important;
   overflow-y: auto !important;
-
 }
 
 body {
@@ -219,12 +219,13 @@ a, .link {
   .collapser-btn {
     border: none;
     cursor: pointer;
-
+    .webix_template {
+      position: relative;
+    }
     .webix_icon {
       font-weight: 600;
       text-align: center;
-      position: fixed;
-      position: sticky;
+      position: absolute;
       top: 50%;
     }
   }
@@ -269,6 +270,7 @@ a, .link {
     &.tooltip-block-right {
       &:after,
       &:before {
+        z-index: 100000;
         content: "\2666";
         width: 40px;
         height: 40px;
@@ -393,7 +395,8 @@ a, .link {
 
   &:before {
     content: "\f0da";
-    font-family: 'Fontawesome';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
     display: block;
     color: @main-color-light;
     font-size: 18px;
@@ -411,8 +414,18 @@ a, .link {
     }
   }
 
-  & .webix_template {
+  &.webix_template {
     padding-bottom: 5px;
     padding-top: 5px;
   }
+}
+
+.webix_view.webix_window {
+    .webix_icon_btn {
+      margin-top: 3px;
+    }
+}
+
+.webix_dtable_focused .webix_column > div.webix_row_select, .webix_dtable_focused .webix_column > div.webix_column_select {
+  background: @select-color;
 }

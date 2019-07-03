@@ -98,7 +98,7 @@ class MetadataTableService {
 			this._metadataTable.refreshColumns(newDatatableColumns);
 		});
 
-		this._metadataTable.on_click["fa-pencil"] = (e, obj) => {
+		this._metadataTable.on_click["fa-pencil-alt"] = (e, obj) => {
 			let uniqueValuesArray = [];
 			let columnId = obj.column;
 			this._metadataTable.eachRow((rowId) => {

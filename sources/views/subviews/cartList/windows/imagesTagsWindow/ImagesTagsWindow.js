@@ -49,7 +49,7 @@ export default class ImagesTagsWindow extends JetView {
 					view: "button",
 					type: "icon",
 					css: "delete-icon-button",
-					icon: "times",
+					icon: "fas fa-times",
 					width: 25,
 					height: 25,
 					click: (id) => {
@@ -60,10 +60,9 @@ export default class ImagesTagsWindow extends JetView {
 				}
 			},
 			template: (obj, common) => {
-				console.log(obj)
 				return `<div>
 						<div class='active-list-delete-button'>${common.deleteButton(obj, common)}</div>
- 						<div class='active-list-name'>${obj.value} <span class="webix_icon fa-${obj.tagIcon}"></span></div>
+ 						<div class='active-list-name'>${obj.value} <span class="webix_icon fas fa-${obj.tagIcon}"></span></div>
 					</div>`
 			}
 
@@ -183,7 +182,7 @@ export default class ImagesTagsWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.closeWindow()
@@ -229,6 +228,7 @@ export default class ImagesTagsWindow extends JetView {
 							{
 								view: "richselect",
 								css: "select-field",
+								icon: "fas fa-chevron-down",
 								name: `${key}-selectName`,
 								labelWidth: 150,
 								label: key,
@@ -240,7 +240,7 @@ export default class ImagesTagsWindow extends JetView {
 							{
 								view: "button",
 								type: "icon",
-								icon: "plus",
+								icon: "fas fa-plus",
 								id: key,
 								width: 30,
 								click: (id) => {

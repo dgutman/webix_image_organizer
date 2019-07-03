@@ -18,7 +18,7 @@ export default class PdfViewerWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.close()

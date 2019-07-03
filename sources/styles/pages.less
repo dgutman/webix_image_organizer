@@ -1,0 +1,123 @@
+.webix_view .webix_pager_item {
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  -o-border-radius: 2px;
+  border-radius: 2px;
+  background: #0288D1;
+  border-color: #0288D1;
+}
+
+/* PAGES STYLES */
+
+/* templates error */
+.template-error {
+  padding-top: 5px;
+
+  .webix_template {
+    color: #a94442;
+    background: #f2dede;
+    border: 1px solid #ebccd1;
+    .border-radius(4px);
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+/* breadcrumds */
+.bars-icon {
+  .webix_icon_button {
+    text-align: left;
+
+    .webix_icon {
+      color: @main-color-light;
+      .transition(color .2s ease-in-out);
+    }
+
+    &:hover, &:focus {
+      .webix_icon {
+        color: @main-color;
+      }
+    }
+  }
+}
+
+.breadcrumds {
+  color: @main-color-light;
+  font-size: 12px;
+  line-height: 16px;
+  padding-top: 11px;
+  padding-left: 2px;
+  .box-sizing(border-box);
+
+  span {
+    display: inline-block;
+    position: relative;
+    padding-left: 10px;
+    margin: 0 6px 0 0;
+    cursor: pointer;
+
+    &:before {
+      content: "\f105";
+      font-family: 'Font Awesome 5 Free';
+      color: @main-color-light;
+      position: absolute;
+      left: 0;
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    &:last-child {
+      font-weight: 500;
+      cursor: default;
+
+      &:before {
+        font-weight: 500;
+      }
+    }
+    &:first-child {
+      padding-left: 0;
+
+      &:before {
+        display: none;
+      }
+    }
+  }
+}
+
+
+/* webix_pager */
+.webix_view .webix_pager_item {
+  .border-radius(2px);
+  background: @btn;
+  border-color: @btn;
+
+  &:hover, &:focus {
+    background: @btn-hover;
+    border-color: @btn-hover;
+  }
+}
+
+.webix_pager {
+  .pager-input {
+    display: inline-block;
+    vertical-align: top;
+    height: 100%;
+    padding: 0;
+    width: 40px;
+    background: rgb(242, 243, 247);
+    .box-sizing(border-box);
+    .border-radius(2px);
+    border: none;
+    box-shadow: none;
+    text-align: center;
+    color: @main-color-light;
+    font-size: 14px;
+    line-height: 240%;
+  }
+
+  .pager-amount {
+    display: inline-block;
+    height: 99%;
+    line-height: 31px;
+  }
+}

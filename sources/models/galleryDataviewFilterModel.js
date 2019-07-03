@@ -52,44 +52,45 @@ function filterData(dataview, value) {
 		let itemType = utils.searchForFileType(obj);
 		if (value === "all" || itemType === value || obj.starColor === value.substr(0, value.indexOf(" "))) {
 			return obj;
-		} else if (obj.hasOwnProperty("meta") && obj.meta.hasOwnProperty("tag")) {
-			const tagsImageId = imagesTagsCollection.getLastId();
-			const tagsImage = imagesTagsCollection.getItem(tagsImageId);
-			let tagId;
-			let tagKey;
-			const objTagsLength = obj.meta.tag.length;
-			for (let index = 0; index < objTagsLength; index++) {
-				const tags = obj.meta.tag[index];
-				if (tagId) {
-					for (let key in tags) {
-						if (tags.hasOwnProperty(key)) {
-							tagId = getTagValue(tagsImage, value, key, "value", "id");
-							tagKey = key;
-							if (tagId) {
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			let objectToReturn;
-			obj.meta.tag.forEach((imageTag) => {
-				if (imageTag.hasOwnProperty(tagKey)) {
-					if (Array.isArray(imageTag[tagKey])) {
-						if (imageTag[tagKey].find(imageTagId => imageTagId === tagId)) {
-							objectToReturn = obj;
-						}
-					} else {
-						if (imageTag[tagKey] === tagId) {
-							objectToReturn = obj;
-						}
-					}
-				}
-			});
-
-			return objectToReturn;
 		}
+		// } else if (obj.hasOwnProperty("meta") && obj.meta.hasOwnProperty("tag")) {
+		// 	const tagsImageId = imagesTagsCollection.getLastId();
+		// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+		// 	let tagId;
+		// 	let tagKey;
+		// 	const objTagsLength = obj.meta.tag.length;
+		// 	for (let index = 0; index < objTagsLength; index++) {
+		// 		const tags = obj.meta.tag[index];
+		// 		if (tagId) {
+		// 			for (let key in tags) {
+		// 				if (tags.hasOwnProperty(key)) {
+		// 					tagId = getTagValue(tagsImage, value, key, "value", "id");
+		// 					tagKey = key;
+		// 					if (tagId) {
+		// 						break;
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		//
+		// 	let objectToReturn;
+		// 	obj.meta.tag.forEach((imageTag) => {
+		// 		if (imageTag.hasOwnProperty(tagKey)) {
+		// 			if (Array.isArray(imageTag[tagKey])) {
+		// 				if (imageTag[tagKey].find(imageTagId => imageTagId === tagId)) {
+		// 					objectToReturn = obj;
+		// 				}
+		// 			} else {
+		// 				if (imageTag[tagKey] === tagId) {
+		// 					objectToReturn = obj;
+		// 				}
+		// 			}
+		// 		}
+		// 	});
+		//
+		// 	return objectToReturn;
+		// }
 	});
 }
 
@@ -119,23 +120,22 @@ function prepareDataToFilter(dataArray) {
 		if (itemStarColor) {
 			addFilterValue(`${itemStarColor} star`);
 		}
-		if (item.hasOwnProperty("meta") && item.meta.hasOwnProperty("tag")) {
-			const tagsImageId = imagesTagsCollection.getLastId();
-			const tagsImage = imagesTagsCollection.getItem(tagsImageId);
-			item.meta.tag.forEach((tag) => {
-				for (let key in tag) {
-					if (Array.isArray(tag[key])) {
-						tag[key].forEach((tagId) => {
-							addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
-						});
-					} else {
-						const tagId = tag[key];
-						addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
-					}
-				}
-			});
-		}
-
+		// if (item.hasOwnProperty("meta") && item.meta.hasOwnProperty("tag")) {
+		// 	const tagsImageId = imagesTagsCollection.getLastId();
+		// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+		// 	item.meta.tag.forEach((tag) => {
+		// 		for (let key in tag) {
+		// 			if (Array.isArray(tag[key])) {
+		// 				tag[key].forEach((tagId) => {
+		// 					addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
+		// 				});
+		// 			} else {
+		// 				const tagId = tag[key];
+		// 				addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
+		// 			}
+		// 		}
+		// 	});
+		// }
 	});
 	clearFilterRichSelectList();
 	addNoFiltersSelection();

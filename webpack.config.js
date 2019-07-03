@@ -1,27 +1,37 @@
-var path = require("path");
-var webpack = require("webpack");
-var pack = require("./package.json");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+const path = require("path");
+const webpack = require("webpack");
+const pack = require("./package.json");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
+
+//./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
 module.exports = function (env) {
 
-	var production = !!(env && env.production === "true");
-	var babelSettings = {
-		extends: path.join(__dirname, '/.babelrc')
+	const production = !!(env && env.production === "true");
+	const babelSettings = {
+		extends: path.join(__dirname, "/.babelrc")
 	};
 
-	var config = {
+	const config = {
 		entry: "./sources/app.js",
 		output: {
 			path: path.join(__dirname, "codebase"),
-			publicPath: "/codebase/",
+			publicPath: "/",
 			filename: "app.js"
 		},
+		mode: "development",
 		devtool: "inline-source-map",
 		module: {
 			rules: [
 				{
-					test: /\.js$/,
+					test: /\.js?$/,
+					exclude(modulePath) {
+						return /node_modules/.test(modulePath) &&
+							!/node_modules[\\/]webix-jet/.test(modulePath) &&
+							!/node_modules[\\/]webpack-dev-server/.test(modulePath);
+					},
 					loader: `babel-loader?${JSON.stringify(babelSettings)}`
 				},
 				{
@@ -61,8 +71,18 @@ module.exports = function (env) {
 				"jet-locales": path.resolve(__dirname, "sources/locales")
 			}
 		},
+		devServer: {
+			host: process.env.DEV_HOST || "localhost",
+			port: process.env.DEV_PORT || 8080,
+			// Path to all other files (e.g. index.html and webix):
+			contentBase: ["./codebase", "./node_modules"],
+			inline: true
+		},
 		plugins: [
 			new ExtractTextPlugin("./app.css"),
+			new HtmlWebpackPlugin({
+				template: "index.html"
+			}),
 			new webpack.DefinePlugin({
 				VERSION: `"${pack.version}"`,
 				APPNAME: `"${pack.name}"`,
@@ -79,8 +99,8 @@ module.exports = function (env) {
 
 	if (production) {
 		config.plugins.push(
-			new webpack.optimize.UglifyJsPlugin({
-				test: /\.js$/
+			new TerserPlugin({
+				test: /\.js(\?.*)?$/i,
 			})
 		);
 	}

@@ -19,9 +19,9 @@ export default class LogoutPanelView extends JetView {
 								id: "name",
 								value: this.getUserName(),
 								submenu: [
-									{id: "settings", value: "<span class='webix_icon fa-cog'></span> Settings"},
+									{id: "settings", value: "<span class='webix_icon fas fa-cog'></span> Settings"},
 									{$template: "Separator"},
-									{id: "logout", value: "<span class='webix_icon fa-arrow-right'></span> Logout"}
+									{id: "logout", value: "<span class='webix_icon fas fa-arrow-right'></span> Logout"}
 								]
 							}
 						],

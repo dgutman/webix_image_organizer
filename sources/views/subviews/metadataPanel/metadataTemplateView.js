@@ -19,7 +19,7 @@ export default class MetadataPanelClass extends JetView {
 			view: "button",
 			name: "showAddMetadataWindowButtonName",
 			type: "icon",
-			icon: "plus",
+			icon: "fas fa-plus",
 			hidden: true,
 			disable: true,
 			height: 32,
@@ -35,9 +35,11 @@ export default class MetadataPanelClass extends JetView {
 			css: "metadata-template",
 			width: 350,
 			template: (obj) => {
-				this.jsonEditor.set(obj.meta);
-				this.jsonEditor.setName("Metadata Properties");
-				this.jsonEditor.collapseAll();
+				if (this.jsonEditor) {
+					this.jsonEditor.set(obj.meta);
+					this.jsonEditor.setName("Metadata Properties");
+					this.jsonEditor.collapseAll();
+				}
 				item = obj;
 				let template = `<div class="templateMain">
 									<div class="templateName">Metadata</div>
@@ -120,6 +122,7 @@ export default class MetadataPanelClass extends JetView {
 
 		//set debounce interval for onChangeValue
 		this.jsonEditor.node.__proto__.DEBOUNCE_INTERVAL = 2000;
+		this.metadataTemplate.parse({});
 	}
 
 	getScrollView() {

@@ -41,6 +41,7 @@ export default class DataviewActionPanelClass extends JetView {
 		const filterBySelection = {
 			view: "richselect",
 			css: "select-field",
+			icon: "fas fa-chevron-down",
 			name: "filterTableBySelectionName",
 			width: 305,
 			label: "Filter table",

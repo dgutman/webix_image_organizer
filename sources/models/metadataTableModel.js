@@ -20,30 +20,30 @@ function setFaIconsForDatatable(obj) {
 	let fileType = utils.searchForFileType(obj);
 	switch (fileType) {
 		case "pdf": {
-			icon = "fa-file-pdf-o";
+			icon = "fa-file-pdf";
 			break;
 		}
 		case "json": {
-			icon = "fa-file-code-o";
+			icon = "fa-file-code";
 			break;
 		}
 		case "jpg":
 		case "png":
 		case "jpeg": {
-			icon = "fa-picture-o";
+			icon = "fa-picture";
 			break;
 		}
 		case "ndpi":
 		case "svs": {
-			icon = "fa-file-excel-o";
+			icon = "fa-file-excel";
 			break;
 		}
 		default: {
-			icon = "fa-file-o";
+			icon = "fa-file";
 			break;
 		}
 	}
-	return `<span class='webix_icon ${icon}'></span> ${obj.name}`;
+	return `<span class='webix_icon far ${icon}'></span> ${obj.name}`;
 }
 
 function getLocalStorageColumnsConfig() {

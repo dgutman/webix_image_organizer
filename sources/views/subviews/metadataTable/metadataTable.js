@@ -9,7 +9,6 @@ import MetadataTableService from "../../../services/metadataTable/metadataTable"
 const collapserName = "tableTemplateCollapser";
 
 export default class MetadataTableCellClass extends JetView {
-
 	config() {
 		const tableCollapser = collapser.getConfig(constants.ID_DATATABLE_IMAGES_TEMPLATE, {type: "right", closed: true}, collapserName);
 
@@ -30,7 +29,7 @@ export default class MetadataTableCellClass extends JetView {
 			view: "button",
 			name: "editColumnButtonName",
 			type: "icon",
-			icon: "pencil-square-o",
+			icon: "fa fa-edit",
 			width: 170,
 			height: 30,
 			label: "Show or hide columns"
@@ -40,7 +39,7 @@ export default class MetadataTableCellClass extends JetView {
 			view: "button",
 			name: "exportButton",
 			type: "icon",
-			icon: "share-square-o",
+			icon: "fa fa-share-square",
 			label: "Export to excel",
 			width: 130,
 			height: 30

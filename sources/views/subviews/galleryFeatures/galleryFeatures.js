@@ -24,6 +24,7 @@ export default class GalleryFeatures extends JetView {
 
 		const dataviewYCountSelction = {
 			view: "richselect",
+			icon: "fas fa-chevron-down",
 			css: "select-field",
 			//hidden: true,
 			id: constants.ID_GALLERY_RICHSELECT,
@@ -52,6 +53,7 @@ export default class GalleryFeatures extends JetView {
 		const filterBySelection = {
 			view: "richselect",
 			css: "select-field",
+			icon: "fas fa-chevron-down",
 			name: "filterBySelectionName",
 			width: 330,
 			label: "Filter gallery",
@@ -70,17 +72,18 @@ export default class GalleryFeatures extends JetView {
 
 		const filterByName = {
 			view: "search",
+			css: "search-field",
 			name: "filterByNameView",
 			placeholder: "Type file name",
 			width: 330,
 			labelWidth: 100,
-			label: "Search files",
-			css: "select-field"
+			label: "Search files"
 		};
 
 		const galleryImageViewer = {
 			view: "richselect",
 			css: "select-field",
+			icon: "fas fa-chevron-down",
 			name: "galleryImageViewerName",
 			width: 355,
 			label: "Choose type",

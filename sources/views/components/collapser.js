@@ -22,8 +22,8 @@ function getConfig(collapsedViewId, config, collapserName) {
 			{
 				view: "template",
 				template: config && config.type === "left" ?
-					"<span class='webix_icon fa-angle-left'></span>" :
-					"<span class='webix_icon fa-angle-right'></span>",
+					"<span class='webix_icon fas fa-angle-left'></span>" :
+					"<span class='webix_icon fas fa-angle-right'></span>",
 				css: "collapser-btn",
 				id: BTN_OPENED_STATE_ID,
 				hidden: config && config.closed,
@@ -41,8 +41,8 @@ function getConfig(collapsedViewId, config, collapserName) {
 			{
 				view: "template",
 				template: config && config.type === "left" ?
-					"<span class='webix_icon fa-angle-right'></span>" :
-					"<span class='webix_icon fa-angle-left'></span>",
+					"<span class='webix_icon fas fa-angle-right'></span>" :
+					"<span class='webix_icon fas fa-angle-left'></span>",
 				css: "collapser-btn",
 				id: BTN_CLOSED_STATE_ID,
 				hidden: !(config && config.closed),

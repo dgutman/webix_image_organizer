@@ -136,7 +136,7 @@ export default class EditColumnsWindow extends JetView {
 				header.push("");
 			}
 
-			header[header.length - 1] = `${headerValue}<span style='float: right; padding-top: 12px; width:17px;' class="webix_icon fa-pencil"></span>`;
+			header[header.length - 1] = `${headerValue}<span style='float: right; padding-top: 12px; width:17px;' class="webix_icon fas fa-pencil-alt"></span>`;
 			if (filterType) {
 				header.push({content:`${filterType}Filter`});
 			}
@@ -245,12 +245,12 @@ export default class EditColumnsWindow extends JetView {
 		let lengthForRemoveColumns = columnsForDatatableToRemove.count();
 		dataToAdd.forEach((metadataColumnConfig) => {
 			columnConfig = this.createColumnConfigForElements(metadataColumnConfig.id, metadataColumnConfig.header[metadataColumnConfig.header.length - 1], hasValue);
-			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "plus", "", metadataColumnConfig);
+			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "fas fa-plus", "", metadataColumnConfig);
 		});
 		if (lengthForRemoveColumns > 0) {
 			columnsForDatatableToRemove.data.each((deletedColumn) => {
 				columnConfig = this.createColumnConfigForElements(deletedColumn.columnValue, deletedColumn.headerValue, hasValue);
-				this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "plus");
+				this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "fas fa-plus");
 			});
 		}
 		if (this.initialColumnsConfig.length > 0) {
@@ -262,7 +262,7 @@ export default class EditColumnsWindow extends JetView {
 				});
 				if (!initialColumn.wasAdded) {
 					columnConfig = this.createColumnConfigForElements(initialColumn.id, initialColumn.header, hasValue);
-					this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "plus");
+					this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "fas fa-plus");
 				}
 			});
 		}
@@ -293,7 +293,7 @@ export default class EditColumnsWindow extends JetView {
 					header: obj.header
 				};
 			}
-			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToRemove, "minus", filterValue, metadataColumnConfig);
+			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToRemove, "fas fa-minus", filterValue, metadataColumnConfig);
 		});
 		webix.ui(elementsArray, formView);
 	}
@@ -315,7 +315,7 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	disableFilterTypeField(buttonIcon) {
-		return buttonIcon === "minus";
+		return buttonIcon === "fas fa-minus";
 	}
 
 	getFilterTypeField(nameValue) {
@@ -380,17 +380,17 @@ export default class EditColumnsWindow extends JetView {
 						let columnValue = columnField.getValue();
 						let headerValue = headerField.getValue();
 						let filterTypeValue = filterTypeField.getValue();
-						if (actionButton.config.icon === "minus") {
+						if (actionButton.config.icon === "fas fa-minus") {
 							columnsForDatatableToRemove.add({columnValue, headerValue});
 							this.removeOldDatatableColumns(columnValue);
-							actionButton.define("icon", "plus");
+							actionButton.define("icon", "fas fa-plus");
 							actionButton.refresh();
 							filterTypeField.enable();
-						} else if (actionButton.config.icon === "plus") {
+						} else if (actionButton.config.icon === "fas fa-plus") {
 							filterTypeField.disable();
 							columnsForDatatableToAdd.add({columnValue, headerValue});
 							this.createNewDatatableColumns(columnValue, headerValue, filterTypeValue, columnField.config.metadataColumnConfig);
-							actionButton.define("icon", "minus");
+							actionButton.define("icon", "fas fa-minus");
 							actionButton.refresh();
 						}
 

@@ -153,7 +153,7 @@ class MainService {
 				IMAGE_WIDTH = 150;
 			}
 			const checkedClass = obj.markCheckbox ? "is-checked" : "";
-			const starHtml = obj.starColor ? `<span class='webix_icon fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
+			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
 			const imageViewerValue = this._galleryDataviewImageViewer.getValue();
 			switch(imageViewerValue) {
 				case constants.THUMBNAIL_DATAVIEW_IMAGES: {
@@ -196,7 +196,7 @@ class MainService {
 									<div class="gallery-images-info">
 										<div class="gallery-images-header">
 											<div class="gallery-images-checkbox"> ${common.markCheckbox(obj, common)}</div>
-											<div class="download-icon"><span class="webix_icon fa-download"></span></div>
+											<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
 										</div>
 										${imageTagDiv}
 									</div>
@@ -212,9 +212,12 @@ class MainService {
 			if (newId !== oldId) {
 				webix.confirm({
 					title: "Attention!",
+					type: "confirm-warning",
 					text: "Are you sure you want to change host? All data will be cleared.",
+					cancel: "Yes",
+					ok: "No",
 					callback: (result) => {
-						if (result) {
+						if (!result) {
 							this._putValuesAfterHostChange(newId);
 							this._view.$scope.app.refresh();
 						} else {
@@ -288,7 +291,7 @@ class MainService {
 		// after opening the tree branch we fire this event
 		this._finder.attachEvent("onAfterSelect", (id) => {
 			const item = this._finder.getItem(id);
-			if (item._modelType === "item") {
+			if (item._modelType === "item" || !item._modelType) {
 				utils.parseDataToViews(item);
 				this._highlightLastSelectedFolder();
 			} else if (item._modelType === "folder") {
@@ -553,7 +556,7 @@ class MainService {
 
 		this._cartList.define("template", (obj, common) => {
 			return `<div>
-						<span class='webix_icon ${utils.angleIconChange(obj)}' style="color: rgba(0, 0, 0, 0.8) !important;"></span>
+						<span class='webix_icon fas ${utils.angleIconChange(obj)}' style="color: #6E7480;"></span>
 						<div style='float: right'>${common.deleteButton(obj, common)}</div>
  						<div class='card-list-name'>${obj.name}</div>
  						<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
@@ -821,44 +824,44 @@ class MainService {
 		}
 	}
 
-	_getImagesTagDiv(obj, imageHeight) {
-		let iconsDivLeft = "";
-		let iconsDivRight = "";
-
-		const itemContainerHeight = 20;
-		const tagKeys = Object.keys(obj.tag);
-		const tagsImageId = imagesTagsCollection.getLastId();
-		const tagsImage = imagesTagsCollection.getItem(tagsImageId);
-		const maxTagsOnSide = Math.round(imageHeight/itemContainerHeight - 2);
-		const maxTagsOnItem = maxTagsOnSide * 2;
-
-		tagKeys.forEach((tagKey, tagIndex) => {
-			for (let tagsImageKey in tagsImage) {
-				if (tagsImageKey === tagKey) {
-					if (Array.isArray(tagsImage[tagsImageKey]) && tagIndex < maxTagsOnItem) {
-						let foundObjectIcon = tagsImage[tagsImageKey].find(obj => obj.tagIcon);
-						if (tagIndex < maxTagsOnSide) {
-							iconsDivLeft+= `<div style="height: ${itemContainerHeight}px;">
-											<span class="webix_icon fa-${foundObjectIcon.tagIcon} tag-align-left"></span>
-										</div>`;
-						} else {
-							if (obj.starColor && obj.starColor.length > 0 && (tagIndex >= maxTagsOnSide - 1)) {
-								break;
-							}
-							iconsDivRight+= `<div style="height: ${itemContainerHeight}px;">
-											<span class="webix_icon fa-${foundObjectIcon.tagIcon} tag-align-right"></span>
-										</div>`;
-						}
-					} else {
-						break;
-					}
-				}
-			}
-		});
-
-		return `<div style='float: left'>${iconsDivLeft}</div>
-		        <div style='float: right'>${iconsDivRight}</div>`;
-	}
+	// _getImagesTagDiv(obj, imageHeight) {
+	// 	let iconsDivLeft = "";
+	// 	let iconsDivRight = "";
+	//
+	// 	const itemContainerHeight = 20;
+	// 	const tagKeys = Object.keys(obj.tag);
+	// 	const tagsImageId = imagesTagsCollection.getLastId();
+	// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+	// 	const maxTagsOnSide = Math.round(imageHeight/itemContainerHeight - 2);
+	// 	const maxTagsOnItem = maxTagsOnSide * 2;
+	//
+	// 	tagKeys.forEach((tagKey, tagIndex) => {
+	// 		for (let tagsImageKey in tagsImage) {
+	// 			if (tagsImageKey === tagKey) {
+	// 				if (Array.isArray(tagsImage[tagsImageKey]) && tagIndex < maxTagsOnItem) {
+	// 					let foundObjectIcon = tagsImage[tagsImageKey].find(obj => obj.tagIcon);
+	// 					if (tagIndex < maxTagsOnSide) {
+	// 						iconsDivLeft+= `<div style="height: ${itemContainerHeight}px;">
+	// 										<span class="webix_icon fa fa-${foundObjectIcon.tagIcon} tag-align-left"></span>
+	// 									</div>`;
+	// 					} else {
+	// 						if (obj.starColor && obj.starColor.length > 0 && (tagIndex >= maxTagsOnSide - 1)) {
+	// 							break;
+	// 						}
+	// 						iconsDivRight+= `<div style="height: ${itemContainerHeight}px;">
+	// 										<span class="webix_icon fa fa-${foundObjectIcon.tagIcon} tag-align-right"></span>
+	// 									</div>`;
+	// 					}
+	// 				} else {
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	});
+	//
+	// 	return `<div style='float: left'>${iconsDivLeft}</div>
+	// 	        <div style='float: right'>${iconsDivRight}</div>`;
+	// }
 
 	_setInitSettingsMouseEvents() {
 		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
@@ -868,7 +871,7 @@ class MainService {
 	_setLastSelectedFolderId() {
 		if (lastSelectedFolderId) {
 			const lastSelectedFolderNode = this._finder.getItemNode(lastSelectedFolderId);
-			webix.html.removeCss(lastSelectedFolderNode, "last-selected-folder");
+			if (lastSelectedFolderNode) webix.html.removeCss(lastSelectedFolderNode, "last-selected-folder");
 		}
 
 		const currentItemId = this._finder.getSelectedId();

@@ -5,13 +5,11 @@
   },
   "globals": {
     "webix": true,
-    "scheduler": true,
-    "$$": true,
-    "process": true,
-    "console": true,
     "APPNAME": true,
     "VERSION": true,
     "PRODUCTION": true,
+    "$$": true,
+    "console": true,
     "require": true
   },
   "extends": "eslint:recommended",
@@ -19,20 +17,8 @@
     "sourceType": "module"
   },
   "rules": {
-    "indent": [
-      "error",
-      "tab",
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "quotes": [
-      "error",
-      "double"
-    ],
-    "semi": [
-      "error",
-      "always"
-    ]
+    "no-extra-parens": "warn",
+    "valid-jsdoc": "warn",
+    "no-console": "off"
   }
 }
