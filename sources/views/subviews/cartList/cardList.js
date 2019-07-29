@@ -38,7 +38,7 @@ export default class CartView extends JetView {
 				deleteButton: {
 					view: "button",
 					type: "icon",
-					icon: "times",
+					icon: "fas fa-times",
 					width: 25,
 					height: 25,
 					click: (...args) => {
@@ -54,13 +54,13 @@ export default class CartView extends JetView {
 					if (!item.imageShown) {
 						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
 						listTextNode.setAttribute("style", "margin-left: 17px; width: 115px;");
-						node.setAttribute("class", "webix_icon fa-angle-down");
+						node.setAttribute("class", "webix_icon fas fa-angle-down");
 						item.imageShown = true;
 						modifiedObjects.add(item);
 					} else {
 						itemNode.setAttribute("style", "height: 30px !important; color: rgba(0, 0, 0, 0.8);");
 						listTextNode.setAttribute("style", "margin-left: 12px; width: 125px;");
-						node.setAttribute("class", "webix_icon fa-angle-right");
+						node.setAttribute("class", "webix_icon fas fa-angle-right");
 						item.imageShown = false;
 						modifiedObjects.remove(item);
 					}

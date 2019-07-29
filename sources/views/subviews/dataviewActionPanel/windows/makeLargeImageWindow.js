@@ -111,7 +111,7 @@ export default class MakeLargeImageWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.close()

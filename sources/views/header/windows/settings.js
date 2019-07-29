@@ -19,9 +19,10 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
+					icon: "fas fa-chevron-down",
 					name: constants.MOUSE_LEFT_SINGLE_CLICK,
 					placeholder: "Choose action",
-					labelWidth: 200,
+					labelWidth: 210,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button single click",
@@ -33,9 +34,10 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
+					icon: "fas fa-chevron-down",
 					name: constants.MOUSE_RIGHT_SINGLE_CLICK,
 					placeholder: "Choose action",
-					labelWidth: 200,
+					labelWidth: 210,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse right button single click",
@@ -46,10 +48,11 @@ export default class SettingsWindow extends JetView {
 				},
 				{
 					view: "richselect",
+					icon: "fas fa-chevron-down",
 					css: "select-field",
 					name: constants.MOUSE_LEFT_DOUBLE_CLICK,
 					placeholder: "Choose action",
-					labelWidth: 200,
+					labelWidth: 210,
 					validate: this.validateMouseClicks,
 					invalidMessage: "Same action for different mouse clicks",
 					label: "Mouse left button double click",
@@ -95,7 +98,7 @@ export default class SettingsWindow extends JetView {
 			view: "window",
 			scroll: true,
 			paddingX: 35,
-			width: 450,
+			width: 470,
 			move: true,
 			modal: true,
 			position: "center",
@@ -112,7 +115,7 @@ export default class SettingsWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.hideWindow()
@@ -136,7 +139,7 @@ export default class SettingsWindow extends JetView {
 							saveButton,
 							{width: 15},
 							cancelButton,
-							{width: 15}
+							{width: 20}
 						]
 					},
 					{height: 15}
@@ -185,8 +188,10 @@ export default class SettingsWindow extends JetView {
 			title: "Attention!",
 			text: "Are you sure you don't want to save your changes?",
 			type: "confirm-warning",
+			cancel: "Yes",
+			ok: "No",
 			callback: (result) => {
-				if (result) {
+				if (!result) {
 					this.settingsForm.clearValidation();
 					this.getRoot().hide();
 				}

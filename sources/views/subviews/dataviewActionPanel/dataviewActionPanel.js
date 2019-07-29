@@ -1,5 +1,7 @@
 import {JetView} from "webix-jet";
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
+import galleryCell from "jet-views/subviews/gallery/gallery";
+import metadataTableCell from "jet-views/subviews/metadataTable/metadataTable";
 
 export default class DataviewActionPanelClass extends JetView {
 	config() {
@@ -36,6 +38,34 @@ export default class DataviewActionPanelClass extends JetView {
 			}
 		};
 
+		const filterBySelection = {
+			view: "richselect",
+			css: "select-field",
+			icon: "fas fa-chevron-down",
+			name: "filterTableBySelectionName",
+			width: 305,
+			label: "Filter table",
+			labelWidth: 90,
+			placeholder: "Select file type",
+			options: {
+				body: {
+					template: (obj) => {
+						if (obj.value) {
+							return `Show ${obj.value.toUpperCase()} files`;
+						}
+					}
+				}
+			}
+		};
+
+		const multiview = {
+			view: "multiview",
+			cells: [
+				pager,
+				filterBySelection
+			]
+		};
+
 		const cartButton = {
 			view: "button",
 			name: "hideOrShowCartListButtonName",
@@ -53,7 +83,7 @@ export default class DataviewActionPanelClass extends JetView {
 				{},
 				switchButton,
 				{},
-				pager,
+				multiview,
 				{},
 				cartButton,
 				{width: 40}
@@ -94,5 +124,9 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getProjectFolderWindowButton() {
 		return this.getRoot().queryView({name: "projectFolderWindowButtonName"});
+	}
+
+	getFilterTableView() {
+		return this.getRoot().queryView({name: "filterTableBySelectionName"});
 	}
 }

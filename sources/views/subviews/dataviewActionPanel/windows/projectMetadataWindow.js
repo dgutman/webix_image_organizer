@@ -28,7 +28,7 @@ export default class ProjectMetadataWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.close()
@@ -89,7 +89,7 @@ export default class ProjectMetadataWindow extends JetView {
 		const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 		const projectMetadataFolder = projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
 		if (projectMetadataFolder instanceof Object && projectMetadataFolder.hasOwnProperty("meta")) {
-			const projectSchema = projectMetadataFolder.meta.projectSchema;
+			const projectSchema = projectMetadataFolder.meta.schema;
 			projectKeys = Object.keys(projectSchema);
 			this.projectMetadataTemplate.parse(projectSchema);
 			this.getRoot().show();

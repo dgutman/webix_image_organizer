@@ -6,6 +6,7 @@ let mainView;
 let imageWindow;
 let galleryDataviewContextMenu;
 let metadataTableThumbnailTemplate;
+let pdfViewerWindow;
 
 function setMainView(view) {
 	mainView = view;
@@ -71,6 +72,14 @@ function getMetadataTableThumbnailTemplate() {
 	return metadataTableThumbnailTemplate;
 }
 
+function setPdfViewerWindow(pdfWindow) {
+	pdfViewerWindow = pdfWindow;
+}
+
+function getPdfViewerWindow() {
+	return pdfViewerWindow;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -87,5 +96,7 @@ export default {
 	setGalleryDataviewContextMenu,
 	getGalleryDataviewContextMenu,
 	setMetadataTableThumbnailTemplate,
-	getMetadataTableThumbnailTemplate
+	getMetadataTableThumbnailTemplate,
+	setPdfViewerWindow,
+	getPdfViewerWindow
 };

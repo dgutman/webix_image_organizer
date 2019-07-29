@@ -55,6 +55,7 @@ export default class Header extends JetView {
 
 		const hostDropDownBox = {
 			view: "richselect",
+			icon: "fas fa-chevron-down",
 			name: "hostBoxName",
 			css: "select-field",
 			label: "Hosts",
@@ -68,6 +69,7 @@ export default class Header extends JetView {
 
 		const collectionDropDownBox = {
 			view: "richselect",
+			icon: "fas fa-chevron-down",
 			name: "collectionBoxName",
 			css: "select-field",
 			label: "Collections",
@@ -85,6 +87,7 @@ export default class Header extends JetView {
 			labelWidth: 70,
 			width: 300,
 			view: "richselect",
+			icon: "fas fa-chevron-down",
 			css: "select-field",
 			value: this.app.getService("theme").getTheme(),
 			label: "Theme",

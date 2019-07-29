@@ -5,10 +5,12 @@ import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqu
 import ajaxActions from "../ajaxActions";
 import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
+import downloadFiles from "../../models/downloadFiles";
 
 let columnsConfigForDelete = [];
 let datatableColumnsConfig = [];
 let editUniqueClick;
+let editValue;
 
 class MetadataTableService {
 	constructor(view, metadataTable, addColumnButton, exportButton, metadataTableThumbnailsTemplate) {
@@ -96,7 +98,7 @@ class MetadataTableService {
 			this._metadataTable.refreshColumns(newDatatableColumns);
 		});
 
-		this._metadataTable.on_click["fa-pencil"] = (e, obj) => {
+		this._metadataTable.on_click["fa-pencil-alt"] = (e, obj) => {
 			let uniqueValuesArray = [];
 			let columnId = obj.column;
 			this._metadataTable.eachRow((rowId) => {
@@ -135,13 +137,13 @@ class MetadataTableService {
 			const editor = this._metadataTable.getEditor();
 			const rowId = infoObject.row;
 			const item = this._metadataTable.getItem(rowId);
-			const editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
+			editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
 			if (editValue && typeof editValue !== "object")
 				editor.setValue(editValue);
 		});
 
 		this._metadataTable.attachEvent("onBeforeEditStop", (values, obj) => {
-			if (values.old !== values.value) {
+			if (editValue !== values.value) {
 				const columnId = obj.column;
 				const rowId = obj.row;
 				const itemToEdit = this._metadataTable.getItem(rowId);
@@ -152,7 +154,6 @@ class MetadataTableService {
 				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
 					.then(() => {
 						this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
-						webix.message(`${columnId} column was successfully updated!`);
 						this._view.hideProgress();
 					})
 					.fail(() => {
@@ -182,6 +183,20 @@ class MetadataTableService {
 					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(selectedId) : this._metadataTable.getNextId(selectedId);
 					this._selectDatatableItem(nextRowId);
 				}
+			}
+		});
+
+		this._metadataTableThumbnailsTemplate.define("onClick", {
+			"datatable-template-image": (e, id) => {
+				const imageType = e.srcElement.getAttribute("imageType");
+				const selectedObj = this._metadataTable.getSelectedItem();
+				const imageWindow = webixViews.getImageWindow();
+				const pdfViewerWindow = webixViews.getPdfViewerWindow();
+
+				if (imageType === "label-image") {
+					selectedObj.label = true;
+				}
+				downloadFiles.openOrDownloadFiles(selectedObj, imageWindow, pdfViewerWindow);
 			}
 		});
 	}

@@ -1,6 +1,6 @@
 import {JetView} from "webix-jet";
 import header from "./header/header";
-import hostsCollectionAndThemes from "./subviews/hostsCollectionThemes/hostsCollectionsThemes";
+// import hostsCollectionAndThemes from "./subviews/hostsCollectionThemes/hostsCollectionsThemes";
 import finderView from "./subviews/finder/finderView";
 import multiview from "./subviews/multiDataView/multiDataView";
 import dataviewActionPanel from "./subviews/dataviewActionPanel/dataviewActionPanel";
@@ -10,6 +10,7 @@ import constants from "../constants";
 import MainService from "../services/main/mainService";
 import cartList from "./subviews/cartList/cardList";
 import galleryFeatures from "./subviews/galleryFeatures/galleryFeatures";
+
 const collapserName = "metadataCollapser";
 
 export default class MainView extends JetView {

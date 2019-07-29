@@ -4,6 +4,10 @@ import ajaxActions from "../services/ajaxActions";
 
 function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 	const itemType = utils.searchForFileType(item);
+	if (item.label) {
+		imageWindow.showWindow(item, "standard");
+		return true;
+	}
 	switch (itemType) {
 		case "png":
 		case "jpeg":

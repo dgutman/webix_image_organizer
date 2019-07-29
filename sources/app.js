@@ -4,8 +4,8 @@ import state from "./models/state";
 
 webix.ready(() => {
 	const app = new JetApp({
-		id: APPNAME,
-		version: VERSION,
+		id: "",
+		version: "",
 		start: "/main",
 	});
 

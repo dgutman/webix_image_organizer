@@ -25,13 +25,71 @@ input::-ms-clear {
     }
   }
 }
+
+/* checkboxes */
+.checkbox-ctrl {
+  .webix_label_right {
+    color: @main-color-light;
+    font-size: 15px;
+    padding-left: 8px;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 275px;
+    white-space: nowrap;
+    /*line-height: 16px;
+    padding: 10px 0 0 10px;*/
+  }
+
+  .webix_custom_checkbox {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #6E7480;
+    .border-radius(2px);
+    background: none;
+    .box-sizing(border-box);
+    cursor: pointer;
+    .transition(.2s all ease-in-out);
+
+    &:before {
+      content: "\f00c";
+      font-family: 'Font Awesome 5 Free';
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 900;
+      color: #fff;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin: -6.5px 0 0 -6.5px;
+      visibility: hidden;
+    }
+
+    &:focus,
+    &:hover {
+      border-color: #0288D1;
+    }
+  }
+
+  .webix_checkbox_1 .webix_custom_checkbox {
+    background-color: #0288D1;
+    border-color: #0288D1;
+
+    &:before {
+      visibility: visible;
+    }
+  }
+}
+
+
 /* select-field */
 .select-field,
 .select-field-reverce {
   .webix_inp_static,
   input {
     .border-radius(0);
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
 
     &:focus {
@@ -39,11 +97,13 @@ input::-ms-clear {
     }
   }
   .webix_placeholder {
-    font-size: 14px;
+    font-size: 15px;
   }
   span.webix_input_icon {
     background: none;
     cursor: pointer;
+    padding-top: 9px !important;
+    font-size: 15px;
   }
 }
 .select-field {
@@ -57,7 +117,7 @@ input::-ms-clear {
     }
   }
   .webix_placeholder {
-    color: @main-color-light;
+    color: rgba(110,116,128,0.6)
   }
   span.webix_input_icon {
     color: @main-color-light;
@@ -99,7 +159,7 @@ input::-ms-clear {
     input {
       border-color: @lines-color;
       .border-radius(0);
-      font-size: 14px;
+      font-size: 15px;
       color: @main-color-light;
 
       &:focus {
@@ -107,21 +167,26 @@ input::-ms-clear {
         .box-shadow(none);
       }
 
-      &::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &::-webkit-input-placeholder {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &::-moz-placeholder          {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &:-moz-placeholder           {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &:-ms-input-placeholder      {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
 
-      &:focus::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-webkit-input-placeholder {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-moz-placeholder          {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-moz-placeholder           {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-ms-input-placeholder      {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
     }
   }
 }
 
 /* search-field */
 .search-field {
+  &.webix_invalid.webix_el_search {
+    input {
+      border-color: @lines-color-invalid;
+    }
+  }
   &.webix_el_search {
     input {
       border-color: @lines-color;
@@ -140,7 +205,7 @@ input::-ms-clear {
     input[type="text"]:focus:-ms-input-placeholder      {opacity: 0; transition: opacity 0.3s ease;}
 
     .webix_input_icon {
-      color: @lines-color;
+      color: @main-color-light;
     }
   }
 }
@@ -152,7 +217,7 @@ input::-ms-clear {
     textarea {
       border-color: @lines-color;
       .border-radius(0);
-      font-size: 14px;
+      font-size: 15px;
       color: @main-color-light;
 
       &:focus {
@@ -160,17 +225,34 @@ input::-ms-clear {
         .box-shadow(none);
       }
 
-      &::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
-      &:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 1; transition: opacity 0.4s ease;}
+      &::-webkit-input-placeholder {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &::-moz-placeholder          {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &:-moz-placeholder           {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
+      &:-ms-input-placeholder      {font-size: 15px; color: rgba(110,116,128,0.6); opacity: 1; transition: opacity 0.4s ease;}
 
-      &:focus::-webkit-input-placeholder {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus::-moz-placeholder          {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus:-moz-placeholder           {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
-      &:focus:-ms-input-placeholder      {font-size: 14px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-webkit-input-placeholder {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus::-moz-placeholder          {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-moz-placeholder           {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
+      &:focus:-ms-input-placeholder      {font-size: 15px; color: @main-color-light; opacity: 0; transition: opacity 0.4s ease;}
     }
   }
+}
+
+.multiline-label {
+  .webix_el_box {
+    label {
+      line-height: 15px !important;
+    }
+  }
+}
+
+.label-error {
+  color: #f92921;
+}
+
+.webix_invalid .webix_el_box textarea {
+  background-color: #fff6f6 !important;
+  border-color: #fea5a8 !important;
 }
 
 .pager-info {
@@ -187,6 +269,9 @@ input::-ms-clear {
 }
 .cart-list-view {
   .webix_list_item {
+    .webix_icon_btn {
+      margin-top: 1px;
+    }
     margin: 5px;
     box-sizing: border-box;
     padding: 2px 10px;
@@ -209,60 +294,10 @@ input::-ms-clear {
   .card-list-name {
     width: 125px;
     margin-top: -30px;
-    margin-left: 12px;
+    margin-left: 11px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-  }
-}
-
-.checkbox-ctrl {
-  .webix_label_right {
-    color: @main-color-light;
-    font-size: 14px;
-    padding-left: 8px;
-    cursor: pointer;
-    /*line-height: 16px;
-    padding: 10px 0 0 10px;*/
-  }
-
-  .webix_custom_checkbox {
-    display: block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #6E7480;
-    .border-radius(2px);
-    background: none;
-    .box-sizing(border-box);
-    cursor: pointer;
-    .transition(.2s all ease-in-out);
-
-    &:before {
-      content: "\f00c";
-      font-family: 'Fontawesome';
-      font-size: 12px;
-      line-height: 1;
-      color: #fff;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin: -6.5px 0 0 -6.5px;
-      visibility: hidden;
-    }
-
-    &:focus,
-    &:hover {
-      border-color: #0288D1;
-    }
-  }
-
-  .webix_checkbox_1 .webix_custom_checkbox {
-    background-color: #0288D1;
-    border-color: #0288D1;
-
-    &:before {
-      visibility: visible;
-    }
   }
 }
 
@@ -279,7 +314,7 @@ input::-ms-clear {
     }
 
     .webix_submenu_icon {
-      margin-top: 0;
+      margin-top: 3px;
     }
   }
 }
@@ -304,7 +339,7 @@ input::-ms-clear {
 
 .collpaser-text {
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 
@@ -316,7 +351,7 @@ input::-ms-clear {
 
 .images-tags-active-list {
   .webix_list_item {
-   border-bottom: 1px solid #dddddd;
+    border-bottom: 1px solid #dddddd;
   }
   .active-list-name {
     padding-left: 7px;
@@ -347,4 +382,9 @@ input::-ms-clear {
     position: relative;
     float: right;
   }
+}
+
+.last-selected-folder {
+  background: #01aed1;
+  color: @white-txt;
 }

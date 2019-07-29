@@ -10,7 +10,7 @@ export default class AddMetadataWindow extends JetView {
 			type: "icon",
 			width: 30,
 			name: "addNewMetadataFieldButtonName",
-			icon: "plus",
+			icon: "fas fa-plus",
 			value: "Add new field",
 			click: () => {
 				let elementsNamesToChange = [];
@@ -213,7 +213,7 @@ export default class AddMetadataWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.hideWindow()
@@ -279,7 +279,7 @@ export default class AddMetadataWindow extends JetView {
 									{
 										view: "button",
 										type: "icon",
-										icon: "times",
+										icon: "fas fa-times",
 										topLayoutId: `layoutId-${index}`,
 										css: "delete-icon-button",
 										width: 25,

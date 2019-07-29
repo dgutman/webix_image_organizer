@@ -6,6 +6,7 @@ import webixViews from "../models/webixViews";
 import metadataTableModel from "../models/metadataTableModel";
 import viewMouseEvents from "./viewMouseEvents";
 import constants from "../constants";
+import metadataTableFilterModel from "../models/metadataTableFilterModel";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -145,12 +146,16 @@ function parseDataToViews(data, linearData) {
 	const galleryDataview = webixViews.getGalleryDataview();
 	const pager = webixViews.getGalleryPager();
 
-	if (!pager.isVisible()) {
+	if (!pager.isVisible() && galleryDataview.isVisible()) {
 		pager.show();
 	}
 	if (!linearData) {
 		galleryDataview.clearAll();
 		metadataTable.clearAll();
+	}
+
+	if (!Array.isArray(data)) {
+		data = [data];
 	}
 
 	data.forEach((item) => {
@@ -160,6 +165,7 @@ function parseDataToViews(data, linearData) {
 	galleryDataview.parse(data);
 	metadataTable.parse(data);
 	galleryDataviewFilterModel.prepareDataToFilter(data);
+	metadataTableFilterModel.prepareDataToFilter(data);
 }
 
 function findStarColorForItem(item) {

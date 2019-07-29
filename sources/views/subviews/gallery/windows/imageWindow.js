@@ -32,20 +32,24 @@ export default class ImageWindowView extends JetView {
 			name: "largeImageTemplate",
 			scroll: false,
 			template: (obj) => {
+				const imageType = obj.label ? "images/label" : "thumbnail";
+				const getPreviewUrl = obj.label ? galleryImageUrl.getLabelPreviewImageUrl : galleryImageUrl.getNormalImageUrl;
+				const setPreviewUrl = obj.label ? galleryImageUrl.setPreviewLabelImageUrl : galleryImageUrl.setNormalImageUrl;
+
 				if (obj._id && !obj.emptyObject) {
-					if (typeof galleryImageUrl.getNormalImageUrl(obj._id) === "undefined") {
+					if (typeof getPreviewUrl(obj._id) === "undefined") {
 						this.view.showProgress();
-						galleryImageUrl.setNormalImageUrl(obj._id, "");
-						ajax.getImage(obj._id, HEIGHT, WIDTH, "thumbnail")
+						setPreviewUrl(obj._id, "");
+						ajax.getImage(obj._id, HEIGHT, WIDTH, imageType)
 							.then((data) => {
-								galleryImageUrl.setNormalImageUrl(obj._id, URL.createObjectURL(data));
+								setPreviewUrl(obj._id, URL.createObjectURL(data));
 								this.view.hideProgress();
 								this.getLargeTemplateView().refresh();
 							}).fail(() => {
 								this.view.hideProgress();
 							});
 					}
-					return `<img src="${galleryImageUrl.getNormalImageUrl(obj._id) || ""}">`;
+					return `<img src="${getPreviewUrl(obj._id) || ""}">`;
 				} else return "<div></div>";
 			},
 			borderless: true
@@ -73,7 +77,7 @@ export default class ImageWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.close()
@@ -143,7 +147,8 @@ export default class ImageWindowView extends JetView {
 					this.getLargeTemplateView().define("move", "true");
 					this.createOpenSeadragonViewer(obj, templateNode.firstChild);
 					this.view.hideProgress();
-				}).fail((error) => {
+				})
+				.fail(() => {
 					this.view.hideProgress();
 				});
 		} else if (viewer === "jsonviewer") {
@@ -154,7 +159,8 @@ export default class ImageWindowView extends JetView {
 					this.getLargeTemplateView().define("move", "false");
 					this.createJSONViewer(data, templateNode.firstChild);
 					this.view.hideProgress();
-				}).fail((error) => {
+				})
+				.fail(() => {
 					this.view.hideProgress();
 				});
 		}
