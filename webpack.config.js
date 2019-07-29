@@ -72,11 +72,12 @@ module.exports = function (env) {
 			}
 		},
 		devServer: {
-			host: process.env.DEV_HOST || "localhost",
-			port: process.env.DEV_PORT || 8080,
+			host: process.env.DEV_HOST || "0.0.0.0",
+			port: process.env.DEV_PORT || 5000,
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
-			inline: true
+			inline: true,
+                        disableHostCheck: true
 		},
 		plugins: [
 			new ExtractTextPlugin("./app.css"),
