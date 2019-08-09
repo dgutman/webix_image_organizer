@@ -59,12 +59,10 @@ export default class ImagesTagsWindow extends JetView {
 					}
 				}
 			},
-			template: (obj, common) => {
-				return `<div>
+			template: (obj, common) => `<div>
 						<div class='active-list-delete-button'>${common.deleteButton(obj, common)}</div>
  						<div class='active-list-name'>${obj.value} <span class="webix_icon fas fa-${obj.tagIcon}"></span></div>
 					</div>`
-			}
 
 		};
 
@@ -114,7 +112,8 @@ export default class ImagesTagsWindow extends JetView {
 															[formValues[valueKey]]: []
 														});
 														listTagValue = formValues[valueKey];
-													} else {
+													}
+													else {
 														newTagsData.find((newTag) => {
 															if (newTag && newTag instanceof Object) {
 																if (newTag.hasOwnProperty(formValues[newTagName])) {
@@ -124,7 +123,8 @@ export default class ImagesTagsWindow extends JetView {
 																		newTagObject = {
 																			tagIcon: formValues[valueKey]
 																		};
-																	} else {
+																	}
+																	else {
 																		newTagObject = {
 																			value: formValues[valueKey]
 																			// id: newTag[formValues[newTagName]].length - 1
@@ -137,16 +137,17 @@ export default class ImagesTagsWindow extends JetView {
 														});
 													}
 												}
-
 												if (Array.isArray(foundTag)) {
 													this.listOfTagsToAdd.parse({
-														value: listTagValue || "",
-														//tagIcon: listTagIcon || ""
+														value: listTagValue || ""
+														// tagIcon: listTagIcon || ""
 													});
-												} else {
+												}
+												else {
 													this.showWebixAlert("You have already added tag with that name!");
 												}
-											} else {
+											}
+											else {
 												this.showWebixAlert("Fill the form fields, please!");
 											}
 										}
@@ -232,7 +233,7 @@ export default class ImagesTagsWindow extends JetView {
 								name: `${key}-selectName`,
 								labelWidth: 150,
 								label: key,
-								//tagIcon: tagIcon,
+								// tagIcon: tagIcon,
 								options: elementOptions,
 								validate: webix.rules.isNotEmpty,
 								invalidMessage: "Value should not be empty"
@@ -247,32 +248,33 @@ export default class ImagesTagsWindow extends JetView {
 									const tagSelect = this.getTagsRichselect(id);
 
 									if (tagSelect.validate()) {
-										//add item to active tag list
+										// add item to active tag list
 										const tagSelectList = tagSelect.getList();
 										const itemId = tagSelect.getValue();
 										const selectedItem = tagSelectList.getItem(itemId);
-										const listObjectData =  `${key}: ${selectedItem.value}`;
+										const listObjectData = `${key}: ${selectedItem.value}`;
 										const listObjectId = `${key}:${itemId}`;
 										const tagSelectListCount = tagSelectList.count();
-										//const tagIcon = tagSelect.config.tagIcon;
+										// const tagIcon = tagSelect.config.tagIcon;
 
 										const foundMatches = this.listOfTagsToAdd.find((obj) => {
-											if ((obj.id === listObjectId) || (obj.id.indexOf(key) !== -1 && tagSelectListCount <= 2)) {
+											if (obj.id === listObjectId || obj.id.indexOf(key) !== -1 && tagSelectListCount <= 2) {
 												return obj;
 											}
-										}, true);
+										});
 
 										if (foundMatches.length === 0) {
 											const listObjectToParse = {
 												value: listObjectData,
-												id: listObjectId,
-												//tagIcon: tagIcon
+												id: listObjectId
+												// tagIcon: tagIcon
 											};
 
 											this.listOfTagsToAdd.parse(listObjectToParse);
-										} else {
-											//show needed alert text
-											let alertText =  tagSelectListCount > 2
+										}
+										else {
+											// show needed alert text
+											let alertText = tagSelectListCount > 2
 												? "You already added this tag!"
 												: `You only can add one ${key} tag!`;
 
@@ -287,7 +289,8 @@ export default class ImagesTagsWindow extends JetView {
 				}
 			}
 			webix.ui(elements, this.formView);
-		} else {
+		}
+		else {
 			webix.message("Wrong data to add");
 			this.closeWindow();
 		}
@@ -296,13 +299,12 @@ export default class ImagesTagsWindow extends JetView {
 	getPlusButtonTopSpacerHeight(count) {
 		if (Number.isInteger(count)) {
 			return count === 0 ? spacerHeightForPlusButtonFirstElement : spacerHeightForPlusButtonOtherElements;
-		} else {
-			return spacerHeightForPlusMinusButtons;
 		}
+		return spacerHeightForPlusMinusButtons;
 	}
 
 	getTagValueElement(count) {
-		let tagValueLabel = count === 0 ? "NEW TAG VALUES" : "";
+		let tagValueLabel = count === 0 ? "New tag values" : "";
 		let tagValueLabelPosition = tagValueLabel.length > 0 ? "top" : "";
 		let hiddenMinusButton = Number.isInteger(count);
 		let nameCount = Number.isInteger(count) ? count : this.formView.getChildViews().length - 1;
@@ -362,14 +364,14 @@ export default class ImagesTagsWindow extends JetView {
 
 	createNewFormElements() {
 		let elements = [];
-		//const iconsPopupId = this.iconsPopupView.config.id;
+		// const iconsPopupId = this.iconsPopupView.config.id;
 
 		const newNameTagElement = {
 			rows: [
 				{
 					cols: [
 						{
-							template: "NEW TAG NAME",
+							template: "New tag name",
 							width: 130,
 							css: "new-tag-name-template",
 							autoheight: true,
@@ -379,16 +381,15 @@ export default class ImagesTagsWindow extends JetView {
 						{
 							template: "<span class='link clear-tag-form'>Clear tag form</span>",
 							autoheight: true,
-							width: 100,
+							width: 102,
 							borderless: true,
 							onClick: {
 								"clear-tag-form": () => {
 									this.formView.clear();
-
 								}
 							}
-						},
-						//{width: 21}
+						}
+						// {width: 21}
 					]
 				},
 				{
@@ -398,8 +399,8 @@ export default class ImagesTagsWindow extends JetView {
 							name: newTagName,
 							css: "text-field",
 							validate: webix.rules.isNotEmpty,
-							invalidMessage: "Tag name field should not be empty",
-						},
+							invalidMessage: "Tag name field should not be empty"
+						}
 						// {
 						// 	css: "icon-popup-button-layout",
 						// 	name: "iconButtonLayoutName",
@@ -505,18 +506,19 @@ export default class ImagesTagsWindow extends JetView {
 							itemTagData.push({
 								[key]: tagId
 							});
-						} else {
+						}
+						else {
 							const itemTagIndex = itemTagData.findIndex(obj => obj.hasOwnProperty(key));
 							if (itemTagIndex !== -1) {
 								itemTagData[itemTagIndex][key].push(tagId);
-							} else {
+							}
+							else {
 								itemTagData.push({
 									[key]: [tagId]
 								});
 							}
 						}
 					}
-
 				});
 			}
 
@@ -542,8 +544,9 @@ export default class ImagesTagsWindow extends JetView {
 					this.$scope.view.hideProgress();
 					this.closeWindow();
 				});
-		} else {
-			this.showWebixAlert("Add new tag to the list before saving!");
+		}
+		else {
+			this.$scope.showWebixAlert("Add new tag to the list before saving!");
 		}
 	}
 
@@ -557,10 +560,10 @@ export default class ImagesTagsWindow extends JetView {
 			});
 			newTagsData = [];
 			this.$scope.closeWindow();
-		} else {
-			this.showWebixAlert("Add new tag to the list before saving!");
 		}
-
+		else {
+			this.$scope.showWebixAlert("Add new tag to the list before saving!");
+		}
 	}
 
 	showWebixAlert(alertText) {
@@ -606,7 +609,8 @@ export default class ImagesTagsWindow extends JetView {
 			// 		webix.html.addCss(iconButtonLayout.getNode(), "icon-popup-button-layout");
 			// 	}
 			// });
-		} else if (windowAction === "set") {
+		}
+		else if (windowAction === "set") {
 			windowHeaderName = "Set new image tags";
 			listTemplateName = "List of new tags to set";
 			saveButtonAction = this.saveButtonSetAction;
@@ -631,5 +635,4 @@ export default class ImagesTagsWindow extends JetView {
 		this.formView.clear();
 		this.getRoot().hide();
 	}
-
 }

@@ -7,6 +7,8 @@ let imageWindow;
 let galleryDataviewContextMenu;
 let metadataTableThumbnailTemplate;
 let pdfViewerWindow;
+let itemsModel;
+let renamePopup;
 
 function setMainView(view) {
 	mainView = view;
@@ -80,6 +82,22 @@ function getPdfViewerWindow() {
 	return pdfViewerWindow;
 }
 
+function setItemsModel(dataItemsModel) {
+	itemsModel = dataItemsModel;
+}
+
+function getItemsModel() {
+	return itemsModel;
+}
+
+function setRenamePopup(popup) {
+	renamePopup = popup;
+}
+
+function getRenamePopup() {
+	return renamePopup;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -98,5 +116,9 @@ export default {
 	setMetadataTableThumbnailTemplate,
 	getMetadataTableThumbnailTemplate,
 	setPdfViewerWindow,
-	getPdfViewerWindow
+	getPdfViewerWindow,
+	setItemsModel,
+	getItemsModel,
+	setRenamePopup,
+	getRenamePopup
 };

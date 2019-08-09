@@ -3,7 +3,6 @@ import ajaxActions from "../../../../services/ajaxActions";
 
 export default class PdfViewerWindowView extends JetView {
 	config() {
-
 		const PdfViewerWindowView = {
 			view: "window",
 			head: {
@@ -12,7 +11,7 @@ export default class PdfViewerWindowView extends JetView {
 						view: "template",
 						name: "windowHeaderTemplate",
 						css: "large-image-name",
-						template: (obj) => obj.name,
+						template: obj => obj.name,
 						borderless: true
 					},
 					{
@@ -35,7 +34,7 @@ export default class PdfViewerWindowView extends JetView {
 				rows: [
 					{
 						view: "template",
-						name: "pdfViewerTemplate",
+						name: "pdfViewerTemplate"
 					}
 				]
 			}
@@ -57,7 +56,7 @@ export default class PdfViewerWindowView extends JetView {
 		this.getRoot().show();
 	}
 
-	//setting template that we will display
+	// setting template that we will display
 	setTemplateContent(item) {
 		if (item) {
 			let content = `<embed src='${ajaxActions.getOpenFileUrl(item._id)}' 
@@ -65,11 +64,11 @@ export default class PdfViewerWindowView extends JetView {
 								pluginspage='http://www.adobe.com/products/acrobat/readstep2.html'>`;
 			this.getPdfViewerTemplate().define("template", content);
 			this.getPdfViewerTemplate().refresh();
-		} else {
+		}
+		else {
 			this.getPdfViewerTemplate().define("template", "Nothing to display");
 			this.getPdfViewerTemplate().refresh();
 		}
-
 	}
 
 	close() {

@@ -28,7 +28,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button single click",
 					options: mouseOptions,
 					on: {
-						//onChange: this.onChangeMouseClicks
+						// onChange: this.onChangeMouseClicks
 					}
 				},
 				{
@@ -43,7 +43,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse right button single click",
 					options: mouseOptions,
 					on: {
-						//onChange: this.onChangeMouseClicks
+						// onChange: this.onChangeMouseClicks
 					}
 				},
 				{
@@ -58,7 +58,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button double click",
 					options: mouseOptions,
 					on: {
-						//onChange: this.onChangeMouseClicks
+						// onChange: this.onChangeMouseClicks
 					}
 				}
 			]
@@ -178,24 +178,31 @@ export default class SettingsWindow extends JetView {
 	}
 
 	showWindow() {
-		const settingsFromValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
-		this.settingsForm.setValues(settingsFromValues);
+		this.settingsFormValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
+		this.settingsForm.setValues(this.settingsFormValues);
 		this.getRoot().show();
 	}
 
 	hideWindow() {
-		webix.confirm({
-			title: "Attention!",
-			text: "Are you sure you don't want to save your changes?",
-			type: "confirm-warning",
-			cancel: "Yes",
-			ok: "No",
-			callback: (result) => {
-				if (!result) {
-					this.settingsForm.clearValidation();
-					this.getRoot().hide();
+		const values = this.settingsForm.getValues();
+		if (JSON.stringify(values) === JSON.stringify(this.settingsFormValues)) {
+			this.settingsForm.clearValidation();
+			this.getRoot().hide();
+		}
+		else {
+			webix.confirm({
+				title: "Attention!",
+				text: "Are you sure you don't want to save your changes?",
+				type: "confirm-warning",
+				cancel: "Yes",
+				ok: "No",
+				callback: (result) => {
+					if (!result) {
+						this.settingsForm.clearValidation();
+						this.getRoot().hide();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 }

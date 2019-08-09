@@ -21,9 +21,9 @@ export default class MetadataTableCellClass extends JetView {
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,
+			spans: true,
 			tooltip: true,
-			navigation: true,
-			columns: [] //init in mainService.js
+			columns: [] // init in mainService.js
 		};
 
 		const editColumnButton = {
@@ -82,7 +82,7 @@ export default class MetadataTableCellClass extends JetView {
 		const exportButton = this.getExportButton();
 		const metadataTableThumbnailsTemplate = this.getMetadataTableThumbnailsTemplate();
 
-		this.metadataTableService =  new MetadataTableService(
+		this.metadataTableService = new MetadataTableService(
 			view,
 			this.metadataTable,
 			editColumnButton,
@@ -120,18 +120,28 @@ export default class MetadataTableCellClass extends JetView {
 	}
 
 	exportToExcel() {
-		let dataOrder = this.datatable.data.order;
-		if (dataOrder.length === 0) {
+		const dataOrder = this.metadataTable.data.order;
+		if (dataOrder.length) {
+			const columns = this.metadataTable.config.columns;
+			if (columns.length) {
+				webix.toExcel(this.metadataTable, {
+					filterHTML: true
+				});
+			}
+			else {
+				webix.alert({
+					title: "Error!",
+					type: "alert-error",
+					text: "There are no columns to export"
+				});
+			}
+		}
+		else {
 			webix.alert({
 				title: "Error!",
 				type: "alert-error",
-				text: "There is nothing to export",
-			});
-		} else {
-			webix.toExcel(this.datatable, {
-				filterHTML: true
+				text: "There is no data to export"
 			});
 		}
 	}
-
 }

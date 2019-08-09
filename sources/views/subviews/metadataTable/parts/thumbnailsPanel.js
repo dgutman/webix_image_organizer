@@ -38,34 +38,20 @@ export default class TableRightPanelView extends JetView {
 									}
 								});
 						}
-						if (typeof galleryImageUrl.getPreviewMacroImageUrl(obj._id) === "undefined") {
-							galleryImageUrl.setPreviewMacroImageUrl(obj._id, "");
-							ajaxActions.getImage(obj._id, IMAGE_HEIGHT, IMAGE_WIDTH, "images/macro")
-								.then((data) => {
-									if (data.type === "image/jpeg") {
-										galleryImageUrl.setPreviewMacroImageUrl(obj._id, URL.createObjectURL(data));
-										this.getRoot().refresh();
-									}
-								});
-						}
 					}
 					return `<div class='datatable-template'>
-							<span class='datatable-template-text'>Thumnail Image:</span>
+							<span class='datatable-template-text'>Thumbnail image:</span>
 							<img class='datatable-template-image' imageType='thumbnail-image' src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
-							<span class='datatable-template-text'>Label Image:</span>
+							<span class='datatable-template-text'>Label image:</span>
 							<img class='datatable-template-image' imageType='label-image' src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
-							<img class ='datatable-template-image' src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
-							<span class='datatable-template-text'>Macro Image:</span>
-							<img class ='datatable-template-image' src="${galleryImageUrl.getPreviewMacroImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
 						</div>`;
-				} else {
-					return  `<div class='datatable-template' style='position: relative; top: 50%;'>
+				}
+				return `<div class='datatable-template' style='position: relative; top: 50%;'>
 								<center><span class='datatable-template-text'>
 								Nothing to display
 								<br>Please, select any item to display images
 								</span></center>
 							</div>`;
-				}
 			}
 		};
 

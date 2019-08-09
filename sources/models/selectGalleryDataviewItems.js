@@ -1,3 +1,5 @@
+import utils from "../utils/utils";
+
 let selectedItems = [];
 const deletedItemsCollection = new webix.DataCollection();
 
@@ -5,6 +7,7 @@ function add(elements) {
 	if (!Array.isArray(elements)) {
 		elements = [elements];
 	}
+	elements = elements.filter(element => element);
 	selectedItems = selectedItems.concat(elements);
 }
 
@@ -41,6 +44,15 @@ function getSelectedImages() {
 	return selectedItems;
 }
 
+function putSelectedImagesToLocalStorage() {
+	if (selectedItems.length) {
+		utils.putSelectedItemsToLocalStorage(selectedItems);
+	}
+	else {
+		utils.removeSelectedItemsFromLocalStorage();
+	}
+}
+
 export default {
 	add,
 	remove,
@@ -49,5 +61,6 @@ export default {
 	count,
 	getURIEncoded,
 	getDeletedItemsDataCollection,
-	getSelectedImages
+	getSelectedImages,
+	putSelectedImagesToLocalStorage
 };

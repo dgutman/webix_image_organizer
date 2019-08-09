@@ -13,7 +13,7 @@ export default class GalleryFeatures extends JetView {
 			borderless: true,
 			name: "galleryFeaturesTemplateName",
 			css: `collapssible-accordion ${utils.getCssCollapsedClass(hiddenViews)}`,
-			template: "Gallery Features",
+			template: "Gallery features",
 			onClick: {
 				"collapssible-accordion": () => {
 					utils.collapseViews(this.galleryFeaturesTemplate, this.galleryFeaturesViews, hiddenViews);
@@ -26,7 +26,7 @@ export default class GalleryFeatures extends JetView {
 			view: "richselect",
 			icon: "fas fa-chevron-down",
 			css: "select-field",
-			//hidden: true,
+			// hidden: true,
 			id: constants.ID_GALLERY_RICHSELECT,
 			name: "dataviewYCountSelctionName",
 			width: 330,
@@ -34,6 +34,7 @@ export default class GalleryFeatures extends JetView {
 			label: "Choose size",
 			height: 36,
 			placeholder: "Select image size",
+			value: utils.getDataviewSelectionId(),
 			options: [
 				constants.THREE_DATAVIEW_COLUMNS,
 				constants.FIVE_DATAVIEW_COLUMNS,
@@ -46,7 +47,8 @@ export default class GalleryFeatures extends JetView {
 			css: "transparent-button",
 			name: "makeLargeImagesButtonName",
 			width: 150,
-			value: "Make large images",
+			hidden: true,
+			value: "Make large images"
 		};
 
 
@@ -66,6 +68,16 @@ export default class GalleryFeatures extends JetView {
 							return `Show ${obj.value.toUpperCase()} files`;
 						}
 					}
+				}
+			},
+			on: {
+				onAfterRender() {
+					const filterList = this.getList();
+					filterList.parse({
+						id: "all",
+						value: "all"
+					});
+					this.setValue("all");
 				}
 			}
 		};
@@ -116,14 +128,8 @@ export default class GalleryFeatures extends JetView {
 						{},
 						dataviewYCountSelction,
 						{},
-						{
-							name: "makeLargeImageButtonLayout",
-							hidden: true,
-							cols: [
-								makeLargeImagesButton,
-								{}
-							]
-						},
+						makeLargeImagesButton,
+						{},
 						filterBySelection,
 						{},
 						filterByName,
@@ -163,10 +169,6 @@ export default class GalleryFeatures extends JetView {
 
 	getGalleryFeaturesViews() {
 		return this.getRoot().queryView({name: "galleryFeaturesViews"});
-	}
-
-	getMakeLargeImageButtonLayout() {
-		return this.getRoot().queryView({name: "makeLargeImageButtonLayout"});
 	}
 
 	getGalleryImageViewer() {

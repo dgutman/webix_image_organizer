@@ -1,3 +1,4 @@
+import dot from "dot-object";
 import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
 import metadataTableModel from "../../models/metadataTableModel";
 import authService from "../authentication";
@@ -11,6 +12,8 @@ let columnsConfigForDelete = [];
 let datatableColumnsConfig = [];
 let editUniqueClick;
 let editValue;
+let metadataDonObject = {};
+let movedColumnsArray = [];
 
 class MetadataTableService {
 	constructor(view, metadataTable, addColumnButton, exportButton, metadataTableThumbnailsTemplate) {
@@ -39,10 +42,11 @@ class MetadataTableService {
 				let existedColumns = webix.toArray(this._metadataTable.config.columns);
 				this._metadataTable.find((obj) => {
 					if (obj.hasOwnProperty("meta")) {
-						this._createColumnsConfig(obj.meta);
+						metadataDonObject = Object.assign(metadataDonObject, dot.dot(obj.meta));
 						return obj;
 					}
 				});
+				this._createColumnsConfig();
 				existedColumns.each((columnConfig) => {
 					this._checkColumnsForDelete(columnConfig);
 				});
@@ -58,20 +62,17 @@ class MetadataTableService {
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
 			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 			this._setColspansForColumnsHeader(newDatatableColumns);
-			metadataTableModel.putInLocalStorage(newDatatableColumns, authService.getUserInfo()._id);
+			// to prevent null header bug
+			this._metadataTable.refreshColumns([]);
 			this._metadataTable.refreshColumns(newDatatableColumns);
 		});
 
 		this._metadataTable.attachEvent("onBeforeColumnDrop", (sourceId, targetId) => {
-			let columnsConfig;
 			const localStorageColumnsConfig = metadataTableModel.getLocalStorageColumnsConfig();
-
-			if (localStorageColumnsConfig) {
-				columnsConfig = localStorageColumnsConfig;
-			} else {
-				columnsConfig = metadataTableModel.getInitialColumnsForDatatable();
-			}
+			const initialColumnsConfig = metadataTableModel.getInitialColumnsForDatatable();
+			const columnsConfig = localStorageColumnsConfig || initialColumnsConfig;
 			const arrayLength = columnsConfig.length;
+
 			let sourceIndex;
 			let targetIndex;
 			for (let index = 0; index < arrayLength; index++) {
@@ -87,13 +88,19 @@ class MetadataTableService {
 				}
 				if (columnsConfig[index].id === sourceId) {
 					sourceIndex = index;
-				} else if (columnsConfig[index].id === targetId) {
+				}
+				else if (columnsConfig[index].id === targetId) {
 					targetIndex = index;
 				}
 			}
-			const movedColumnsArray = this._arrayMove(columnsConfig, arrayLength, sourceIndex, targetIndex);
+
+			movedColumnsArray = this._arrayMove(columnsConfig, arrayLength, sourceIndex, targetIndex);
 			this._setColspansForColumnsHeader(movedColumnsArray);
-			metadataTableModel.putInLocalStorage(movedColumnsArray, this.userInfo._id);
+			// to prevent null header bug
+			this._metadataTable.refreshColumns([]);
+		});
+
+		this._metadataTable.attachEvent("onAfterColumnDrop", () => {
 			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 			this._metadataTable.refreshColumns(newDatatableColumns);
 		});
@@ -138,12 +145,12 @@ class MetadataTableService {
 			const rowId = infoObject.row;
 			const item = this._metadataTable.getItem(rowId);
 			editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
-			if (editValue && typeof editValue !== "object")
-				editor.setValue(editValue);
+			editValue = editValue || "";
+			if (editValue && typeof editValue !== "object") { editor.setValue(editValue); }
 		});
 
 		this._metadataTable.attachEvent("onBeforeEditStop", (values, obj) => {
-			if (editValue !== values.value) {
+			if (typeof editValue !== "object" && editValue.toString() !== values.value) {
 				const columnId = obj.column;
 				const rowId = obj.row;
 				const itemToEdit = this._metadataTable.getItem(rowId);
@@ -159,7 +166,6 @@ class MetadataTableService {
 					.fail(() => {
 						this._view.hideProgress();
 					});
-
 			}
 		});
 
@@ -179,7 +185,8 @@ class MetadataTableService {
 						column: columnId,
 						row: nextRowId
 					});
-				} else {
+				}
+				else {
 					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(selectedId) : this._metadataTable.getNextId(selectedId);
 					this._selectDatatableItem(nextRowId);
 				}
@@ -201,7 +208,7 @@ class MetadataTableService {
 		});
 	}
 
-	_arrayMove (array, length, oldIndex, newIndex) {
+	_arrayMove(array, length, oldIndex, newIndex) {
 		if (newIndex >= length) {
 			let key = newIndex - length + 1;
 			while (key--) {
@@ -217,131 +224,90 @@ class MetadataTableService {
 		let length = columnsConfigForDelete.length;
 		if (length > 0) {
 			columnsConfigForDelete.find((obj) => {
-				if (obj.id === columnConfig.id){
+				if (obj.id === columnConfig.id) {
 					hasPushed = true;
 				}
 			});
 			if (!hasPushed) {
 				columnsConfigForDelete.push(columnConfig);
 			}
-		} else {
+		}
+		else {
 			columnsConfigForDelete.push(columnConfig);
 		}
 	}
 
-	_createColumnsConfig(obj, nestLevel = 0, header = [], path = "", objectKey) {
-		Object.entries(obj).forEach(([key, value]) => {
-			if (path.length === 0) {
-				path = key;
-			} else {
-				path+= `.${key}`;
-			}
-			if (value instanceof Object) {
-				header.push({text: key});
-				this._createColumnsConfig(value, nestLevel++, header, path, key);
-			} else {
-				if (!objectKey) {
-					path = key;
-					header = [];
-				}
-				datatableColumnsConfig.push({
-					id: path,
-					header: header.concat(key)
-				});
-				if (objectKey) {
-					path = path.substring(0, path.indexOf("."));
-				}
-			}
-		});
+	_createColumnsConfig() {
+		for (let key in metadataDonObject) {
+			const dotNotation = key.split(".");
+			const header = dotNotation.map(text => ({text}));
+			datatableColumnsConfig.push({
+				id: key,
+				header
+			});
+		}
 	}
 
-	_setColspansForColumnsHeader(newDatatableColumns) {
-		let colspanInfoArray = [];
-		let colspanIndex = 0;
-		for (let index = 0; index < newDatatableColumns.length; index++) {
+	_setColspansForColumnsHeader(tableColumns) {
+		if (!Array.isArray(tableColumns)) {
+			webix.alert("There is no columns in metadata table");
+		}
+		let index = 0;
 
-			if (newDatatableColumns[index].metadataColumn) {
-				const columnHeader = newDatatableColumns[index].header;
+		tableColumns.forEach((tableColumn, columnIndex) => {
+			const BreakException = {};
+			const columnHeader = tableColumn.header;
 
-				if (Array.isArray(columnHeader)) {
-					let nextColumnIndex = index + 1;
+			if (!tableColumn.metadataColumn || !Array.isArray(columnHeader) || index > columnIndex) {
+				return tableColumn;
+			}
 
-					while (nextColumnIndex) {
-						let unfoundValuesArray = [];
-						const nextColumnConfig = newDatatableColumns[nextColumnIndex];
+			index = columnIndex + 1;
+			try {
+				columnHeader.forEach((headerValue, headerIndex) => {
+					let count = 1;
 
-						if (nextColumnConfig && nextColumnConfig.metadataColumn) {
-							const nextColumnHeader = nextColumnConfig.header;
-							if (Array.isArray(nextColumnHeader)) {
-								columnHeader.forEach((headerValue, headerIndex) => {
-									if (headerValue instanceof Object && nextColumnHeader[headerIndex] instanceof Object && !headerValue.hasOwnProperty("content")) {
-										if (headerValue.text === nextColumnHeader[headerIndex].text) {
-											if (colspanInfoArray.length === 0 || !colspanInfoArray[colspanIndex]) {
-												colspanInfoArray.push([{
-													columnIndex: index,
-													headerIndex: headerIndex,
-													colspanValue: 2
-												}]);
-											} else {
-												const neededHeaderIndex = colspanInfoArray[colspanIndex].findIndex(colspanInfoValues => colspanInfoValues.headerIndex === headerIndex);
-												if (neededHeaderIndex !== -1) {
-													++colspanInfoArray[colspanIndex][neededHeaderIndex].colspanValue;
-												} else {
-													colspanInfoArray[colspanIndex].push({
-														columnIndex: index,
-														headerIndex: headerIndex,
-														colspanValue: 2
-													});
-												}
-											}
-										} else {
-											unfoundValuesArray.push("nothing has found");
-										}
-									} else {
-										unfoundValuesArray.push("nothing has found");
-									}
-								});
+					for (index; index < tableColumns.length; index++) {
+						const nextColumn = tableColumns[index];
+						const nextColumnHeader = nextColumn.header;
 
-							} else {
-								if (colspanInfoArray.length !== 0) {
-									index = nextColumnIndex;
-								}
-								break;
-							}
-							if (unfoundValuesArray.length === columnHeader.length) {
-								if (colspanInfoArray.length !== 0) {
-									index = nextColumnIndex;
-								}
-								break;
-							} else {
-								++nextColumnIndex;
-							}
-						} else {
-							if (colspanInfoArray.length !== 0) {
-								index = nextColumnIndex;
-							}
+						if (!nextColumn || !Array.isArray(nextColumnHeader)) {
+							throw BreakException;
+						}
+
+						const headerText = headerValue instanceof Object
+							? headerValue.text
+							: headerValue;
+						const nextHeaderText = nextColumnHeader[headerIndex] instanceof Object
+							? nextColumnHeader[headerIndex].text
+							: nextColumnHeader[headerIndex];
+						if (headerText !== nextHeaderText) {
 							break;
 						}
+						count++;
 					}
-				}
-				if (colspanInfoArray.length !== 0) {
-					++colspanIndex;
-				}
+					const colspanValue = count;
+					if (colspanValue !== 1) {
+						if (headerValue instanceof Object) {
+							headerValue.colspan = colspanValue;
+							headerValue.css = "column-header-top-name";
+						}
+						else if (headerValue instanceof String) {
+							headerValue = {
+								text: headerValue,
+								colspan: colspanValue,
+								css: "column-header-top-name"
+							};
+						}
+					}
+				});
 			}
-		}
-
-		colspanInfoArray.forEach((colspanInfo) => {
-			colspanInfo.forEach((colspanInfoValues) => {
-				const columnIndex = colspanInfoValues.columnIndex;
-				const headerIndex = colspanInfoValues.headerIndex;
-				const colspanValue = colspanInfoValues.colspanValue;
-				const headerForColspan = newDatatableColumns[columnIndex].header[headerIndex];
-				if (headerForColspan instanceof Object) {
-					headerForColspan["colspan"] = colspanValue;
-					headerForColspan["css"] = "column-header-top-name";
-				}
-			});
+			catch (err) {
+				if (err !== BreakException) throw err;
+			}
 		});
+
+		metadataTableModel.putInLocalStorage(tableColumns, authService.getUserInfo()._id);
 	}
 
 	_selectDatatableItem(rowId) {

@@ -8,8 +8,8 @@ export default class LoginWindowView extends JetView {
 			view: "form",
 			width: 600,
 			rules: {
-				"username": webix.rules.isNotEmpty,
-				"password": webix.rules.isNotEmpty
+				username: webix.rules.isNotEmpty,
+				password: webix.rules.isNotEmpty
 			},
 			elements: [
 				{
@@ -24,9 +24,12 @@ export default class LoginWindowView extends JetView {
 					view: "text",
 					css: "text-field",
 					name: "username",
-					label: "Login or Email",
-					placeholder: "Enter Login or Email",
-					invalidMessage: "Enter Login or Email"
+					label: "Login or email",
+					placeholder: "Enter login or email",
+					invalidMessage: "Enter login or email",
+					on: {
+						onTimedKeyPress: () => this.hideErrorLabel()
+					}
 				},
 				{
 					view: "passwordInput",
@@ -34,7 +37,10 @@ export default class LoginWindowView extends JetView {
 					name: "password",
 					label: "Password",
 					placeholder: "Enter password",
-					invalidMessage: "Enter password"
+					invalidMessage: "Enter password",
+					on: {
+						onTimedKeyPress: () => this.hideErrorLabel()
+					}
 				},
 				{
 					cols: [
@@ -89,7 +95,7 @@ export default class LoginWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "times-circle-o",
+						icon: "far times-circle",
 						width: 30,
 						align: "right",
 						click: () => this.cancelLogic()
@@ -111,6 +117,22 @@ export default class LoginWindowView extends JetView {
 
 	showLoginWindow() {
 		this.getRoot().show();
+	}
+
+	getLoginTextView() {
+		return this.getRoot().queryView({name: "username"});
+	}
+
+	getPasswordTextView() {
+		return this.getRoot().queryView({name: "password"});
+	}
+
+	hideErrorLabel() {
+		const loginValue = this.getLoginTextView().getValue();
+		const passwordValue = this.getPasswordTextView().getValue();
+		if (!loginValue && !passwordValue) {
+			this.form.elements["error-label"].hide();
+		}
 	}
 
 	loginButtonClick() {
@@ -138,8 +160,9 @@ export default class LoginWindowView extends JetView {
 	}
 
 	cancelLogic() {
+		this.form.clearValidation();
+		this.form.clear();
 		this.getRoot().hide();
 		this.form.elements["error-label"].hide();
 	}
-
 }

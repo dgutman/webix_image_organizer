@@ -4,7 +4,7 @@ import authService from "../../../../services/authentication";
 import utils from "../../../../utils/utils";
 import constants from "../../../../constants";
 
-const WIDTH = 330;
+const WIDTH = 600;
 
 const columnsForDatatableToAdd = metadataTableModel.getColumnsForDatatableToAddCollection();
 const columnsForDatatableToRemove = metadataTableModel.getColumnsForDatatableToRemove();
@@ -24,12 +24,10 @@ export default class EditColumnsWindow extends JetView {
 
 		const hintTemplate = {
 			view: "template",
-			height: 40,
+			height: 45,
 			name: "hintTemplateName",
 			borderless: true,
-			template: () => {
-				return "<center>Click \"plus\" button to add new column or \"minus\" button to hide it.</center>";
-			}
+			template: () => "<center>Click \"plus\" button to add new column or \"minus\" button to hide it.</center>"
 		};
 		const windowForm = {
 			view: "form",
@@ -60,15 +58,13 @@ export default class EditColumnsWindow extends JetView {
 						view: "template",
 						css: "edit-window-header",
 						name: "headerTemplateName",
-						template: () => {
-							return "Show or hide columns";
-						},
+						template: () => "Show or hide columns",
 						borderless: true
 					},
 					{
 						view: "button",
 						type: "icon",
-						icon: "times",
+						icon: "fas fa-times",
 						width: 30,
 						height: 30,
 						click: () => this.close()
@@ -91,7 +87,7 @@ export default class EditColumnsWindow extends JetView {
 										cols: [
 											{},
 											cancelButton,
-											{width: 10},
+											{width: 10}
 										]
 									},
 									{height: 10}
@@ -106,13 +102,18 @@ export default class EditColumnsWindow extends JetView {
 		return window;
 	}
 
-	//generating columns config to add to the datatable
+	isEditable() {
+		if (this.userInfo && this.userInfo.admin) return "webix_icon fas fa-pencil-alt";
+		return "";
+	}
+
+	// generating columns config to add to the datatable
 	generateColumnConfig(columnValue, headerValue, filterTypeValue, metadataColumnConfig) {
 		let filterType;
 		let header = metadataColumnConfig.header;
 		const columnId = metadataColumnConfig.id;
 
-		switch(filterTypeValue) {
+		switch (filterTypeValue) {
 			case constants.FILTER_TYPE_TEXT: {
 				filterType = "text";
 				break;
@@ -131,14 +132,15 @@ export default class EditColumnsWindow extends JetView {
 			if (!Array.isArray(header)) {
 				header = [header];
 			}
-
-			if (header.length === 0) {
+			const headerLength = header.length;
+			if (headerLength === 0) {
 				header.push("");
 			}
+			else if (typeof header[headerLength - 1] === "object" && header[headerLength - 1].hasOwnProperty("content")) header.pop();
 
-			header[header.length - 1] = `${headerValue}<span style='float: right; padding-top: 12px; width:17px;' class="webix_icon fas fa-pencil-alt"></span>`;
+			header[header.length - 1] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${this.isEditable()}"></span>`;
 			if (filterType) {
-				header.push({content:`${filterType}Filter`});
+				header.push({content: `${filterType}Filter`});
 			}
 		}
 
@@ -162,18 +164,18 @@ export default class EditColumnsWindow extends JetView {
 		if (!initialConfig) {
 			columnConfig = {
 				id: columnId,
-				header: header,
+				header,
 				width: 145,
 				editor: "text",
-				filterType: filterType,
-				filterTypeValue: filterTypeValue,
+				filterType,
+				filterTypeValue,
 				metadataColumn: true
 			};
 		}
 		return columnConfig;
 	}
 
-	//adding new column to the datatable
+	// adding new column to the datatable
 	createNewDatatableColumns(columnValue, headerValue, filterTypeValue, metadataColumnHeader) {
 		this.existedColumns.push(this.generateColumnConfig(columnValue, headerValue, filterTypeValue, metadataColumnHeader));
 		this.existedColumns.forEach((columnConfig) => {
@@ -188,10 +190,10 @@ export default class EditColumnsWindow extends JetView {
 		metadataTableModel.putInLocalStorage(this.existedColumns, this.userInfo._id);
 	}
 
-	//removing datatable columns from datatable
+	// removing datatable columns from datatable
 	removeOldDatatableColumns(columnValue) {
 		this.existedColumns.forEach((columnConfig, columnsIndex) => {
-			if (columnConfig && (columnConfig.id === columnValue)) {
+			if (columnConfig && columnConfig.id === columnValue) {
 				this.existedColumns.splice(columnsIndex, 1);
 			}
 
@@ -206,10 +208,10 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	createColumnConfigForElements(columnValue, headerValue, hasValue) {
-		let columnConfig = {
+		const columnConfig = {
 			columnName: columnValue,
 			headerName: headerValue,
-			hasValue: hasValue,
+			hasValue
 		};
 		return columnConfig;
 	}
@@ -222,7 +224,7 @@ export default class EditColumnsWindow extends JetView {
 				}
 			});
 			elementsArray.forEach((element) => {
-				if (element.cols[0].rows[0].name === columnConfig.columnName) {
+				if (element.cols[0].name === columnConfig.columnName) {
 					columnConfig.hasValue = true;
 				}
 			});
@@ -231,18 +233,50 @@ export default class EditColumnsWindow extends JetView {
 			columnConfig.hasValue = false;
 			return false;
 		}
-		let regExp = /<.*$/;
-		let replacedHeaderName = columnConfig.headerName.replace(regExp, "");
+
+		const regExp = /<.*$/;
+		const columnHeaderName = typeof columnConfig.headerName === "string" ? columnConfig.headerName : columnConfig.headerName.text;
+		let replacedHeaderName = columnHeaderName.replace(regExp, "");
+		if (!replacedHeaderName) {
+			const htmlElement = utils.createElementFromHTML(columnHeaderName);
+			replacedHeaderName = utils.isElement(htmlElement) ? htmlElement.innerText : "";
+		}
 		elementsArray.push(this.createElementForTheForm(columnConfig.columnName, replacedHeaderName, buttonIcon, true, filterValue, metadataColumnConfig));
 	}
 
-	//filling form view with new dynamic elements
+	// filling form view with new dynamic elements
 	fillInFormElements(dataToAdd, dataToDelete) {
 		const formView = this.getFormView();
+		const elementsArray = [];
+		const lengthForRemoveColumns = columnsForDatatableToRemove.count();
 		let columnConfig = {};
 		let hasValue = false;
-		let elementsArray = [];
-		let lengthForRemoveColumns = columnsForDatatableToRemove.count();
+
+		// add labels for text view
+		elementsArray.push({
+			cols: [
+				{width: 1},
+				{
+					view: "label",
+					label: "Column",
+					height: 15
+				},
+				{width: 11},
+				{
+					view: "label",
+					label: "Header",
+					height: 15
+				},
+				{width: 11},
+				{
+					view: "label",
+					label: "Filter type",
+					height: 15
+				},
+				{width: 30}
+			]
+		});
+
 		dataToAdd.forEach((metadataColumnConfig) => {
 			columnConfig = this.createColumnConfigForElements(metadataColumnConfig.id, metadataColumnConfig.header[metadataColumnConfig.header.length - 1], hasValue);
 			this.checkForTheReplies(elementsArray, columnConfig, columnsForDatatableToAdd, "fas fa-plus", "", metadataColumnConfig);
@@ -270,17 +304,20 @@ export default class EditColumnsWindow extends JetView {
 			let filterValue;
 			let metadataColumnConfig;
 			let penultimateItemIndex;
-			const objHeaderLength = obj.header.length !== 0 ? obj.header.length : 0;
+			const objHeaderLength = obj.header.length;
 			if (obj.header[objHeaderLength - 1] && obj.header[objHeaderLength - 1].hasOwnProperty("content")) {
 				penultimateItemIndex = objHeaderLength - 2;
 				if (obj.header[objHeaderLength - 1].placeholder) {
 					filterValue = constants.FILTER_TYPE_DATE;
-				} else if (obj.header[objHeaderLength - 1].content === "textFilter") {
+				}
+				else if (obj.header[objHeaderLength - 1].content === "textFilter") {
 					filterValue = constants.FILTER_TYPE_TEXT;
-				} else if (obj.header[objHeaderLength - 1].content === "selectFilter") {
+				}
+				else if (obj.header[objHeaderLength - 1].content === "selectFilter") {
 					filterValue = constants.FILTER_TYPE_SELECT;
 				}
-			} else {
+			}
+			else {
 				penultimateItemIndex = objHeaderLength !== 0 ? objHeaderLength - 1 : 0;
 			}
 
@@ -322,48 +359,47 @@ export default class EditColumnsWindow extends JetView {
 		return this.getRoot().queryView({name: `${nameValue}-filterType`});
 	}
 
-	//creating element config that will be parsed to the form view
+	// creating element config that will be parsed to the form view
 	createElementForTheForm(columnNameValue, headerNameValue, buttonIcon, disabledForHeader, filterValue, metadataColumnConfig) {
-		let element = {
+		const element = {
 			cols: [
 				{
-					rows: [
-						{
-							name: columnNameValue,
-							view: "text",
-							css: "text-field",
-							label: "Column",
-							labelAlign: "right",
-							disabled: true,
-							metadataColumnConfig: metadataColumnConfig ? metadataColumnConfig : "",
-							value: columnNameValue,
-							height: 25,
-						},
-						{
-							name: `${headerNameValue}-header`,
-							view: "text",
-							css: "text-field",
-							label: "Header",
-							labelAlign: "right",
-							disabled: disabledForHeader,
-							value: headerNameValue,
-							height: 25,
-						},
-						{
-							view: "select",
-							name: `${columnNameValue}-filterType`,
-							label: "Filter type",
-							labelAlign: "right",
-							disabled: this.disableFilterTypeField(buttonIcon),
-							height: 25,
-							value: filterValue,
-							options: [
-								constants.FILTER_TYPE_NONE,
-								constants.FILTER_TYPE_SELECT,
-								constants.FILTER_TYPE_DATE,
-								constants.FILTER_TYPE_TEXT
-							]
-						}
+					name: columnNameValue,
+					view: "text",
+					css: "text-field",
+					// label: "Column",
+					// labelPosition: "top",
+					disabled: true,
+					metadataColumnConfig: metadataColumnConfig || "",
+					value: columnNameValue,
+					height: 27
+				},
+				{width: 10},
+				{
+					name: `${headerNameValue}-header`,
+					view: "text",
+					css: "text-field",
+					// label: "Header",
+					// labelPosition: "top",
+					disabled: disabledForHeader,
+					value: headerNameValue,
+					height: 20
+				},
+				{width: 10},
+				{
+					view: "select",
+					name: `${columnNameValue}-filterType`,
+					css: "select-field",
+					// label: "",
+					// labelPosition: "top",
+					disabled: this.disableFilterTypeField(buttonIcon),
+					height: 20,
+					value: filterValue,
+					options: [
+						constants.FILTER_TYPE_NONE,
+						constants.FILTER_TYPE_SELECT,
+						constants.FILTER_TYPE_DATE,
+						constants.FILTER_TYPE_TEXT
 					]
 				},
 				{
@@ -373,27 +409,28 @@ export default class EditColumnsWindow extends JetView {
 					icon: buttonIcon,
 					width: 30,
 					click: () => {
-						let actionButton = this.getActionButton(columnNameValue);
-						let columnField = this.getColumnFiled(columnNameValue);
-						let headerField = this.getHeaderForColumn(headerNameValue);
-						let filterTypeField = this.getFilterTypeField(columnNameValue);
-						let columnValue = columnField.getValue();
-						let headerValue = headerField.getValue();
-						let filterTypeValue = filterTypeField.getValue();
+						const actionButton = this.getActionButton(columnNameValue);
+						const columnField = this.getColumnFiled(columnNameValue);
+						const headerField = this.getHeaderForColumn(headerNameValue);
+						const filterTypeField = this.getFilterTypeField(columnNameValue);
+						const columnValue = columnField.getValue();
+						const headerValue = headerField.getValue();
+						const filterTypeValue = filterTypeField.getValue();
+
 						if (actionButton.config.icon === "fas fa-minus") {
 							columnsForDatatableToRemove.add({columnValue, headerValue});
 							this.removeOldDatatableColumns(columnValue);
 							actionButton.define("icon", "fas fa-plus");
 							actionButton.refresh();
 							filterTypeField.enable();
-						} else if (actionButton.config.icon === "fas fa-plus") {
+						}
+						else if (actionButton.config.icon === "fas fa-plus") {
 							filterTypeField.disable();
 							columnsForDatatableToAdd.add({columnValue, headerValue});
 							this.createNewDatatableColumns(columnValue, headerValue, filterTypeValue, columnField.config.metadataColumnConfig);
 							actionButton.define("icon", "fas fa-minus");
 							actionButton.refresh();
 						}
-
 					}
 				}
 			]
@@ -405,16 +442,18 @@ export default class EditColumnsWindow extends JetView {
 		if (header[itemIndex]) {
 			if (header[itemIndex].hasOwnProperty("text")) {
 				headerValueForDataToDelete = header[itemIndex].text;
-			} else {
+			}
+			else {
 				headerValueForDataToDelete = header[itemIndex];
 			}
-		} else {
+		}
+		else {
 			this.getHeaderValueForElement(header, itemIndex - 1);
 		}
 	}
 
 	showWindow(datatableColumnsConfig, columnsToDelete) {
-		let dataToAdd = [];
+		const dataToAdd = [];
 		this.existedColumns = metadataTableModel.getLocalStorageColumnsConfig();
 		this.initialColumnsConfig = metadataTableModel.getInitialColumnsForDatatable();
 		if (!this.existedColumns) {

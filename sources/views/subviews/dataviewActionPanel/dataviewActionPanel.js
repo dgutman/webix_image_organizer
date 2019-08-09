@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
+import constants from "../../../constants";
 import galleryCell from "jet-views/subviews/gallery/gallery";
 import metadataTableCell from "jet-views/subviews/metadataTable/metadataTable";
 
@@ -8,9 +9,9 @@ export default class DataviewActionPanelClass extends JetView {
 		const projectFolderWindowButton = {
 			view: "button",
 			css: "transparent-button",
-			value: "Show Project Folder",
+			value: "Show project metadata",
 			name: "projectFolderWindowButtonName",
-			width: 160,
+			width: 180,
 			hidden: true,
 			click: () => {
 				this.projectMetadataWindow.showWindow();
@@ -30,12 +31,10 @@ export default class DataviewActionPanelClass extends JetView {
 
 		const pager = {
 			view: "pager",
-			width: 305,
+			width: 355,
 			size: 70,
-			template: (obj, common) => {
-				return `${common.first()} ${common.prev()} <input type='text' class='pager-input' value='${common.page(obj)}'>
-							<span class='pager-amount'>of ${obj.limit} ${this.getItemsCount(obj)}</span> ${common.next()} ${common.last()}`;
-			}
+			template: (obj, common) => `${common.first()} ${common.prev()} <input type='text' class='pager-input' value='${common.page(obj)}'>
+							<span class='pager-amount'>of ${obj.limit} ${this.getItemsCount(obj)}</span> ${common.next()} ${common.last()}`
 		};
 
 		const filterBySelection = {
@@ -74,40 +73,91 @@ export default class DataviewActionPanelClass extends JetView {
 			hidden: true
 		};
 
-		return {
-			name: "dataviewActionPanelClass",
-			padding: 5,
-			cols: [
-				{width: 75},
-				projectFolderWindowButton,
-				{},
-				switchButton,
-				{},
-				multiview,
-				{},
-				cartButton,
-				{width: 40}
+		const recognitionProgressTemplate = {
+			name: "recognitionProgressTemplate",
+			template: (obj) => {
+				if (obj.value) {
+					const timeInfo = obj.value !== "Error" ? "This process may take hours. " : "";
+					const progressCount = obj.count ? `(${obj.recognized || 0}/${obj.count})` : "";
+					let tooltip = "Click to hide";
+					if (obj.value === constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
+						tooltip = progressCount;
+					}
+					return `<div class='recognition-status-template'>
+								${timeInfo}Recognition status: ${obj.value} ${progressCount}
+								<span style='color: ${obj.iconColor}' class='${obj.icon}' webix_tooltip='${tooltip}></span>
+								${obj.errorsCount || ""}
+							</div>`;
+				}
+				return "";
+			},
+			onClick: {
+				fas: () => {
+					webix.confirm({
+						title: "Attention!",
+						text: "Are you sure you want to hide progress?",
+						type: "confirm-warning",
+						cancel: "Yes",
+						ok: "No",
+						callback: (result) => {
+							if (!result) {
+								const recognitionStatusTemplate = this.getRecognitionProgressTemplate();
+								const statusObj = recognitionStatusTemplate.getValues();
+								if (statusObj.value !== constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
+									recognitionStatusTemplate.hide();
+								}
+							}
+						}
+					});
+				}
+			},
+			height: 30,
+			borderless: true,
+			hidden: true
+		};
+
+		const ui = {
+			padding: 7,
+			rows: [
+				{
+					name: "dataviewActionPanelClass",
+					cols: [
+						{width: 75},
+						projectFolderWindowButton,
+						{},
+						switchButton,
+						{},
+						multiview,
+						{},
+						cartButton,
+						{width: 40}
+					]
+				},
+				recognitionProgressTemplate
 			]
 		};
+
+		return ui;
 	}
 
 	ready() {
 		this.projectMetadataWindow = this.ui(ProjectMetadataWindow);
+		const recognitionProgressTemplate = this.getRecognitionProgressTemplate();
+		webix.TooltipControl.addTooltip(recognitionProgressTemplate.$view);
 	}
 
 	getItemsCount(pagerObj) {
 		let count = pagerObj.count;
-		let page = pagerObj.page + 1; //because first page in object is 0
+		let page = pagerObj.page + 1; // because first page in object is 0
 		let pageSize = pagerObj.size;
 		if (count < pageSize) {
-			return `(${count}/${count})`;
-		} else {
-			let pageCount = pageSize * page;
-			if (pageCount > count) {
-				pageCount = count;
-			}
-			return `(${pageCount}/${count})`;
+			return `(${count} of ${count})`;
 		}
+		let pageCount = pageSize * page;
+		if (pageCount > count) {
+			pageCount = count;
+		}
+		return `(${pageCount} of ${count})`;
 	}
 
 	getSwitcherView() {
@@ -128,5 +178,9 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getFilterTableView() {
 		return this.getRoot().queryView({name: "filterTableBySelectionName"});
+	}
+
+	getRecognitionProgressTemplate() {
+		return this.getRoot().queryView({name: "recognitionProgressTemplate"});
 	}
 }

@@ -1,6 +1,6 @@
 /* gallery-images-gallery */
 .gallery-images-dataview {
-  margin-top: 1px !important;
+  overflow-y: auto !important;
   .webix_dataview_item {
     border: none;
     cursor: default;
@@ -134,7 +134,8 @@
 
 .absolute-centered-image-template {
   position: relative;
-
+  overflow-y: auto !important;
+  overflow-x: auto !important;
   img {
     position: absolute;
     margin: auto;
@@ -172,7 +173,7 @@
   padding: 4px 10px 4px 4px;
   margin-left: -4px;
   color: #fff;
-  background: #0288D1;
+  background: #0288D1 !important;
 }
 
 .webix_dt_editor input, .webix_dt_editor select {
@@ -237,3 +238,6 @@
                                   supported by Chrome and Opera */
 }
 
+.webix_selected {
+  background: @select-color !important;
+}

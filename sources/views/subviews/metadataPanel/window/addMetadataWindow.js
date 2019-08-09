@@ -29,7 +29,7 @@ export default class AddMetadataWindow extends JetView {
 						let remainder = index % 2;
 						if (remainder > 0) {
 							elementsNamesToChange.push({
-								name: keys[index-1],
+								name: keys[index - 1],
 								value: keys[index]
 							});
 						}
@@ -45,7 +45,8 @@ export default class AddMetadataWindow extends JetView {
 					newElementsNames.forEach((elementName, index) => {
 						objectOfNamesAndValuesToSet[elementName] = values[index];
 					});
-				} else {
+				}
+				else {
 					objectOfNamesAndValuesToSet = metadataAddedFieldsValues;
 				}
 				this.metadataAddedFieldsWindowForm.setValues(objectOfNamesAndValuesToSet);
@@ -68,7 +69,8 @@ export default class AddMetadataWindow extends JetView {
 				},
 				{
 					name: "initialValue",
-					view: "text", label: "Value",
+					view: "text",
+					label: "Value",
 					validate: webix.rules.isNotEmpty,
 					css: "select-field",
 					invalidMessage: "Value field should not be empty"
@@ -80,7 +82,7 @@ export default class AddMetadataWindow extends JetView {
 			view: "form",
 			name: "metadataAddedFieldsWindowFormName",
 			borderless: true,
-			elements: [] //init by clicking on 'plus' button
+			elements: [] // init by clicking on 'plus' button
 		};
 
 		const saveButton = {
@@ -98,18 +100,23 @@ export default class AddMetadataWindow extends JetView {
 					let metadataInitialValues = this.metadataInitialWindowForm.getValues();
 					let metadataAddedFieldsValues = this.metadataAddedFieldsWindowForm.getValues();
 					let initialName = utils.escapeHTML(metadataInitialValues.initialName);
-					let initialValue =  utils.escapeHTML(metadataInitialValues.initialValue);
+					let initialValue = utils.escapeHTML(metadataInitialValues.initialValue);
 					for (let key in metadataAddedFieldsValues) {
 						metadataAddedFieldsValues[key] = utils.escapeHTML(metadataAddedFieldsValues[key]);
-						objectNames.push(metadataAddedFieldsValues[key]);
+						if (key.includes("addedName")) {
+							objectNames.push(metadataAddedFieldsValues[key]);
+						}
+						else {
+							objectValues.push(metadataAddedFieldsValues[key]);
+						}
 					}
 
 					objectToPost[initialName] = initialValue;
 					objectNames.forEach((objectName, index) => {
 						objectToPost[objectName] = objectValues[index];
 					});
-					//use encoded if there will be a problem with previous json object
-					//let encodedMetadataToParse = encodeURI(JSON.stringify(objectToPost));
+					// use encoded if there will be a problem with previous json object
+					// let encodedMetadataToParse = encodeURI(JSON.stringify(objectToPost));
 					this.view.showProgress();
 					ajaxActions.updateItemMetadata(this.item._id, objectToPost)
 						.then(() => {
@@ -122,14 +129,12 @@ export default class AddMetadataWindow extends JetView {
 						.fail(() => {
 							this.view.hideProgress();
 						});
-
 				}
 				// add to the server after they fix it
 				// let initialValues = this.metadataInitialWindowForm.getValues();
 				// let addedValues = this.metadataAddedFieldsWindowForm.getValues();
 			}
 		};
-
 
 
 		const cancelButton = {
@@ -161,7 +166,7 @@ export default class AddMetadataWindow extends JetView {
 							{width: 20},
 							addNewMetadataFieldButton,
 							{template: "<span style='font-size:17px; font-style:italic'>Add new metadata fields</span>",
-								css: {"height": "15px", "padding-top": "3px"},
+								css: {height: "15px", "padding-top": "3px"},
 								width: 250,
 								borderless: true
 							},
@@ -205,9 +210,7 @@ export default class AddMetadataWindow extends JetView {
 						view: "template",
 						css: "edit-window-header",
 						name: "headerTemplateName",
-						template: () => {
-							return "Add metadata";
-						},
+						template: () => "Add metadata",
 						borderless: true
 					},
 					{
@@ -257,7 +260,8 @@ export default class AddMetadataWindow extends JetView {
 								rows: [
 									{
 										name: `addedName-${index}`,
-										view: "text", label: "Name",
+										view: "text",
+										label: "Name",
 										validate: webix.rules.isNotEmpty,
 										css: "select-field",
 										width: 275,
@@ -265,7 +269,8 @@ export default class AddMetadataWindow extends JetView {
 									},
 									{
 										name: `addedValue-${index}`,
-										view: "text", label: "Value",
+										view: "text",
+										label: "Value",
 										validate: webix.rules.isNotEmpty,
 										css: "select-field",
 										width: 275,

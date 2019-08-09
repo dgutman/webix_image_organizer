@@ -5,6 +5,7 @@ const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 
 let filtersArray = [];
 let richSelectDataviewFilter;
+let nameFilterView;
 
 function setRichselectDataviewFilter(dataviewFilter) {
 	richSelectDataviewFilter = dataviewFilter;
@@ -12,6 +13,14 @@ function setRichselectDataviewFilter(dataviewFilter) {
 
 function getRichselectDataviewFilter() {
 	return richSelectDataviewFilter;
+}
+
+function setNameDataviewFilter(dataviewFilter) {
+	nameFilterView = dataviewFilter;
+}
+
+function getNameDataviewFilter() {
+	return nameFilterView;
 }
 
 function addFilterValue(filterValue) {
@@ -37,6 +46,9 @@ function addNoFiltersSelection() {
 		id: "all",
 		value: "all"
 	});
+	richSelectDataviewFilter.blockEvent();
+	richSelectDataviewFilter.setValue("all");
+	richSelectDataviewFilter.unblockEvent();
 }
 
 function clearFilterRichSelectList() {
@@ -48,9 +60,14 @@ function parseFilterToRichSelectList() {
 }
 
 function filterData(dataview, value) {
+	const nameValue = nameFilterView ? nameFilterView.getValue() : "";
+	const lowerCaseNameValue = nameValue ? nameValue.toLowerCase() : "";
 	dataview.filter((obj) => {
 		let itemType = utils.searchForFileType(obj);
 		if (value === "all" || itemType === value || obj.starColor === value.substr(0, value.indexOf(" "))) {
+			if (lowerCaseNameValue) {
+				return obj.name.toString().toLowerCase().indexOf(lowerCaseNameValue) !== -1;
+			}
 			return obj;
 		}
 		// } else if (obj.hasOwnProperty("meta") && obj.meta.hasOwnProperty("tag")) {
@@ -99,7 +116,6 @@ function getTagValue(tagsImage, tagId, key, id, objValue) {
 
 	if (tagsImage.hasOwnProperty(key)) {
 		tagsImage[key].forEach((obj) => {
-			
 			if (obj[id] === tagId) {
 				value = obj[objValue];
 			}
@@ -152,7 +168,8 @@ function filterByName(dataview, searchValue) {
 			if (itemType === richSelectValue || richSelectValue === "all") {
 				lowerCaseName = obj.name.toString().toLowerCase();
 			}
-		} else {
+		}
+		else {
 			lowerCaseName = obj.name.toString().toLowerCase();
 		}
 		if (lowerCaseName) {
@@ -164,6 +181,8 @@ function filterByName(dataview, searchValue) {
 export default {
 	setRichselectDataviewFilter,
 	getRichselectDataviewFilter,
+	setNameDataviewFilter,
+	getNameDataviewFilter,
 	addFilterValue,
 	clearFilterValues,
 	clearFilterRichSelectList,

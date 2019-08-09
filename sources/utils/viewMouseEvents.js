@@ -9,21 +9,24 @@ function setDefaultGalleryContextMenu(dataview) {
 	let galleryDataviewItem;
 	if (authService.isLoggedIn() && authService.getUserInfo().admin) {
 		let itemId;
+		let item;
 		const galleryDataviewContextMenu = webixViews.getGalleryDataviewContextMenu();
+		const mainView = webixViews.getMainView();
 		dataview.attachEvent("onBeforeContextMenu", (id) => {
-			let item = dataview.getItem(id);
-			let itemType = utils.searchForFileType(item);
+			item = dataview.getItem(id);
+			const itemType = utils.searchForFileType(item);
+			itemId = item._id;
 			if (item) {
 				galleryDataviewItem = item;
 				galleryDataviewContextMenu.clearAll();
 				galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
-				if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
+				if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "jpeg") {
 					if (!item.largeImage) {
 						galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
-						itemId = item._id;
 					}
 				}
-			} else {
+			}
+			else {
 				return false;
 			}
 		});
@@ -31,23 +34,30 @@ function setDefaultGalleryContextMenu(dataview) {
 		galleryDataviewContextMenu.attachEvent("onItemClick", (id) => {
 			switch (id) {
 				case constants.RENAME_FILE_CONTEXT_MENU_ID: {
-					let itemClientRect = dataview.getItemNode(galleryDataviewItem.id).getBoundingClientRect();
-					let documentWidth = document.body.clientWidth;
-					let oldName = galleryDataviewItem.name;
-					this._renamePopup.showPopup(itemClientRect, documentWidth, oldName);
+					const itemClientRect = dataview.getItemNode(galleryDataviewItem.id).getBoundingClientRect();
+					const documentWidth = document.body.clientWidth;
+					const oldName = galleryDataviewItem.name;
+					const renamePopup = webixViews.getRenamePopup();
+					renamePopup.showPopup(itemClientRect, documentWidth, oldName, item);
 					dataview.select(galleryDataviewItem.id);
 					break;
 				}
 				case constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: {
-					this._view.showProgress();
+					mainView.showProgress();
 					ajaxActions.makeLargeImage(itemId)
 						.then(() => {
-							dataview.refresh();
-							this._view.hideProgress();
+							ajaxActions.getItem(itemId)
+								.then((updatedItem) => {
+									dataview.find((galleryItem) => {
+										if (galleryItem._id === updatedItem._id) {
+											dataview.updateItem(galleryItem.id, updatedItem);
+										}
+									});
+									mainView.hideProgress();
+								})
+								.fail(() => mainView.hideProgress());
 						})
-						.fail(() => {
-							this._view.hideProgress();
-						});
+						.fail(() => mainView.hideProgress());
 					break;
 				}
 			}
@@ -112,10 +122,9 @@ function setDatatableMouseEvents(datatable, action, event) {
 			break;
 		}
 	}
-
 }
 
 export default {
 	setDataviewMouseEvents,
-	setDatatableMouseEvents,
+	setDatatableMouseEvents
 };

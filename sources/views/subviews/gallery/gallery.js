@@ -8,7 +8,6 @@ import state from "../../../models/state";
 import utils from "../../../utils/utils";
 
 export default class GalleryViewClass extends JetView {
-
 	config() {
 		const galleryHeaderTemplate = {
 			css: "gallery-header-template",
@@ -17,8 +16,8 @@ export default class GalleryViewClass extends JetView {
 			height: 30,
 			hidden: true,
 			template() {
-				let text = `<span class='gallery-select-all-images link'> Select All on the Page</span> or
-								<span class='gallery-select-first-count-images link'> Select the First</span> ${constants.MAX_COUNT_IMAGES_SELECTION} images. You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images.`;
+				let text = `<span class='gallery-select-all-images link'> Select all on the page</span> or
+								<span class='gallery-select-first-count-images link'> Select the first</span> ${constants.MAX_COUNT_IMAGES_SELECTION} images. You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images.`;
 				const selectedImagesCount = selectedDataviewItems.count();
 				if (selectedImagesCount) {
 					return `${text} <span class='unselect-images-link link'>Unselect ${selectedImagesCount} ${selectedImagesCount === 1 ? "image" : "images"}</span>`;
@@ -29,7 +28,7 @@ export default class GalleryViewClass extends JetView {
 
 		const itemsDataView = {
 			view: "activeDataview",
-			tooltip: (obj) => obj.name,
+			tooltip: obj => obj.name,
 			css: "gallery-images-dataview",
 			select: true,
 			datathrottle: 500,
@@ -56,20 +55,24 @@ export default class GalleryViewClass extends JetView {
 									webix.alert({
 										text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
 									});
+									return;
 								}
 								item.markCheckbox = value;
 								if (value) {
 									if (state.toSelectByShift) {
 										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
-									} else {
+									}
+									else {
 										imagesArray = [item];
 									}
 									selectedDataviewItems.add(imagesArray);
-								} else {
+								}
+								else {
 									const deletedItemsDataCollection = selectedDataviewItems.getDeletedItemsDataCollection();
 									if (state.toSelectByShift) {
 										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
-									} else {
+									}
+									else {
 										deletedItemsDataCollection.clearAll();
 										deletedItemsDataCollection.add(item);
 										imagesArray = [item];
@@ -102,7 +105,7 @@ export default class GalleryViewClass extends JetView {
 		const galleryDataview = this.getDataView();
 		const selectImagesTemplate = this.getSelectImagesTemplate();
 
-		this.galleryService =  new GalleryService(
+		this.galleryService = new GalleryService(
 			view,
 			galleryDataview,
 			selectImagesTemplate,
@@ -116,5 +119,4 @@ export default class GalleryViewClass extends JetView {
 	getSelectImagesTemplate() {
 		return this.getRoot().queryView({name: "selectImagesTemplateName"});
 	}
-
 }

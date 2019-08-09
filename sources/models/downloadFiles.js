@@ -11,7 +11,9 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 	switch (itemType) {
 		case "png":
 		case "jpeg":
-		case "jpg": {
+		case "jpg":
+		case "tiff":
+		case "bmp": {
 			if (item.largeImage) {
 				imageWindow.showWindow(item, "standard");
 			} else utils.showAlert();
@@ -38,7 +40,9 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 			break;
 		}
 		default: {
-			utils.showAlert();
+			if (item.largeImage) {
+				imageWindow.showWindow(item, "standard");
+			} else utils.showAlert();
 			break;
 		}
 	}

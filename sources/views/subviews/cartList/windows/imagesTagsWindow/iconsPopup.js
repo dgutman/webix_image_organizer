@@ -33,13 +33,13 @@ const IconsPopupConfig = {
 			let templateIcons = "";
 			if (obj.hasOwnProperty("iconData")) {
 				obj.iconData.forEach((icon) => {
-					templateIcons+=`<span class="webix_icon fas fa-${icon.icon} icon-popup-icons" id="${icon.icon}"></span>`;
+					templateIcons += `<span class="webix_icon fas fa-${icon.icon} icon-popup-icons" id="${icon.icon}"></span>`;
 				});
 			}
 			return templateIcons;
 		},
 		data: {
-			iconData: iconData
+			iconData
 		}
 	}
 };

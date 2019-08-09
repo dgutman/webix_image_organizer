@@ -4,10 +4,8 @@ import constants from "../../constants";
 function changeDataviewItemDimensions(collapsedView) {
 	if (collapsedView.config.id === constants.SCROLL_VIEW_METADATA_ID) {
 		const galleryRichselect = $$(constants.ID_GALLERY_RICHSELECT);
-		let dataviewSelectionId = utils.getDataviewSelectionId();
-		if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-			galleryRichselect.callEvent("onChange", [dataviewSelectionId]);
-		}
+		const dataviewSelectionId = utils.getDataviewSelectionId() || constants.DEFAULT_DATAVIEW_COLUMNS;
+		galleryRichselect.callEvent("onChange", [dataviewSelectionId]);
 	}
 }
 
@@ -18,6 +16,14 @@ function getConfig(collapsedViewId, config, collapserName) {
 		css: "collapser",
 		width: 23,
 		name: collapserName,
+		setClosedState: () => {
+			const collapsedView = $$(collapsedViewId);
+			collapsedView.hide();
+			$$(BTN_OPENED_STATE_ID).hide();
+			$$(BTN_CLOSED_STATE_ID).show();
+			webix.ui.resize();
+			changeDataviewItemDimensions(collapsedView);
+		},
 		rows: [
 			{
 				view: "template",
