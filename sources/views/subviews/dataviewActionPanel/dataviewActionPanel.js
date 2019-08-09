@@ -79,13 +79,11 @@ export default class DataviewActionPanelClass extends JetView {
 				if (obj.value) {
 					const timeInfo = obj.value !== "Error" ? "This process may take hours. " : "";
 					const progressCount = obj.count ? `(${obj.recognized || 0}/${obj.count})` : "";
-					let tooltip = "Click to hide";
-					if (obj.value === constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
-						tooltip = progressCount;
-					}
-					return `<div class='recognition-status-template'>
+					const tooltip = "Click to hide";
+
+					return `<div class="recognition-status-template">
 								${timeInfo}Recognition status: ${obj.value} ${progressCount}
-								<span style='color: ${obj.iconColor}' class='${obj.icon}' webix_tooltip='${tooltip}></span>
+								<span style="color: ${obj.iconColor}" class="${obj.icon}" webix_tooltip='${tooltip}'></span>
 								${obj.errorsCount || ""}
 							</div>`;
 				}

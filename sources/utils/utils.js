@@ -111,11 +111,8 @@ function findAndRemove(id, folder, array) {
 		array.push(item.id);
 	}, finderView, true);
 
-	const length = array.length;
-	for (let i = 0; i < length; i++) {
-		finderView.remove(array[i]);
-	}
-	folder.$count = 1;
+	finderView.remove(array);
+	folder.$count = -1; // typical for folders with webix_kids and no actual data
 	folder.hasOpened = false;
 
 	webix.dp(finderView).ignore(() => {

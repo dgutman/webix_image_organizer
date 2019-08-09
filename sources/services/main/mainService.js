@@ -389,7 +389,7 @@ class MainService {
 					contextToFolder = true;
 					this._finderFolder = item;
 				}
-				else if (item._modelType === "item" && authService.getUserInfo().admin) {
+				else if ((item._modelType === "item" || !item._modelType) && authService.getUserInfo().admin) {
 					this._finderContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
 					contextToFolder = false;
 					this._finderItem = item;
@@ -481,7 +481,7 @@ class MainService {
 					case constants.RUN_RECOGNITION_SERVICE: {
 						const dataviewItems = this._galleryDataview
 							.serialize()
-							.filter(item => item.largeImage && item.folderId === this._finderFolder._id);
+							.filter(item => item.largeImage && (item.folderId === this._finderFolder._id || !item._modelType));
 						this._recognitionOptionsWindow.setItemsToRecognize(dataviewItems);
 						this._recognitionOptionsWindow.showWindow(this._finder, this._finderFolder, this._galleryDataview, this._recognitionStatusTemplate);
 						break;
@@ -509,6 +509,9 @@ class MainService {
 					else {
 						if (!this._finderItem) {
 							this._finderItem = this._finder.find(finderItem => finderItem._id === item._id, true);
+						}
+						else if (!item) {
+							item = this._galleryDataview.find(galleryItem => galleryItem._id === this._finderItem._id, true);
 						}
 						ajaxActions.putNewItemName(this._finderItem._id, newValue)
 							.then((updatedItem) => {
@@ -574,6 +577,7 @@ class MainService {
 					}
 				}
 			}
+			selectDataviewItems.putSelectedImagesToLocalStorage();
 		});
 
 		this._cartViewButton.attachEvent("onItemClick", (clicked) => {

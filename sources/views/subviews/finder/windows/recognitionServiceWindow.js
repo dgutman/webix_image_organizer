@@ -148,7 +148,7 @@ export default class RecognitionServiceWindow extends JetView {
 			message = "You have to open folder before running";
 		}
 		if (!items.length) {
-			message = "There are no items to recognize in";
+			message = "There are no images to recognize in";
 		}
 		else if (!this.validOptions.length) {
 			message = "You have to choose at least one option";
