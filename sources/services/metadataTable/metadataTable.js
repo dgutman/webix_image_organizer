@@ -1,5 +1,4 @@
 import dot from "dot-object";
-import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
 import metadataTableModel from "../../models/metadataTableModel";
 import authService from "../authentication";
 import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
@@ -7,12 +6,11 @@ import ajaxActions from "../ajaxActions";
 import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
 import downloadFiles from "../../models/downloadFiles";
+import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
 
-let columnsConfigForDelete = [];
-let datatableColumnsConfig = [];
 let editUniqueClick;
 let editValue;
-let metadataDonObject = {};
+let metadataDotObject = {};
 let movedColumnsArray = [];
 
 class MetadataTableService {
@@ -35,28 +33,36 @@ class MetadataTableService {
 
 		webixViews.setMetadataTableThumbnailTemplate(this._metadataTableThumbnailsTemplate);
 
-		this._editColumnsWindow = this._view.$scope.ui(EditColumnsWindow);
 		this._uniqueValuesWindow = this._view.$scope.ui(UniqueValuesWindow);
+		this._editColumnsWindow = this._view.$scope.ui(EditColumnsWindow);
+
 		this._addColumnButton.attachEvent("onItemClick", () => {
 			const addButtonPromise = new Promise((success) => {
-				let existedColumns = webix.toArray(this._metadataTable.config.columns);
+				const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
+				const columnsToAdd = [];
+
 				this._metadataTable.find((obj) => {
 					if (obj.hasOwnProperty("meta")) {
-						metadataDonObject = Object.assign(metadataDonObject, dot.dot(obj.meta));
+						metadataDotObject = Object.assign(metadataDotObject, dot.dot(obj.meta));
 						return obj;
 					}
 				});
-				this._createColumnsConfig();
-				existedColumns.each((columnConfig) => {
-					this._checkColumnsForDelete(columnConfig);
+
+				const columnsToDelete = existedColumns.filter((columnConfig) => {
+					if (columnConfig.hidden) columnsToAdd.push(columnConfig);
+					return !columnConfig.hidden;
 				});
-				return success();
+
+				this._createColumnsConfig(columnsToAdd, columnsToDelete);
+
+				return success([columnsToAdd, columnsToDelete]);
 			});
-			addButtonPromise.then(() => {
-				this._editColumnsWindow.showWindow(datatableColumnsConfig, columnsConfigForDelete, this._metadataTable);
-				datatableColumnsConfig = [];
-				columnsConfigForDelete = [];
-			});
+			addButtonPromise
+				.then(([columnsToAdd, columnsToDelete]) => {
+					// this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
+					this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
+				})
+				.catch(err => webix.message(err.message));
 		});
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
@@ -219,32 +225,17 @@ class MetadataTableService {
 		return array;
 	}
 
-	_checkColumnsForDelete(columnConfig) {
-		let hasPushed = false;
-		let length = columnsConfigForDelete.length;
-		if (length > 0) {
-			columnsConfigForDelete.find((obj) => {
-				if (obj.id === columnConfig.id) {
-					hasPushed = true;
-				}
-			});
-			if (!hasPushed) {
-				columnsConfigForDelete.push(columnConfig);
-			}
-		}
-		else {
-			columnsConfigForDelete.push(columnConfig);
-		}
-	}
-
-	_createColumnsConfig() {
-		for (let key in metadataDonObject) {
+	_createColumnsConfig(columnsToAdd, columnsToDelete) {
+		for (let key in metadataDotObject) {
 			const dotNotation = key.split(".");
 			const header = dotNotation.map(text => ({text}));
-			datatableColumnsConfig.push({
-				id: key,
-				header
-			});
+			const toDelete = columnsToDelete.find(columnToDelete => columnToDelete.id === key);
+			if (!toDelete) {
+				columnsToAdd.push({
+					id: key,
+					header
+				});
+			}
 		}
 	}
 

@@ -12,7 +12,7 @@ export default class ItemsModel {
 			item.id = id;
 			finderDataPull[item._id] = item;
 		});
-		Object.assign(this.customFinderDataPull, finderDataPull);
+
 		if (parentId) {
 			this.finderCollection.parse({data: dataArray, parent: parentId});
 		}
@@ -37,7 +37,6 @@ export default class ItemsModel {
 			if (foundedItem) {
 				delete updatedItem.id;
 				this.finderCollection.updateItem(foundedItem.id, updatedItem);
-				Object.assign(foundedItem, updatedItem);
 			}
 		});
 	}

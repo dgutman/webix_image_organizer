@@ -51,6 +51,7 @@ export default class MakeLargeImageWindow extends JetView {
 									});
 								});
 								largeImageButton.hide();
+								parsedData = [];
 								this.close();
 								this.view.hideProgress();
 							})

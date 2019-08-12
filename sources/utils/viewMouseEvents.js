@@ -5,6 +5,17 @@ import utils from "./utils";
 import ajaxActions from "../services/ajaxActions";
 import authService from "../services/authentication";
 
+let largeImageFiles;
+let makeLargeImageButton;
+
+function setFilesToLargeImage(filesToLargeImage) {
+	largeImageFiles = filesToLargeImage;
+}
+
+function setMakeLargeImageButton(largeImageButton) {
+	makeLargeImageButton = largeImageButton;
+}
+
 function setDefaultGalleryContextMenu(dataview) {
 	let galleryDataviewItem;
 	if (authService.isLoggedIn() && authService.getUserInfo().admin) {
@@ -53,6 +64,9 @@ function setDefaultGalleryContextMenu(dataview) {
 											dataview.updateItem(galleryItem.id, updatedItem);
 										}
 									});
+									largeImageFiles = largeImageFiles.filter(largeImageItem => largeImageItem._id !== itemId);
+									if (!largeImageFiles.length) makeLargeImageButton.hide();
+
 									mainView.hideProgress();
 								})
 								.fail(() => mainView.hideProgress());
@@ -126,5 +140,7 @@ function setDatatableMouseEvents(datatable, action, event) {
 
 export default {
 	setDataviewMouseEvents,
-	setDatatableMouseEvents
+	setDatatableMouseEvents,
+	setFilesToLargeImage,
+	setMakeLargeImageButton
 };

@@ -1,7 +1,7 @@
-import ajax from "../../../../services/ajaxActions";
-import galleryImageUrl from "../../../../models/galleryImageUrls";
 import {JetView} from "webix-jet";
 import JSONFormatter from "json-formatter-js";
+import ajax from "../../../../services/ajaxActions";
+import galleryImageUrl from "../../../../models/galleryImageUrls";
 
 const HEIGHT = 553;
 const WIDTH = 750;
@@ -84,14 +84,7 @@ export default class ImageWindowView extends JetView {
 			},
 			body: {
 				rows: [
-					// {
-					// 	margin: 10,
-					// 	cols: [
-					// 		derivativeComboBox,
-					// 	]
-					// },
 					{
-						margin: 10,
 						type: "clean",
 						cols: [
 							templateViewer

@@ -24,6 +24,7 @@ import metadataTableFilterModel from "../../models/metadataTableFilterModel";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import EmptyDataViewsService from "../views/emptyDataViews";
+import viewMouseEvents from "../../utils/viewMouseEvents";
 
 let contextToFolder;
 let lastSelectedFolderId;
@@ -94,6 +95,8 @@ class MainService {
 		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
 		webixViews.setItemsModel(this._itemsModel);
 		webixViews.setRenamePopup(this._renamePopup);
+
+		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
@@ -775,6 +778,7 @@ class MainService {
 						}
 					}
 				});
+				viewMouseEvents.setFilesToLargeImage(filesToLargeImage);
 				if (filesToLargeImage.length !== 0) {
 					this._makeLargeImageButton.show();
 				}
