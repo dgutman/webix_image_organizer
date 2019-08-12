@@ -110,5 +110,4 @@ export default class MainView extends JetView {
 	getSubHeaderView() {
 		return this.getRoot().queryView({name: "headerClass"}).$scope;
 	}
-
 }

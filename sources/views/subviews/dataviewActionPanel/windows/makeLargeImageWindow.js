@@ -4,10 +4,10 @@ import "../../../components/activeList";
 import webixViews from "../../../../models/webixViews";
 
 let parsedData = [];
+let largeImageButton;
 
 export default class MakeLargeImageWindow extends JetView {
 	config() {
-
 		const cancelButton = {
 			view: "button",
 			css: "btn-contour",
@@ -21,32 +21,50 @@ export default class MakeLargeImageWindow extends JetView {
 		const saveButton = {
 			view: "button",
 			name: "saveButton",
-			value: "Okay",
+			value: "Save",
 			css: "btn",
 			height: 30,
 			width: 100,
 			click: () => {
-				let arrayOfResolvedPromisses = [];
+				const largeImagePromises = [];
+				const galleryDataview = webixViews.getGalleryDataview();
 				this.view.showProgress();
 				parsedData.forEach((parsedObject) => {
-					arrayOfResolvedPromisses.push(ajaxActions.makeLargeImage(parsedObject._id));
+					largeImagePromises.push(ajaxActions.makeLargeImage(parsedObject._id));
 				});
-				webix.promise.all(arrayOfResolvedPromisses)
-					.then(() => {
-						webixViews.getGalleryDataview().refresh();
-						this.view.hideProgress();
+				webix.promise.all(largeImagePromises)
+					.then((data) => {
+						const itemPromises = [];
+						data.forEach((largeImage) => {
+							if (largeImage.meta) {
+								const itemId = largeImage.meta.itemId;
+								itemPromises.push(ajaxActions.getItem(itemId));
+							}
+						});
+						webix.promise.all(itemPromises)
+							.then((items) => {
+								items.forEach((item) => {
+									galleryDataview.find((galleryItem) => {
+										if (galleryItem._id === item._id) {
+											galleryDataview.updateItem(galleryItem.id, item);
+										}
+									});
+								});
+								largeImageButton.hide();
+								parsedData = [];
+								this.close();
+								this.view.hideProgress();
+							})
+							.fail(() => this.view.hideProgress());
 					})
-					.fail((error) => {
-						webix.message(error);
-						this.view.hideProgress();
-					});
+					.fail(() => this.view.hideProgress());
 			}
 		};
 
 		const windowActiveList = {
 			view: "activeList",
 			borderless: true,
-			tooltip: (obj) => obj.name,
+			tooltip: obj => obj.name,
 			name: "makeLargeImageWindowActiveListName",
 			activeContent: {
 				markListCheckbox: {
@@ -67,7 +85,8 @@ export default class MakeLargeImageWindow extends JetView {
 									}
 								});
 								parsedData.splice(itemIndex, 1);
-							} else {
+							}
+							else {
 								let itemIndex = parsedData.findIndex((parsedObject) => {
 									if (parsedObject._id === listItem._id) {
 										return parsedObject;
@@ -81,12 +100,10 @@ export default class MakeLargeImageWindow extends JetView {
 					}
 				}
 			},
-			template: (obj, common) => {
-				return `<div class='large-image-window'>
+			template: (obj, common) => `<div class='large-image-window'>
 						<div class='image-window-checkbox'>${common.markListCheckbox(obj, common)}</div>
  						<div class='image-window-list-name'>${obj.name}</div>
-					</div>`;
-			},
+					</div>`
 		};
 
 		const makeLargeImageWindow = {
@@ -122,13 +139,13 @@ export default class MakeLargeImageWindow extends JetView {
 				borderless: true,
 				rows: [
 					windowActiveList,
-					{height: 5},
+					{height: 10},
 					{
 						cols: [
 							{},
-							cancelButton,
-							{width: 10},
 							saveButton,
+							{width: 10},
+							cancelButton,
 							{width: 20}
 						]
 					},
@@ -149,8 +166,9 @@ export default class MakeLargeImageWindow extends JetView {
 		return this.getRoot().queryView({name: "makeLargeImageWindowActiveListName"});
 	}
 
-	showWindow(data) {
+	showWindow(data, button) {
 		parsedData = data;
+		largeImageButton = button;
 		data.forEach((dataObject) => {
 			dataObject.markListCheckbox = true;
 			this.windowList.parse(dataObject);
@@ -162,5 +180,4 @@ export default class MakeLargeImageWindow extends JetView {
 		this.windowList.clearAll();
 		this.getRoot().hide();
 	}
-
 }

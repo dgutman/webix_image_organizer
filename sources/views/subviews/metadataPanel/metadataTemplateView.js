@@ -13,7 +13,6 @@ const mainPropertiesClassName = constants.MAIN_PROPERTIES_CLASS_NAME;
 const metadataPropertiesClassName = constants.METADATA_PROPERTIES_CLASS_NAME;
 
 export default class MetadataPanelClass extends JetView {
-
 	config() {
 		const showAddMetadataWindowButton = {
 			view: "button",
@@ -37,7 +36,7 @@ export default class MetadataPanelClass extends JetView {
 			template: (obj) => {
 				if (this.jsonEditor) {
 					this.jsonEditor.set(obj.meta);
-					this.jsonEditor.setName("Metadata Properties");
+					this.jsonEditor.setName("Metadata properties");
 					this.jsonEditor.collapseAll();
 				}
 				item = obj;
@@ -46,7 +45,7 @@ export default class MetadataPanelClass extends JetView {
 									<div class="listTemplate">
 										<p>_id: ${obj._id || ""}</p>
 										<div class="collapssible-accordion ${mainPropertiesClassName} hidden-views metadata-template-collpaser">
-											<span class="collpaser-text">Main Properties</span>
+											<span class="collpaser-text">Main properties</span>
 										</div>
 										<div class=${mainPropertiesClassName} style="display: none">
 											<p>name: ${obj.name || ""}</p>
@@ -67,7 +66,8 @@ export default class MetadataPanelClass extends JetView {
 				"collapssible-accordion": (e, id, element) => {
 					if (element.className.indexOf(mainPropertiesClassName) !== -1) {
 						utils.showOrHideTemplateCollapsedViews(mainPropertiesClassName, element);
-					} else if (element.className.indexOf(metadataPropertiesClassName) !== -1) {
+					}
+					else if (element.className.indexOf(metadataPropertiesClassName) !== -1) {
 						utils.showOrHideTemplateCollapsedViews(metadataPropertiesClassName, element);
 					}
 				}
@@ -88,7 +88,6 @@ export default class MetadataPanelClass extends JetView {
 				}
 			]
 		};
-
 	}
 
 	ready() {
@@ -103,7 +102,6 @@ export default class MetadataPanelClass extends JetView {
 				if (!updatedMetadata.hasOwnProperty("")) {
 					const itemId = this.metadataTemplate.getValues()._id;
 					const itemGalleryDataviewId = this.metadataTemplate.getValues().id;
-
 					this.metadataTemplate.showProgress();
 					ajaxActions.updateItemMetadata(itemId, updatedMetadata)
 						.then((item) => {
@@ -120,7 +118,7 @@ export default class MetadataPanelClass extends JetView {
 			}
 		});
 
-		//set debounce interval for onChangeValue
+		// set debounce interval for onChangeValue
 		this.jsonEditor.node.__proto__.DEBOUNCE_INTERVAL = 2000;
 		this.metadataTemplate.parse({});
 	}

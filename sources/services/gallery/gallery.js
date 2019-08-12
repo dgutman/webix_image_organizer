@@ -29,10 +29,11 @@ class GalleryService {
 
 				if (dataviewData.length < limit) {
 					length = dataviewData.length;
-				} else {
+				}
+				else {
 					length = limit;
 				}
-				for (; offset < length; offset ++) {
+				for (; offset < length; offset++) {
 					let item = this._galleryDataview.getItem(dataviewData[offset]);
 					if (!item.markCheckbox) {
 						if (selectedDataviewItems.count() < constants.MAX_COUNT_IMAGES_SELECTION) {
@@ -54,6 +55,7 @@ class GalleryService {
 				this._view.$scope.app.callEvent("changedSelectedImagesCount");
 			},
 			"gallery-select-first-count-images": () => {
+				this._unselectImages();
 				const value = 1;
 				const limit = constants.MAX_COUNT_IMAGES_SELECTION;
 				const dataviewData = this._galleryDataview.data.order;
@@ -62,10 +64,11 @@ class GalleryService {
 
 				if (dataviewData.length < limit) {
 					length = dataviewData.length;
-				} else {
+				}
+				else {
 					length = limit;
 				}
-				for (let offset = 0; offset < length; offset ++) {
+				for (let offset = 0; offset < length; offset++) {
 					let item = this._galleryDataview.getItem(dataviewData[offset]);
 					if (!item.markCheckbox) {
 						item.markCheckbox = value;
@@ -81,7 +84,6 @@ class GalleryService {
 		});
 	}
 
-
 	_unselectImages() {
 		const value = 0;
 		let items = [];
@@ -93,8 +95,8 @@ class GalleryService {
 		this._galleryDataview.callEvent("onCheckboxClicked", [items, value, true]);
 		this._galleryDataview.refresh();
 		selectedDataviewItems.clearAll();
+		selectedDataviewItems.putSelectedImagesToLocalStorage();
 		this._view.$scope.app.callEvent("changedSelectedImagesCount");
-
 	}
 }
 

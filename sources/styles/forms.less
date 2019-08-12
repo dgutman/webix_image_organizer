@@ -87,7 +87,7 @@ input::-ms-clear {
 .select-field,
 .select-field-reverce {
   .webix_inp_static,
-  input {
+  input, select {
     .border-radius(0);
     font-size: 15px;
     cursor: pointer;
@@ -108,7 +108,7 @@ input::-ms-clear {
 }
 .select-field {
   .webix_inp_static,
-  input {
+  input, select {
     border-color: @lines-color;
     color: @main-color-light;
 
@@ -292,7 +292,7 @@ input::-ms-clear {
     height: 100px;
   }
   .card-list-name {
-    width: 125px;
+    width: 120px !important;
     margin-top: -30px;
     margin-left: 11px;
     overflow: hidden;
@@ -305,9 +305,9 @@ input::-ms-clear {
   width: 202px !important;
   .webix_list_item {
     line-height: 28px;
-    .border-radius(2px);
     background: @btn;
     border-color: @btn;
+    .border-radius(0);
     &:hover, &:focus {
       background: @btn-hover;
       border-color: @btn-hover;
@@ -335,6 +335,20 @@ input::-ms-clear {
 
 .column-header-top-name {
   text-align: center;
+}
+
+.column-header-bottom-name {
+  width: 75%;
+  text-overflow: ellipsis;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.column-editable-icon {
+  float: right;
+  line-height: inherit;
+  width: 17px;
 }
 
 .collpaser-text {

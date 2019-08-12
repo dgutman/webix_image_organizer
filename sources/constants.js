@@ -1,3 +1,5 @@
+const location = window.location;
+
 export default {
 
 	KEY_TOKEN: "girderToken",
@@ -14,12 +16,13 @@ export default {
 	LINEAR_CONTEXT_MENU_ID: "Make linear structure",
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
+	RUN_RECOGNITION_SERVICE: "Recognition service",
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 
-	IMAGES_ONLY_MENU_ID: "Download Selected Items only",
-	IMAGES_AND_METADATA_MENU_ID: "Download Selected Items and Metadata",
-	COPY_TO_CLIPBOARD_MENU_ID: "Copy Selected Items",
+	IMAGES_ONLY_MENU_ID: "Download selected items only",
+	IMAGES_AND_METADATA_MENU_ID: "Download selected items and metadata",
+	COPY_TO_CLIPBOARD_MENU_ID: "Copy selected items",
 	ADD_TAG_TO_IMAGES_MENU_ID: "Add tag to images",
 
 	EDIT_COLUMN_MODE_ADD: "addColumn",
@@ -60,5 +63,20 @@ export default {
 
 	MOUSE_LEFT_SINGLE_CLICK: "mouseLeftSingle",
 	MOUSE_RIGHT_SINGLE_CLICK: "mouseRightSingle",
-	MOUSE_LEFT_DOUBLE_CLICK: "mouseLeftDouble"
+	MOUSE_LEFT_DOUBLE_CLICK: "mouseLeftDouble",
+
+	RECOGNITION_OPTION_IDS: {
+		MARKER: "Find markers",
+		STICKER: "Find stickers",
+		LABEL: "Find labels"
+	},
+
+	RECOGNITION_STATUSES: {
+		DONE: {icon: "fas fa-check", iconColor: "#4caf50", value: "Done"},
+		IN_PROGRESS: {icon: "fas fa-sync fa-spin", iconColor: "#ffb300", value: "In progress"},
+		ERROR: {icon: "fas fa-times", iconColor: "#b71c1c", value: "Error"},
+		WARNS: {icon: "fas fa-exclamation-triangle", iconColor: "#FD7E14", value: "Done with errors"}
+	},
+
+	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000"
 };

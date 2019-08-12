@@ -10,6 +10,7 @@ function setRealScrollPosition(position) {
 }
 
 function loadBranch(id, view) {
+	const itemsModel = webixViews.getItemsModel();
 	const finderView = webixViews.getFinderView();
 	let array = [];
 	let itemsArray = [];
@@ -27,11 +28,12 @@ function loadBranch(id, view) {
 							array.push(...items);
 							itemsArray.push(...items);
 						}
-						finderView.parse({
-							data: array, parent: item.id
-						});
+						itemsModel.parseItems(array, item.id);
+						// finderView.parse({
+						// 	data: array, parent: item.id
+						// });
 						utils.parseDataToViews(itemsArray);
-						//dataviewFilterModel.prepareDataToFilter(itemsArray);
+						// dataviewFilterModel.prepareDataToFilter(itemsArray);
 						finderView.blockEvent();
 						finderView.open(id);
 						finderView.unblockEvent();
@@ -45,13 +47,14 @@ function loadBranch(id, view) {
 			.fail(() => {
 				view.hideProgress();
 			});
-	} else if (item.hasOpened) {
+	}
+	else if (item.hasOpened || item.open && item.linear) {
 		return new Promise((resolve) => {
 			finderView.blockEvent();
 			finderView.open(id);
 			finderView.unblockEvent();
 			finderView.find((obj) => {
-				if (obj._modelType === "item" && obj.folderId === item._id) {
+				if (item.linear && obj._modelType !== "folder" || obj._modelType === "item" && obj.folderId === item._id) {
 					itemsArray.push(obj);
 				}
 			});
@@ -82,11 +85,12 @@ function defineSizesAndPositionForDynamicScroll(treeFolder) {
 			viewClientHeight += branchClientHeight;
 		}
 	});
-	return (viewClientHeight + branchScrollHeight + 28);
+	return viewClientHeight + branchScrollHeight + 28;
 }
 
 function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 	const finderView = webixViews.getFinderView();
+	const itemsModel = webixViews.getItemsModel();
 	const difference = realScrollPosition - (finderView.$height + scrollState.y - 18);
 	if (difference <= 0 && difference >= -200) {
 		finderView.blockEvent();
@@ -98,9 +102,10 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 		ajaxActions.getLinearStucture(treeFolder._id, sourceParams)
 			.then((data) => {
 				if (!utils.isObjectEmpty(data)) {
-					finderView.parse({
-						data: webix.copy(data), parent: treeFolder.id
-					});
+					itemsModel.parseItems(webix.copy(data), treeFolder.id);
+					// finderView.parse({
+					// 	data: webix.copy(data), parent: treeFolder.id
+					// });
 					setRealScrollPosition(defineSizesAndPositionForDynamicScroll(treeFolder));
 					utils.parseDataToViews(webix.copy(data), true);
 					webix.copy(data).forEach((item) => {
@@ -116,7 +121,8 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 					if (tableFilterValue) {
 						metadataTableFilterModel.getMetadataTableFilter().callEvent("onChange", [filterValue]);
 					}
-				} else {
+				}
+				else {
 					finderView.detachEvent("onAfterScroll");
 				}
 				finderView.unblockEvent();

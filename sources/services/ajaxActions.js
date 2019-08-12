@@ -1,4 +1,5 @@
 import authService from "./authentication";
+import constants from "../constants";
 
 function parseError(xhr) {
 	let message;
@@ -15,7 +16,7 @@ function parseError(xhr) {
 			}
 			catch (e) {
 				message = xhr.response;
-				console.log("Not JSON response for request to " + xhr.responseURL);
+				console.log(`Not JSON response for request to ${xhr.responseURL}`);
 			}
 			webix.message({text: message, expire: 5000});
 			break;
@@ -33,7 +34,6 @@ webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, pro
 });
 
 class AjaxActions {
-
 	getHostApiUrl() {
 		return webix.storage.local.get("hostAPI");
 	}
@@ -66,7 +66,7 @@ class AjaxActions {
 		}
 		return this._ajax()
 			.headers({
-				"Authorization": `Basic ${hash}`
+				Authorization: `Basic ${hash}`
 			})
 			.get(`${this.getHostApiUrl()}/user/authentication`)
 			.then(result => this._parseData(result));
@@ -109,15 +109,7 @@ class AjaxActions {
 	}
 
 	getImage(imageId, height, width, imageType) {
-		const params = {};
-		if (height) {
-			params.height = height;
-		}
-		if (width) {
-			params.width = width;
-		}
-
-		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params)
+		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`)
 			.fail(parseError);
 	}
 
@@ -141,7 +133,7 @@ class AjaxActions {
 	}
 
 	getJSONFileData(itemId, sourceParams) {
-		const params = sourceParams ? sourceParams : {
+		const params = sourceParams || {
 			contentDisposition: "inline"
 		};
 		return this._ajax()
@@ -166,7 +158,7 @@ class AjaxActions {
 
 	putNewFolderName(folderId, name) {
 		const params = {
-			name: name
+			name
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/folder/${folderId}`, params)
@@ -193,7 +185,7 @@ class AjaxActions {
 
 	putNewItemName(itemId, name) {
 		const params = {
-			name: name
+			name
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}`, params)
@@ -208,14 +200,28 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
+	recognizeOption(idsArray, option) {
+		const ids = idsArray.join(",");
+		return this._ajax()
+			.get(`${constants.RECOGNIZE_SERVICE_PATH}/${option}?ids=${ids}`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
 	// update when API fixes
-	/*updateItemTag(itemId, itemTag) {
+	/* updateItemTag(itemId, itemTag) {
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}/aperio?tag=${itemTag}`)
 			.fail(parseError)
 			.then(result => this._parseData(result));
-	}*/
+	} */
 
+	getItem(id) {
+		return this._ajax()
+			.get(`${this.getHostApiUrl()}/item/${id}`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
 }
 
 const instance = new AjaxActions();

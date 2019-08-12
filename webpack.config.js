@@ -5,10 +5,9 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
-//./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
+// ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
 module.exports = function (env) {
-
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
@@ -93,6 +92,7 @@ module.exports = function (env) {
 				SERVER_LIST: [
 					{id: "1", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
 					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
+					// {id: "3", value: "ISIC Archive", hostAPI: "https://sandbox.isic-archive.com/api/v1"}
 				]
 			})
 		]
@@ -101,7 +101,7 @@ module.exports = function (env) {
 	if (production) {
 		config.plugins.push(
 			new TerserPlugin({
-				test: /\.js(\?.*)?$/i,
+				test: /\.js(\?.*)?$/i
 			})
 		);
 	}

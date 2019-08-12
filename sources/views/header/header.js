@@ -14,7 +14,7 @@ export default class Header extends JetView {
 		const logo = {
 			template: "Image Organizer",
 			css: "main-header-logo",
-			borderless: true,
+			borderless: true
 		};
 
 		const loginMenu = {
@@ -57,7 +57,7 @@ export default class Header extends JetView {
 			view: "richselect",
 			icon: "fas fa-chevron-down",
 			name: "hostBoxName",
-			css: "select-field",
+			css: "select-field ellipsis-text",
 			label: "Hosts",
 			labelWidth: 70,
 			width: 300,
@@ -71,7 +71,7 @@ export default class Header extends JetView {
 			view: "richselect",
 			icon: "fas fa-chevron-down",
 			name: "collectionBoxName",
-			css: "select-field",
+			css: "select-field ellipsis-text",
 			label: "Collections",
 			width: 330,
 			labelWidth: 100,
@@ -82,7 +82,7 @@ export default class Header extends JetView {
 			}
 		};
 
-		/*const skinSwitcher = {
+		/* const skinSwitcher = {
 			name: "skin",
 			labelWidth: 70,
 			width: 300,
@@ -107,11 +107,10 @@ export default class Header extends JetView {
 			on: {
 				onChange: () => this.toggleTheme()
 			}
-		};*/
+		}; */
 
 		const header = {
 			height: 60,
-			width: 1220,
 			css: "main-header",
 			cols: [
 				logo,
@@ -140,9 +139,9 @@ export default class Header extends JetView {
 			rows: [
 				{
 					cols: [
-						{},
+						{width: 50},
 						header,
-						{}
+						{width: 50}
 					]
 				}
 			]

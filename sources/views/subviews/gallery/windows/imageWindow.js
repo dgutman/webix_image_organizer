@@ -1,7 +1,7 @@
-import ajax from "../../../../services/ajaxActions";
-import galleryImageUrl from "../../../../models/galleryImageUrls";
 import {JetView} from "webix-jet";
 import JSONFormatter from "json-formatter-js";
+import ajax from "../../../../services/ajaxActions";
+import galleryImageUrl from "../../../../models/galleryImageUrls";
 
 const HEIGHT = 553;
 const WIDTH = 750;
@@ -11,8 +11,7 @@ let params = {};
 
 export default class ImageWindowView extends JetView {
 	config() {
-
-		/*const derivativeComboBox = {
+		/* const derivativeComboBox = {
 			view: "combo",
 			css: "select-field",
 			options: {
@@ -24,13 +23,12 @@ export default class ImageWindowView extends JetView {
 				onChange: (id) => {
 				}
 			}
-		};*/
+		}; */
 
 		const templateViewer = {
 			view: "template",
 			css: "absolute-centered-image-template",
 			name: "largeImageTemplate",
-			scroll: false,
 			template: (obj) => {
 				const imageType = obj.label ? "images/label" : "thumbnail";
 				const getPreviewUrl = obj.label ? galleryImageUrl.getLabelPreviewImageUrl : galleryImageUrl.getNormalImageUrl;
@@ -50,7 +48,7 @@ export default class ImageWindowView extends JetView {
 							});
 					}
 					return `<img src="${getPreviewUrl(obj._id) || ""}">`;
-				} else return "<div></div>";
+				} return "<div></div>";
 			},
 			borderless: true
 		};
@@ -71,7 +69,7 @@ export default class ImageWindowView extends JetView {
 						view: "template",
 						css: "large-image-name",
 						name: "headerTemplate",
-						template: (obj) => obj.name,
+						template: obj => obj.name,
 						borderless: true
 					},
 					{
@@ -86,20 +84,12 @@ export default class ImageWindowView extends JetView {
 			},
 			body: {
 				rows: [
-					// {
-					// 	margin: 10,
-					// 	cols: [
-					// 		derivativeComboBox,
-					// 	]
-					// },
 					{
-						margin: 10,
 						type: "clean",
 						cols: [
-							templateViewer,
+							templateViewer
 						]
-					},
-					{height: 10},
+					}
 				]
 			}
 		};
@@ -111,18 +101,18 @@ export default class ImageWindowView extends JetView {
 		webix.extend(this.view, webix.ProgressBar);
 	}
 
-	//image template
+	// image template
 	getLargeTemplateView() {
 		return this.getRoot().queryView({name: "largeImageTemplate"});
 	}
 
-	//window header template
+	// window header template
 	getHeaderTemplateView() {
 		return this.getRoot().queryView({name: "headerTemplate"});
 	}
 
 	showWindow(obj, viewer) {
-		//define when to init Seadragon
+		// define when to init Seadragon
 		this.getHeaderTemplateView().parse(obj);
 		if (viewer === "standard") {
 			this.getLargeTemplateView().parse(obj);
@@ -141,22 +131,19 @@ export default class ImageWindowView extends JetView {
 						tileWidth: data.tileWidth,
 						tileHeight: data.tileHeight,
 						minLevel: 0,
-						maxLevel: data.levels - 1,
+						maxLevel: data.levels - 1
 					};
-					this.getLargeTemplateView().define("scroll", "false");
-					this.getLargeTemplateView().define("move", "true");
 					this.createOpenSeadragonViewer(obj, templateNode.firstChild);
 					this.view.hideProgress();
 				})
 				.fail(() => {
 					this.view.hideProgress();
 				});
-		} else if (viewer === "jsonviewer") {
+		}
+		else if (viewer === "jsonviewer") {
 			this.view.showProgress();
 			ajax.getJSONFileData(obj._id)
 				.then((data) => {
-					this.getLargeTemplateView().define("scroll", "true");
-					this.getLargeTemplateView().define("move", "false");
 					this.createJSONViewer(data, templateNode.firstChild);
 					this.view.hideProgress();
 				})
@@ -166,7 +153,7 @@ export default class ImageWindowView extends JetView {
 		}
 	}
 
-	//Initializing Seadragon, setting needed options
+	// Initializing Seadragon, setting needed options
 	setTileSources(obj) {
 		return {
 			width: params.width,
@@ -175,7 +162,7 @@ export default class ImageWindowView extends JetView {
 			tileHeight: params.tileHeight,
 			minLevel: params.minLevel,
 			maxLevel: params.maxLevel,
-			getTileUrl: function (level, x, y) {
+			getTileUrl(level, x, y) {
 				return ajax.getImageTileUrl(obj._id, level, x, y);
 			}
 		};
@@ -197,13 +184,12 @@ export default class ImageWindowView extends JetView {
 	}
 
 	close() {
-		//to clear setted template
-		//to destroy Open Seadragon viewer
+		// to clear setted template
+		// to destroy Open Seadragon viewer
 		if (this.viewer) {
 			this.viewer.destroy();
 		}
 		this.getLargeTemplateView().parse({emptyObject: true});
 		this.getRoot().hide();
 	}
-
 }

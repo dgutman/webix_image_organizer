@@ -9,14 +9,15 @@ export default class FinderViewClass extends JetView {
 			width: 320,
 			select: true,
 			scroll: "xy",
+			css: "finder-view",
 			type: "lineTree",
 			editable: true,
 			editor: "text",
 			editaction: "custom",
 			editValue: "name",
 			oncontext: {},
-			template: function (obj, common) {
-				return common.icon(obj, common) + common.folder(obj, common) + `<span style="height: 40px">${obj.name}</span>`;
+			template(obj, common) {
+				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span>`;
 			},
 			scheme: {
 				$init(obj) {
@@ -62,6 +63,4 @@ export default class FinderViewClass extends JetView {
 	setTreePosition(scrollStateX) {
 		this.getRoot().positionX = parseInt(scrollStateX);
 	}
-
-
 }

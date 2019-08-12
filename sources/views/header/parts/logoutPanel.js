@@ -4,7 +4,6 @@ import SettingsWindow from "../windows/settings";
 
 export default class LogoutPanelView extends JetView {
 	config() {
-
 		const cols = [
 			{},
 			{
@@ -65,6 +64,6 @@ export default class LogoutPanelView extends JetView {
 	}
 
 	calcUserMenuWidth(str) {
-		return str && str.length ? str.length * 20 : 1;
+		return str && str.length ? str.length * 14 : 1;
 	}
 }

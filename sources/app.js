@@ -6,12 +6,12 @@ webix.ready(() => {
 	const app = new JetApp({
 		id: "",
 		version: "",
-		start: "/main",
+		start: "/main"
 	});
 
 	app.render();
 
-	app.attachEvent("app:error:resolve", function (name, error) {
+	app.attachEvent("app:error:resolve", (name, error) => {
 		window.console.error(error);
 	});
 

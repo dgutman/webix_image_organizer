@@ -41,22 +41,26 @@ function getUserId() {
 }
 
 function setDataviewItemDimensions(imageWidth, imageHeight) {
-	webix.storage.local.put(`dataviewItemWidth-${getUserId()}`, imageWidth);
-	webix.storage.local.put(`dataviewItemHeight-${getUserId()}`, imageHeight);
+	if (getUserId()) {
+		webix.storage.local.put(`dataviewItemWidth-${getUserId()}`, imageWidth);
+		webix.storage.local.put(`dataviewItemHeight-${getUserId()}`, imageHeight);
+	}
 }
 
 function getDataviewItemWidth() {
 	let localWidth = webix.storage.local.get(`dataviewItemWidth-${getUserId()}`);
-	return localWidth ? localWidth : DEFAULT_WIDTH;
+	return localWidth || DEFAULT_WIDTH;
 }
 
 function getDataviewItemHeight() {
 	let localHeight = webix.storage.local.get(`dataviewItemHeight-${getUserId()}`);
-	return localHeight ? localHeight : DEFAULT_HEIGHT;
+	return localHeight || DEFAULT_HEIGHT;
 }
 
 function setDataviewSelectionId(id) {
-	webix.storage.local.put(`dataviewSelectionId-${getUserId()}`, id);
+	if (getUserId()) {
+		webix.storage.local.put(`dataviewSelectionId-${getUserId()}`, id);
+	}
 }
 
 function getDataviewSelectionId() {
@@ -64,7 +68,9 @@ function getDataviewSelectionId() {
 }
 
 function setNewImageHeight(newItemHeight) {
-	webix.storage.local.put(`newImageHeight-${getUserId()}`, newItemHeight);
+	if (getUserId()) {
+		webix.storage.local.put(`newImageHeight-${getUserId()}`, newItemHeight);
+	}
 }
 
 function getNewImageHeight() {
@@ -78,14 +84,16 @@ function escapeHTML(str) {
 		">": "&gt;"
 	};
 
-	return str ? str.replace(/[&<>]/g, tag => (tagsToReplace[tag] || tag)) : "";
+	return str ? str.replace(/[&<>]/g, tag => tagsToReplace[tag] || tag) : "";
 }
 
 function searchForFileType(obj) {
-	const str = obj.name;
-	const pattern = /.*\.(.*)$/;
+	let str = obj.name;
+	const pattern = /\.[0-9a-z]+$/i;
 	const matched = str.match(pattern);
-	return matched ? matched[1] : "non-type";
+	const dotIndex = matched ? matched.index : 0;
+	str = str.slice(dotIndex + 1);
+	return str || "non-type";
 }
 
 function showAlert() {
@@ -103,11 +111,8 @@ function findAndRemove(id, folder, array) {
 		array.push(item.id);
 	}, finderView, true);
 
-	const length = array.length;
-	for (let i = 0; i < length; i++) {
-		finderView.remove(array[i]);
-	}
-	folder.$count = 1;
+	finderView.remove(array);
+	folder.$count = -1; // typical for folders with webix_kids and no actual data
 	folder.hasOpened = false;
 
 	webix.dp(finderView).ignore(() => {
@@ -115,14 +120,15 @@ function findAndRemove(id, folder, array) {
 	});
 
 	webixViews.getGalleryPager().hide();
-	webixViews.getMetadataTableView().clearAll();
-	webixViews.getGalleryDataview().clearAll();
+	const itemsModel = webixViews.getItemsModel();
+	itemsModel.getDataCollection().clearAll();
+	// webixViews.getMetadataTableView().clearAll();
+	// webixViews.getGalleryDataview().clearAll();
 }
 
 function isObjectEmpty(obj) {
 	for (let prop in obj) {
-		if (obj.hasOwnProperty(prop))
-			return false;
+		if (obj.hasOwnProperty(prop)) { return false; }
 	}
 	return true;
 }
@@ -142,7 +148,9 @@ function angleIconChange(obj) {
 }
 
 function parseDataToViews(data, linearData) {
-	const metadataTable = webixViews.getMetadataTableView();
+	const itemsModel = webixViews.getItemsModel();
+	const dataCollection = itemsModel.getDataCollection();
+	// const metadataTable = webixViews.getMetadataTableView();
 	const galleryDataview = webixViews.getGalleryDataview();
 	const pager = webixViews.getGalleryPager();
 
@@ -150,8 +158,9 @@ function parseDataToViews(data, linearData) {
 		pager.show();
 	}
 	if (!linearData) {
-		galleryDataview.clearAll();
-		metadataTable.clearAll();
+		dataCollection.clearAll();
+		// galleryDataview.clearAll();
+		// metadataTable.clearAll();
 	}
 
 	if (!Array.isArray(data)) {
@@ -162,8 +171,9 @@ function parseDataToViews(data, linearData) {
 		item.starColor = findStarColorForItem(item);
 	});
 
-	galleryDataview.parse(data);
-	metadataTable.parse(data);
+	dataCollection.parse(data);
+	// galleryDataview.parse(data);
+	// metadataTable.parse(data);
 	galleryDataviewFilterModel.prepareDataToFilter(data);
 	metadataTableFilterModel.prepareDataToFilter(data);
 }
@@ -180,13 +190,14 @@ function findStarColorForItem(item) {
 			const metadataValue = metadataTableModel.getOrEditMetadataColumnValue(item.meta, `meta.${key}`);
 
 			if (metadataValue !== undefined) {
-				const correctValue = projectSchema[key].find((correctValue) => metadataValue === correctValue);
+				const correctValue = projectSchema[key].find(correctValue => metadataValue === correctValue);
 				const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
 
 				if (!correctValue) {
 					if (wrongMetadataItem) {
 						wrongMetadataItem.incorrectKeys.push(key);
-					} else {
+					}
+					else {
 						wrongMetadataCollection.add({
 							id: item._id,
 							incorrectKeys: [key]
@@ -195,24 +206,27 @@ function findStarColorForItem(item) {
 
 					hasFoundIncorrectKey = true;
 				}
-			} else {
+			}
+			else {
 				hasFoundMissingKey = true;
 			}
 		}
 
 		if (!hasFoundIncorrectKey && !hasFoundMissingKey) {
 			starColor = "green";
-		} else if (!hasFoundIncorrectKey && hasFoundMissingKey) {
+		}
+		else if (!hasFoundIncorrectKey && hasFoundMissingKey) {
 			starColor = "orange";
-		} else if (hasFoundIncorrectKey && !hasFoundMissingKey) {
+		}
+		else if (hasFoundIncorrectKey && !hasFoundMissingKey) {
 			starColor = "yellow";
-		} else {
+		}
+		else {
 			starColor = "red";
 		}
 
 		return starColor;
 	}
-
 }
 
 function getMetadataColumnColor(obj, columnId) {
@@ -239,7 +253,8 @@ function collapseViews(collapserTemplate, viewsToCollapse, hiddenViews) {
 	if (hiddenViews) {
 		viewsToCollapse.show();
 		removeAndAddClassFromCollapsedElement("show", collapserTemplate.getNode());
-	} else {
+	}
+	else {
 		viewsToCollapse.hide();
 		removeAndAddClassFromCollapsedElement("hide", collapserTemplate.getNode());
 	}
@@ -255,7 +270,8 @@ function showOrHideImageSelectionTemplate(action, template) {
 	if (action === "show") {
 		template.show();
 		webixViews.getGalleryDataview().getNode().style.borderTop = "none";
-	} else {
+	}
+	else {
 		template.hide();
 		webixViews.getGalleryDataview().getNode().style.borderTop = "1px solid #DDDDDD";
 	}
@@ -266,11 +282,12 @@ function showOrHideTemplateCollapsedViews(className, element) {
 	const propertiesElement = foundElements[1] ? foundElements[1] : foundElements[0];
 
 	if (propertiesElement.offsetParent === null) {
-		//show properties template
+		// show properties template
 		removeAndAddClassFromCollapsedElement("show", element);
 		propertiesElement.style.display = "block";
-	} else {
-		//hide properties template
+	}
+	else {
+		// hide properties template
 		removeAndAddClassFromCollapsedElement("hide", element);
 		propertiesElement.style.display = "none";
 	}
@@ -281,7 +298,8 @@ function removeAndAddClassFromCollapsedElement(action, element) {
 	webix.html.removeCss(element, "hidden-views");
 	if (action === "hide") {
 		webix.html.addCss(element, "hidden-views");
-	} else if (action === "show") {
+	}
+	else if (action === "show") {
 		webix.html.addCss(element, "showed-views");
 	}
 }
@@ -348,7 +366,8 @@ function getImagesToSelectByShift(item, selectedImages, dataview, value) {
 			const lastItemId = deletedItemsDataCollection.getLastId();
 			lastActionItem = deletedItemsDataCollection.getItem(lastItemId);
 			indexOfLastItemToAction = dataview.getIndexById(item.id);
-		} else {
+		}
+		else {
 			lastActionItem = selectedDataviewImages[selectedImagesLength - 1];
 			indexOfLastItemToAction = dataview.getIndexById(item.id);
 		}
@@ -363,7 +382,8 @@ function getImagesToSelectByShift(item, selectedImages, dataview, value) {
 		if (indexOfLastActionItem > indexOfLastItemToAction) {
 			startIndex = indexOfLastItemToAction;
 			finishIndex = indexOfLastActionItem;
-		} else {
+		}
+		else {
 			startIndex = indexOfLastActionItem;
 			finishIndex = indexOfLastItemToAction;
 		}
@@ -376,7 +396,8 @@ function getImagesToSelectByShift(item, selectedImages, dataview, value) {
 					dataviewItem.markCheckbox = value;
 					imagesArrayToReturn.push(dataviewItem);
 				}
-			} else if (isNeedShowAlert) {
+			}
+			else if (isNeedShowAlert) {
 				isNeedShowAlert = false;
 				webix.alert({
 					text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
@@ -386,9 +407,26 @@ function getImagesToSelectByShift(item, selectedImages, dataview, value) {
 		imagesArrayToReturn.push(item);
 		deletedItemsDataCollection.clearAll();
 		return imagesArrayToReturn;
-	} else {
-		return [item];
 	}
+	return [item];
+}
+
+function putSelectedItemsToLocalStorage(array) {
+	const hostId = authService.getHostId();
+	const userId = getUserId() || "unregistered";
+	webix.storage.local.put(`selectedGalleryItems-${userId}-${hostId}`, array);
+}
+
+function getSelectedItemsFromLocalStorage() {
+	const hostId = authService.getHostId();
+	const userId = getUserId() || "unregistered";
+	return webix.storage.local.get(`selectedGalleryItems-${userId}-${hostId}`) || [];
+}
+
+function removeSelectedItemsFromLocalStorage() {
+	const hostId = authService.getHostId();
+	const userId = getUserId() || "unregistered";
+	webix.storage.local.remove(`selectedGalleryItems-${userId}-${hostId}`);
 }
 
 /**
@@ -417,10 +455,10 @@ function setObjectProperty(obj, path, value) {
 		const key = keys[i];
 
 		// if nothing exists for this key, make it an empty object or array
-		if (!curStep[key] && !Object.prototype.hasOwnProperty.call(curStep, key)){
+		if (!curStep[key] && !Object.prototype.hasOwnProperty.call(curStep, key)) {
 			// get the next key in the path, if its numeric, make this property an empty array
 			// otherwise, make it an empty object
-			const nextKey = keys[i+1];
+			const nextKey = keys[i + 1];
 			const useArray = /^\+?(0|[1-9]\d*)$/.test(nextKey);
 			curStep[key] = useArray ? [] : {};
 		}
@@ -430,6 +468,30 @@ function setObjectProperty(obj, path, value) {
 	// set the final key to our value
 	const finalStep = keys[lastItemIndex];
 	curStep[finalStep] = value;
+}
+
+function createElementFromHTML(htmlString) {
+	const div = document.createElement("div");
+	div.innerHTML = htmlString.trim();
+
+	// Change this to div.childNodes to support multiple top-level nodes
+	return div.firstChild;
+}
+
+// Returns true if it is a DOM node
+function isNode(o) {
+	return (
+		typeof Node === "object" ? o instanceof Node :
+			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName === "string"
+	);
+}
+
+// Returns true if it is a DOM element
+function isElement(o) {
+	return (
+		typeof HTMLElement === "object" ? o instanceof HTMLElement : // DOM2
+			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string"
+	);
 }
 
 export default {
@@ -463,5 +525,11 @@ export default {
 	setLocalStorageSettingsValues,
 	getLocalStorageSettingsValues,
 	getImagesToSelectByShift,
-	setObjectProperty
+	setObjectProperty,
+	getSelectedItemsFromLocalStorage,
+	putSelectedItemsToLocalStorage,
+	removeSelectedItemsFromLocalStorage,
+	createElementFromHTML,
+	isNode,
+	isElement
 };

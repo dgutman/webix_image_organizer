@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import webixViews from "../../models/webixViews";
 
 let oldName;
+let item;
 
 export default class RenamePopup extends JetView {
 	config() {
@@ -23,23 +24,24 @@ export default class RenamePopup extends JetView {
 		this.renameTextView = this.getNameToChangeTextView();
 
 		this.renamePopup.attachEvent("onHide", () => {
-			let newName = this.renameTextView.getValue();
+			const newName = this.renameTextView.getValue();
 
 			if (newName !== oldName) {
-				let valuesObject = {
+				const valuesObject = {
 					value: newName,
 					old: oldName
 				};
-				let objectInGallery = {
+				const objectInGallery = {
 					inGallery: true
 				};
-				this.finderView.callEvent("onAfterEditStop", [valuesObject, objectInGallery]);
+				this.finderView.callEvent("onAfterEditStop", [valuesObject, objectInGallery, item]);
 			}
 		});
 		this.renameTextView.attachEvent("onKeyPress", (keyCode) => {
-			if (keyCode === 13) { //enter
+			if (keyCode === 13) { // enter
 				this.renamePopup.hide();
-			} else if (keyCode === 27) { //escape
+			}
+			else if (keyCode === 27) { // escape
 				this.renamePopup.blockEvent();
 				this.renamePopup.hide();
 				this.renamePopup.unblockEvent();
@@ -55,19 +57,21 @@ export default class RenamePopup extends JetView {
 		return this.getRoot().queryView({name: "nameToChangeTextView"});
 	}
 
-	showPopup(itemClientRect, documentWidth, oldValue) {
+	showPopup(itemClientRect, documentWidth, oldValue, galleryItem) {
+		item = galleryItem;
 		oldName = oldValue;
 		this.finderView = webixViews.getFinderView();
 		this.renameTextView.setValue(oldName);
 
 		let xPosition;
 		let yPosition = itemClientRect.bottom - 7;
-		let renamePopupWidth = this.renamePopup.$width;
-		let widthWithPopup = renamePopupWidth + itemClientRect.right;
+		const renamePopupWidth = this.renamePopup.$width;
+		const widthWithPopup = renamePopupWidth + itemClientRect.right;
 
 		if (widthWithPopup > documentWidth) {
 			xPosition = documentWidth - renamePopupWidth;
-		} else {
+		}
+		else {
 			xPosition = itemClientRect.right - 20;
 		}
 

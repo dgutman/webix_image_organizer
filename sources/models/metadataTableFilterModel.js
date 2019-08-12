@@ -34,6 +34,7 @@ function addNoFiltersSelection() {
 		id: "all",
 		value: "all"
 	});
+	metadataTableFilter.setValue("all");
 }
 
 function clearFilterSelectList() {

@@ -224,7 +224,7 @@ a, .link {
     }
     .webix_icon {
       font-weight: 600;
-      text-align: center;
+      padding-left: 3px;
       position: absolute;
       top: 50%;
     }
@@ -422,10 +422,19 @@ a, .link {
 
 .webix_view.webix_window {
     .webix_icon_btn {
-      margin-top: 3px;
+      margin-top: 1px;
     }
 }
 
 .webix_dtable_focused .webix_column > div.webix_row_select, .webix_dtable_focused .webix_column > div.webix_column_select {
   background: @select-color;
+}
+.webix_el_button input, .webix_el_toggle input, .webix_el_button button, .webix_el_toggle button, .webixbutton {
+  .border-radius(0);
+}
+
+.webix_dtable .webix_ss_center .webix_cell {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }

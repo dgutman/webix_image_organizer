@@ -9,4 +9,4 @@ function formatDateString(dateStr) {
 
 export default {
 	formatDateString
-}
+};

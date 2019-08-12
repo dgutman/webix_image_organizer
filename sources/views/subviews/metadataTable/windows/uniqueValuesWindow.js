@@ -99,9 +99,7 @@ export default class UniqueValuesWindow extends JetView {
 						view: "template",
 						css: "edit-window-header",
 						name: "headerTemplateName",
-						template: () => {
-							return "Edit unique values in metadata";
-						},
+						template: () => "Edit unique values in metadata",
 						borderless: true
 					},
 					{

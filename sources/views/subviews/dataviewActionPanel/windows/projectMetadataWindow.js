@@ -22,7 +22,7 @@ export default class ProjectMetadataWindow extends JetView {
 						view: "template",
 						css: "edit-window-header",
 						name: "headerTemplate",
-						template: "Project Metadata",
+						template: "Project metadata",
 						borderless: true
 					},
 					{
@@ -41,7 +41,7 @@ export default class ProjectMetadataWindow extends JetView {
 					{
 						view: "editabletemplate",
 						name: "projectMetadataTemplateName",
-						css: {"overflow": "auto"},
+						css: {overflow: "auto"},
 						editable: true,
 						editor: "text",
 						editaction: "click",
@@ -50,11 +50,9 @@ export default class ProjectMetadataWindow extends JetView {
 								let stringToReturn = "";
 								projectKeys.forEach((key) => {
 									if (Array.isArray(obj[key])) {
-										const validationValues = obj[key].map((value, index) => {
-											return `<p data-edit=${key}-${index}>${value}</p>`;
-										}).join("");
+										const validationValues = obj[key].map((value, index) => `<p data-edit=${key}-${index}>${value}</p>`).join("");
 										const showedOrHiddenCssClass = this.getShowedOrHiddenCssClass(key);
-										stringToReturn+=`<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
+										stringToReturn += `<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
 														<span class="collpaser-text">${key}</span>
 													</div>
 													<div class="validation-values-template ${key}" style="">${validationValues}</div>\n`;
@@ -70,7 +68,8 @@ export default class ProjectMetadataWindow extends JetView {
 										utils.showOrHideTemplateCollapsedViews(key, element);
 										if (element.className.indexOf("showed-views") !== -1) {
 											collapsedTemplatesCollection.add(element);
-										} else {
+										}
+										else {
 											collapsedTemplatesCollection.remove(key);
 										}
 									}
@@ -92,21 +91,21 @@ export default class ProjectMetadataWindow extends JetView {
 			const projectSchema = projectMetadataFolder.meta.schema;
 			projectKeys = Object.keys(projectSchema);
 			this.projectMetadataTemplate.parse(projectSchema);
-			this.getRoot().show();
 			this.projectMetadataTemplate.attachEvent("onAfterRender", () => {
 				collapsedTemplatesCollection.find((elementNode) => {
 					const key = elementNode.id;
 					utils.showOrHideTemplateCollapsedViews(key, elementNode);
 				});
 			});
-		} else {
+			this.getRoot().show();
+		}
+		else {
 			webix.alert({
 				title: "Error",
 				type: "alert-error",
 				text: "There is no metadata validation rules in .ProjectMetadata folder!"
 			});
 		}
-
 	}
 
 	getProjectMetadataTemplate() {
@@ -117,14 +116,12 @@ export default class ProjectMetadataWindow extends JetView {
 		const templatesToShow = collapsedTemplatesCollection.find(elementNode => elementNode.id === key);
 		if (templatesToShow.length !== 0) {
 			return "showed-views";
-		} else {
-			return "hidden-views";
 		}
+		return "hidden-views";
 	}
 
 	close() {
 		this.projectMetadataTemplate.detachEvent("onAfterRender");
 		this.getRoot().hide();
 	}
-
 }
