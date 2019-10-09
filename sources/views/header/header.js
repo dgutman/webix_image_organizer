@@ -4,6 +4,7 @@ import ajax from "../../services/ajaxActions";
 import HeaderService from "../../services/header/headerService";
 import LoginWindow from "../authWindows/loginWindow";
 import LogoutPanel from "./parts/logoutPanel";
+import utils from "../../utils/utils";
 
 const LOGOUT_PANEL_NAME = "logout-panel";
 const LOGIN_PANEL_NAME = "login-panel";
@@ -14,7 +15,8 @@ export default class Header extends JetView {
 		const logo = {
 			template: "Image Organizer",
 			css: "main-header-logo",
-			borderless: true
+			borderless: true,
+			width: 165
 		};
 
 		const loginMenu = {
@@ -55,7 +57,7 @@ export default class Header extends JetView {
 
 		const hostDropDownBox = {
 			view: "richselect",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			name: "hostBoxName",
 			css: "select-field ellipsis-text",
 			label: "Hosts",
@@ -69,7 +71,7 @@ export default class Header extends JetView {
 
 		const collectionDropDownBox = {
 			view: "richselect",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			name: "collectionBoxName",
 			css: "select-field ellipsis-text",
 			label: "Collections",
@@ -82,53 +84,60 @@ export default class Header extends JetView {
 			}
 		};
 
-		/* const skinSwitcher = {
+		const skinSwitcher = {
 			name: "skin",
 			labelWidth: 70,
 			width: 300,
 			view: "richselect",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			css: "select-field",
 			value: this.app.getService("theme").getTheme(),
 			label: "Theme",
 			options: [
 				{id: "flat", value: "flat"},
+				{id: "material", value: "material"},
+				{id: "mini", value: "mini"},
 				{id: "compact", value: "compact"},
-				{id: "aircompact", value: "aircompact"},
-				{id: "clouds", value: "clouds"},
-				{id: "air", value: "air"},
-				{id: "glamour", value: "glamour"},
-				{id: "light", value: "light"},
-				{id: "metro", value: "metro"},
-				{id: "terrace", value: "terrace"},
-				{id: "touch", value: "touch"},
-				{id: "web", value: "web"}
-			],
-			on: {
-				onChange: () => this.toggleTheme()
-			}
-		}; */
+				{id: "contrast", value: "contrast"}
+				// {id: "glamour", value: "glamour"},
+				// {id: "light", value: "light"},
+				// {id: "metro", value: "metro"},
+				// {id: "terrace", value: "terrace"},
+				// {id: "touch", value: "touch"},
+				// {id: "web", value: "web"}
+			]
+		};
 
 		const header = {
 			height: 60,
 			css: "main-header",
 			cols: [
 				logo,
+				{width: 50},
 				{
 					rows: [
-						{height: 12},
-						hostDropDownBox,
-						{height: 18}
+						{},
+						skinSwitcher,
+						{}
 					]
 				},
 				{width: 50},
 				{
 					rows: [
-						{height: 12},
-						collectionDropDownBox,
-						{height: 18}
+						{},
+						hostDropDownBox,
+						{}
 					]
 				},
+				{width: 50},
+				{
+					rows: [
+						{},
+						collectionDropDownBox,
+						{}
+					]
+				},
+				{width: 50},
 				userPanel
 			]
 		};
@@ -136,14 +145,10 @@ export default class Header extends JetView {
 		return {
 			css: "global-header",
 			name: "headerClass",
-			rows: [
-				{
-					cols: [
-						{width: 50},
-						header,
-						{width: 50}
-					]
-				}
+			cols: [
+				{},
+				header,
+				{}
 			]
 		};
 	}
@@ -178,6 +183,10 @@ export default class Header extends JetView {
 
 	getCollectionBox() {
 		return this.getRoot().queryView({name: "collectionBoxName"});
+	}
+
+	getSkinSwitcher() {
+		return this.getRoot().queryView({name: "skin"});
 	}
 
 	parseCollectionData() {

@@ -9,6 +9,7 @@ let metadataTableThumbnailTemplate;
 let pdfViewerWindow;
 let itemsModel;
 let renamePopup;
+let metadataTemplate;
 
 function setMainView(view) {
 	mainView = view;
@@ -98,6 +99,14 @@ function getRenamePopup() {
 	return renamePopup;
 }
 
+function setMetadataTemplate(template) {
+	metadataTemplate = template;
+}
+
+function getMetadataTemplate() {
+	return metadataTemplate;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -120,5 +129,7 @@ export default {
 	setItemsModel,
 	getItemsModel,
 	setRenamePopup,
-	getRenamePopup
+	getRenamePopup,
+	setMetadataTemplate,
+	getMetadataTemplate
 };

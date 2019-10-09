@@ -2,9 +2,10 @@ import {JetView} from "webix-jet";
 import constants from "../../../../constants";
 import ajax from "../../../../services/ajaxActions";
 import webixViews from "../../../../models/webixViews";
+import recognizedItemsModel from "../../../../models/recognizedItems";
 
 const MAX_ITEMS_PER_REQUEST = 100;
-const errorsArray = [];
+let errorsArray = [];
 
 export default class RecognitionServiceWindow extends JetView {
 	config() {
@@ -125,6 +126,8 @@ export default class RecognitionServiceWindow extends JetView {
 					value = "label";
 					break;
 				}
+				default:
+					break;
 			}
 			option = {
 				view: "checkbox",
@@ -143,6 +146,7 @@ export default class RecognitionServiceWindow extends JetView {
 	handleRecognizeBtnClick() {
 		let message;
 		this.validOptions = this.getValidOptions();
+		recognizedItemsModel.setValidOptions(this.validOptions);
 		const items = this.images || [];
 		if (this._finderFolder && !this._finder.isBranchOpen(this._finderFolder.id)) {
 			message = "You have to open folder before running";
@@ -155,6 +159,7 @@ export default class RecognitionServiceWindow extends JetView {
 		}
 		else {
 			const itemIds = items.map(item => item._id);
+			recognizedItemsModel.clearProcessedItems();
 			this.runRecognizeService(this.validOptions, itemIds);
 			return;
 		}
@@ -196,6 +201,7 @@ export default class RecognitionServiceWindow extends JetView {
 				const itemsModel = webixViews.getItemsModel();
 				const itemsWithMeta = this.parseDataFromService(data, slicedItemIds);
 				itemsModel.updateItems(itemsWithMeta);
+				recognizedItemsModel.addProcessedItems(itemsWithMeta);
 				if (slicedItemIds.length < itemIds.length) {
 					itemIds = itemIds.slice(MAX_ITEMS_PER_REQUEST);
 					this.runRecognizeService(options, itemIds);
@@ -206,9 +212,11 @@ export default class RecognitionServiceWindow extends JetView {
 					const finalStatus = errorsArray.length ? statuses.WARNS : statuses.DONE;
 					recognizeButton.enable();
 					this.setTemplateStatus(finalStatus);
+					errorsArray = [];
 				}
 			})
-			.fail(() => {
+			.fail((xhr) => {
+				statuses.ERROR.text = xhr.responseText || "Unidentified error";
 				recognizeButton.enable();
 				this.setTemplateStatus(statuses.ERROR);
 			});
@@ -216,7 +224,11 @@ export default class RecognitionServiceWindow extends JetView {
 
 	parseDataFromService(data, itemIds) {
 		const itemsModel = webixViews.getItemsModel();
-		const items = itemIds.map(itemId => webix.copy(itemsModel.findItem(null, itemId)));
+		const dataCollection = itemsModel.getDataCollection();
+		const items = itemIds.map((itemId) => {
+			let foundedItem = dataCollection.find(item => itemId === item._id, true) || this.images.find(item => itemId === item._id);
+			return webix.copy(foundedItem);
+		});
 		data.forEach((resultsArray, i) => {
 			switch (this.validOptions[i]) {
 				case "sticker":
@@ -227,6 +239,8 @@ export default class RecognitionServiceWindow extends JetView {
 					break;
 				case "label":
 					this.parseSingleDataArray(resultsArray, items, "label");
+					break;
+				default:
 					break;
 			}
 		});
@@ -243,7 +257,12 @@ export default class RecognitionServiceWindow extends JetView {
 						if (!foundedItem.meta) {
 							foundedItem.meta = {};
 						}
-						foundedItem.meta[option] = item.results;
+						if (option === "label") {
+							foundedItem.meta.ocrRawText = unescape(item.results);
+						}
+						else {
+							foundedItem.meta[option] = item.results;
+						}
 					}
 				}
 				else {

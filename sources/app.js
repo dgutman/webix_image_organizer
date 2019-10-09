@@ -1,6 +1,7 @@
 import "./styles/app.less";
 import {JetApp, plugins} from "webix-jet";
 import state from "./models/state";
+import utils from "./utils/utils";
 
 webix.ready(() => {
 	const app = new JetApp({
@@ -30,6 +31,6 @@ webix.ready(() => {
 
 	app.use(plugins.Theme);
 	const themes = app.getService("theme");
-	themes.setTheme("flat", true);
+	themes.setTheme(utils.getAppSkinFromLocalStorage() || "flat", true);
 	state.app = app;
 });

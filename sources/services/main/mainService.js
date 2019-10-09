@@ -25,11 +25,14 @@ import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import EmptyDataViewsService from "../views/emptyDataViews";
 import viewMouseEvents from "../../utils/viewMouseEvents";
+import recognizedItemsModel from "../../models/recognizedItems";
 
 let contextToFolder;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
+let filesToLargeImage = [];
+let isRecognitionResultMode;
 
 class MainService {
 	constructor(view, hostBox, collectionBox, multiviewSwitcher, galleryDataviewPager, galleryDataview, metadataTable, finder, metadataTemplate, collapser, metadataPanelScrollView, cartList) {
@@ -49,8 +52,6 @@ class MainService {
 	}
 
 	_ready() {
-		let filesToLargeImage = [];
-
 		const scrollPosition = this._finder.getScrollState();
 		webix.extend(this._view, webix.ProgressBar);
 		this._metadataPanelScrollView.hide();
@@ -62,7 +63,7 @@ class MainService {
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
 		this._pdfViewerWindow = this._view.$scope.ui(PdfViewerWindow);
-		this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
+		// this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
 		this._finderContextMenu = this._view.$scope.ui(FinderContextMenu).getRoot();
 		this._cartViewButton = this._view.$scope.getSubDataviewActionPanelView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartListView().getDownloadingMenu();
@@ -77,13 +78,15 @@ class MainService {
 		this._tableTemplateCollapser = this._metadataTable.$scope.getTableTemplateCollapser();
 		this._galleryDataviewImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
-		this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
+		// this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
 		this._galleryFeaturesView = this._view.$scope.getSubGalleryFeaturesView().getRoot();
 		this._filterTableView = this._view.$scope.getSubDataviewActionPanelView().getFilterTableView();
 		this._recognitionStatusTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		this._itemsModel = new ItemsModel(this._finder);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
+		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
+		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
 
 		webixViews.setGalleryDataview(this._galleryDataview);
 		webixViews.setMetadataTable(this._metadataTable);
@@ -95,11 +98,13 @@ class MainService {
 		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
 		webixViews.setItemsModel(this._itemsModel);
 		webixViews.setRenamePopup(this._renamePopup);
+		webixViews.setMetadataTemplate(this._metadataTemplate);
 
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
+		this._addWarningToFilter = utils.once(obj => galleryDataviewFilterModel.prepareDataToFilter([obj]));
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 		galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
@@ -125,6 +130,11 @@ class MainService {
 		});
 
 		this._setInitSettingsMouseEvents();
+
+		// to hide select lists after scroll
+		document.body.addEventListener("scroll", () => {
+			webix.callEvent("onClick", []);
+		});
 
 		this._galleryDataviewPager.attachEvent("onAfterRender", function () {
 			const currentPager = this;
@@ -175,7 +185,6 @@ class MainService {
 				IMAGE_WIDTH = 150;
 			}
 			const checkedClass = obj.markCheckbox ? "is-checked" : "";
-			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
 			const imageViewerValue = this._galleryDataviewImageViewer.getValue();
 			switch (imageViewerValue) {
 				case constants.THUMBNAIL_DATAVIEW_IMAGES: {
@@ -208,9 +217,17 @@ class MainService {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
 								this._galleryDataview.refresh();
 							}
+						})
+						.fail(() => {
+							obj.imageWarning = true;
 						});
 				}
 			}
+
+			const warning = obj.imageWarning ? `<span class='webix_icon fas fa-exclamation-triangle warning-icon' style='${this._getPositionFloat(obj)}'></span>` : "";
+			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
+
+			if (obj.imageWarning) this._addWarningToFilter(obj);
 
 			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
 			return `<div class='unselectable-dataview-items'>
@@ -222,6 +239,7 @@ class MainService {
 										</div>
 									</div>
 							${starHtml}
+							${warning}
 							<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 						</div>
 						<div class="thumbnails-name">${obj.name}</div>
@@ -255,6 +273,8 @@ class MainService {
 
 		// setting onChange event for collection
 		this._collectionBox.attachEvent("onChange", (id) => {
+			isRecognitionResultMode = false;
+			this._changeRecognitionResultsMode();
 			this.collectionItem = this._collectionBox.getList().getItem(id);
 			this._itemsModel.clearAll();
 			// this._finder.clearAll();
@@ -326,14 +346,25 @@ class MainService {
 
 		// after opening the tree branch we fire this event
 		this._finder.attachEvent("onAfterSelect", (id) => {
-			const item = this._finder.getItem(id);
-			if (item._modelType === "item" || !item._modelType) {
-				utils.parseDataToViews(item);
-				this._highlightLastSelectedFolder();
+			if (isRecognitionResultMode) {
+				webix.confirm({
+					title: "Attention!",
+					text: "Are you sure you want to hide results?",
+					type: "confirm-warning",
+					cancel: "Yes",
+					ok: "No"
+				})
+					.then(() => {
+						this._finder.unselectAll();
+					})
+					.fail(() => {
+						isRecognitionResultMode = false;
+						this._changeRecognitionResultsMode();
+						this._selectFinderItem(id);
+					});
 			}
-			else if (item._modelType === "folder") {
-				finderModel.loadBranch(id, this._view)
-					.then(() => this._highlightLastSelectedFolder());
+			else {
+				this._selectFinderItem(id);
 			}
 		});
 
@@ -516,10 +547,20 @@ class MainService {
 						else if (!item) {
 							item = this._galleryDataview.find(galleryItem => galleryItem._id === this._finderItem._id, true);
 						}
+						const cartListItem = this._cartList.find(cartItem => cartItem._id === item._id, true);
 						ajaxActions.putNewItemName(this._finderItem._id, newValue)
 							.then((updatedItem) => {
 								this._finder.updateItem(this._finderItem.id, updatedItem);
 								this._galleryDataview.updateItem(item.id, updatedItem);
+								if (cartListItem) {
+									this._cartList.updateItem(cartListItem.id, updatedItem);
+									const cartData = this._cartList.serialize(true);
+									utils.putSelectedItemsToLocalStorage(cartData);
+								}
+								const selectedItem = this._galleryDataview.getSelectedItem();
+								if (selectedItem) {
+									this._metadataTemplate.setValues(selectedItem);
+								}
 								webix.message({text: "Item name was successfully updated!"});
 								this._view.hideProgress();
 							})
@@ -665,7 +706,7 @@ class MainService {
 					let itemNode = this._cartList.getItemNode(obj.id);
 					let listTextNode = itemNode.firstChild.children[2];
 					itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
-					listTextNode.setAttribute("style", "margin-left: 17px; width: 115px !important;");
+					listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
 				});
 			}
 		});
@@ -707,10 +748,10 @@ class MainService {
 					this._recognitionOptionsWindow.showWindow(this._finder, null, this._galleryDataview, this._recognitionStatusTemplate);
 					break;
 				}
-				case constants.ADD_TAG_TO_IMAGES_MENU_ID: {
-					const windowAction = "set";
-					this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
-				}
+				// case constants.ADD_TAG_TO_IMAGES_MENU_ID: {
+				// 	const windowAction = "set";
+				// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
+				// }
 			}
 		});
 
@@ -769,23 +810,7 @@ class MainService {
 				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
 			}
 
-			if (authService.isLoggedIn() && authService.getUserInfo().admin) {
-				filesToLargeImage = this._galleryDataview.find((obj) => {
-					let itemType = utils.searchForFileType(obj);
-					if (!obj.largeImage) {
-						if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
-							return obj;
-						}
-					}
-				});
-				viewMouseEvents.setFilesToLargeImage(filesToLargeImage);
-				if (filesToLargeImage.length !== 0) {
-					this._makeLargeImageButton.show();
-				}
-				else {
-					this._makeLargeImageButton.hide();
-				}
-			}
+			this._setFilesToLargeImage();
 
 			this._galleryDataview.data.each((obj) => {
 				if (selectDataviewItems.isSelected(obj._id) && !obj.markCheckbox) {
@@ -793,6 +818,10 @@ class MainService {
 					this._galleryDataview.updateItem(obj.id, obj);
 				}
 			});
+		});
+
+		this._makeLargeImageWindow.getRoot().attachEvent("onHide", () => {
+			this._setFilesToLargeImage();
 		});
 
 		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
@@ -839,9 +868,52 @@ class MainService {
 			}
 		});
 
-		this._createNewTagButton.attachEvent("onItemClick", () => {
-			const windowAction = "create";
-			this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection);
+		// this._createNewTagButton.attachEvent("onItemClick", () => {
+		// 	const windowAction = "create";
+		// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection);
+		// });
+
+		this._recognitionProgressTemplate.define("onClick", {
+			fas: () => {
+				const statusObj = this._recognitionProgressTemplate.getValues();
+				if (statusObj.value !== constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
+					webix.confirm({
+						text: "Are you sure you want to show results?",
+						type: "confirm-warning",
+						cancel: "Yes",
+						ok: "No",
+						callback: (result) => {
+							if (!result) {
+								switch (statusObj.value) {
+									case constants.RECOGNITION_STATUSES.WARNS.value:
+									case constants.RECOGNITION_STATUSES.DONE.value: {
+										isRecognitionResultMode = true;
+										this._changeRecognitionResultsMode();
+										break;
+									}
+									case constants.RECOGNITION_STATUSES.ERROR.value: {
+										webix.alert(statusObj.text);
+										break;
+									}
+									default: {
+										break;
+									}
+								}
+							}
+							else {
+								this._recognitionStatusTemplate.hide();
+							}
+						}
+					});
+				}
+			}
+		});
+
+		this._recognitionResultsDropDown.attachEvent("onChange", (id) => {
+			if (id) {
+				this._itemsDataCollection.clearAll();
+				this._itemsDataCollection.parse(recognizedItemsModel.getRecognizedItemsByOption(id));
+			}
 		});
 
 		this._setGallerySelectedItemsFromLocalStorage();
@@ -966,7 +1038,7 @@ class MainService {
 				if (buttonLabel === "Hide cart") this._view.$scope.getSubCartListView().showList();
 			}
 			else {
-				this._cartList.hide();
+				this._view.$scope.getSubCartListView().hideList();
 				this._cartViewButton.hide();
 			}
 		}
@@ -974,6 +1046,65 @@ class MainService {
 			this._view.$scope.getSubCartListView().hideList();
 			this._cartViewButton.hide();
 		}
+	}
+
+	_setFilesToLargeImage() {
+		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
+			filesToLargeImage = this._galleryDataview.find((obj) => {
+				let itemType = utils.searchForFileType(obj);
+				if (!obj.largeImage) {
+					if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
+						return obj;
+					}
+				}
+			});
+			viewMouseEvents.setFilesToLargeImage(filesToLargeImage);
+			if (filesToLargeImage.length !== 0) {
+				this._makeLargeImageButton.show();
+			}
+			else {
+				this._makeLargeImageButton.hide();
+			}
+		}
+	}
+
+	_changeRecognitionResultsMode() {
+		if (isRecognitionResultMode) {
+			const options = recognizedItemsModel.getValidOptions();
+			const optionsList = this._recognitionResultsDropDown.getList();
+			this._recognitionProgressTemplate.hide();
+			this._recognitionResultsDropDown.setValue();
+			optionsList.clearAll();
+			optionsList.parse(options);
+			this._recognitionResultsDropDown.setValue(options[0]);
+			this._recognitionResultsDropDown.show();
+			this._finder.unselectAll();
+		}
+		else {
+			const optionsList = this._recognitionResultsDropDown.getList();
+			this._recognitionResultsDropDown.hide();
+			this._recognitionResultsDropDown.setValue();
+			optionsList.clearAll();
+			this._itemsDataCollection.clearAll();
+			recognizedItemsModel.clearProcessedItems();
+			recognizedItemsModel.setValidOptions();
+		}
+	}
+
+	_selectFinderItem(id) {
+		const item = this._finder.getItem(id);
+		if (item._modelType === "item" || !item._modelType) {
+			utils.parseDataToViews(item);
+			this._highlightLastSelectedFolder();
+		}
+		else if (item._modelType === "folder") {
+			finderModel.loadBranch(id, this._view)
+				.then(() => this._highlightLastSelectedFolder());
+		}
+	}
+
+	_getPositionFloat(obj) {
+		return obj.starColor ? "left: 15px" : "right: 13px;";
 	}
 }
 

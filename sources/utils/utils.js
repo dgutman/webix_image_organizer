@@ -147,37 +147,6 @@ function angleIconChange(obj) {
 	return obj.imageShown ? "fa-angle-down" : "fa-angle-right";
 }
 
-function parseDataToViews(data, linearData) {
-	const itemsModel = webixViews.getItemsModel();
-	const dataCollection = itemsModel.getDataCollection();
-	// const metadataTable = webixViews.getMetadataTableView();
-	const galleryDataview = webixViews.getGalleryDataview();
-	const pager = webixViews.getGalleryPager();
-
-	if (!pager.isVisible() && galleryDataview.isVisible()) {
-		pager.show();
-	}
-	if (!linearData) {
-		dataCollection.clearAll();
-		// galleryDataview.clearAll();
-		// metadataTable.clearAll();
-	}
-
-	if (!Array.isArray(data)) {
-		data = [data];
-	}
-
-	data.forEach((item) => {
-		item.starColor = findStarColorForItem(item);
-	});
-
-	dataCollection.parse(data);
-	// galleryDataview.parse(data);
-	// metadataTable.parse(data);
-	galleryDataviewFilterModel.prepareDataToFilter(data);
-	metadataTableFilterModel.prepareDataToFilter(data);
-}
-
 function findStarColorForItem(item) {
 	let hasFoundMissingKey = false;
 	let hasFoundIncorrectKey = false;
@@ -227,6 +196,37 @@ function findStarColorForItem(item) {
 
 		return starColor;
 	}
+}
+
+function parseDataToViews(data, linearData) {
+	const itemsModel = webixViews.getItemsModel();
+	const dataCollection = itemsModel.getDataCollection();
+	const galleryDataview = webixViews.getGalleryDataview();
+	// const metadataTable = webixViews.getMetadataTableView();
+	const pager = webixViews.getGalleryPager();
+
+	if (!pager.isVisible() && galleryDataview.isVisible()) {
+		pager.show();
+	}
+	if (!linearData) {
+		dataCollection.clearAll();
+		// galleryDataview.clearAll();
+		// metadataTable.clearAll();
+	}
+
+	if (!Array.isArray(data)) {
+		data = [data];
+	}
+
+	data.forEach((item) => {
+		item.starColor = findStarColorForItem(item);
+	});
+
+	dataCollection.parse(data);
+	galleryDataview.refresh();
+	// metadataTable.parse(data);
+	galleryDataviewFilterModel.prepareDataToFilter(data);
+	metadataTableFilterModel.prepareDataToFilter(data);
 }
 
 function getMetadataColumnColor(obj, columnId) {
@@ -494,6 +494,38 @@ function isElement(o) {
 	);
 }
 
+function setAppSkinToLocalStorage(id) {
+	const userId = getUserId() || "unregistered";
+	webix.storage.local.put(`skinApp-${userId}`, id);
+}
+
+function getAppSkinFromLocalStorage() {
+	const userId = getUserId() || "unregistered";
+	return webix.storage.local.get(`skinApp-${userId}`);
+}
+
+function getSelectIcon() {
+	const theme = getAppSkinFromLocalStorage();
+	let icon = "fas fa-chevron-down";
+	if (theme === "material" || theme === "mini") {
+		icon = "wxi-menu-down";
+	}
+	return icon;
+}
+
+function once(fn, context) {
+	let result;
+
+	return function () {
+		if (fn) {
+			result = fn.apply(context || this, arguments);
+			fn = null;
+		}
+
+		return result;
+	};
+}
+
 export default {
 	openInNewTab,
 	downloadByLink,
@@ -531,5 +563,9 @@ export default {
 	removeSelectedItemsFromLocalStorage,
 	createElementFromHTML,
 	isNode,
-	isElement
+	isElement,
+	setAppSkinToLocalStorage,
+	getAppSkinFromLocalStorage,
+	getSelectIcon,
+	once
 };

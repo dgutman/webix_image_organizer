@@ -33,10 +33,13 @@ export default class ItemsModel {
 			items = [items];
 		}
 		items.forEach((updatedItem) => {
-			const foundedItem = this.customFinderDataPull[updatedItem._id];
-			if (foundedItem) {
-				delete updatedItem.id;
-				this.finderCollection.updateItem(foundedItem.id, updatedItem);
+			const foundedItemInFinder = this.customFinderDataPull[updatedItem._id];
+			const foundedItemInDataCollection = this.dataCollection.find(item => item._id === updatedItem._id, true);
+			if (foundedItemInFinder) {
+				this.finderCollection.updateItem(foundedItemInFinder.id, updatedItem);
+			}
+			if (foundedItemInDataCollection) {
+				this.dataCollection.updateItem(foundedItemInDataCollection.id, updatedItem);
 			}
 		});
 	}

@@ -8,7 +8,7 @@ export default class GalleryFeatures extends JetView {
 	config() {
 		const galleryFeaturesTemplate = {
 			height: 27,
-			width: 130,
+			width: 140,
 			view: "template",
 			borderless: true,
 			name: "galleryFeaturesTemplateName",
@@ -24,7 +24,7 @@ export default class GalleryFeatures extends JetView {
 
 		const dataviewYCountSelction = {
 			view: "richselect",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			css: "select-field",
 			// hidden: true,
 			id: constants.ID_GALLERY_RICHSELECT,
@@ -55,7 +55,7 @@ export default class GalleryFeatures extends JetView {
 		const filterBySelection = {
 			view: "richselect",
 			css: "select-field",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			name: "filterBySelectionName",
 			width: 330,
 			label: "Filter gallery",
@@ -95,7 +95,7 @@ export default class GalleryFeatures extends JetView {
 		const galleryImageViewer = {
 			view: "richselect",
 			css: "select-field",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			name: "galleryImageViewerName",
 			width: 355,
 			label: "Choose type",

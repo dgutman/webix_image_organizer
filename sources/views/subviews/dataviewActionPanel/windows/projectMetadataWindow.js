@@ -87,7 +87,7 @@ export default class ProjectMetadataWindow extends JetView {
 		this.projectMetadataTemplate = this.getProjectMetadataTemplate();
 		const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 		const projectMetadataFolder = projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
-		if (projectMetadataFolder instanceof Object && projectMetadataFolder.hasOwnProperty("meta")) {
+		if (projectMetadataFolder instanceof Object && projectMetadataFolder.hasOwnProperty("meta") && projectMetadataFolder.meta("schema")) {
 			const projectSchema = projectMetadataFolder.meta.schema;
 			projectKeys = Object.keys(projectSchema);
 			this.projectMetadataTemplate.parse(projectSchema);

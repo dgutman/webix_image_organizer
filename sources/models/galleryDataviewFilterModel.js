@@ -62,9 +62,10 @@ function parseFilterToRichSelectList() {
 function filterData(dataview, value) {
 	const nameValue = nameFilterView ? nameFilterView.getValue() : "";
 	const lowerCaseNameValue = nameValue ? nameValue.toLowerCase() : "";
+
 	dataview.filter((obj) => {
-		let itemType = utils.searchForFileType(obj);
-		if (value === "all" || itemType === value || obj.starColor === value.substr(0, value.indexOf(" "))) {
+		const itemType = utils.searchForFileType(obj);
+		if (value === "all" || itemType === value || obj.starColor === value.substr(0, value.indexOf(" ")) || value === "warning" && obj.imageWarning) {
 			if (lowerCaseNameValue) {
 				return obj.name.toString().toLowerCase().indexOf(lowerCaseNameValue) !== -1;
 			}
@@ -129,13 +130,14 @@ function prepareDataToFilter(dataArray) {
 	setFilterValue("");
 	richSelectDataviewFilter.unblockEvent();
 	clearFilterValues();
+
 	dataArray.forEach((item) => {
 		const itemType = utils.searchForFileType(item);
-		addFilterValue(itemType);
 		const itemStarColor = item.starColor;
-		if (itemStarColor) {
-			addFilterValue(`${itemStarColor} star`);
-		}
+		const itemWarningStatus = item.imageWarning;
+		addFilterValue(itemType);
+		if (itemStarColor) addFilterValue(`${itemStarColor} star`);
+		if (itemWarningStatus) addFilterValue("warning");
 		// if (item.hasOwnProperty("meta") && item.meta.hasOwnProperty("tag")) {
 		// 	const tagsImageId = imagesTagsCollection.getLastId();
 		// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);

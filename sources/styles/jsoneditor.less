@@ -13,23 +13,33 @@
   .jsoneditor-tree-inner {
     padding-bottom: 30px !important;
   }
+}
 
-  .jsoneditor-readonly {
-    font-size: 14px !important;
-    color: #6E7480;
-    font-family: Roboto, Arial;
-    font-weight: bold;
-  }
+.mainStylesJSONEditor() {
+  .metadata-template {
+    .jsoneditor-readonly {
+      font-size: @main-font-size !important;
+      color: @main-color-light;
+      font-family: Roboto, Arial;
+      font-weight: bold;
+    }
 
-  .jsoneditor-field {
-    font-family: Roboto, Arial;
-    font-size: 14px !important;
-    color: #6E7480;
-  }
+    .jsoneditor-field {
+      font-family: Roboto, Arial;
+      font-size: @main-font-size !important;
+      color: @main-color-light;
+      &:focus {
+        background-color: #ffffab47;
+      }
+    }
 
-  .jsoneditor-value {
-    font-family: Roboto, Arial;
-    font-size: 14px !important;
-    color: #6E7480 !important;
+    .jsoneditor-value {
+      font-family: Roboto, Arial;
+      font-size: @main-font-size !important;
+      color: @main-color-light !important;
+      &:focus {
+        background-color: #ffffab47;
+      }
+    }
   }
 }

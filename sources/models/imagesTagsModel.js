@@ -25,8 +25,7 @@ const stickers = [
 // add options after back-end fix
 (function addTagsToCollection(options = {marker, stickers}) {
 	imagesTagsCollection.add(options);
-})();
-//TODO add onChange event on datacollection after API fixes
+}());
 
 function getImagesTagsCollection() {
 	return imagesTagsCollection;

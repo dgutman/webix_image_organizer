@@ -109,8 +109,7 @@ class AjaxActions {
 	}
 
 	getImage(imageId, height, width, imageType) {
-		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`)
-			.fail(parseError);
+		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
 	}
 
 	downloadItem(itemId) {

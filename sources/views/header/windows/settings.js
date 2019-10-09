@@ -19,7 +19,7 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
-					icon: "fas fa-chevron-down",
+					icon: utils.getSelectIcon(),
 					name: constants.MOUSE_LEFT_SINGLE_CLICK,
 					placeholder: "Choose action",
 					labelWidth: 210,
@@ -34,7 +34,7 @@ export default class SettingsWindow extends JetView {
 				{
 					view: "richselect",
 					css: "select-field",
-					icon: "fas fa-chevron-down",
+					icon: utils.getSelectIcon(),
 					name: constants.MOUSE_RIGHT_SINGLE_CLICK,
 					placeholder: "Choose action",
 					labelWidth: 210,
@@ -48,7 +48,7 @@ export default class SettingsWindow extends JetView {
 				},
 				{
 					view: "richselect",
-					icon: "fas fa-chevron-down",
+					icon: utils.getSelectIcon(),
 					css: "select-field",
 					name: constants.MOUSE_LEFT_DOUBLE_CLICK,
 					placeholder: "Choose action",
