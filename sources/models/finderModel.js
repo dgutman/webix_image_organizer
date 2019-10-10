@@ -12,8 +12,8 @@ function setRealScrollPosition(position) {
 function loadBranch(id, view) {
 	const itemsModel = webixViews.getItemsModel();
 	const finderView = webixViews.getFinderView();
-	let array = [];
-	let itemsArray = [];
+	const array = [];
+	const itemsArray = [];
 	const item = finderView.getItem(id);
 	if (!item.hasOpened && !item.linear) {
 		view.showProgress();

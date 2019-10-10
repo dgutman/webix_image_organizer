@@ -3,6 +3,7 @@ import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
 import galleryCell from "jet-views/subviews/gallery/gallery";
 import metadataTableCell from "jet-views/subviews/metadataTable/metadataTable";
+import utils from "../../../utils/utils";
 
 export default class DataviewActionPanelClass extends JetView {
 	config() {
@@ -29,6 +30,18 @@ export default class DataviewActionPanelClass extends JetView {
 			multiview: true
 		};
 
+		const recognitionOptionDropDown = {
+			view: "richselect",
+			name: "recognitionOptionDropDown",
+			css: "select-field",
+			icon: utils.getSelectIcon(),
+			label: "Filter results",
+			labelWidth: 120,
+			width: 300,
+			hidden: true,
+			options: []
+		};
+
 		const pager = {
 			view: "pager",
 			width: 355,
@@ -40,7 +53,7 @@ export default class DataviewActionPanelClass extends JetView {
 		const filterBySelection = {
 			view: "richselect",
 			css: "select-field",
-			icon: "fas fa-chevron-down",
+			icon: utils.getSelectIcon(),
 			name: "filterTableBySelectionName",
 			width: 305,
 			label: "Filter table",
@@ -77,9 +90,9 @@ export default class DataviewActionPanelClass extends JetView {
 			name: "recognitionProgressTemplate",
 			template: (obj) => {
 				if (obj.value) {
-					const timeInfo = obj.value !== "Error" ? "This process may take hours. " : "";
+					const timeInfo = obj.value === constants.RECOGNITION_STATUSES.IN_PROGRESS.value ? "This process may take hours. " : "";
 					const progressCount = obj.count ? `(${obj.recognized || 0}/${obj.count})` : "";
-					const tooltip = "Click to hide";
+					const tooltip = "Show results";
 
 					return `<div class="recognition-status-template">
 								${timeInfo}Recognition status: ${obj.value} ${progressCount}
@@ -88,26 +101,6 @@ export default class DataviewActionPanelClass extends JetView {
 							</div>`;
 				}
 				return "";
-			},
-			onClick: {
-				fas: () => {
-					webix.confirm({
-						title: "Attention!",
-						text: "Are you sure you want to hide progress?",
-						type: "confirm-warning",
-						cancel: "Yes",
-						ok: "No",
-						callback: (result) => {
-							if (!result) {
-								const recognitionStatusTemplate = this.getRecognitionProgressTemplate();
-								const statusObj = recognitionStatusTemplate.getValues();
-								if (statusObj.value !== constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
-									recognitionStatusTemplate.hide();
-								}
-							}
-						}
-					});
-				}
 			},
 			height: 30,
 			borderless: true,
@@ -124,6 +117,7 @@ export default class DataviewActionPanelClass extends JetView {
 						projectFolderWindowButton,
 						{},
 						switchButton,
+						recognitionOptionDropDown,
 						{},
 						multiview,
 						{},
@@ -180,5 +174,9 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getRecognitionProgressTemplate() {
 		return this.getRoot().queryView({name: "recognitionProgressTemplate"});
+	}
+
+	getRecognitionOptionDropDown() {
+		return this.getRoot().queryView({name: "recognitionOptionDropDown"});
 	}
 }

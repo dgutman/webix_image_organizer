@@ -10,6 +10,7 @@ export default class CartView extends JetView {
 		const downloadingMenu = {
 			view: "menu",
 			css: "downloading-menu",
+			openAction: "click",
 			submenuConfig: {
 				width: 295
 			},
@@ -19,8 +20,8 @@ export default class CartView extends JetView {
 					submenu: [
 						constants.IMAGES_ONLY_MENU_ID,
 						constants.IMAGES_AND_METADATA_MENU_ID,
-						constants.COPY_TO_CLIPBOARD_MENU_ID,
-						constants.ADD_TAG_TO_IMAGES_MENU_ID
+						constants.COPY_TO_CLIPBOARD_MENU_ID
+						// constants.ADD_TAG_TO_IMAGES_MENU_ID
 					]
 				}
 			],
@@ -53,14 +54,14 @@ export default class CartView extends JetView {
 					const listTextNode = itemNode.firstChild.children[2];
 					if (!item.imageShown) {
 						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
-						listTextNode.setAttribute("style", "margin-left: 17px; width: 115px !important;");
+						listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
 						node.setAttribute("class", "webix_icon fas fa-angle-down");
 						item.imageShown = true;
 						modifiedObjects.add(item);
 					}
 					else {
 						itemNode.setAttribute("style", "height: 30px !important; color: rgba(0, 0, 0, 0.8);");
-						listTextNode.setAttribute("style", "margin-left: 12px; width: 120px !important;");
+						listTextNode.setAttribute("style", "margin-left: 12px; width: 115px !important;");
 						node.setAttribute("class", "webix_icon fas fa-angle-right");
 						item.imageShown = false;
 						modifiedObjects.remove(item);

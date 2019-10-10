@@ -29,10 +29,13 @@ export default class MakeLargeImageWindow extends JetView {
 				const largeImagePromises = [];
 				const galleryDataview = webixViews.getGalleryDataview();
 				this.view.showProgress();
-				parsedData.forEach((parsedObject) => {
-					largeImagePromises.push(ajaxActions.makeLargeImage(parsedObject._id));
+				parsedData = [];
+				this.windowList.data.each((obj) => {
+					if (obj.markListCheckbox) largeImagePromises.push(ajaxActions.makeLargeImage(obj._id));
+					else parsedData.push(obj);
 				});
-				webix.promise.all(largeImagePromises)
+
+				Promise.all(largeImagePromises)
 					.then((data) => {
 						const itemPromises = [];
 						data.forEach((largeImage) => {
@@ -41,7 +44,7 @@ export default class MakeLargeImageWindow extends JetView {
 								itemPromises.push(ajaxActions.getItem(itemId));
 							}
 						});
-						webix.promise.all(itemPromises)
+						Promise.all(itemPromises)
 							.then((items) => {
 								items.forEach((item) => {
 									galleryDataview.find((galleryItem) => {
@@ -50,14 +53,20 @@ export default class MakeLargeImageWindow extends JetView {
 										}
 									});
 								});
-								largeImageButton.hide();
-								parsedData = [];
-								this.close();
+
+								if (!parsedData.length) {
+									largeImageButton.hide();
+									this.close();
+								}
+								else {
+									this.windowList.clearAll();
+									this.windowList.parse(parsedData);
+								}
+
 								this.view.hideProgress();
-							})
-							.fail(() => this.view.hideProgress());
+							});
 					})
-					.fail(() => this.view.hideProgress());
+					.catch(() => this.view.hideProgress());
 			}
 		};
 
@@ -72,32 +81,33 @@ export default class MakeLargeImageWindow extends JetView {
 					css: "checkbox-ctrl",
 					width: 20,
 					height: 20,
-					on: {
-						onItemClick: (id) => {
-							const checkBox = $$(id);
-							let listItemId = checkBox.config.$masterId;
-							let listItem = this.windowList.getItem(listItemId);
-							let value = checkBox.getValue();
-							if (!value) {
-								let itemIndex = parsedData.findIndex((parsedObject) => {
-									if (parsedObject._id === listItem._id) {
-										return parsedObject;
-									}
-								});
-								parsedData.splice(itemIndex, 1);
-							}
-							else {
-								let itemIndex = parsedData.findIndex((parsedObject) => {
-									if (parsedObject._id === listItem._id) {
-										return parsedObject;
-									}
-								});
-								if (itemIndex === -1) {
-									parsedData.push(listItem);
-								}
-							}
-						}
-					}
+					// on: {
+					// 	onItemClick: (id) => {
+					// 		const checkBox = $$(id);
+					// 		const listItemId = checkBox.config.$masterId;
+					// 		const listItem = this.windowList.getItem(listItemId);
+					// 		const value = checkBox.getValue();
+					// 		console.log(listItem);
+					// 		if (!value) {
+					// 			let itemIndex = parsedData.findIndex((parsedObject) => {
+					// 				if (parsedObject._id === listItem._id) {
+					// 					return parsedObject;
+					// 				}
+					// 			});
+					// 			parsedData.splice(itemIndex, 1);
+					// 		}
+					// 		else {
+					// 			let itemIndex = parsedData.findIndex((parsedObject) => {
+					// 				if (parsedObject._id === listItem._id) {
+					// 					return parsedObject;
+					// 				}
+					// 			});
+					// 			if (itemIndex === -1) {
+					// 				parsedData.push(listItem);
+					// 			}
+					// 		}
+					// 	}
+					// }
 				}
 			},
 			template: (obj, common) => `<div class='large-image-window'>
@@ -169,7 +179,7 @@ export default class MakeLargeImageWindow extends JetView {
 	showWindow(data, button) {
 		parsedData = data;
 		largeImageButton = button;
-		data.forEach((dataObject) => {
+		parsedData.forEach((dataObject) => {
 			dataObject.markListCheckbox = true;
 			this.windowList.parse(dataObject);
 		});

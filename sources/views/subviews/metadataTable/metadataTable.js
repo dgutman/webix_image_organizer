@@ -31,7 +31,8 @@ export default class MetadataTableCellClass extends JetView {
 			name: "editColumnButtonName",
 			type: "icon",
 			icon: "fa fa-edit",
-			width: 170,
+			css: "metadtable-edit-column-button",
+			width: 200,
 			height: 30,
 			label: "Show or hide columns"
 		};
@@ -41,8 +42,9 @@ export default class MetadataTableCellClass extends JetView {
 			name: "exportButton",
 			type: "icon",
 			icon: "fa fa-share-square",
+			css: "metadtable-export-button",
 			label: "Export to excel",
-			width: 130,
+			width: 140,
 			height: 30
 		};
 
@@ -54,7 +56,7 @@ export default class MetadataTableCellClass extends JetView {
 					name: "editColumnsPanel",
 					cols: [
 						{
-							css: {"border-top": "1px solid #BDC4D4"},
+							css: "metadatatable-layout",
 							cols: [
 								editColumnButton,
 								{},

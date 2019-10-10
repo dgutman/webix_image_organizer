@@ -19,13 +19,6 @@
   max-width: 250px;
 }
 
-.templateName{
-  height: 15px;
-  font-size: 35px;
-  padding: 10px;
-  margin-bottom: 40px;
-}
-
 .metadata-template-collpaser {
   padding-bottom: 3px;
   margin-left: -20px;
@@ -43,12 +36,6 @@
   display: none;
   white-space: pre;
   text-align: center;
-}
-
-.list-of-tags-template {
-  font-size:17px;
-  font-style:italic;
-  padding-left: 17px;
 }
 
 .new-tag-name-template {
@@ -69,12 +56,6 @@
   }
 }
 
-.recognition-status-template {
-  padding-left: 20px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
 .ellipsis-text,
 .ellipsis-text .webix_cell,
 .ellipsis-text .webix_list_item,
@@ -86,30 +67,51 @@
   white-space: nowrap;
 }
 
-.webix_overlay {
-  padding: 0;
-  .data-subview-overlay {
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 20px 0 20px;
-    .overlay-text {
-      display: inline-block;
-      color: @overlay-text-color;
-      font-size: 35px;
+.mainStylesTemplates() {
+
+  .recognition-status-template {
+    padding-left: 20px;
+    font-size: @middle-font-size;
+    cursor: pointer;
+  }
+
+  .templateName{
+    height: 15px;
+    font-size: @large-font-size;
+    padding: 10px;
+    margin-bottom: 40px;
+  }
+
+  .list-of-tags-template {
+    font-size: @middle-font-size;
+    padding-left: 17px;
+  }
+
+  .webix_overlay {
+    padding: 0;
+    .data-subview-overlay {
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px 0 20px;
+      .overlay-text {
+        display: inline-block;
+        color: @overlay-text-color;
+        font-size: @large-font-size;
+      }
+    }
+
+    .empty-overlay {
+      background-color: @main-bg;
+      width: 100%;
+      height: 100%;
     }
   }
 
-  .empty-overlay {
-    background-color: @main-bg;
-    width: 100%;
-    height: 100%;
+  .hidden-overflow {
+    overflow: hidden !important;
   }
-}
-
-.hidden-overflow {
-  overflow: hidden !important;
 }
