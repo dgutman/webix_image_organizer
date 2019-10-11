@@ -417,7 +417,9 @@ class MainService {
 							{$template: "Separator"},
 							constants.RENAME_CONTEXT_MENU_ID,
 							{$template: "Separator"},
-							constants.RUN_RECOGNITION_SERVICE
+							constants.RUN_RECOGNITION_SERVICE,
+							{$template: "Separator"},
+							constants.OPEN_MULTIPLEX_VIEWER
 						]);
 					}
 					contextToFolder = true;
@@ -451,6 +453,13 @@ class MainService {
 						this._finder.edit(folderId);
 						break;
 					}
+					case constants.OPEN_MULTIPLEX_VIEWER:
+						{
+							webix.message("Open MultiPlex Viewer")
+							//TO DO.. NEXT IS TO DO A CONSOLE.LOG of this._findFolder
+							console.log(this);
+							break;
+						}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
 						const sourceParams = {
 							sort: "_id"
@@ -1053,7 +1062,7 @@ class MainService {
 			filesToLargeImage = this._galleryDataview.find((obj) => {
 				let itemType = utils.searchForFileType(obj);
 				if (!obj.largeImage) {
-					if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
+					if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "tif") {
 						return obj;
 					}
 				}

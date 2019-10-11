@@ -17,6 +17,8 @@ export default {
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 	RUN_RECOGNITION_SERVICE: "Recognition service",
+	OPEN_MULTIPLEX_VIEWER: "Open MultiPlex Viewer",
+
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 

@@ -31,7 +31,7 @@ function setDefaultGalleryContextMenu(dataview) {
 				galleryDataviewItem = item;
 				galleryDataviewContextMenu.clearAll();
 				galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
-				if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "jpeg") {
+				if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "jpeg" || itemType === "tif" ) {
 					if (!item.largeImage) {
 						galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
 					}
