@@ -144,7 +144,7 @@ class AjaxActions {
 	getLinearStucture(folderId, sourceParams) {
 		const params = sourceParams ? {
 			type: "folder",
-			limit: sourceParams.limit || 50,
+			limit: sourceParams.limit || 5000,
 			offset: sourceParams.offset || 0,
 			sort: sourceParams.sort || "lowerName",
 			sortdir: sourceParams.sortdir || 1
