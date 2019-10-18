@@ -4,7 +4,7 @@ const pack = require("./package.json");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin")
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
 module.exports = function (env) {
@@ -89,13 +89,15 @@ module.exports = function (env) {
 				PRODUCTION: production
 			}),
 			new CopyWebpackPlugin([
-				{ from: path.join(__dirname, "images/"), to: "sources/images"}]),
+				{ from: path.join(__dirname, "sources/images/"), to: "sources/images"}
+				]),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "STYX", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"},
 					{id: "2", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "3", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
-					// {id: "3", value: "ISIC Archive", hostAPI: "https://sandbox.isic-archive.com/api/v1"}
+					{id: "3", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
+					{id: "4", value: "ComputableBrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"}
+					//{id: "4", value: "ISIC Archive", hostAPI: "https://sandbox.isic-archive.com/api/v1"}
 				]
 			})
 		]
