@@ -17,7 +17,8 @@ export default class FinderViewClass extends JetView {
 			editValue: "name",
 			oncontext: {},
 			template(obj, common) {
-				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span>`;
+				const count = obj._modelType === "folder" && obj.$count !== -1 ? `(${obj.$count})` : "";
+				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name} ${count}</span>`;
 			},
 			scheme: {
 				$init(obj) {

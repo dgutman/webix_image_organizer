@@ -10,6 +10,7 @@ let pdfViewerWindow;
 let itemsModel;
 let renamePopup;
 let metadataTemplate;
+let dataviewSearchInput;
 
 function setMainView(view) {
 	mainView = view;
@@ -107,6 +108,14 @@ function getMetadataTemplate() {
 	return metadataTemplate;
 }
 
+function setDataviewSearchInput(input) {
+	dataviewSearchInput = input;
+}
+
+function getDataviewSearchInput() {
+	return dataviewSearchInput;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -131,5 +140,7 @@ export default {
 	setRenamePopup,
 	getRenamePopup,
 	setMetadataTemplate,
-	getMetadataTemplate
+	getMetadataTemplate,
+	setDataviewSearchInput,
+	getDataviewSearchInput
 };

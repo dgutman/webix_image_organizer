@@ -20,6 +20,7 @@
     "@babel/register": "^7.4.4",
     "@babel/runtime": "^7.4.5",
     "babel-loader": "^8.0.5",
+    "copy-webpack-plugin": "^5.0.4",
     "css-loader": "^3.0.0",
     "eslint": "5.14.1",
     "eslint-config-import": "0.13.0",
@@ -28,7 +29,6 @@
     "eslint-plugin-import": "2.16.0",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",
     "file-loader": "^4.0.0",
-    "file-saver": "^2.0.0",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^4.0.0-beta.5",
     "less": "^3.9.0",
@@ -41,6 +41,7 @@
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
+    "file-saver": "^2.0.0",
     "PubSub": "^3.4.0",
     "codemirror": "^5.39.2",
     "dot-object": "^1.7.1",

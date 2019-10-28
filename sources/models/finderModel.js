@@ -1,7 +1,6 @@
 import utils from "../utils/utils";
 import webixViews from "./webixViews";
 import dataviewFilterModel from "./galleryDataviewFilterModel";
-import metadataTableFilterModel from "./metadataTableFilterModel";
 
 let realScrollPosition;
 
@@ -72,14 +71,14 @@ function defineSizesAndPositionForDynamicScroll(treeFolder) {
 	let countBottom = false;
 
 	const branchScrollHeight = finderView.getItemNode(treeFolder.id).nextSibling.scrollHeight;
-	const branchesHTMLCollection = finderView.getNode().firstChild.firstChild.children;
-	branchesArray.push(...branchesHTMLCollection);
-	branchesArray.forEach((branchNode) => {
-		let branchId = branchNode.firstChild.attributes.webix_tm_id.nodeValue;
+	const branchesHTMLCollection = finderView.getNode().querySelectorAll("div[webix_tm_id]");
+	branchesArray = Array.from(branchesHTMLCollection);
+	branchesArray.some((branchNode) => {
+		let branchId = branchNode.attributes.webix_tm_id.nodeValue;
 		const branchClientHeight = branchNode.clientHeight;
 		if (parseInt(branchId) === treeFolder.id) {
 			countBottom = true;
-			return;
+			return countBottom;
 		}
 		if (!countBottom) {
 			viewClientHeight += branchClientHeight;
@@ -114,12 +113,8 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 					});
 					dataviewFilterModel.parseFilterToRichSelectList();
 					const filterValue = dataviewFilterModel.getRichselectDataviewFilter().getValue();
-					const tableFilterValue = metadataTableFilterModel.getMetadataTableFilter().getValue();
 					if (filterValue) {
 						dataviewFilterModel.getRichselectDataviewFilter().callEvent("onChange", [filterValue]);
-					}
-					if (tableFilterValue) {
-						metadataTableFilterModel.getMetadataTableFilter().callEvent("onChange", [filterValue]);
 					}
 				}
 				else {
