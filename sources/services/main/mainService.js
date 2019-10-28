@@ -20,14 +20,15 @@ import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
 import imagesTagsModel from "../../models/imagesTagsModel";
 import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
-import metadataTableFilterModel from "../../models/metadataTableFilterModel";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import EmptyDataViewsService from "../views/emptyDataViews";
 import viewMouseEvents from "../../utils/viewMouseEvents";
 import recognizedItemsModel from "../../models/recognizedItems";
+import FilterModel from "../../models/filterModel";
 
 let contextToFolder;
+let scrollEventId;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
@@ -87,6 +88,7 @@ class MainService {
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
 		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
+		this._filterModel = new FilterModel(this._itemsDataCollection);
 
 		webixViews.setGalleryDataview(this._galleryDataview);
 		webixViews.setMetadataTable(this._metadataTable);
@@ -99,16 +101,17 @@ class MainService {
 		webixViews.setItemsModel(this._itemsModel);
 		webixViews.setRenamePopup(this._renamePopup);
 		webixViews.setMetadataTemplate(this._metadataTemplate);
+		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
 
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
-		this._addWarningToFilter = utils.once(obj => galleryDataviewFilterModel.prepareDataToFilter([obj]));
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 		galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
-		metadataTableFilterModel.setMetadataTableFilter(this._filterTableView);
+		this._filterTableView.getList().sync(this._galleryDataviewRichselectFilter.getList());
+		this._filterTableView.bind(this._galleryDataviewRichselectFilter);
 
 		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
 
@@ -120,6 +123,7 @@ class MainService {
 			this._selectImagesTemplate
 		);
 		emptyDataViewsService.attachDataCollectionEvent();
+
 		// disable context menu for webix elements
 		this._metadataTable.getNode().addEventListener("contextmenu", (e) => {
 			e.preventDefault();
@@ -159,6 +163,11 @@ class MainService {
 
 		// prevent select for datatable
 		this._metadataTable.attachEvent("onBeforeSelect", () => false);
+
+		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir) => {
+			this._itemsDataCollection.sort(by, dir);
+			return false;
+		});
 
 		// connecting pager to data view
 		this._galleryDataview.define("pager", this._galleryDataviewPager);
@@ -215,7 +224,9 @@ class MainService {
 						.then((data) => {
 							if (data.type === "image/jpeg") {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
-								this._galleryDataview.refresh();
+								if (this._galleryDataview.exists(obj.id)) {
+									this._galleryDataview.updateItem(obj.id, obj); // update only one item
+								}
 							}
 						})
 						.fail(() => {
@@ -227,7 +238,10 @@ class MainService {
 			const warning = obj.imageWarning ? `<span class='webix_icon fas fa-exclamation-triangle warning-icon' style='${this._getPositionFloat(obj)}'></span>` : "";
 			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
 
-			if (obj.imageWarning) this._addWarningToFilter(obj);
+			if (obj.imageWarning) {
+				galleryDataviewFilterModel.addFilterValue("warning");
+				galleryDataviewFilterModel.parseFilterToRichSelectList();
+			}
 
 			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
 			return `<div class='unselectable-dataview-items'>
@@ -273,6 +287,7 @@ class MainService {
 
 		// setting onChange event for collection
 		this._collectionBox.attachEvent("onChange", (id) => {
+			this._filterModel.clearFilters();
 			isRecognitionResultMode = false;
 			this._changeRecognitionResultsMode();
 			this.collectionItem = this._collectionBox.getList().getItem(id);
@@ -324,6 +339,7 @@ class MainService {
 				this._toggleCartList(viewToShow);
 				// to fix bug with displaying data
 				this._metadataTable.scrollTo(0, 0);
+				this._selectTableItemByDataview();
 			}
 			else {
 				viewToShow = "gallery";
@@ -333,6 +349,7 @@ class MainService {
 				this._galleryDataviewPager.show();
 				this._galleryFeaturesView.show();
 				this._toggleCartList(viewToShow);
+				this._selectDataviewItemByTable();
 			}
 		});
 
@@ -452,6 +469,7 @@ class MainService {
 						break;
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
+						this._finder.detachEvent(scrollEventId);
 						const sourceParams = {
 							sort: "_id"
 						};
@@ -479,7 +497,7 @@ class MainService {
 									this._itemsModel.parseItems(webix.copy(data), folderId);
 									finderModel.setRealScrollPosition(finderModel.defineSizesAndPositionForDynamicScroll(this._finderFolder));
 
-									this._finder.attachEvent("onAfterScroll", () => {
+									scrollEventId = this._finder.attachEvent("onAfterScroll", () => {
 										const positionX = this._view.$scope.getSubFinderView().getTreePositionX();
 										const scrollState = this._finder.getScrollState();
 										if (positionX !== scrollState.x) {
@@ -806,6 +824,10 @@ class MainService {
 
 		this._itemsDataCollection.attachEvent("onAfterLoad", () => {
 			const dataviewSelectionId = utils.getDataviewSelectionId();
+			const datatableState = this._metadataTable.getState();
+			if (datatableState.sort) {
+				this._itemsDataCollection.sort(datatableState.sort.id, datatableState.sort.dir);
+			}
 			if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
 				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
 			}
@@ -828,24 +850,52 @@ class MainService {
 			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
 		}
 
+		this._filterTableView.attachEvent("onChange", (value) => {
+			this._galleryDataviewRichselectFilter.setValue(value);
+		});
 		this._galleryDataviewRichselectFilter.attachEvent("onChange", (value) => {
-			galleryDataviewFilterModel.filterData(this._galleryDataview, value);
+			switch (value) {
+				case "warning": {
+					this._filterModel.addFilter("imageWarning", value, "warning");
+					break;
+				}
+				default: {
+					if (/\s(star)+/g.test(value)) { // star type
+						this._filterModel.addFilter("starColor", value, "star");
+						break;
+					}
+					this._filterModel.addFilter("itemType", value, "itemType");
+					break;
+				}
+			}
 		});
 
-		// this._galleryDataviewSearch.attachEvent("onChange", (value) => {
-		// 	galleryDataviewFilterModel.filterByName(this._galleryDataview, value);
-		// });
 		this._galleryDataviewSearch.attachEvent("onEnter", () => {
-			const value = this._galleryDataviewSearch.getValue();
-			galleryDataviewFilterModel.filterByName(this._galleryDataview, value);
+			this._filterDataByName();
 		});
 		this._galleryDataviewSearch.attachEvent("onSearchIconClick", () => {
-			const value = this._galleryDataviewSearch.getValue();
-			galleryDataviewFilterModel.filterByName(this._galleryDataview, value);
+			this._filterDataByName();
 		});
 
-		this._filterTableView.attachEvent("onChange", (value) => {
-			metadataTableFilterModel.filterData(this._metadataTable, value);
+		this._metadataTable.attachEvent("onBeforeFilter", (name, value, config) => {
+			let type;
+			switch (config.content) {
+				case "selectFilter": {
+					type = "select";
+					break;
+				}
+				case "textFilter":
+				default: {
+					if (this._metadataTable.getColumnConfig(config.columnId).filterTypeValue === constants.FILTER_TYPE_DATE) {
+						type = "date";
+						break;
+					}
+					type = "text";
+					break;
+				}
+			}
+			this._filterModel.addFilter(name, value, type);
+			return false;
 		});
 
 		this._makeLargeImageButton.attachEvent("onItemClick", () => {
@@ -949,9 +999,9 @@ class MainService {
 			width,
 			height
 		});
-		galleryImageUrl.clearPreviewUrls();
-		galleryImageUrl.clearPreviewLabelUrls();
-		galleryImageUrl.clearPreviewMacroImageUrl();
+		// galleryImageUrl.clearPreviewUrls();
+		// galleryImageUrl.clearPreviewLabelUrls();
+		// galleryImageUrl.clearPreviewMacroImageUrl();
 		utils.setDataviewItemDimensions(width, height);
 		this._galleryDataview.refresh();
 	}
@@ -1069,6 +1119,7 @@ class MainService {
 	}
 
 	_changeRecognitionResultsMode() {
+		this._filterModel.clearFilters();
 		if (isRecognitionResultMode) {
 			const options = recognizedItemsModel.getValidOptions();
 			const optionsList = this._recognitionResultsDropDown.getList();
@@ -1105,6 +1156,68 @@ class MainService {
 
 	_getPositionFloat(obj) {
 		return obj.starColor ? "left: 15px" : "right: 13px;";
+	}
+
+	_filterDataByName() {
+		const value = this._galleryDataviewSearch.getValue();
+		this._filterModel.addFilter("name", value, "text");
+		const datatableFilter = this._metadataTable.getFilter("name");
+		if (datatableFilter) {
+			datatableFilter.value = value;
+		}
+	}
+
+	_selectTableItemByDataview() {
+		// select metadatatable item
+		const id = this._galleryDataview.getSelectedId();
+		if (id) {
+			const metadataTableThumbnailsTemplate = webixViews.getMetadataTableThumbnailTemplate();
+			this._metadataTable.blockEvent();
+			this._metadataTable.select(id);
+			this._metadataTable.showItem(id);
+			const currentItem = this._metadataTable.getItem(id);
+			metadataTableThumbnailsTemplate.parse(currentItem);
+			this._metadataTable.unblockEvent();
+		}
+	}
+
+	_selectDataviewItemByTable() {
+		// select dataview item
+		const id = this._metadataTable.getSelectedId();
+		if (id) {
+			this._scrollDataviewToItem(id);
+			this._galleryDataview.select(id);
+			this._galleryDataview.refresh();
+		}
+	}
+
+	_scrollDataviewToItem(id) {
+		const range = this._getVisibleRange();
+		const pager = this._galleryDataviewPager;
+		const pData = pager.data;
+		let realIndex = this._galleryDataview.getIndexById(id); // we can't use DOM method for not-rendered-yet items, so fallback to pure math
+		pager.select(parseInt(realIndex / pData.size));
+		let ind;
+		if (pData.page) {
+			ind = realIndex - pData.size * pData.page;
+		}
+		let dy = Math.floor(ind / range._dx) * range._y;
+		let state = this._galleryDataview.getScrollState();
+		if (dy < state.y || dy + range._y >= state.y + this._galleryDataview._content_height) {
+			this._galleryDataview.scrollTo(0, dy);
+		}
+	}
+
+	_getVisibleRange() {
+		const width = this._galleryDataview._content_width;
+
+		const t = this._galleryDataview.type;
+		let dx = Math.floor(width / t.width) || 1; // at least single item per row
+
+		return {
+			_y: t.height,
+			_dx: dx
+		};
 	}
 }
 

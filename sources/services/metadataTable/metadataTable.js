@@ -12,6 +12,7 @@ let editUniqueClick;
 let editValue;
 let metadataDotObject = {};
 let movedColumnsArray = [];
+let keyPressEventId;
 
 class MetadataTableService {
 	constructor(view, metadataTable, addColumnButton, exportButton, metadataTableThumbnailsTemplate) {
@@ -59,10 +60,14 @@ class MetadataTableService {
 			});
 			addButtonPromise
 				.then(([columnsToAdd, columnsToDelete]) => {
-					// this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
 					this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
 				})
 				.catch(err => webix.message(err.message));
+		});
+
+
+		this._metadataTable.attachEvent("onAfterRender", () => {
+			this._attachNameFilterKeyPressEvent();
 		});
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
@@ -187,14 +192,16 @@ class MetadataTableService {
 						return false;
 					}
 					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(rowId) : this._metadataTable.getNextId(rowId);
-					this._metadataTable.edit({
-						column: columnId,
-						row: nextRowId
-					});
+					if (nextRowId) {
+						this._metadataTable.edit({
+							column: columnId,
+							row: nextRowId
+						});
+					}
 				}
 				else {
 					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(selectedId) : this._metadataTable.getNextId(selectedId);
-					this._selectDatatableItem(nextRowId);
+					if (nextRowId) this._selectDatatableItem(nextRowId);
 				}
 			}
 		});
@@ -206,6 +213,7 @@ class MetadataTableService {
 				const imageWindow = webixViews.getImageWindow();
 				const pdfViewerWindow = webixViews.getPdfViewerWindow();
 
+				selectedObj.label = null;
 				if (imageType === "label-image") {
 					selectedObj.label = true;
 				}
@@ -308,6 +316,24 @@ class MetadataTableService {
 		const currentItem = this._metadataTable.getItem(rowId);
 		metadataTableThumbnailsTemplate.parse(currentItem);
 		this._metadataTable.unblockEvent();
+	}
+
+	_attachNameFilterKeyPressEvent() {
+		const filterInput = this._metadataTable.getFilter("name");
+		if (filterInput) {
+			const dataviewSearchInput = webixViews.getDataviewSearchInput();
+			let timeoutId;
+			const inputEvent = function inputEvent() {
+				clearTimeout(timeoutId);
+				timeoutId = setTimeout(() => {
+					dataviewSearchInput.blockEvent();
+					dataviewSearchInput.setValue(filterInput.value);
+					dataviewSearchInput.unblockEvent();
+				}, 500);
+			};
+			filterInput.removeEventListener("input", inputEvent);
+			filterInput.addEventListener("input", inputEvent);
+		}
 	}
 }
 

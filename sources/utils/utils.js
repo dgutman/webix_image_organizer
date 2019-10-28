@@ -1,12 +1,11 @@
-import authService from "../services/authentication";
 import FileSaver from "file-saver";
+import authService from "../services/authentication";
 import projectMetadata from "../models/projectMetadata";
 import galleryDataviewFilterModel from "../models/galleryDataviewFilterModel";
 import webixViews from "../models/webixViews";
 import metadataTableModel from "../models/metadataTableModel";
 import viewMouseEvents from "./viewMouseEvents";
 import constants from "../constants";
-import metadataTableFilterModel from "../models/metadataTableFilterModel";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -225,8 +224,11 @@ function parseDataToViews(data, linearData) {
 	dataCollection.parse(data);
 	galleryDataview.refresh();
 	// metadataTable.parse(data);
-	galleryDataviewFilterModel.prepareDataToFilter(data);
-	metadataTableFilterModel.prepareDataToFilter(data);
+	let dataForFilter = data;
+	if (linearData) {
+		dataForFilter = dataCollection.data.serialize();
+	}
+	galleryDataviewFilterModel.prepareDataToFilter(dataForFilter);
 }
 
 function getMetadataColumnColor(obj, columnId) {

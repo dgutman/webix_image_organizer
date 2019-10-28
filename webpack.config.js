@@ -4,6 +4,7 @@ const pack = require("./package.json");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
@@ -88,6 +89,9 @@ module.exports = function (env) {
 				APPNAME: `"${pack.name}"`,
 				PRODUCTION: production
 			}),
+			new CopyWebpackPlugin([
+				{from: path.join(__dirname, "sources/images/"), to: "sources/images"}
+			]),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
