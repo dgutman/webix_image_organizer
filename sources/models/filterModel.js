@@ -34,6 +34,12 @@ export default class FilterModel {
 				const condition = filterNames.every((name) => {
 					let doesItFit = false;
 					const value = this.filters[name].value;
+
+					//Need to deal with empty or undefined entries... 
+					//Also ideally need to be able to filter to FIND these entries
+					//As these are likely the ones I actually want to correct!
+					//if ( value == "" || val != true ) { return doesItFit; }
+
 					switch (this.filters[name].type) {
 						case "date": {
 							const formatToSting = webix.Date.dateToStr("%m/%d/%y");

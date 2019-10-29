@@ -61,7 +61,9 @@ function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 			if (initial) {
 				const value = columnId === "_modelType" && !item[columnId] ? "item" : item[columnId];
 				const index = options.map(obj => obj.value).indexOf(value);
-				if (index === -1) {
+				
+				console.log(index);
+				if (index === -1 && ! item[columnId].contains('dsalayers')) {
 					options.push({
 						id: item[columnId], value
 					});
@@ -69,8 +71,12 @@ function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 			}
 			else if (item.hasOwnProperty("meta")) {
 				const metadataValue = getOrEditMetadataColumnValue(item.meta, `meta.${columnId}`);
+				
 				const index = options.map(obj => obj.value).indexOf(metadataValue);
 				if (!(metadataValue instanceof Object) && index === -1) {
+					//Add ability to ignore certain values here..
+					console.log(metadataValue);
+
 					options.push({
 						id: metadataValue, value: metadataValue
 					});
@@ -284,13 +290,21 @@ function getColumnsForDatatable(datatable) {
 				const initialColumn = initialColumnsConfig.find(initialColumnConfig => initialColumnConfig.id === localColumnConfig.id && !localColumnConfig.hidden);
 				if (initialColumn && initialColumn.template) localColumnConfig.template = initialColumn.template;
 			}
-			columnConfig.push(localColumnConfig);
+			// console.log(localColumnConfig);
+			// if ( localColumnConfig.id.toLowerCase().includes('dsalayers'))
+			// 	{
+			// 		return columnConfig
+			// 	}
+
+					columnConfig.push(localColumnConfig);
+				
 		});
 	}
 	else {
 		columnConfig = initialColumnsConfig;
+		console.log(columnConfig);
 	}
-
+	console.log(columnConfig);
 	return columnConfig;
 }
 
