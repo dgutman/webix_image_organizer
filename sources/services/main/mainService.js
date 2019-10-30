@@ -314,7 +314,7 @@ class MainService {
 					}
 					utils.putHostsCollectionInLocalStorage(this.collectionItem);
 					// define datatable columns
-					const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+					const datatableColumns = metadataTableModel.getInitialColumnsForDatatable();
 					this._metadataTable.refreshColumns(datatableColumns);
 					this._itemsModel.parseItems(data);
 					// this._finder.parse(data);
@@ -840,6 +840,9 @@ class MainService {
 					this._galleryDataview.updateItem(obj.id, obj);
 				}
 			});
+
+			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+			this._metadataTable.refreshColumns(datatableColumns);
 		});
 
 		this._makeLargeImageWindow.getRoot().attachEvent("onHide", () => {

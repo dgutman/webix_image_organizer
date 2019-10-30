@@ -1,4 +1,5 @@
 import utils from "../utils/utils";
+import dot from "dot-object";
 
 export default class FilterModel {
 	constructor(dataCollection) {
@@ -34,10 +35,11 @@ export default class FilterModel {
 				const condition = filterNames.every((name) => {
 					let doesItFit = false;
 					const value = this.filters[name].value;
+					const itemFiledValue = dot.pick(name, item) || dot.pick(name, item.meta) || "";
 					switch (this.filters[name].type) {
 						case "date": {
 							const formatToSting = webix.Date.dateToStr("%m/%d/%y");
-							const dateString = formatToSting(new Date(item[name]));
+							const dateString = formatToSting(new Date(itemFiledValue));
 							doesItFit = dateString.includes(value);
 							break;
 						}
@@ -47,19 +49,24 @@ export default class FilterModel {
 							break;
 						}
 						case "select": {
-							doesItFit = item[name].toLowerCase() === value.toLowerCase();
+							if (value === "empty_value") {
+								doesItFit = !itemFiledValue;
+							}
+							else {
+								doesItFit = itemFiledValue.toString().toLowerCase() === value.toString().toLowerCase();
+							}
 							break;
 						}
 						case "warning": {
-							doesItFit = item[name];
+							doesItFit = itemFiledValue;
 							break;
 						}
 						case "star": {
-							doesItFit = item[name] === value.substr(0, value.indexOf(" "));
+							doesItFit = itemFiledValue === value.substr(0, value.indexOf(" "));
 							break;
 						}
 						default: {
-							doesItFit = item[name].toLowerCase().includes(value.toLowerCase());
+							doesItFit = itemFiledValue.toString().toLowerCase().includes(value.toString().toLowerCase());
 							break;
 						}
 					}

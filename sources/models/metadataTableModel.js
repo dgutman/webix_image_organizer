@@ -2,6 +2,7 @@ import utils from "../utils/utils";
 import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
+import dot from "dot-object";
 
 function setFaIconsForDatatable(obj) {
 	let icon;
@@ -56,7 +57,7 @@ function getOrEditMetadataColumnValue(obj, valuePath) {
 function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 	let options = [];
 	if (filterType === "select") {
-		options = [{id: "", value: ""}];
+		options = [{id: "", value: ""}, {id: "empty_value", value: "empty value"}];
 		datatable.data.each((item) => {
 			if (initial) {
 				const value = columnId === "_modelType" && !item[columnId] ? "item" : item[columnId];
@@ -67,10 +68,10 @@ function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 					});
 				}
 			}
-			else if (item.hasOwnProperty("meta")) {
-				const metadataValue = getOrEditMetadataColumnValue(item.meta, `meta.${columnId}`);
+			if (item.hasOwnProperty("meta")) {
+				const metadataValue = dot.pick(`meta.${columnId}`, item);
 				const index = options.map(obj => obj.value).indexOf(metadataValue);
-				if (!(metadataValue instanceof Object) && index === -1) {
+				if (metadataValue && !(metadataValue instanceof Object) && index === -1) {
 					options.push({
 						id: metadataValue, value: metadataValue
 					});
@@ -110,7 +111,7 @@ function compareColumnFilter(value, filter, obj, columnId, filterType, filterTyp
 		}
 	}
 	else if (obj && obj.hasOwnProperty("meta")) {
-		let metadataColumnValue = getOrEditMetadataColumnValue(obj.meta, `meta.${columnId}`);
+		let metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
 		if (!metadataColumnValue && metadataColumnValue !== 0 && metadataColumnValue !== "") {
 			metadataColumnValue = "null";
 		}

@@ -38,6 +38,8 @@ export default {
 		SIZE: "size"
 	},
 
+	IGNORED_METADATA_COLUMNS: ["dsalayers", "geojslayer"], // not for only top level keys. Example for nested keys: geojslayer[0].someValue
+
 	THREE_DATAVIEW_COLUMNS: "Display large images",
 	FIVE_DATAVIEW_COLUMNS: "Display medium images",
 	DEFAULT_DATAVIEW_COLUMNS: "Display small images",
