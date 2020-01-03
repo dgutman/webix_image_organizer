@@ -1,0 +1,88 @@
+.datatable-images-template {
+  border: 1px solid #BDC4D4;
+}
+
+.validation-values-template {
+  display: none;
+  white-space: pre;
+  text-align: center;
+}
+
+.new-tag-name-template {
+  .webix_template {
+    padding-left: 2px;
+  }
+}
+
+.webix_row_select > span.metadata-column-template {
+  color: inherit !important;
+}
+
+.window-header-label {
+  .webix_template, .webix_el_box {
+    font-weight: 500;
+    padding-left: 10px;
+    .box-sizing(border-box);
+  }
+}
+
+.ellipsis-text,
+.ellipsis-text .webix_cell,
+.ellipsis-text .webix_list_item,
+.ellipsis-text .webix_template,
+.ellipsis-text .webix_el_box,
+.ellipsis-text .webix_inp_static,
+.ellipsis-text input {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mainStylesTemplates() {
+
+  .recognition-status-template {
+    padding-left: 20px;
+    font-size: @middle-font-size;
+    cursor: pointer;
+  }
+
+  .templateName{
+    height: 15px;
+    font-size: @large-font-size;
+    padding: 10px;
+    margin-bottom: 40px;
+  }
+
+  .list-of-tags-template {
+    font-size: @middle-font-size;
+    padding-left: 17px;
+  }
+
+  .webix_overlay {
+    padding: 0;
+    .data-subview-overlay {
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px 0 20px;
+      .overlay-text {
+        display: inline-block;
+        color: @overlay-text-color;
+        font-size: @large-font-size;
+      }
+    }
+
+    .empty-overlay {
+      background-color: @main-bg;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .hidden-overflow {
+    overflow: hidden !important;
+  }
+}

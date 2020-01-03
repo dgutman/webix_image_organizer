@@ -1,0 +1,308 @@
+.mainTaggerStyles() {
+    .tagger-app, .tagger-window {
+        .webix_dt_editor {
+            background: unset;
+            display: flex;
+            justify-content: flex-end;
+            flex-direction: column;
+        }
+        .webix_overlay {
+            background-color: @main-bg;
+            width: 100%;
+            height: 100%;
+        }
+        .column-header {
+            font-weight: 500;
+            text-align: center;
+            font-size: @middle-font-size;
+        }
+        .notes-list-header {
+            .webix_template {
+                display: flex;
+                align-items: center;
+                font-weight: 500;
+                font-size: @middle-font-size;
+            }
+        }
+        .collection-list-select-template .webix_template {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        .add-new-item-flex-container {
+            display: flex !important;
+            justify-content: space-around;
+        }
+        .icon-btn {
+            font-size: 16px;
+            &:hover {
+                color: @btn-hover;
+            }
+        }
+        .tagger-editable-list {
+            .webix_list_item {
+                position: relative;
+                .list-item {
+                    height: 100%;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .list-item-name {
+                    flex: 1 2 200px;
+                    height: 100%;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+            }
+            .not-saved-item {
+                .image-icon {
+                    color: @disabled-color;
+                }
+            }
+            .switch-icon {
+                text-align: end;
+                padding: 0 5px;
+                flex: 0 0 75px;
+            }
+        }
+        .disabled-editing {
+            .delete-item-icon, .delete-item-icon:hover {
+                color: @disabled-color;
+            }
+            .add-new {
+                color: @disabled-color;
+            }
+            .switch-icon, .switch-icon:hover {
+                color: @disabled-color;
+            }
+        }
+        .get-data-status-template {
+            width: auto !important;
+            font-size: @main-font-size;
+            line-height: 32px;
+        }
+        .undo-btn {
+            opacity: .3;
+            &.enabled {
+                opacity: 1;
+                &:hover .webix_icon {
+                    color: @btn-hover;
+                }
+                button:active .webix_icon {
+                    color: @main-color;
+                }
+            }
+        }
+    }
+
+    .tagger-window {
+        .window-dataview {
+            .thumbnails-name {
+                color: rgba(0,0,0,0.8);
+                font-weight: 500;
+                line-height: 20px;
+                padding: 5px 0 0 15px;
+                margin-right: 10px;
+                text-align: center;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+            .webix_dataview_item {
+                border: none;
+                cursor: default;
+                padding: 5px 5px 15px 5px;
+            }
+            .webix_selected {
+                color: @main-color-light;
+                background-color: @main-bg !important;
+                .dataview-items .dataview-checkbox-container {
+                    display: inline-block;
+                    .fa-check-square {
+                        color: @btn-hover;
+                    }
+                }
+            }
+            .dataview-items {
+                position: relative;
+                .dataview-images-info {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 10;
+                    width: 100%;
+                    height: 100%;
+                }
+                &:hover {
+                    .dataview-images-info .dataview-icon, .dataview-images-info .dataview-checkbox-container {
+                        display: inline-block;
+                    }
+                }
+                .dataview-images-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    line-height: 20px;
+                    font-size: 20px;
+                }
+                .dataview-icon {
+                    cursor: pointer;
+                    display: none;
+                    &:hover {
+                        color: @btn-hover;
+                    }
+                }
+                .dataview-checkbox-container {
+                    margin-top: -1px;
+                    cursor: pointer;
+                    display: none;
+                    &:hover {
+                        color: @btn-hover;
+                    }
+                }
+            }
+            .dataview-images-container {
+                position: relative;
+                cursor: pointer;
+                height: 100px;
+                background: @main-bg;
+                .border-radius(3px);
+                text-align: center;
+                .dataview-image {
+                    display: inline-block;
+                }
+                &.not-highlighted img{
+                    opacity: .3;
+                }
+            }
+        }
+
+        .filter-images-flex-container {
+            &.latest {
+                a {
+                    font-weight: 500;
+                    &:first-child {
+                        font-weight: bold;
+                    }
+                }
+            }
+            display: flex;
+            justify-content: left;
+            a {
+                font-weight: bold;
+                flex: 0 0 auto;
+                margin-right: 25px;
+                &:first-child {
+                    font-weight: 500;
+                }
+            }
+        }
+
+        .list-header {
+            font-weight: 500;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        .select-images-container {
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+
+    .tagger-app {
+        max-height: 100vh;
+        .logout-menu {
+            .webix_scroll_cont {
+                text-align: end;
+            }
+        }
+        .edit-mode .note-item {
+            .delete-note {
+                display: none;
+            }
+        }
+        .note-item {
+            position: relative;
+            .note-date {
+                height: 20px;
+                line-height: 20px;
+                color: @main-color-light;
+                font-size:  @mini-font-size;
+            }
+            .note-flex-container {
+                display: flex;
+                align-items: center;
+
+            }
+            .note-content {
+                flex: 1 1 auto;
+                min-height: 29px;
+                color: @main-color;
+                box-sizing: border-box;
+                .editable-content {
+                    white-space: pre-line;
+                    word-break: break-all;
+                    &.hidden {
+                        opacity: 0;
+                        position: absolute;
+                        z-index: -1;
+                    }
+                }
+            }
+            .delete-note {
+                flex: 0 0 30px;
+                text-align: center;
+                &:hover {
+                    color: @btn-hover;
+                }
+            }
+        }
+        .webix_accordionitem {
+            &.horizontal {
+                & > .webix_accordionitem_header .webix_accordionitem_button {
+                    transition: transform .3s ease-in;
+                    &:before {
+                        content: '\F002';
+                    }
+                }
+                &.collapsed > .webix_accordionitem_header .webix_accordionitem_button {
+                    transform: rotate(90deg);
+                }
+            }
+            &.vertical {
+                & > .webix_accordionitem_header .webix_accordionitem_button {
+                    transition: transform .3s ease-in;
+                    &:before {
+                        content: '\F001';
+                    }
+                }
+                &.collapsed > .webix_accordionitem_header .webix_accordionitem_button {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+    }
+    .list-edit-textarea {
+        white-space: pre-line;
+        word-break: break-all;
+        min-height: 29px;
+        cursor: text;
+        border: 1px solid #DDDDDD;
+        resize: none;
+        padding: 5px;
+        height: 100%;
+        line-height: 29px;
+        width: calc(100% - 10px);
+        overflow: hidden;
+        font-family: @main-font;
+        color: @main-color;
+        font-size: @main-font-size;
+        &:focus {
+            border: 1px solid #3498db;
+            box-shadow: 0 0 1px #3498db inset
+        }
+    }
+}

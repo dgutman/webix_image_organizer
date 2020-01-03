@@ -1,0 +1,63 @@
+Webix UI Student License
+===========================
+
+By purchasing, installing, or otherwise using the product identified above and/or its related materials, you agree to be bound by the terms and conditions of this License Agreement.
+
+READ CAREFULLY
+This license agreement ("LICENSE") is a legal agreement between you (either an individual or a single entity, also referred to as "YOU") and XB Software Ltd. ("XB Software"), for the software containing this LICENSE which may also include the software’s source code written in a high-level computer language, associated media, printed materials, and "online" or electronic documentation (collectively referred to as "SOFTWARE").
+
+SOFTWARE PRODUCT LICENSE
+The SOFTWARE is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties and contains confidential information and trade secrets. XB Software retains all rights not expressly granted to you in this LICENSE.
+
+I. GRANT OF LICENSE
+XB Software hereby grants to you, and you accept, a non-exclusive, non-transferable license to install, copy, use and modify the SOFTWARE only as authorized below.
+
+The Student License enables YOU to include the SOFTWARE inside any number of products (not competitive to the SOFTWARE) developed by YOU which may NOT be sold or distributed. 
+
+II. OTHER RIGHTS AND LIMITATIONS
+1. At no time may the SOFTWARE be used for non-educational purpose.
+
+2. You are not allowed to use, copy, modify, or merge copies of the SOFTWARE and any accompanying documents except as permitted in this LICENSE.
+
+3. You agree to identify, hold harmless, and defend Webix and its resellers from and against any and all claims or lawsuits including attorney’s fees that arise or result from the use or distribution of YOUR SOFTWARE.
+
+Source code license limitations.
+
+4. Under no circumstances may any portion of the SOFTWARE’s source code or any modified version of the source code be distributed, disclosed or otherwise made available to any third party.
+
+5. XB Software DOES NOT provide technical support for modified source code.
+
+6. In the event you develop any troubleshooting-related modifications of the SOFTWARE, either independently or jointly with XB Software, such modifications and all rights associated therewith will be the exclusive property of XB Software. You are granted the right to use such modifications as set forth in this agreement.
+
+7. You acknowledge that the SOFTWARE’s source code contains valuable and proprietary trade secrets of XB Software. All individuals employed by or belonging to your entity agree to expend every effort to insure its confidentiality. You agree to assume full responsibility for such employees’ or contractors’ use, or misuse, of such disclosed source code as if it was your use. These obligations shall not apply to any information generally available to the public, independently developed or obtained without reliance on XB Software information, or approved in writing for release by XB Software without restriction.
+
+III. DELIVERY
+XB Software shall deliver to you a master copy of the SOFTWARE licensed hereunder in electronic files only. Documentation shall also be provided in electronic format.
+
+IV. UPGRADES
+You are eligible for free minor and major upgrades, patches, and bug-fixes for the SOFTWARE, including source code if applicable. SOFTWARE labeled as an upgrade replaces and/or supplements (and may disable) the product that formed the basis for your eligibility for the upgrade. You may use the resulting upgraded product only in accordance with the terms of this LICENSE.
+
+V. TERMINATION
+This LICENSE shall last as long as you use the SOFTWARE in compliance with this LICENSE. XB Software may terminate this LICENSE if you fail to comply with any of the terms and conditions herein. In such event you agree to remove and destroy all copies of the SOFTWARE and any applicable source code.
+
+XB Software reserves the right to discontinue at any time any product, shall it be offered individually or as a part of a products bundle. However, XB Software is obligated to provide the proper level of support for all discontinued products for a period of 1 (one) year after the date of discontinuance.
+
+VI. COPYRIGHT
+All title and copyrights in and to the SOFTWARE (including but not limited to any images, photographs, animations, video, audio, music, text, incorporated into the SOFTWARE), the accompanying printed materials, and any copies of the SOFTWARE, and any trademarks or service marks of XB Software are owned by XB Software. All title and intellectual property rights in and to the content that may be accessed through use of the SOFTWARE is the property of the respective content owner and may be protected by applicable copyright or other intellectual property laws and treaties. This LICENSE grants you no rights to use such content.
+
+Use of the software and related documentation is governed by this license agreement accompanying the software and applicable copyright law. The documentation must always follow the related software. Making unauthorized copies, adaptations, or compilation works is prohibited. XB Software may revise this documentation from time to time without notice.
+
+VII. DISCLAIMER OF WARRANTIES
+The Software and documentation is provided "AS IS", without a warranty of any kind.
+
+ALL EXPRESS OR IMPLIED REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED.
+
+VIII. LIMITATION OF LIABILITY
+XB Software SHALL NOT BE LIABLE OR RESPONSIBLE FOR ANY LOST DATA, REVENUE OR PROFITS, OR FOR ANY DIRECT OR INDIRECT DAMAGES, INJURIES OR LIABILITIES, CAUSED DIRECTLY OR INDIRECTLY BY THE USE OF THE LICENSED SOFTWARE OR DOCUMENTATION, INCLUDING BUT NOT LIMITED TO, INCIDENTAL, CONSEQUENTIAL OR SPECIAL DAMAGES, EVEN IF XB Software HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+IX. MISCELLANEOUS
+The Uniform Computer Information Transactions Act and the United Nations Convention on the International Sale of Goods shall not apply to this Agreement. If any provision of this LICENSE is to be held unenforceable, such holding will not affect the validity of the other provisions hereof. Failure of a party to enforce any provision of this LICENSE shall not constitute or be construed as a waiver of such provision or of the right to enforce such provision.
+
+This License represents the entire understanding between the parties with respect to its subject matter.
+
+YOU ACKNOWLEDGE THAT YOU HAVE READ THIS AGREEMENT, THAT YOU UNDERSTAND THIS AGREEMENT, AND UNDERSTAND THAT BY CONTINUING THE INSTALLATION OF THE SOFTWARE PRODUCT, BY LOADING OR RUNNING THE SOFTWARE PRODUCT, OR BY PLACING OR COPYING THE SOFTWARE ONTO YOUR COMPUTER HARD DRIVE, YOU AGREE TO BE BOUND BY THIS AGREEMENT’S TERMS AND CONDITIONS. YOU FURTHER AGREE THAT, EXCEPT FOR WRITTEN SEPARATE AGREEMENTS BETWEEN XB SOFTWARE AND YOU, THIS AGREEMENT IS A COMPLETE AND EXCLUSIVE STATEMENT OF THE RIGHTS AND LIABILITIES OF THE PARTIES.

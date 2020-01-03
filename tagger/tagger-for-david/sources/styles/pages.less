@@ -1,0 +1,64 @@
+.mainStylesPages() {
+  .webix_view .webix_pager_item {
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    -o-border-radius: 2px;
+    border-radius: 2px;
+    background: #0288D1;
+    border-color: #0288D1;
+  }
+  
+  /* PAGES STYLES */
+  
+  /* templates error */
+  .template-error {
+    padding-top: 5px;
+  
+    .webix_template {
+      color: #a94442;
+      background: #f2dede;
+      border: 1px solid #ebccd1;
+      .border-radius(4px);
+      padding: 20px;
+      text-align: center;
+    }
+  }
+
+  /* webix_pager */
+  .webix_view .webix_pager_item {
+    .border-radius(2px);
+    background: @btn;
+    border-color: @btn;
+    color: @pager-color;
+
+    &:hover, &:focus {
+      background: @btn-hover;
+      border-color: @btn-hover;
+    }
+  }
+  
+  .webix_pager {
+    .pager-input {
+      display: inline-block;
+      vertical-align: top;
+      height: 100%;
+      padding: 0;
+      width: 40px;
+      background: @dark-main-bg;
+      .box-sizing(border-box);
+      .border-radius(2px);
+      border: none;
+      box-shadow: none;
+      text-align: center;
+      color: @main-color-light;
+      font-size: @main-font-size;
+      line-height: 240%;
+    }
+
+    .pager-amount {
+      display: inline-block;
+      height: 99%;
+      line-height: 31px;
+    }
+  }
+}

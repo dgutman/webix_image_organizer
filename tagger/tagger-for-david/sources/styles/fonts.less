@@ -1,0 +1,27 @@
+//---------------------------------------------------------
+// Fonts
+//---------------------------------------------------------
+
+
+/* font-family: 'Roboto' */
+.font(@font, @type, @weight, @style, @path){
+  @font-face {
+    font-family: '@{font}';
+    src: url('@{path}/@{type}.eot'); /* IE9 Compat Modes */
+    src: local('@{font} @{type}'),
+    local('@{font}-@{type}'),
+    url('@{path}/@{type}.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+    url('@{path}/@{type}.woff2') format('woff2'), /* Super Modern Browsers */
+    url('@{path}/@{type}.woff') format('woff'), /* Modern Browsers */
+    url('@{path}/@{type}.ttf') format('truetype'), /* Safari, Android, iOS */
+    url('@{path}/@{type}.svg#@{font}') format('svg'); /* Legacy iOS */
+    font-style: @style;
+    font-weight: @weight;
+  }
+}
+
+.font('Roboto', 'Regular', 400, normal, '../fonts/Roboto');
+.font('Roboto', 'Light', 300, normal, '../fonts/Roboto');
+.font('Roboto', 'Medium', 500, normal, '../fonts/Roboto');
+.font('Roboto', 'Bold', 700, normal, '../fonts/Roboto');
+.font('Roboto', 'Italic', 400, italic, '../fonts/Roboto');

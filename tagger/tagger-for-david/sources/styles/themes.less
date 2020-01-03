@@ -1,0 +1,129 @@
+body.theme-flat {
+  .flat-theme();
+  .mainStylesBoxes();
+  .mainStylesButtons();
+  .mainStylesCommons();
+  .mainStylesDataview();
+  .flatStylesForm();
+  .mainStylesHeader();
+  .mainStylesPages();
+  .mainStylesPopups();
+  .mainStylesTemplates();
+  .mainTaggerStyles();
+  .tagger-app, .tagger-window {
+    .webix_selected {
+      .icon-btn:hover {
+          color: @main-color-light;
+      }
+    }
+    .disabled-editing {
+      .webix_selected {
+        .icon-btn:hover{
+          color: @disabled-color
+        }
+      }
+    }
+  }
+}
+
+body.theme-material {
+  .material-theme();
+  .mainStylesBoxes();
+  .materialStylesButtons();
+  .materialStylesCommons();
+  .materialStylesDataview();
+  .materialStylesForm();
+  .mainStylesHeader();
+  .mainStylesPages();
+  .mainStylesPopups();
+  .mainStylesTemplates();
+  .mainTaggerStyles();
+}
+
+body.theme-mini {
+  .mini-theme();
+  .mainStylesBoxes();
+  .materialStylesButtons();
+  .miniStylesCommons();
+  .miniStylesDataview();
+  .miniStylesForm();
+  .mainStylesHeader();
+  .mainStylesPages();
+
+  .webix_pager .pager-input {
+    position: relative;
+    top: 2px;
+  }
+
+  .mainStylesPopups();
+  .mainStylesTemplates();
+  .mainTaggerStyles();
+}
+
+body.theme-compact {
+  .compact-theme();
+  .mainStylesBoxes();
+
+  .transparent-button .webixtype_base {
+    height: 26px;
+  }
+
+  .mainStylesCommons();
+  .compactStylesDataview();
+  .compactStylesForm();
+  .mainStylesHeader();
+  .mainStylesPages();
+
+  .webix_pager .pager-input {
+    position: relative;
+    top: 3px;
+  }
+
+  .mainStylesPopups();
+  .mainStylesTemplates();
+  .mainTaggerStyles();
+  .tagger-app, .tagger-window {
+    .webix_selected {
+      .icon-btn:hover {
+          color: @main-color-light;
+      }
+    }
+    .disabled-editing {
+      .webix_selected {
+        .icon-btn:hover{
+          color: @disabled-color
+        }
+      }
+    }
+  }
+}
+
+body.theme-contrast {
+  .contrast-theme();
+  .mainStylesBoxes();
+
+  .btn-contour .webixtype_base {
+    color: @main-color-light;
+  }
+
+  .mainStylesCommons();
+
+  .webix_layout_line {
+    background-color: @main-bg;
+  }
+
+  .contrastStylesDataview();
+  .contrastStylesForm();
+  .mainStylesHeader();
+
+  .global-header {
+    &.webix_layout_line, .webix_layout_line {
+      background-color: @dark-main-bg;
+    }
+  }
+
+  .mainStylesPages();
+  .mainStylesPopups();
+  .mainStylesTemplates();
+  .mainTaggerStyles();
+}
