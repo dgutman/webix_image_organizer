@@ -75,7 +75,7 @@ module.exports = function (env) {
 		},
 		devServer: {
 			host: process.env.DEV_HOST || "localhost",
-			port: process.env.DEV_PORT || 8080,
+			port: process.env.DEV_PORT || 8081,
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
 			inline: true
