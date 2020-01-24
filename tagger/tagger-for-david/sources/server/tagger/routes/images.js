@@ -6,19 +6,22 @@ const imagesService = require("../services/images");
 const notFoundStatuts = 404;
 
 function getResourceImages(req, res, next) {
+	const type = req.body.type || "collection";
 	const collectionId = req.body.collectionId;
 	const hostApi = req.body.hostApi;
 	const token = req.headers["girder-token"];
+	const userId = req.user.sub;
 
-	imagesService.getResourceImages(collectionId, hostApi, token)
+	imagesService.getCollectionResourceData(collectionId, hostApi, token, userId, type)
 		.then((data) => {
-			if (data) res.json({tags: data.tags});
+			if (data) res.json({message: "Data received"});
 			else res.sendStatus(notFoundStatuts);
 		})
 		.catch(err => next(err));
 }
 
 function getCollectionsImages(req, res, next) {
+	const userId = req.user.sub;
 	let offset = req.query.offset || 0;
 	let limit = req.query.limit || 50;
 	offset = parseInt(offset);
@@ -32,10 +35,35 @@ function getCollectionsImages(req, res, next) {
 		latest: req.query.latest,
 		name: req.query.s || null,
 		offset,
-		limit
+		limit,
+		userId
 	};
 
 	imagesService.getCollectionsImages(params)
+		.then(data => res.send(data))
+		.catch(err => next(err));
+}
+
+function getFoldersImages(req, res, next) {
+	const userId = req.user.sub;
+	let offset = req.query.offset || 0;
+	let limit = req.query.limit || 50;
+	offset = parseInt(offset);
+	limit = parseInt(limit);
+
+	const params = {
+		tag: req.params.tag,
+		folderIds: JSON.parse(req.query.ids),
+		value: req.query.value || null,
+		confidence: req.query.confidence || null,
+		latest: req.query.latest,
+		name: req.query.s || null,
+		offset,
+		limit,
+		userId
+	};
+
+	imagesService.getFoldersImages(params)
 		.then(data => res.send(data))
 		.catch(err => next(err));
 }
@@ -54,6 +82,7 @@ function updateMany(req, res, next) {
 
 // routes
 router.get("/tag/:tag/collections", getCollectionsImages);
+router.get("/tag/:tag/folders", getFoldersImages);
 router.put("/many", updateMany);
 router.post("/resource", getResourceImages);
 

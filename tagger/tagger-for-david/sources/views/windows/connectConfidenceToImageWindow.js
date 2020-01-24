@@ -8,6 +8,7 @@ import SelectItemsService from "../../services/selectItemsService";
 import undoFactory from "../../models/undoModel";
 import constants from "../../constants";
 import responsiveWindows from "../../models/windows/responsiveWindows";
+import DataviewWindowService from "../../services/mainColumns/windows/dataviewWindow";
 
 const PAGER_ID = "dataview-confidence-connection-pager";
 
@@ -16,12 +17,14 @@ export default class ConnectTagToImageWindow extends JetView {
 		const searchInput = windowParts.getSearchInputConfig();
 		const pager = windowParts.getPagerConfig(PAGER_ID);
 		const filterTemplate = windowParts.getFilterTemplateConfig();
+		const imageSizeSelect = windowParts.getImageSizeSelectorConfig();
 
 		const currentConfidenceLvlSelect = {
 			view: "richselect",
 			name: "currentConfidenceLvlSelect",
 			label: "Set confidence level",
 			labelWidth: 150,
+			width: 250,
 			css: "select-field",
 			options: {
 				data: [],
@@ -40,8 +43,8 @@ export default class ConnectTagToImageWindow extends JetView {
 			borderless: true,
 			template: (obj, common) => windowParts.getDataviewTempate(obj, common, this.dataview),
 			type: {
-				width: 150,
-				height: 135,
+				width: constants.DATAVIEW_IMAGE_SIZE.WIDTH,
+				height: constants.DATAVIEW_IMAGE_SIZE.HEIGHT,
 				checkboxState: obj => (this.dataview.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square")
 			},
 			onClick: windowParts.getDataviewOnClickObject(this)
@@ -172,6 +175,8 @@ export default class ConnectTagToImageWindow extends JetView {
 								cols: [
 									filterTemplate,
 									{width: 30},
+									imageSizeSelect,
+									{},
 									currentConfidenceLvlSelect
 								]
 							},
@@ -188,6 +193,7 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.ProgressBar);
+		this.windowService = new DataviewWindowService(this);
 		this.view = view;
 		this.dataview = this.getWindowDataview();
 		this.selectImagesService = new SelectItemsService(this.dataview);
@@ -198,19 +204,27 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.selectAllTemplate = this.getSelectAllTemplate();
 		this.connectedImagesModel = new ConnectedImagesModel();
 		this.pagerService = new PagerService(this.dataviewPager, this.dataview);
-		this.undoModel = undoFactory.create("confidencePopup", this.getUndoIcon());
 		this.filterTemplate = this.getFilterTemplate();
+		this.imageSizeSelect = this.getSelectImageSize();
+
+		this.undoModel = undoFactory.create("confidencePopup", this.getUndoIcon());
+
+		view.attachEvent("onViewResize", () => {
+			this.windowService.setImagesRange();
+			this.dataviewStore.clearAll();
+			this.windowService.getWindowImages();
+		});
 
 		this.searchInput.attachEvent("onEnter", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 		this.searchInput.attachEvent("onSearchIconClick", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 
 		this.currentConfidenceLvlSelect.attachEvent("onChange", () => {
 			this.connectedImagesModel.clearModel();
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 
 		this.selectAllTemplate.define("onClick", {
@@ -227,28 +241,33 @@ export default class ConnectTagToImageWindow extends JetView {
 			const offset = this.dataviewPager.data.size * page;
 			if (!this.dataview.getIdByIndex(offset)) {
 				const params = this.getParamsForImages();
-				windowParts.parseImages(this, params);
+				this.windowService.parseImages(params);
 			}
 		});
 
 		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
 			this.connectedImagesModel.putInitialIdsFromItems(rawData.data);
+			this.windowService.setImagesRange();
 		});
 
 		this.filterTemplate.define("onClick", {
 			"filter-latest-changed": () => {
 				this.filterTemplate.setValues({latest: true});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			},
 			"filter-all": () => {
 				this.filterTemplate.setValues({latest: false});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			}
+		});
+
+		this.imageSizeSelect.attachEvent("onChange", (val) => {
+			this.windowService.onChangeImageSizeValue(val);
 		});
 	}
 
-	showWindow({tag, value, confidence}, stores, collections) {
-		this.collections = collections;
+	showWindow({tag, value, confidence}, stores, ids) {
+		this.collectionIds = ids;
 		const headerTemplate = this.getHeaderTemplate();
 		this.currentTag = tag;
 		this.currentValue = value;
@@ -257,27 +276,27 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.confidenceStore = stores.confidenceStore;
 		headerTemplate.setValues({tag, value, confidence});
 		this.parseConfidenceToDropDown(this.currentConfidenceLvlSelect, confidence);
-		this.getRoot().show();
-		windowParts.getWindowImages(this);
-		responsiveWindows.addWindow(this.getRoot().config.id, this.getRoot());
+
+		this.windowService.onWindowShow();
 	}
 
 	getParamsForImages() {
-		const collectionIds = this.collections.map(collection => collection._id);
+		const ids = this.collectionIds.selectedIds;
 		const confidence = this.getCurrentConfidenceLvl();
 		const offset = this.dataviewPager.data.size * this.dataviewPager.data.page;
 		const limit = this.dataviewPager.data.size;
 		const search = this.searchInput.getValue();
 
 		return {
-			collectionIds,
+			ids,
 			tag: this.currentTag.name,
 			value: this.currentValue.value,
 			confidence: confidence.name,
 			latest: this.filterTemplate.getValues().latest,
 			offset,
 			limit,
-			s: search
+			s: search,
+			type: this.collectionIds.selectedType
 		};
 	}
 
@@ -305,8 +324,8 @@ export default class ConnectTagToImageWindow extends JetView {
 	}
 
 	getCurrentConfidenceLvl() {
-		const confidenceId = this.currentConfidenceLvlSelect.getValue();
-		return this.currentConfidenceLvlSelect.getList().getItem(confidenceId);
+		const confidence = this.currentConfidenceLvlSelect.getValue();
+		return confidence; // this.currentConfidenceLvlSelect.getList().getItem(confidence);
 	}
 
 	closeWindow() {
@@ -353,5 +372,9 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	getSelectAllTemplate() {
 		return this.getRoot().queryView({name: "selectAllTemplate"});
+	}
+
+	getSelectImageSize() {
+		return this.getRoot().queryView({name: "windowSelectImageSize"});
 	}
 }

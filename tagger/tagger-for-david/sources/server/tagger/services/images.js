@@ -8,6 +8,7 @@ const Fields = require("../models/updatedFields");
 const tagsServices = require("./tags");
 const http = require("http");
 const fromEntries = require("object.fromentries");
+const foldersService = require("./folders");
 
 const successStatusCode = 200;
 
@@ -15,8 +16,8 @@ function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
 }
 
-async function getResourceImages(collectionId, hostApi, token) {
-	const url = `${hostApi}/resource/${collectionId}/items?type=collection&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
+async function getResourceImages(collectionId, hostApi, token, userId, type) {
+	const url = `${hostApi}/resource/${collectionId}/items?type=${type}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
 	return new Promise((resolve, reject) => {
 		http.get(url, (response) => {
 			let body = "";
@@ -33,16 +34,22 @@ async function getResourceImages(collectionId, hostApi, token) {
 			// The whole response has been received. Print out the result.
 			response.on("end", async () => {
 				// remove all existing images for that collection
-				await Images.deleteMany({baseParentId: collectionId});
+				if (type === "folder") {
+					const folderIds = await foldersService.getNestedFolderIds([collectionId], [collectionId]);
+					await Images.deleteMany({folderId: {$in: folderIds}, userId});
+				}
+				else {
+					await Images.deleteMany({baseParentId: collectionId, userId});
+				}
 
 				// add new images
 				body = JSON.parse(body);
 
 				const regex = (/\.(gif|jpg|jpeg|tiff|png|bmp)$/i);
-				const images = body.filter(item => regex.test(item.name));
+				let images = body.filter(item => regex.test(item.name));
 				const tags = [];
 
-				images.forEach((image) => {
+				images = images.map((image) => {
 					if (image.hasOwnProperty("meta") && typeof image.meta === "object") {
 						if (image.meta.hasOwnProperty("tags")) {
 							const entries = typeof image.meta.tags === "object" ? Object.entries(image.meta.tags) : [];
@@ -97,9 +104,15 @@ async function getResourceImages(collectionId, hostApi, token) {
 							// replace old keys with new lowercase
 							image.meta.tags = fromEntries(entries);
 						}
+						else image.oldMeta = image.meta;
 					}
 					// if image does not contain meta we'll create one
 					else image.meta = {};
+					image.userId = userId;
+					image.mainId = image._id;
+					image.loadedParentId = collectionId;
+					delete image._id;
+					return image;
 				});
 
 				const createdImages = await Images.insertMany(images);
@@ -116,12 +129,21 @@ async function getResourceImages(collectionId, hostApi, token) {
 	});
 }
 
-async function getCollectionsImages({tag, collectionIds, offset, limit, value, confidence, latest, name}) {
+async function getCollectionResourceData(collectionId, hostApi, token, userId, type) {
+	return Promise.all([
+		getResourceImages(collectionId, hostApi, token, userId, type),
+		foldersService.getResourceFolders(collectionId, hostApi, token, userId, type)
+	]);
+}
+
+
+async function getCollectionsImages({tag, collectionIds, offset, limit, value, confidence, latest, name, userId}) {
 	// validation
 	if (!Array.isArray(collectionIds)) throw {message: "Query \"collectionIds\" should be an array", name: "ValidationError"};
 
 	let searchParams = {
-		baseParentId: {$in: collectionIds}
+		baseParentId: {$in: collectionIds},
+		userId
 	};
 
 	if (name) {
@@ -188,6 +210,7 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 				expireDate: 1,
 				meta: 1,
 				baseParentId: 1,
+				mainId: 1,
 				_marker: markerParams
 			}
 		},
@@ -210,6 +233,101 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 	return {
 		data,
 		update,
+		count
+	};
+}
+
+async function getFoldersImages({tag, folderIds, offset, limit, value, confidence, latest, name, userId}) {
+	// validation
+	if (!Array.isArray(folderIds)) throw {message: "Query \"folderIds\" should be an array", name: "ValidationError"};
+
+	let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
+	nestedFolderIds = nestedFolderIds.unique();
+
+
+	let searchParams = {
+		folderId: {$in: nestedFolderIds},
+		userId
+	};
+
+	if (name) {
+		searchParams.name = {$regex: name, $options: "i"};
+	}
+
+	let markerParams = {
+		$cond: [
+			{$ifNull: [`$meta.tags.${tag}`, false]},
+			true,
+			false
+		]
+	};
+
+	if (value && !confidence) {
+		searchParams[`meta.tags.${tag}`] = {$exists: true};
+		markerParams = {
+			$cond: [
+				{$eq: [
+					{
+						$filter: {
+							input: `$meta.tags.${tag}`,
+							as: "valueObj",
+							cond: {$eq: ["$$valueObj.value", value]}
+						}
+					},
+					[]
+				]},
+				false,
+				true
+			]
+		};
+	}
+	else if (value && confidence) {
+		searchParams[`meta.tags.${tag}`] = {$elemMatch: {value}};
+		markerParams = {$in: [{value, confidence}, `$meta.tags.${tag}`]};
+	}
+
+	if (latest) {
+		const fieldSearchParams = {};
+
+		// get latest updated image ids assigned to query field
+		if (confidence) {
+			fieldSearchParams.confidence = confidence;
+		}
+		if (value) {
+			const valueDoc = await Values.findOne({value});
+			if (valueDoc) fieldSearchParams.value = valueDoc.id;
+		}
+		if (tag) {
+			const tagDoc = await Tags.findOne({name: tag});
+			fieldSearchParams.tag = tagDoc ? tagDoc.id : undefined;
+		}
+		const updatedField = await Fields.findByCurrentFields(fieldSearchParams);
+		const imageIds = updatedField ? updatedField.imageIds : [];
+		searchParams._id = {$in: imageIds.map(id => mongoose.Types.ObjectId(id))};
+	}
+
+	const aggregatePipeline = [
+		{$match: searchParams},
+		{
+			$project: {
+				name: 1,
+				expireDate: 1,
+				meta: 1,
+				parentId: 1,
+				_marker: markerParams
+			}
+		},
+		{$sort: {_marker: -1, name: 1}},
+		{$skip: offset},
+		{$limit: limit}
+	];
+
+	const data = await Images.aggregate(aggregatePipeline);
+
+	const count = await Images.countDocuments(searchParams);
+
+	return {
+		data,
 		count
 	};
 }
@@ -302,6 +420,8 @@ async function updateMany(addIds, removeIds, tagId, valueId, confidence) {
 
 module.exports = {
 	getCollectionsImages,
+	getFoldersImages,
 	getResourceImages,
-	updateMany
+	updateMany,
+	getCollectionResourceData
 };

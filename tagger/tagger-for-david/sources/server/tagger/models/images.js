@@ -20,11 +20,23 @@ const imagesSchema = new Schema({
 	baseParentId: {
 		type: String, required: true
 	},
+	loadedParentId: {
+		type: String, required: true
+	},
+	folderId: {
+		type: String, required: true
+	},
 	updatedDate: {
 		type: Date, default: new Date()
 	},
 	addedDate: {
 		type: Date, default: new Date()
+	},
+	userId: {
+		type: String, required: true
+	},
+	mainId: {
+		type: String, required: true
 	}
 });
 imagesSchema.set("toJSON", {virtuals: false});

@@ -1,4 +1,5 @@
 import constants from "../constants";
+import authService from "./authentication";
 
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
 
@@ -39,6 +40,37 @@ class TransitionalAjaxService {
 		return data ? data.json() : data;
 	}
 
+	login(sourceParams) {
+		const params = sourceParams ? {
+			username: sourceParams.username || 0,
+			password: sourceParams.password || 0
+		} : {};
+		const tok = `${params.username}:${params.password}`;
+		let hash;
+		try {
+			hash = btoa(tok);
+		}
+		catch (e) {
+			console.log("Invalid character in password or login");
+		}
+		return this._ajax()
+			.headers({
+				Authorization: `Basic ${hash}`
+			})
+			.get(`${TRANSITIONAL_API}/auth`, {redirect_url: this.getHostApiUrl()})
+			.then(result => this._parseData(result));
+	}
+
+	logout() {
+		const params = {
+			host: this.getHostApiUrl()
+		};
+
+		return webix.ajax().del(`${TRANSITIONAL_API}/auth`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
 	getTagsByCollection(collectionIds) {
 		const params = {
 			collectionIds: collectionIds || []
@@ -76,11 +108,12 @@ class TransitionalAjaxService {
 			.then(result => this._parseData(result));
 	}
 
-	getResourceImages(collectionId) {
+	getResourceImages(collectionId, type) {
 		const hostApi = this.getHostApiUrl();
 		const params = {
 			collectionId,
-			hostApi
+			hostApi,
+			type
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/images/resource`, params)
@@ -88,9 +121,9 @@ class TransitionalAjaxService {
 			.then(result => this._parseData(result));
 	}
 
-	getImagesByCollection({collectionIds, tag, offset, limit, value, confidence, latest, s}) {
+	getImagesByCollection({ids, tag, offset, limit, value, confidence, latest, s}) {
 		const params = {
-			ids: collectionIds || [],
+			ids: ids || [],
 			offset: offset || 0,
 			limit: limit || 50,
 			value: value || undefined,
@@ -100,6 +133,22 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/tag/${tag}/collections`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getImagesByFolder({ids, tag, offset, limit, value, confidence, latest, s}) {
+		const params = {
+			ids: ids || [],
+			offset: offset || 0,
+			limit: limit || 50,
+			value: value || undefined,
+			confidence: confidence || undefined,
+			latest: latest || undefined,
+			s: s || undefined
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/images/tag/${tag}/folders`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}

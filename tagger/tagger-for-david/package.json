@@ -44,7 +44,6 @@
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
-    "file-saver": "^2.0.0",
     "PubSub": "^3.4.0",
     "body-parser": "^1.19.0",
     "codemirror": "^5.39.2",
@@ -52,12 +51,16 @@
     "dot-object": "^1.7.1",
     "dotenv": "^6.2.0",
     "express": "^4.17.1",
-    "json-formatter-js": "^2.2.0",
-    "jsoneditor": "^6.1.0",
+    "express-jwt": "^5.3.1",
+    "express-jwt-blacklist": "^1.1.0",
+    "jsonwebtoken": "8.5.0",
+    "file-saver": "^2.0.0",
+    "json-formatter-js": "^2.2.1",
     "mongoose": "^5.6.9",
     "object.fromentries": "^2.0.0",
     "openseadragon": "^2.3.1",
     "path": "^0.12.7",
+    "request": "^2.88.0",
     "webix": "6.2.0",
     "webix-jet": "^1.5.3"
   }

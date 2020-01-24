@@ -1,4 +1,6 @@
 import {JetView} from "webix-jet";
+import dot from "dot-object";
+import JSONFormatter from "json-formatter-js";
 import CustomDataPull from "../../models/customDataPullClass";
 import ConnectedImagesModel from "../../models/connectedImagesModel";
 import PagerService from "../../services/pagerService";
@@ -8,6 +10,7 @@ import SelectItemsService from "../../services/selectItemsService";
 import undoFactory from "../../models/undoModel";
 import constants from "../../constants";
 import responsiveWindows from "../../models/windows/responsiveWindows";
+import DataviewWindowService from "../../services/mainColumns/windows/dataviewWindow";
 
 const PAGER_ID = "dataview-tag-connection-pager";
 
@@ -16,6 +19,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		const searchInput = windowParts.getSearchInputConfig();
 		const pager = windowParts.getPagerConfig(PAGER_ID);
 		const filterTemplate = windowParts.getFilterTemplateConfig();
+		const imageSizeSelect = windowParts.getImageSizeSelectorConfig();
 
 		const dataview = {
 			view: "dataview",
@@ -24,39 +28,60 @@ export default class ConnectTagToImageWindow extends JetView {
 			tooltip: "#name#",
 			pager: PAGER_ID,
 			borderless: true,
-			template: (obj, common) => windowParts.getDataviewTempate(obj, common, this.dataview),
+			template: (obj, common) => windowParts.getDataviewTempate(obj, common, this.dataview, true),
 			type: {
-				width: 150,
-				height: 135,
+				width: constants.DATAVIEW_IMAGE_SIZE.WIDTH,
+				height: constants.DATAVIEW_IMAGE_SIZE.HEIGHT,
 				checkboxState: obj => (this.dataview.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square")
 			},
-			onClick: windowParts.getDataviewOnClickObject(this)
+			onClick: Object.assign(windowParts.getDataviewOnClickObject(this), {
+				"info-icon": (ev, id) => {
+					const item = this.dataviewStore.getItemById(id);
+					this.showItemInfo(item);
+				}
+			})
 		};
 
-		const collectionListHeader = {
-			template: "Collections list",
-			css: "list-header",
-			height: 38,
-			borderless: true
-		};
+		// const collectionList = {
+		// 	view: "list",
+		// 	name: "collectionList",
+		// 	css: "ellipsis-text",
+		// 	borderless: true,
+		// 	scroll: "auto",
+		// 	template: (obj) => {
+		// 		const checkboxState = this.collectionList.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square";
+		// 		return `<div onmousedown='return false' onselectstart='return false'><i class='icon-btn checkbox-icon ${checkboxState}'></i> <span class='item-name'>${obj.name}</span></div>`;
+		// 	},
+		// 	on: {
+		// 		// onItemClick: (id, ev) => {
+		// 		// 	const item = this.collectionStore.getItemById(id);
+		// 		// 	if (ev.target.classList.contains("checkbox-icon") || ev.target.classList.contains("item-name")) {
+		// 		// 		// this.collectionSelectService.onItemSelect(ev.shiftKey, item);
+		// 		// 		// this.connectedImagesModel.clearModel();
+		// 		// 		this.windowService.getWindowImages();
+		// 		// 	}
+		// 		// }
+		// 	}
+		// };
 
-		const collectionList = {
-			view: "list",
-			name: "collectionList",
-			css: "ellipsis-text",
+		const collectionTreeView = {
+			view: "tree",
+			name: "windowCollectionTreeView",
+			gravity: 2,
 			borderless: true,
+			select: true,
+			multiselect: "level",
 			scroll: "auto",
-			template: (obj) => {
-				const checkboxState = this.collectionList.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square";
-				return `<div onmousedown='return false' onselectstart='return false'><i class='icon-btn checkbox-icon ${checkboxState}'></i> <span class='item-name'>${obj.name}</span></div>`;
+			css: "finder-view",
+			type: "lineTree",
+			oncontext: {},
+			template(obj, common) {
+				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span>`;
 			},
-			on: {
-				onItemClick: (id, ev) => {
-					const item = this.collectionStore.getItemById(id);
-					if (ev.target.classList.contains("checkbox-icon") || ev.target.classList.contains("item-name")) {
-						this.collectionSelectService.onItemSelect(ev.shiftKey, item);
-						// this.connectedImagesModel.clearModel();
-						windowParts.getWindowImages(this);
+			scheme: {
+				$init(obj) {
+					if (obj._modelType === "folder" || obj._modelType === "collection") {
+						obj.webix_kids = true;
 					}
 				}
 			}
@@ -177,34 +202,90 @@ export default class ConnectTagToImageWindow extends JetView {
 						padding: 10,
 						margin: 10,
 						body: {
-							cols: [
+							borderless: true,
+							rows: [
 								{
-									gravity: 2,
-									rows: [
+									padding: 10,
+									cols: [
 										{
-											padding: 10,
-											cols: [
-												{
-													width: 320,
-													css: {"margin-left": "4px !important"},
-													rows: [
-														searchInput
-													]
-												},
-												{},
-												pager
+											width: 320,
+											css: {"margin-left": "4px !important"},
+											rows: [
+												searchInput
 											]
 										},
-										filterTemplate,
-										dataview
+										{},
+										pager
 									]
 								},
 								{
-									minWidth: 300,
-									rows: [
-										{height: 45},
-										collectionListHeader,
-										collectionList
+									view: "accordion",
+									type: "line",
+									cols: [
+										{
+											gravity: 2,
+											rows: [
+												{
+													cols: [
+														filterTemplate,
+														imageSizeSelect,
+														{}
+													]
+												},
+												dataview
+											]
+										},
+										{
+											header: "Collections list",
+											name: "dataviewAccordionItem",
+											css: "dataview-window-accordion-item",
+											minWidth: 300,
+											collapsed: true,
+											headerAltHeight: 44,
+											body: {
+												name: "dataviewWindowMultiview",
+												animate: false,
+												cells: [
+													{
+														borderless: true,
+														rows: [
+															// collectionList,
+															collectionTreeView
+														]
+													},
+													{
+														name: "itemsInfoCell",
+														borderless: true,
+														rows: [
+															{
+																name: "itemInfoTemplate",
+																template: obj => `<div class='flex-table'>
+																					<div class='flex-table-row'>
+																						<div class='flex-table-col flex-table-header'>Name:</div>
+																						<div class='flex-table-col'>${obj.name}</div>
+																					</div>
+																					<div class='flex-table-row'>
+																						<div class='flex-table-col flex-table-header'>ID:</div>
+																						<div class='flex-table-col'>${obj._id}</div>
+																					</div>
+																					<div class='flex-table-row'>
+																						<div class='flex-table-col flex-table-header'>Tags:</div>
+																						<div class='flex-table-col json-viewer'></div>
+																					</div>
+																				</div>`,
+																borderless: true
+															}
+														]
+													}
+												]
+											},
+											onClick: {
+												"close-item-info-icon": () => {
+													this.hideItemInfo();
+													return false;
+												}
+											}
+										}
 									]
 								}
 							]
@@ -220,8 +301,9 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.ProgressBar);
+		this.windowService = new DataviewWindowService(this);
 		this.view = view;
-		this.collectionList = this.getCollectionList();
+		// this.collectionList = this.getCollectionList();
 		this.dataview = this.getWindowDataview();
 		this.selectImagesService = new SelectItemsService(this.dataview);
 		this.dataviewStore = new CustomDataPull(this.dataview);
@@ -230,14 +312,28 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.selectAllTemplate = this.getSelectAllTemplate();
 		this.connectedImagesModel = new ConnectedImagesModel();
 		this.pagerService = new PagerService(this.dataviewPager, this.dataview);
-		this.undoModel = undoFactory.create("tagPopup", this.getUndoIcon());
 		this.filterTemplate = this.getFilterTemplate();
+		this.imageSizeSelect = this.getSelectImageSize();
+		this.itemInfoTemplate = this.getRoot().queryView({name: "itemInfoTemplate"});
+		this.accordion = this.getRoot().queryView({view: "accordion"});
+
+		this.undoModel = undoFactory.create("tagPopup", this.getUndoIcon());
+
+		this.accordion.attachEvent("onAfterCollapse", () => {
+			this.onResizeDataview();
+		});
+		this.accordion.attachEvent("onAfterExpand", () => {
+			this.onResizeDataview();
+		});
+		view.attachEvent("onViewResize", () => {
+			this.onResizeDataview();
+		});
 
 		this.searchInput.attachEvent("onEnter", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 		this.searchInput.attachEvent("onSearchIconClick", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 
 		this.selectAllTemplate.define("onClick", {
@@ -254,61 +350,77 @@ export default class ConnectTagToImageWindow extends JetView {
 			const offset = this.dataviewPager.data.size * page;
 			if (!this.dataview.getIdByIndex(offset)) {
 				const params = this.getParamsForImages();
-				windowParts.parseImages(this, params);
+				this.windowService.parseImages(params);
 			}
 		});
 
 		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
 			this.connectedImagesModel.putInitialIdsFromItems(rawData.data);
+			this.windowService.setImagesRange();
 		});
 
 		this.filterTemplate.define("onClick", {
 			"filter-latest-changed": () => {
 				this.filterTemplate.setValues({latest: true});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			},
 			"filter-all": () => {
 				this.filterTemplate.setValues({latest: false});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			}
+		});
+
+		this.imageSizeSelect.attachEvent("onChange", (val) => {
+			this.windowService.onChangeImageSizeValue(val);
+		});
+
+		this.getCollectionTreeView().attachEvent("onSelectChange", () => {
+			this.windowService.getWindowImages();
 		});
 	}
 
-	showWindow(tag, tagStore, collectionStore, collectionSelectService) {
+	showWindow(tag, tagStore, collectionStore, collectionSelectService, collectionTree) {
 		const headerTemplate = this.getHeaderTemplate();
 		this.currentTag = tag;
 		headerTemplate.setValues(tag);
 		this.tagStore = tagStore;
-		this.collectionStore = collectionStore;
-		this.collectionSelectService = collectionSelectService;
-		this.collectionSelectService.addSecondaryDataView(this.collectionList);
-		this.parseCollections();
-		this.collectionSelectService.markSecondarySelectedItems();
-		this.getRoot().show();
-		windowParts.getWindowImages(this);
-		responsiveWindows.addWindow(this.getRoot().config.id, this.getRoot());
+		// this.collectionStore = collectionStore;
+		// this.collectionSelectService = collectionSelectService;
+		this.mainCollectionTree = collectionTree;
+
+		const treeState = collectionTree.getState();
+		this.getCollectionTreeView().blockEvent();
+		this.getCollectionTreeView().setState(treeState);
+		this.getCollectionTreeView().unblockEvent();
+		// this.collectionSelectService.addSecondaryDataView(this.collectionList);
+		// this.parseCollections();
+		// this.collectionSelectService.markSecondarySelectedItems();
+
+		this.windowService.onWindowShow();
 	}
 
-	parseCollections() {
-		const collections = this.collectionStore.getArrayOfItems();
-		this.collectionList.parse(collections);
-	}
+	// parseCollections() {
+	// 	const collections = this.collectionStore.getArrayOfItems();
+	// 	this.collectionList.parse(collections);
+	// }
 
 	getParamsForImages() {
-		const collections = this.collectionSelectService.getSelectedItems();
-		const collectionIds = collections.map(collection => collection._id);
+		// const collections = this.collectionSelectService.getSelectedItems();
+		const ids = this.getCollectionAndSelectedIds();
+		// const collectionIds = collections.map(collection => collection._id);
 		const offset = this.dataviewPager.data.size * this.dataviewPager.data.page;
 		const limit = this.dataviewPager.data.size;
 		const search = this.searchInput.getValue();
-
-		return {
-			collectionIds,
+		const params = {
+			ids: ids.selectedIds,
 			tag: this.currentTag.name,
 			latest: this.filterTemplate.getValues().latest,
 			offset,
 			limit,
-			s: search
+			s: search,
+			type: ids.selectedType
 		};
+		return params;
 	}
 
 	updateMetadata() {
@@ -321,15 +433,97 @@ export default class ConnectTagToImageWindow extends JetView {
 		return Promise.resolve(false);
 	}
 
+	showItemInfo(item) {
+		const dataviewAccordionItem = this.getRoot().queryView({name: "dataviewAccordionItem"});
+		const itemsInfoCell = this.getRoot().queryView({name: "itemsInfoCell"});
+		const itemInfoTemplate = this.getRoot().queryView({name: "itemInfoTemplate"});
+		dataviewAccordionItem.define("header", "Item's info <i class='close-item-info-icon fas fa-times'></i>");
+		dataviewAccordionItem.refresh();
+		// if accordion item isn't expanded
+		if (dataviewAccordionItem.$width <= dataviewAccordionItem.config.headerAltHeight) {
+			dataviewAccordionItem.expand();
+		}
+		itemInfoTemplate.setValues(item);
+		this.itemInfoTemplate.refresh();
+		const templateNode = this.itemInfoTemplate.getNode();
+		itemsInfoCell.show();
+		const tags = dot.pick("meta.tags", item);
+		this.createJSONViewer(tags || {}, templateNode.querySelector(".json-viewer"));
+	}
+
+	hideItemInfo() {
+		this.itemInfoTemplate.refresh();
+		const multiview = this.getRoot().queryView({name: "dataviewWindowMultiview"});
+		const dataviewAccordionItem = this.getRoot().queryView({name: "dataviewAccordionItem"});
+		dataviewAccordionItem.define("header", "Collections list");
+		dataviewAccordionItem.refresh();
+		multiview.back();
+	}
+
+	createJSONViewer(data, templateNode) {
+		const formatter = new JSONFormatter(data);
+		templateNode.appendChild(formatter.render());
+	}
+
+	getFirstItemIndexOnPage() {
+		const pData = this.dataviewPager.data;
+		return pData.page * pData.size;
+	}
+
+	getCurrentPageByItemIndex(index) {
+		return Math.floor(index / this.dataviewPager.data.size);
+	}
+
+	onResizeDataview() {
+		// const index = this.getFirstItemIndexOnPage();
+		this.windowService.setImagesRange();
+		// const page = this.getCurrentPageByItemIndex(index);
+		this.dataviewStore.clearAll();
+		this.windowService.getWindowImages();
+		// if (this.dataviewPager.data.page !== page) {
+		// 	this.dataviewPager.select(page);
+		// }
+	}
+
 	closeWindow() {
 		this.searchInput.setValue("");
 		this.connectedImagesModel.clearModel();
-		this.collectionSelectService.clearSecondaryDataviews();
+		// this.collectionSelectService.clearSecondaryDataviews();
 		this.filterTemplate.setValues({latest: false});
 		this.undoModel.clearModel();
 		responsiveWindows.removeWindow(this.getRoot().config.id);
 		this.selectImagesService.clearModel();
+		this.hideItemInfo();
+		const treeState = this.getCollectionTreeView().getState();
+		this.mainCollectionTree.blockEvent();
+		this.mainCollectionTree.setState(treeState);
+		this.mainCollectionTree.unblockEvent();
+
 		this.getRoot().hide();
+	}
+
+	getCollectionAndSelectedIds() {
+		const ids = this.mainCollectionTree.getSelectedId(true);
+		const firstItem = this.mainCollectionTree.getItem(ids[0]);
+		const _ids = ids
+			.filter((id) => {
+				const item = this.mainCollectionTree.getItem(id);
+				return item.$level === firstItem.$level;
+			})
+			.map((id) => {
+				const item = this.mainCollectionTree.getItem(id);
+				return item._id;
+			});
+		let collectionIds = [];
+		let selectedType = "collection";
+		if (firstItem._modelType === "collection") {
+			collectionIds = _ids;
+		}
+		else {
+			collectionIds = [firstItem.baseParentId];
+			selectedType = "folder";
+		}
+		return {collectionIds, selectedIds: _ids, selectedType};
 	}
 
 	getHeaderTemplate() {
@@ -362,5 +556,13 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	getSelectAllTemplate() {
 		return this.getRoot().queryView({name: "selectAllTemplate"});
+	}
+
+	getSelectImageSize() {
+		return this.getRoot().queryView({name: "windowSelectImageSize"});
+	}
+
+	getCollectionTreeView() {
+		return this.getRoot().queryView({name: "windowCollectionTreeView"});
 	}
 }

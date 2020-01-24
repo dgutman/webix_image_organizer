@@ -1,5 +1,3 @@
-const location = window.location;
-
 export default {
 
 	KEY_TOKEN: "girderToken",
@@ -31,5 +29,18 @@ export default {
 		HEIGHT: 650,
 		MIN_WIDTH: 735,
 		MIN_HEIGHT: 400
+	},
+
+	DATAVIEW_IMAGE_SIZE: {
+		WIDTH: 135,
+		HEIGHT: 120
+	},
+
+	DATAVIEW_IMAGE_MULTIPLIERS: {
+		"Default size": 1,
+		"x1.5": 1.5,
+		"x2": 2,
+		"x2.5": 2.5,
+		"x3": 3
 	}
 };

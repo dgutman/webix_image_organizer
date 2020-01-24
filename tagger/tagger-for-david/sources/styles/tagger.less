@@ -99,17 +99,7 @@
 
     .tagger-window {
         .window-dataview {
-            .thumbnails-name {
-                color: rgba(0,0,0,0.8);
-                font-weight: 500;
-                line-height: 20px;
-                padding: 5px 0 0 15px;
-                margin-right: 10px;
-                text-align: center;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-            }
+            overflow: auto !important;
             .webix_dataview_item {
                 border: none;
                 cursor: default;
@@ -118,16 +108,38 @@
             .webix_selected {
                 color: @main-color-light;
                 background-color: @main-bg !important;
-                .dataview-items .dataview-checkbox-container {
+                .dataview-item .dataview-checkbox-container {
                     display: inline-block;
                     .fa-check-square {
                         color: @btn-hover;
                     }
                 }
             }
-            .dataview-items {
+            .dataview-item {
                 position: relative;
-                .dataview-images-info {
+                &.not-highlighted {
+                    // styles for not highlighted items in dataviews
+                    img {
+                        opacity: .3;
+                    }
+                    // .dataview-images-name {
+
+                    // }
+                    .dataview-images-container {
+                        border: 3px solid red;
+                    }
+                }
+                .dataview-images-name {
+                    color: rgba(0,0,0,0.8);
+                    font-weight: 500;
+                    line-height: 20px;
+                    padding: 0;
+                    text-align: center;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                }
+                .dataview-images-icons {
                     position: absolute;
                     top: 0;
                     left: 0;
@@ -136,16 +148,24 @@
                     height: 100%;
                 }
                 &:hover {
-                    .dataview-images-info .dataview-icon, .dataview-images-info .dataview-checkbox-container {
+                    .dataview-images-icons .dataview-icon, .dataview-images-icons .dataview-checkbox-container {
                         display: inline-block;
                     }
                 }
-                .dataview-images-header {
+                .dataview-icons-top {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-start;
                     line-height: 20px;
                     font-size: 20px;
+                }
+                .dataview-icons-bottom {
+                    position: absolute;
+                    bottom: 0;
+                    text-align: center;
+                    line-height: 23px;
+                    font-size: 23px;
+                    width: 100%;
                 }
                 .dataview-icon {
                     cursor: pointer;
@@ -166,20 +186,22 @@
             .dataview-images-container {
                 position: relative;
                 cursor: pointer;
-                height: 100px;
+                height: 80px;
                 background: @main-bg;
+                border: 3px solid green;
                 .border-radius(3px);
                 text-align: center;
                 .dataview-image {
                     display: inline-block;
                 }
-                &.not-highlighted img{
-                    opacity: .3;
-                }
             }
         }
 
         .filter-images-flex-container {
+            display: flex;
+            align-items: center;
+            justify-content: left;
+            height: 100%;
             &.latest {
                 a {
                     font-weight: 500;
@@ -188,8 +210,6 @@
                     }
                 }
             }
-            display: flex;
-            justify-content: left;
             a {
                 font-weight: bold;
                 flex: 0 0 auto;
@@ -209,6 +229,39 @@
         .select-images-container {
             display: flex;
             justify-content: space-between;
+        }
+
+        .dataview-window-accordion-item {
+            .webix_accordionitem_label {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .close-item-info-icon {
+                font-size: 20px;
+                &:hover {
+                    color: @btn-hover;
+                }
+            }
+        }
+        .flex-table {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            .flex-table-header {
+                font-weight: 600;
+            }
+            .flex-table-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 5px 0;
+                .flex-table-col {
+                    flex-basis: 80px;
+                    &:last-child {
+                        flex: 2 2 auto;
+                    }
+                }
+            }
         }
     }
 
@@ -240,11 +293,13 @@
             .note-content {
                 flex: 1 1 auto;
                 min-height: 29px;
+                line-height: 29px;
                 color: @main-color;
                 box-sizing: border-box;
                 .editable-content {
                     white-space: pre-line;
                     word-break: break-all;
+                    padding: 0 5px;
                     &.hidden {
                         opacity: 0;
                         position: absolute;

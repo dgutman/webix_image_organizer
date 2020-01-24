@@ -1,7 +1,8 @@
 import galleryImageUrl from "../../models/galleryImageUrls";
 import nonImageUrls from "../../models/nonImageUrls";
 import ajaxService from "../../services/ajaxActions";
-import transitionalAjax from "../../services/transitionalAjaxService";
+import auth from "../../services/authentication";
+import constants from "../../constants";
 
 function getFilterTemplateConfig() {
 	return {
@@ -14,6 +15,7 @@ function getFilterTemplateConfig() {
 		},
 		name: "filterImagesTemplate",
 		height: 25,
+		width: 190,
 		borderless: true
 	};
 }
@@ -74,15 +76,17 @@ function getPagerConfig(id) {
 		view: "pager",
 		id,
 		width: 400,
-		size: 70,
+		size: 15,
 		template: (obj, common) => `${common.first()} ${common.prev()} <input type='text' class='pager-input' value='${common.page(obj)}'>
 			<span class='pager-amount'>of ${obj.limit} ${getItemsCount(obj)}</span> ${common.next()} ${common.last()}`
 	};
 }
 
-function getDataviewTempate(obj, common, dataview) {
-	const IMAGE_HEIGHT = 100;
-	const IMAGE_WIDTH = 150;
+function getDataviewTempate(obj, common, dataview, info) {
+	console.log(obj)
+	console.log(dataview)
+	const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
+	const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 	const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 	const setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 	let isHighlighted = "not-highlighted";
@@ -91,10 +95,17 @@ function getDataviewTempate(obj, common, dataview) {
 		isHighlighted = "highlighted";
 		iconState = "fas fa-times-circle delete-icon";
 	}
+
+	let infoIcon = "";
+	if (info) {
+		infoIcon = "<div class='dataview-icon'><i class='info-icon fas fa-info-circle'></i></div>";
+	}
+
 	if (typeof getPreviewUrl(obj._id) === "undefined") {
 		setPreviewUrl(obj._id, "");
+		console.log(obj);
 		// to prevent sending query more than 1 times
-		ajaxService.getImage(obj._id, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
+		ajaxService.getImage(obj.mainId, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
 			.then((data) => {
 				if (data.type === "image/jpeg") {
 					setPreviewUrl(obj._id, URL.createObjectURL(data));
@@ -105,17 +116,20 @@ function getDataviewTempate(obj, common, dataview) {
 			});
 	}
 
-	return `<div onmousedown='return false' onselectstart='return false' class='dataview-items'>
-				<div class="dataview-images-info">
-					<div class="dataview-images-header">
-						<div class="dataview-checkbox-container"><i class='checkbox ${common.checkboxState(obj, common)}'></i></div>
-						<div class="dataview-icon"><i class='${iconState}'></i></div>
+	return `<div onmousedown='return false' onselectstart='return false' class='dataview-item ${isHighlighted}'>
+				<div class="dataview-images-container" style="height: ${IMAGE_HEIGHT}px">
+					<div class="dataview-images-icons">
+						<div class="dataview-icons-top">
+							<div class="dataview-checkbox-container"><i class='checkbox ${common.checkboxState(obj, common)}'></i></div>
+							<div class="dataview-icon"><i class='${iconState}'></i></div>
+						</div>
+						<div class="dataview-icons-bottom">
+							${infoIcon}
+						</div>
 					</div>
-				</div>
-				<div class="dataview-images-container ${isHighlighted}" style="height: ${IMAGE_HEIGHT}px">
 					<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image" style="height: ${IMAGE_HEIGHT}px">
 				</div>
-				<div class="thumbnails-name ellipsis-text">${obj.name}</div>
+				<div class="dataview-images-name ellipsis-text">${obj.name}</div>
 			</div>`;
 }
 
@@ -129,57 +143,6 @@ function confirmBeforeClose(condition) {
 		});
 	}
 	return Promise.resolve();
-}
-
-function parseImages(ref, params) {
-	let promise = Promise.resolve(false);
-	if (params.collectionIds.length) {
-		ref.view.showProgress();
-		promise = transitionalAjax.getImagesByCollection(params);
-	}
-	return promise
-		.then((images) => {
-			if (images) {
-				ref.dataviewStore.parseItems(images.data, params.offset, images.count);
-				// restore selected items
-				ref.selectImagesService.onAfterNewDataLoad(params.collectionIds);
-				ref.view.hideProgress();
-				return images.data;
-			}
-			return false;
-		})
-		.catch(() => {
-			ref.view.hideProgress();
-		});
-}
-
-function getWindowImages(ref) {
-	ref.dataviewPager.blockEvent();
-	ref.dataviewPager.select(0);
-	ref.dataviewPager.unblockEvent();
-	// remember selected items
-	ref.selectImagesService.onBeforeNewDataLoad();
-	ref.dataviewStore.clearAll();
-	const params = ref.getParamsForImages();
-	return parseImages(ref, params)
-		.then((data) => {
-			if (data) {
-				// restore unsaved changes
-				const idsToAdd = ref.connectedImagesModel.getImagesIdsForAdding();
-				const idsToDelete = ref.connectedImagesModel.getImagesIdsForRemoving();
-				idsToAdd.forEach((id) => {
-					if (ref.dataviewStore.getItemById(null, id)) {
-						ref.dataviewStore.updateItem(null, id, {_marker: true});
-					}
-				});
-				idsToDelete.forEach((id) => {
-					if (ref.dataviewStore.getItemById(null, id)) {
-						ref.dataviewStore.updateItem(null, id, {_marker: false});
-					}
-				});
-			}
-			return data;
-		});
 }
 
 function addMarker(id, ref) {
@@ -245,6 +208,35 @@ function getDataviewOnClickObject(ref) {
 	};
 }
 
+function getDataviewTypeObject(multiplier, dataview) {
+	const width = (constants.DATAVIEW_IMAGE_SIZE.WIDTH * multiplier) || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
+	const height = (constants.DATAVIEW_IMAGE_SIZE.HEIGHT * multiplier) || constants.DATAVIEW_IMAGE_SIZE.HEIGHT;
+	return {
+		width,
+		height,
+		checkboxState: obj => (dataview.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square")
+	};
+}
+
+function setImageMultiplierId(id) {
+	webix.storage.local.put(`sizeMultiplierId-${auth.getUserId()}`, id);
+}
+
+function getImageMultiplierId() {
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || constants.DATAVIEW_IMAGE_MULTIPLIERS["Default size"];
+}
+
+function getImageSizeSelectorConfig() {
+	return {
+		view: "richselect",
+		width: 130,
+		name: "windowSelectImageSize",
+		css: "select-field",
+		value: getImageMultiplierId(),
+		options: Object.keys(constants.DATAVIEW_IMAGE_MULTIPLIERS)
+	};
+}
+
 export default {
 	getPagerConfig,
 	getSearchInputConfig,
@@ -253,7 +245,9 @@ export default {
 	getSelectAllTemplateConfig,
 	getDataviewTempate,
 	confirmBeforeClose,
-	getWindowImages,
-	parseImages,
-	getDataviewOnClickObject
+	getDataviewOnClickObject,
+	getDataviewTypeObject,
+	setImageMultiplierId,
+	getImageMultiplierId,
+	getImageSizeSelectorConfig
 };

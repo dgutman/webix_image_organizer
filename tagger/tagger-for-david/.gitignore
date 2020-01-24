@@ -1,0 +1,7 @@
+.idea/
+codebase/
+node_modules/
+*.log
+*.lock
+.vscode/
+.env

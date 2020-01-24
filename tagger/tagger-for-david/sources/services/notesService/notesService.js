@@ -17,7 +17,7 @@ export default class NotesService {
 	}
 
 	_notesListEvents() {
-		const userId = auth.getUserInfo()._id;
+		const userId = auth.getUserId();
 
 		this._addNoteButton.define("onClick", {
 			"add-new": () => {
@@ -74,7 +74,7 @@ export default class NotesService {
 	}
 
 	_getNotes() {
-		const userId = auth.getUserInfo()._id;
+		const userId = auth.getUserId();
 		transitionalAjax.getNotesByUser(userId)
 			.then((data) => {
 				this._notesList.parse(data);

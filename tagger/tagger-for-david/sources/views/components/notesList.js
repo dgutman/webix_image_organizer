@@ -19,7 +19,7 @@ webix.protoUI({
 		editableNode.classList.add("hidden");
 
 		const textarea = document.createElement("textarea");
-		// textarea.setAttribute("maxlength", this.config.maxCharCount);
+		textarea.setAttribute("maxlength", this.config.maxCharCount);
 		textarea.classList.add("list-edit-textarea");
 		const oldValue = item.content || "";
 
@@ -42,7 +42,7 @@ webix.protoUI({
 
 		const blurEventId = webix.event(textarea, "blur", () => {
 			const values = {
-				value: textarea.value.slice(0, this.config.maxCharCount),
+				value: textarea.value,
 				old: oldValue || ""
 			};
 			this.updateItem(id, {content: values.value || oldValue});
@@ -58,11 +58,11 @@ webix.protoUI({
 
 	_fixTextareaHeight(textarea, editableNode) {
 		const value = textarea.value;
-		editableNode.innerHTML = value;
-		// char code 10 is line break
-		if (value && value.charCodeAt(value.length - 1) === 10) {
-			editableNode.innerHTML += "&#10;";
-		}
+		let text = "";
+		value.split("\n").forEach((s) => {
+			text = `${text}${s.replace(/\s\s/g, " &nbsp;")}\n`;
+		});
+		editableNode.innerHTML = text;
 		textarea.style.height = "auto";
 		textarea.style.height = `${editableNode.scrollHeight}px`;
 	},
@@ -78,7 +78,7 @@ webix.protoUI({
 			text = "Invalid character";
 		}
 		else {
-			// validValue = validValue.slice(0, maxCharCount);
+			validValue = validValue.slice(0, this.config.maxCharCount);
 			text = `Symbols left - ${Math.max(this.config.maxCharCount - validValue.length, 0)}`;
 		}
 		textarea.value = validValue;

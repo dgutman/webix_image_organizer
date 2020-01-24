@@ -57,7 +57,9 @@ export default class NotesViewClass extends JetView {
 	}
 
 	ready(view) {
-		this.notesService = new NotesService(view);
+		if (auth.isLoggedIn()) {
+			this.notesService = new NotesService(view);
+		}
 		// fix bug with endless resizer
 		const accordionItem = view.getParentView();
 		accordionItem.attachEvent("onViewResize", () => {

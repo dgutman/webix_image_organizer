@@ -1,4 +1,5 @@
 import transitionalAjax from "../transitionalAjaxService";
+import ajaxActions from "../ajaxActions";
 import CustomDataPull from "../../models/customDataPullClass";
 import undoFactory from "../../models/undoModel";
 import SelectItemsService from "../selectItemsService";
@@ -40,11 +41,12 @@ export default class TaggerMainColumnsService {
 		this._connectConfidenceToImageWindow = scope.ui(connectConfidenceToImageWindow);
 
 		// collection column views
-		this._collectionList = this._collectionColumnClass.getCollectionList();
-		this._collectionListStore = new CustomDataPull(this._collectionList);
-		this._collectionSelectItemsService = new SelectItemsService(this._collectionList);
-		this._collectionSelectTemplate = this._collectionColumnClass.getSelectAllTemplate();
-		this._collectionSearchInput = this._collectionColumnClass.getSearchInput();
+		// this._collectionList = this._collectionColumnClass.getCollectionList();
+		this._collectionTree = this._collectionColumnClass.getCollectionTreeView();
+		// this._collectionListStore = new CustomDataPull(this._collectionList);
+		// this._collectionSelectItemsService = new SelectItemsService(this._collectionList);
+		// this._collectionSelectTemplate = this._collectionColumnClass.getSelectAllTemplate();
+		// this._collectionSearchInput = this._collectionColumnClass.getSearchInput();
 
 		// tags column views
 		this._tagList = this._tagColumnClass.getEditableList();
@@ -68,6 +70,20 @@ export default class TaggerMainColumnsService {
 		this._addConfidenceTemplate = this._confidenceColumnClass.getAddNewItemTemplate();
 		this._confidenceSearchInput = this._confidenceColumnClass.getSearchInput();
 
+		const windowCollectionTree = this._connectTagToImageWindow.getCollectionTreeView();
+		windowCollectionTree.sync(this._collectionTree);
+		windowCollectionTree.attachEvent("onBeforeOpen", (id) => {
+			const item = windowCollectionTree.getItem(id);
+			if (!item._wasOpened) {
+				this._collectionTree.callEvent("onDataRequest", [id]);
+				item._wasOpened = true;
+			}
+		});
+		windowCollectionTree.attachEvent("onSelectChange", () => {
+			const ids = windowCollectionTree.getSelectedId(true);
+			this._collectionTree.select([ids]);
+		});
+
 		// attaching events
 		this._attachTopButtonsEvents();
 		this._attachHostChangeEvent();
@@ -79,7 +95,8 @@ export default class TaggerMainColumnsService {
 	}
 
 	_changeTopButtonsState() {
-		const collections = this._collectionList.getSelectedItem(true);
+		const ids = this._getCollectionAndSelectedIds();
+		const collectionIds = ids.collectionIds;
 		const gettingDataStatus = this._getDataStatusTemplate.getValues();
 		let getBtnIsEnabled;
 		let sendBtnIsEnabled;
@@ -87,7 +104,7 @@ export default class TaggerMainColumnsService {
 			getBtnIsEnabled = false;
 			sendBtnIsEnabled = false;
 		}
-		else if (collections.length) {
+		else if (collectionIds.length) {
 			getBtnIsEnabled = true;
 			sendBtnIsEnabled = true;
 		}
@@ -106,15 +123,17 @@ export default class TaggerMainColumnsService {
 
 	_attachTopButtonsEvents() {
 		this._getDataButton.attachEvent("onItemClick", () => {
-			const collections = this._collectionList.getSelectedItem(true);
-			const collectionIds = collections.map(collection => collection._id);
-			if (collectionIds.length) {
+			// const collections = this._collectionList.getSelectedItem(true);
+			const ids = this._getCollectionAndSelectedIds();
+			// const collectionIds = collections.map(collection => collection._id);
+			const selectedIds = ids.selectedIds;
+			if (selectedIds.length) {
 				this._getDataStatusTemplate.show();
 				this._getDataStatusTemplate.setValues(constants.RECOGNITION_STATUSES.IN_PROGRESS);
 				this._changeTopButtonsState();
-				Promise.all(collectionIds.map(collectionId => transitionalAjax.getResourceImages(collectionId)))
+				Promise.all(selectedIds.map(collectionId => transitionalAjax.getResourceImages(collectionId, ids.selectedType)))
 					.then(() => {
-						this._getTagsAfterCollectionSelect(collectionIds);
+						this._getTagsAfterCollectionSelect(ids.collectionIds);
 						this._getDataStatusTemplate.setValues(constants.RECOGNITION_STATUSES.DONE);
 					})
 					.catch(() => {
@@ -136,25 +155,36 @@ export default class TaggerMainColumnsService {
 	}
 
 	_attachCollectionColumnEvents() {
-		this._collectionSelectTemplate.define("onClick", {
-			"select-all": () => {
-				this._collectionSelectItemsService.selectAllItems();
-			},
-			"unselect-all": () => {
-				this._collectionSelectItemsService.unselectAllItems();
-			}
-		});
+		// this._collectionSelectTemplate.define("onClick", {
+		// 	"select-all": () => {
+		// 		this._collectionSelectItemsService.selectAllItems();
+		// 	},
+		// 	"unselect-all": () => {
+		// 		this._collectionSelectItemsService.unselectAllItems();
+		// 	}
+		// });
 
-		this._collectionSearchInput.attachEvent("onChange", () => {
-			this._searchStaticItems(this._collectionList, this._collectionSearchInput);
-			this._collectionSelectItemsService.markMainSelectedItems();
-		});
+		// this._collectionSearchInput.attachEvent("onChange", () => {
+		// 	this._searchStaticItems(this._collectionList, this._collectionSearchInput);
+		// 	this._collectionSelectItemsService.markMainSelectedItems();
+		// });
 
-		this._collectionList.attachEvent("onItemClick", (id, ev) => {
-			const item = this._collectionListStore.getItemById(id);
-			if (ev.target.classList.contains("checkbox-icon") || ev.target.classList.contains("item-name")) {
-				this._collectionSelectItemsService.onItemSelect(ev.shiftKey, item);
-			}
+		// this._collectionList.attachEvent("onItemClick", (id, ev) => {
+		// 	const item = this._collectionListStore.getItemById(id);
+		// 	if (ev.target.classList.contains("checkbox-icon") || ev.target.classList.contains("item-name")) {
+		// 		this._collectionSelectItemsService.onItemSelect(ev.shiftKey, item);
+		// 	}
+		// });
+
+		this._collectionTree.attachEvent("onDataRequest", (id) => {
+			const item = this._collectionTree.getItem(id);
+			const modelType = item._modelType;
+			this._parentView.showProgress();
+			ajaxActions.getFolder(modelType, item._id)
+				.then((data) => {
+					this._collectionTree.parse({parent: id, data});
+					this._parentView.hideProgress();
+				});
 		});
 	}
 
@@ -208,8 +238,7 @@ export default class TaggerMainColumnsService {
 				const copy = webix.copy(item);
 				// update existed item in changes model
 				if (existedChangedItem) {
-					const collections = this._collectionList.getSelectedItem(true);
-					let collectionIds = collections.map(collection => collection._id) || [];
+					let collectionIds = this._getCollectionAndSelectedIds().collectionIds || [];
 					const existedCollectionIds = existedChangedItem.collectionIds || [];
 					collectionIds = existedCollectionIds
 						.concat(collectionIds)
@@ -245,8 +274,9 @@ export default class TaggerMainColumnsService {
 							const copy = webix.copy(tag);
 							this._undoModel.setActionToUndo(copy, this._tagListStore, "add");
 							if (tag._id) {
-								const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
-								const selectedCollectionIds = selectedCollections.map(collection => collection._id);
+								// const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
+								const selectedCollectionIds = this._getCollectionAndSelectedIds().collectionIds;
+								// const selectedCollectionIds = selectedCollections.map(collection => collection._id);
 								tag.collectionIds = tag.collectionIds.filter(collectionId => !selectedCollectionIds.includes(collectionId));
 								this._changesTagsModel.addItem(tag, "updated");
 							}
@@ -259,7 +289,7 @@ export default class TaggerMainColumnsService {
 			}
 			else if (ev.target.classList.contains("image-icon")) {
 				if (tag._id) {
-					this._connectTagToImageWindow.showWindow(tag, this._tagListStore, this._collectionListStore, this._collectionSelectItemsService);
+					this._connectTagToImageWindow.showWindow(tag, this._tagListStore, null, null, this._collectionTree);
 				}
 				return false;
 			}
@@ -326,8 +356,8 @@ export default class TaggerMainColumnsService {
 			const createdTags = this._changesTagsModel.getItems("created");
 			const updatedTags = this._changesTagsModel.getItems("updated");
 
-			const collections = this._collectionList.getSelectedItem(true);
-			const collectionIds = collections.map(collection => collection._id);
+			// const collections = this._collectionList.getSelectedItem(true);
+			const collectionIds = this._getCollectionAndSelectedIds().collectionIds;
 
 			const requestArray = [this._createTags(createdTags, collectionIds), this._updateTags(updatedTags)];
 			this._parentView.showProgress();
@@ -399,8 +429,9 @@ export default class TaggerMainColumnsService {
 						value,
 						tag
 					};
-					const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
-					this._connectValueToImageWindow.showWindow(obj, this._tagListStore, this._valuesListStore, selectedCollections);
+					// const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
+					const ids = this._getCollectionAndSelectedIds();
+					this._connectValueToImageWindow.showWindow(obj, this._tagListStore, this._valuesListStore, ids);
 				}
 				return false;
 			}
@@ -494,8 +525,9 @@ export default class TaggerMainColumnsService {
 					confidenceStore: this._confidenceListStore
 				};
 				if (tag && value) {
-					const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
-					this._connectConfidenceToImageWindow.showWindow(obj, stores, selectedCollections);
+					// const selectedCollections = this._collectionSelectItemsService.getSelectedItems();
+					const ids = this._getCollectionAndSelectedIds();
+					this._connectConfidenceToImageWindow.showWindow(obj, stores, ids);
 				}
 				return false;
 			}
@@ -508,14 +540,36 @@ export default class TaggerMainColumnsService {
 
 	_attachHostChangeEvent() {
 		this._view.$scope.on(this._view.$scope.app, "collectionDataReceived", (collections) => {
-			this._collectionListStore.parseItems(collections);
+			// this._collectionListStore.parseItems(collections);
+			this._collectionTree.parse(collections);
 		});
 	}
 
 	_attachCollectionSelectChangeEvent() {
-		this._collectionList.attachEvent("customSelectChange", (collections) => {
-			const collectionIds = collections.map(collection => collection._id);
+		// this._collectionList.attachEvent("customSelectChange", (collections) => {
+		// 	const collectionIds = collections.map(collection => collection._id);
 
+
+		// 	this._changesTagsModel.clearItems();
+		// 	this._changesValuesModel.clearItems();
+		// 	this._undoModel.clearModel();
+		// 	this._getTagsAfterCollectionSelect(collectionIds);
+		// 	if (collectionIds.length) {
+		// 		this._tagColumnClass.getRoot().enable();
+		// 		this._valuesColumnClass.getRoot().enable();
+		// 		this._confidenceColumnClass.getRoot().enable();
+		// 	}
+		// 	else {
+		// 		this._tagColumnClass.getRoot().disable();
+		// 		this._valuesColumnClass.getRoot().disable();
+		// 		this._confidenceColumnClass.getRoot().disable();
+		// 	}
+		// 	this._changeTopButtonsState();
+		// });
+
+		this._collectionTree.attachEvent("onSelectChange", () => {
+			const ids = this._getCollectionAndSelectedIds();
+			const collectionIds = ids.collectionIds;
 
 			this._changesTagsModel.clearItems();
 			this._changesValuesModel.clearItems();
@@ -532,20 +586,23 @@ export default class TaggerMainColumnsService {
 				this._confidenceColumnClass.getRoot().disable();
 			}
 			this._changeTopButtonsState();
+			// this._collectionTree.callEvent("customSelectChange", [ids]);
 		});
 	}
 
 	_getTagsAfterCollectionSelect(collectionIds) {
-		this._tagListStore.clearAll();
-		if (collectionIds.length) {
-			this._parentView.showProgress();
-			transitionalAjax.getTagsByCollection(collectionIds)
-				.then((data) => {
-					this._tagListStore.parseItems(data);
-					this._searchStaticItems(this._tagList, this._tagSearchInput);
-					this._parentView.hideProgress();
-				})
-				.fail(() => { this._parentView.hideProgress(); });
+		if (auth.isLoggedIn()) {
+			if (collectionIds.length) {
+				this._parentView.showProgress();
+				transitionalAjax.getTagsByCollection(collectionIds)
+					.then((data) => {
+						this._tagListStore.clearAll();
+						this._tagListStore.parseItems(data);
+						this._searchStaticItems(this._tagList, this._tagSearchInput);
+						this._parentView.hideProgress();
+					})
+					.fail(() => { this._parentView.hideProgress(); });
+			}
 		}
 	}
 
@@ -690,6 +747,32 @@ export default class TaggerMainColumnsService {
 			messageBoxes.showValidationPopup(editorInput, text);
 			editorInput.focus();
 		});
+	}
+
+	_getCollectionAndSelectedIds() {
+		const ids = this._collectionTree.getSelectedId(true);
+		const firstItem = this._collectionTree.getItem(ids[0]);
+		const _ids = ids
+			.filter((id) => {
+				const item = this._collectionTree.getItem(id);
+				return item.$level === firstItem.$level;
+			})
+			.map((id) => {
+				const item = this._collectionTree.getItem(id);
+				return item._id;
+			});
+		let collectionIds = [];
+		let selectedType = "collection";
+		if (firstItem) {
+			if (firstItem._modelType === "collection") {
+				collectionIds = _ids;
+			}
+			else {
+				collectionIds = [firstItem.baseParentId];
+				selectedType = "folder";
+			}
+		}
+		return {collectionIds, selectedIds: _ids, selectedType};
 	}
 
 	filterCreatedValues() {

@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
 import SearchWithHeaderClass from "./searchWithHeader";
 import EditableListService from "../../../../services/mainColumns/editableListService/editableListService";
+import auth from "../../../../services/authentication";
 import "../../../components/editableList";
 
 export default class EditableListView extends JetView {
@@ -61,14 +62,15 @@ export default class EditableListView extends JetView {
 			name: "addNewItemTemplate",
 			height: 25,
 			borderless: true,
-			hidden: !this.subConfig.isViewEditable
+			hidden: !this.subConfig.isViewEditable || !auth.isLoggedIn()
 		};
 
 		const saveBtn = {
 			view: "button",
 			name: "saveBtn",
 			css: "btn",
-			label: "Save"
+			label: "Save",
+			disable: !auth.isLoggedIn()
 		};
 
 		const editModeBtn = {

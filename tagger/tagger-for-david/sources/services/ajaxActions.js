@@ -1,6 +1,8 @@
 import authService from "./authentication";
 import constants from "../constants";
 
+const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
+
 function parseError(xhr) {
 	let message;
 	switch (xhr.status) {
@@ -30,6 +32,9 @@ webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, pro
 	let searchedInUrl = url.search(toSearchInUrl);
 	if (searchedInUrl === -1) {
 		headers["Girder-Token"] = authService.getToken();
+	}
+	if (url.search(TRANSITIONAL_API) !== -1) {
+		headers["Tagger-JWT"] = authService.getTaggerJWT();
 	}
 });
 
@@ -91,8 +96,13 @@ class AjaxActions {
 	}
 
 	getFolder(parentType, parentId) {
+		const params = {
+			limit: 0,
+			parentType,
+			parentId
+		};
 		return this._ajax()
-			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}`)
+			.get(`${this.getHostApiUrl()}/folder`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
@@ -108,6 +118,8 @@ class AjaxActions {
 	}
 
 	getImage(imageId, height, width, imageType) {
+		console.log(imageId);
+
 		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
 	}
 

@@ -8,6 +8,7 @@ import SelectItemsService from "../../services/selectItemsService";
 import undoFactory from "../../models/undoModel";
 import constants from "../../constants";
 import responsiveWindows from "../../models/windows/responsiveWindows";
+import DataviewWindowService from "../../services/mainColumns/windows/dataviewWindow";
 
 const PAGER_ID = "dataview-value-connection-pager";
 
@@ -16,6 +17,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		const searchInput = windowParts.getSearchInputConfig();
 		const pager = windowParts.getPagerConfig(PAGER_ID);
 		const filterTemplate = windowParts.getFilterTemplateConfig();
+		const imageSizeSelect = windowParts.getImageSizeSelectorConfig();
 
 		const dataview = {
 			view: "dataview",
@@ -26,8 +28,8 @@ export default class ConnectTagToImageWindow extends JetView {
 			borderless: true,
 			template: (obj, common) => windowParts.getDataviewTempate(obj, common, this.dataview),
 			type: {
-				width: 150,
-				height: 135,
+				width: constants.DATAVIEW_IMAGE_SIZE.WIDTH,
+				height: constants.DATAVIEW_IMAGE_SIZE.HEIGHT,
 				checkboxState: obj => (this.dataview.isSelected(obj.id) ? "fas fa-check-square" : "far fa-square")
 			},
 			onClick: windowParts.getDataviewOnClickObject(this)
@@ -152,7 +154,13 @@ export default class ConnectTagToImageWindow extends JetView {
 									pager
 								]
 							},
-							filterTemplate,
+							{
+								cols: [
+									filterTemplate,
+									imageSizeSelect,
+									{}
+								]
+							},
 							dataview
 						]
 					},
@@ -166,6 +174,7 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.ProgressBar);
+		this.windowService = new DataviewWindowService(this);
 		this.view = view;
 		this.dataview = this.getWindowDataview();
 		this.selectImagesService = new SelectItemsService(this.dataview);
@@ -175,14 +184,22 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.selectAllTemplate = this.getSelectAllTemplate();
 		this.connectedImagesModel = new ConnectedImagesModel();
 		this.pagerService = new PagerService(this.dataviewPager, this.dataview);
-		this.undoModel = undoFactory.create("valuePopup", this.getUndoIcon());
 		this.filterTemplate = this.getFilterTemplate();
+		this.imageSizeSelect = this.getSelectImageSize();
+
+		this.undoModel = undoFactory.create("valuePopup", this.getUndoIcon());
+
+		view.attachEvent("onViewResize", () => {
+			this.windowService.setImagesRange();
+			this.dataviewStore.clearAll();
+			this.windowService.getWindowImages();
+		});
 
 		this.searchInput.attachEvent("onEnter", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 		this.searchInput.attachEvent("onSearchIconClick", () => {
-			windowParts.getWindowImages(this);
+			this.windowService.getWindowImages();
 		});
 
 		this.selectAllTemplate.define("onClick", {
@@ -199,53 +216,59 @@ export default class ConnectTagToImageWindow extends JetView {
 			const offset = this.dataviewPager.data.size * page;
 			if (!this.dataview.getIdByIndex(offset)) {
 				const params = this.getParamsForImages();
-				windowParts.parseImages(this, params);
+				this.windowService.parseImages(params);
 			}
 		});
 
 		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
 			this.connectedImagesModel.putInitialIdsFromItems(rawData.data);
+			this.windowService.setImagesRange();
 		});
 
 		this.filterTemplate.define("onClick", {
 			"filter-latest-changed": () => {
 				this.filterTemplate.setValues({latest: true});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			},
 			"filter-all": () => {
 				this.filterTemplate.setValues({latest: false});
-				windowParts.getWindowImages(this);
+				this.windowService.getWindowImages();
 			}
+		});
+
+		this.imageSizeSelect.attachEvent("onChange", (val) => {
+			this.windowService.onChangeImageSizeValue(val);
 		});
 	}
 
-	showWindow({tag, value}, tagStore, valuesStore, collections) {
-		this.collections = collections;
+	showWindow({tag, value}, tagStore, valuesStore, ids) {
+		this.collectionIds = ids;
 		const headerTemplate = this.getHeaderTemplate();
 		this.currentTag = tag;
 		this.currentValue = value;
 		headerTemplate.setValues({tag, value});
 		this.tagStore = tagStore;
 		this.valuesStore = valuesStore;
-		this.getRoot().show();
-		windowParts.getWindowImages(this);
-		responsiveWindows.addWindow(this.getRoot().config.id, this.getRoot());
+
+		this.windowService.onWindowShow();
 	}
 
 	getParamsForImages() {
-		const collectionIds = this.collections.map(collection => collection._id);
+		const ids = this.collectionIds.selectedIds;
 		const offset = this.dataviewPager.data.size * this.dataviewPager.data.page;
 		const limit = this.dataviewPager.data.size;
 		const search = this.searchInput.getValue();
 
 		return {
-			collectionIds,
+			ids,
 			tag: this.currentTag.name,
 			value: this.currentValue.value,
 			latest: this.filterTemplate.getValues().latest,
 			offset,
 			limit,
-			s: search
+			s: search,
+			type: this.collectionIds.selectedType
+
 		};
 	}
 
@@ -295,5 +318,9 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	getSelectAllTemplate() {
 		return this.getRoot().queryView({name: "selectAllTemplate"});
+	}
+
+	getSelectImageSize() {
+		return this.getRoot().queryView({name: "windowSelectImageSize"});
 	}
 }
