@@ -24,12 +24,17 @@ export default class ConnectTagToImageWindow extends JetView {
 			name: "currentConfidenceLvlSelect",
 			label: "Set confidence level",
 			labelWidth: 150,
-			width: 250,
-			css: "select-field",
+			width: 270,
+			tooltip: () => {
+				const select = this.getCurrentConfidenceLvlSelect();
+				return select.getValue();
+			},
+			css: "select-field ellipsis-text",
 			options: {
 				data: [],
 				body: {
-					template: obj => obj.name
+					template: obj => obj.name,
+					tooltip: "#name#"
 				}
 			}
 		};
@@ -291,7 +296,7 @@ export default class ConnectTagToImageWindow extends JetView {
 			ids,
 			tag: this.currentTag.name,
 			value: this.currentValue.value,
-			confidence: confidence.name,
+			confidence,
 			latest: this.filterTemplate.getValues().latest,
 			offset,
 			limit,
@@ -306,7 +311,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		list.parse(this.confidenceStore.getArrayOfItems());
 		const item = list.serialize().find(obj => obj.name === currentConfidence.name);
 		dropDown.blockEvent();
-		dropDown.setValue(item);
+		dropDown.setValue(item.id);
 		dropDown.unblockEvent();
 	}
 

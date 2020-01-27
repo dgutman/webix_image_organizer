@@ -379,7 +379,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		});
 	}
 
-	showWindow(tag, tagStore, collectionStore, collectionSelectService, collectionTree) {
+	showWindow(tag, tagStore, collectionTree) {
 		const headerTemplate = this.getHeaderTemplate();
 		this.currentTag = tag;
 		headerTemplate.setValues(tag);

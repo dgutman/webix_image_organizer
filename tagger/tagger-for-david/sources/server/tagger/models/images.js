@@ -20,9 +20,6 @@ const imagesSchema = new Schema({
 	baseParentId: {
 		type: String, required: true
 	},
-	loadedParentId: {
-		type: String, required: true
-	},
 	folderId: {
 		type: String, required: true
 	},

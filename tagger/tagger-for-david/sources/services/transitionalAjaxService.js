@@ -121,6 +121,18 @@ class TransitionalAjaxService {
 			.then(result => this._parseData(result));
 	}
 
+	getResourceFolders(collectionId) {
+		const hostApi = this.getHostApiUrl();
+		const params = {
+			collectionId,
+			hostApi
+		};
+
+		return this._ajax().post(`${TRANSITIONAL_API}/folders/resource`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
 	getImagesByCollection({ids, tag, offset, limit, value, confidence, latest, s}) {
 		const params = {
 			ids: ids || [],

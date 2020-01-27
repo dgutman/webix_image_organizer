@@ -17,6 +17,9 @@ function setTokenIntoUrl(token, symbol) {
 }
 
 async function getResourceImages(collectionId, hostApi, token, userId, type) {
+	// validation
+	if (!userId) throw {name: "UnauthorizedError"};
+
 	const url = `${hostApi}/resource/${collectionId}/items?type=${type}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
 	return new Promise((resolve, reject) => {
 		http.get(url, (response) => {
@@ -110,18 +113,14 @@ async function getResourceImages(collectionId, hostApi, token, userId, type) {
 					else image.meta = {};
 					image.userId = userId;
 					image.mainId = image._id;
-					image.loadedParentId = collectionId;
 					delete image._id;
 					return image;
 				});
 
-				const createdImages = await Images.insertMany(images);
-				const createdTags = await tagsServices.create(tags, [collectionId]);
+				await Images.insertMany(images);
+				await tagsServices.create(tags, [collectionId]);
 
-				resolve({
-					images: createdImages,
-					tags: createdTags
-				});
+				resolve({message: "Images received"});
 			});
 		}).on("error", (err) => {
 			throw err;
@@ -129,17 +128,10 @@ async function getResourceImages(collectionId, hostApi, token, userId, type) {
 	});
 }
 
-async function getCollectionResourceData(collectionId, hostApi, token, userId, type) {
-	return Promise.all([
-		getResourceImages(collectionId, hostApi, token, userId, type),
-		foldersService.getResourceFolders(collectionId, hostApi, token, userId, type)
-	]);
-}
-
-
 async function getCollectionsImages({tag, collectionIds, offset, limit, value, confidence, latest, name, userId}) {
 	// validation
 	if (!Array.isArray(collectionIds)) throw {message: "Query \"collectionIds\" should be an array", name: "ValidationError"};
+	if (!userId) throw {name: "UnauthorizedError"};
 
 	let searchParams = {
 		baseParentId: {$in: collectionIds},
@@ -240,10 +232,9 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 async function getFoldersImages({tag, folderIds, offset, limit, value, confidence, latest, name, userId}) {
 	// validation
 	if (!Array.isArray(folderIds)) throw {message: "Query \"folderIds\" should be an array", name: "ValidationError"};
+	if (!userId) throw {name: "UnauthorizedError"};
 
 	let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
-	nestedFolderIds = nestedFolderIds.unique();
-
 
 	let searchParams = {
 		folderId: {$in: nestedFolderIds},
@@ -314,6 +305,7 @@ async function getFoldersImages({tag, folderIds, offset, limit, value, confidenc
 				expireDate: 1,
 				meta: 1,
 				parentId: 1,
+				mainId: 1,
 				_marker: markerParams
 			}
 		},
@@ -385,11 +377,12 @@ async function updateImage(imageId, tag, action, value, confidence) {
 	return image.save();
 }
 
-async function updateMany(addIds, removeIds, tagId, valueId, confidence) {
+async function updateMany(addIds, removeIds, tagId, valueId, confidence, userId) {
 	const tag = await Tags.findById(tagId);
 	const value = valueId ? await Values.findById(valueId) : false;
 
 	// validation
+	if (!userId) throw {name: "UnauthorizedError"};
 	if (!Array.isArray(addIds)) throw "Field \"addIds\" should be an array";
 	if (!Array.isArray(removeIds)) throw "Field \"removeIds\" should be an array";
 	if (!tag) throw "You can only add or delete existing tag";
@@ -422,6 +415,5 @@ module.exports = {
 	getCollectionsImages,
 	getFoldersImages,
 	getResourceImages,
-	updateMany,
-	getCollectionResourceData
+	updateMany
 };
