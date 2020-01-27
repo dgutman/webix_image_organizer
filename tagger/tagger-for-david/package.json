@@ -22,7 +22,7 @@
     "@babel/runtime": "^7.4.5",
     "babel-loader": "^8.0.5",
     "copy-webpack-plugin": "^5.0.4",
-    "css-loader": "^3.0.0",
+    "css-loader": "3.3.0",
     "dotenv-webpack": "^1.7.0",
     "eslint": "5.14.1",
     "eslint-config-import": "0.13.0",

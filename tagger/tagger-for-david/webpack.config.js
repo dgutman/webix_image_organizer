@@ -74,11 +74,12 @@ module.exports = function (env) {
 			}
 		},
 		devServer: {
-			host: process.env.DEV_HOST || "localhost",
+			host: process.env.DEV_HOST || "0.0.0.0",
 			port: process.env.DEV_PORT || 8081,
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
-			inline: true
+			inline: true,
+			disableHostCheck: true // public: 'store-client-nestroia1.c9users.io' // would also wokr
 		},
 		plugins: [
 			new ExtractTextPlugin("app.css"),
@@ -98,8 +99,7 @@ module.exports = function (env) {
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
-					{id: "3", value: "Styx", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"}
+					{id: "2", value: "ISIC-Archive", hostAPI: "http://isic-archive.com/girder/api/v1"},
 				]
 			}),
 			new webpack.IgnorePlugin(/jet-locales/), // to ignore jet-locales
