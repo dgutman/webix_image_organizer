@@ -118,8 +118,6 @@ class AjaxActions {
 	}
 
 	getImage(imageId, height, width, imageType) {
-		console.log(imageId);
-
 		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
 	}
 

@@ -70,17 +70,17 @@ export default class TaggerMainColumnsService {
 		this._addConfidenceTemplate = this._confidenceColumnClass.getAddNewItemTemplate();
 		this._confidenceSearchInput = this._confidenceColumnClass.getSearchInput();
 
-		const windowCollectionTree = this._connectTagToImageWindow.getCollectionTreeView();
-		windowCollectionTree.sync(this._collectionTree);
-		windowCollectionTree.attachEvent("onBeforeOpen", (id) => {
-			const item = windowCollectionTree.getItem(id);
+		this._windowCollectionTree = this._connectTagToImageWindow.getCollectionTreeView();
+		this._windowCollectionTree.sync(this._collectionTree);
+		this._windowCollectionTree.attachEvent("onBeforeOpen", (id) => {
+			const item = this._windowCollectionTree.getItem(id);
 			if (!item._wasOpened) {
 				this._collectionTree.callEvent("onDataRequest", [id]);
 				item._wasOpened = true;
 			}
 		});
-		windowCollectionTree.attachEvent("onSelectChange", () => {
-			const ids = windowCollectionTree.getSelectedId(true);
+		this._windowCollectionTree.attachEvent("onSelectChange", () => {
+			const ids = this._windowCollectionTree.getSelectedId(true);
 			this._collectionTree.select([ids]);
 		});
 
@@ -123,15 +123,14 @@ export default class TaggerMainColumnsService {
 
 	_attachTopButtonsEvents() {
 		this._getDataButton.attachEvent("onItemClick", () => {
-			// const collections = this._collectionList.getSelectedItem(true);
 			const ids = this._getCollectionAndSelectedIds();
-			// const collectionIds = collections.map(collection => collection._id);
 			const selectedIds = ids.selectedIds;
 			if (selectedIds.length) {
 				this._getDataStatusTemplate.show();
 				this._getDataStatusTemplate.setValues(constants.RECOGNITION_STATUSES.IN_PROGRESS);
 				this._changeTopButtonsState();
-				Promise.all(selectedIds.map(collectionId => transitionalAjax.getResourceImages(collectionId, ids.selectedType)))
+				Promise.all(selectedIds.map(selectedId => transitionalAjax.getResourceImages(selectedId, ids.selectedType)))
+					.then(() => Promise.all(ids.collectionIds.map(id => transitionalAjax.getResourceFolders(id))))
 					.then(() => {
 						this._getTagsAfterCollectionSelect(ids.collectionIds);
 						this._getDataStatusTemplate.setValues(constants.RECOGNITION_STATUSES.DONE);
@@ -184,6 +183,7 @@ export default class TaggerMainColumnsService {
 				.then((data) => {
 					this._collectionTree.parse({parent: id, data});
 					this._parentView.hideProgress();
+					this._windowCollectionTree.select(id);
 				});
 		});
 	}
@@ -289,7 +289,7 @@ export default class TaggerMainColumnsService {
 			}
 			else if (ev.target.classList.contains("image-icon")) {
 				if (tag._id) {
-					this._connectTagToImageWindow.showWindow(tag, this._tagListStore, null, null, this._collectionTree);
+					this._connectTagToImageWindow.showWindow(tag, this._tagListStore, this._collectionTree);
 				}
 				return false;
 			}

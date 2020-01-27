@@ -86,7 +86,9 @@ export default class dataviewWindowService {
 
 	getPagerSize() {
 		const vr = this.getVisibleRange();
-		return vr._dy * vr._dx;
+		const yCount = vr._dy || 1;
+		const xCount = vr._dx || 1;
+		return yCount * xCount;
 	}
 
 	setImagesRange() {

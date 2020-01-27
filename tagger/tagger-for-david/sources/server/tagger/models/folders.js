@@ -4,13 +4,19 @@ const Schema = mongoose.Schema;
 
 const foldersSchema = new Schema({
 	name: {
-		type: String, required: true
+		type: String
 	},
 	parentId: {
 		type: String, required: true
 	},
 	parentCollection: {
 		type: String, required: true
+	},
+	baseParentId: {
+		type: String, required: true
+	},
+	nestedFolderIds: {
+		type: [String], default: []
 	}
 });
 

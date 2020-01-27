@@ -10,18 +10,19 @@ function getResourceImages(req, res, next) {
 	const collectionId = req.body.collectionId;
 	const hostApi = req.body.hostApi;
 	const token = req.headers["girder-token"];
-	const userId = req.user.sub;
+	const userId = req.user ? req.user.sub : null;
 
-	imagesService.getCollectionResourceData(collectionId, hostApi, token, userId, type)
+
+	imagesService.getResourceImages(collectionId, hostApi, token, userId, type)
 		.then((data) => {
-			if (data) res.json({message: "Data received"});
+			if (data) res.json(data);
 			else res.sendStatus(notFoundStatuts);
 		})
 		.catch(err => next(err));
 }
 
 function getCollectionsImages(req, res, next) {
-	const userId = req.user.sub;
+	const userId = req.user ? req.user.sub : null;
 	let offset = req.query.offset || 0;
 	let limit = req.query.limit || 50;
 	offset = parseInt(offset);
@@ -45,7 +46,7 @@ function getCollectionsImages(req, res, next) {
 }
 
 function getFoldersImages(req, res, next) {
-	const userId = req.user.sub;
+	const userId = req.user ? req.user.sub : null;
 	let offset = req.query.offset || 0;
 	let limit = req.query.limit || 50;
 	offset = parseInt(offset);
@@ -69,13 +70,14 @@ function getFoldersImages(req, res, next) {
 }
 
 function updateMany(req, res, next) {
+	const userId = req.user ? req.user.sub : null;
 	const addIds = JSON.parse(req.body.addIds);
 	const removeIds = JSON.parse(req.body.removeIds);
 	const tagId = req.body.tagId;
 	const valueId = req.body.valueId;
 	const confidence = req.body.confidence;
 
-	imagesService.updateMany(addIds, removeIds, tagId, valueId, confidence)
+	imagesService.updateMany(addIds, removeIds, tagId, valueId, confidence, userId)
 		.then(data => res.send(data))
 		.catch(err => next(err));
 }

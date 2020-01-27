@@ -83,8 +83,6 @@ function getPagerConfig(id) {
 }
 
 function getDataviewTempate(obj, common, dataview, info) {
-	console.log(obj)
-	console.log(dataview)
 	const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
 	const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 	const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
@@ -103,7 +101,6 @@ function getDataviewTempate(obj, common, dataview, info) {
 
 	if (typeof getPreviewUrl(obj._id) === "undefined") {
 		setPreviewUrl(obj._id, "");
-		console.log(obj);
 		// to prevent sending query more than 1 times
 		ajaxService.getImage(obj.mainId, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
 			.then((data) => {
@@ -223,7 +220,7 @@ function setImageMultiplierId(id) {
 }
 
 function getImageMultiplierId() {
-	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || constants.DATAVIEW_IMAGE_MULTIPLIERS["Default size"];
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || "Default size";
 }
 
 function getImageSizeSelectorConfig() {

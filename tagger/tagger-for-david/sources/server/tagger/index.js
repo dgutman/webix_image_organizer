@@ -19,6 +19,7 @@ const valuesRoutes = require("./routes/values");
 const confidenceRoutes = require("./routes/confidence");
 const notesRoutes = require("./routes/notes");
 const authRoutes = require("./routes/auth");
+const foldersRoutes = require("./routes/folders");
 
 app.use(bodyParser.urlencoded({limit: "10mb", extended: false}));
 app.use(bodyParser.json({limit: "10mb"}));
@@ -32,6 +33,7 @@ app.use("/api/tags", tagsRoutes);
 app.use("/api/values", valuesRoutes);
 app.use("/api/confidence", confidenceRoutes);
 app.use("/api/notes", notesRoutes);
+app.use("/api/folders", foldersRoutes);
 app.use("/api/auth", authRoutes);
 
 // global error handler
