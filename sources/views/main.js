@@ -25,6 +25,7 @@ export default class MainView extends JetView {
 				{
 					cols: [
 						finderView,
+						{view: "resizer"},
 						multiview,
 						rightCollapser,
 						metadataTemplateView,
