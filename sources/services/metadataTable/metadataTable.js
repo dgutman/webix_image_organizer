@@ -7,6 +7,7 @@ import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
 import downloadFiles from "../../models/downloadFiles";
 import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
+import constants from "../../constants";
 
 let editUniqueClick;
 let editValue;
@@ -41,10 +42,12 @@ class MetadataTableService {
 			const addButtonPromise = new Promise((success) => {
 				const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
 				const columnsToAdd = [];
-
+				metadataDotObject = {};
 				this._metadataTable.find((obj) => {
 					if (obj.hasOwnProperty("meta")) {
-						metadataDotObject = Object.assign(metadataDotObject, dot.dot(obj.meta));
+						const copy = webix.copy(obj.meta);
+						dot.remove(constants.IGNORED_METADATA_COLUMNS, copy);
+						metadataDotObject = Object.assign(metadataDotObject, dot.dot(copy));
 						return obj;
 					}
 				});
