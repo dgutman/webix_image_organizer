@@ -4,6 +4,8 @@ import ajaxService from "../../services/ajaxActions";
 import auth from "../../services/authentication";
 import constants from "../../constants";
 
+const imageSizeMultipliersKeys = Array.from(constants.DATAVIEW_IMAGE_MULTIPLIERS.keys());
+
 function getFilterTemplateConfig() {
 	return {
 		template: (obj) => {
@@ -24,9 +26,6 @@ function getItemsCount(pagerObj) {
 	const count = pagerObj.count;
 	const page = pagerObj.page + 1; // because first page in object is 0
 	const pageSize = pagerObj.size;
-	if (count < pageSize) {
-		return `(${count} of ${count})`;
-	}
 	let pageCount = pageSize * page;
 	if (pageCount > count) {
 		pageCount = count;
@@ -220,7 +219,7 @@ function setImageMultiplierId(id) {
 }
 
 function getImageMultiplierId() {
-	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || "Default size";
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || imageSizeMultipliersKeys[0];
 }
 
 function getImageSizeSelectorConfig() {
@@ -230,7 +229,7 @@ function getImageSizeSelectorConfig() {
 		name: "windowSelectImageSize",
 		css: "select-field",
 		value: getImageMultiplierId(),
-		options: Object.keys(constants.DATAVIEW_IMAGE_MULTIPLIERS)
+		options: imageSizeMultipliersKeys
 	};
 }
 

@@ -16,7 +16,7 @@ async function getIdByParentId(id) {
 }
 
 function getById(id) {
-	return Folders.find({_id: id});
+	return Folders.findById(id);
 }
 
 async function getNestedFolderIds(resArr, ids) {
@@ -44,7 +44,7 @@ async function getResourceFolders(resourceId, host, token) {
 	return new Promise((resolve, reject) => {
 		request(options, async (err, response, body) => {
 			if (err) {
-				reject(err);
+				return reject(err);
 			}
 
 			const {statusCode} = response;
@@ -54,13 +54,18 @@ async function getResourceFolders(resourceId, host, token) {
 				return reject(error);
 			}
 
-			await Folders.deleteMany({baseParentId: resourceId});
-			body.map((folder) => {
-				folder.baseParentId = resourceId;
-				return folder;
-			});
+			try {
+				await Folders.deleteMany({baseParentId: resourceId});
+				body.map((folder) => {
+					folder.baseParentId = resourceId;
+					return folder;
+				});
+				await Folders.insertMany(body);
+			}
+			catch (error) {
+				return reject(error);
+			}
 
-			await Folders.insertMany(body);
 			resolve({message: "Folders received"});
 		});
 	});

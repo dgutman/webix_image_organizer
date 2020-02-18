@@ -1,5 +1,4 @@
 import constants from "../constants";
-import authService from "./authentication";
 
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
 
@@ -58,6 +57,7 @@ class TransitionalAjaxService {
 				Authorization: `Basic ${hash}`
 			})
 			.get(`${TRANSITIONAL_API}/auth`, {redirect_url: this.getHostApiUrl()})
+			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -108,10 +108,10 @@ class TransitionalAjaxService {
 			.then(result => this._parseData(result));
 	}
 
-	getResourceImages(collectionId, type) {
+	getResourceImages(resourceId, type) {
 		const hostApi = this.getHostApiUrl();
 		const params = {
-			collectionId,
+			resourceId,
 			hostApi,
 			type
 		};
@@ -161,6 +161,29 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/tag/${tag}/folders`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getImagesByTask({ids, offset, limit}) {
+		const params = {
+			ids: ids || [],
+			offset: offset || 0,
+			limit: limit || 50
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/images/task`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	reviewImages(images, taskIds) {
+		const params = {
+			images: images || [],
+			taskIds: taskIds || []
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/images/review`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
@@ -242,6 +265,39 @@ class TransitionalAjaxService {
 
 	removeNote(id) {
 		return this._ajax().del(`${TRANSITIONAL_API}/notes/${id}`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getTasks(collectionId) {
+		const hostApi = this.getHostApiUrl();
+		const params = {
+			collectionId: collectionId || constants.TAGGER_TASKS_COLLECTION_ID,
+			host: hostApi
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/tasks`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getTagsWithValuesByTask(taskId) {
+		const params = {
+			taskId
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/tags/task`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	checkTask(taskId) {
+		const hostApi = this.getHostApiUrl();
+		const params = {
+			hostApi
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/tasks/check/${taskId}`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}

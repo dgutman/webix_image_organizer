@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import HeaderService from "../../../services/header/header";
 import LoginWindow from "../../authWindows/loginWindow";
 import undoFactory from "../../../models/undoModel";
+import constants from "../../../constants";
 
 const serverListData = process.env.SERVER_LIST;
 const LOGOUT_PANEL_NAME = "logout-panel";
@@ -101,14 +102,23 @@ export default class TaggerHeaderClass extends JetView {
 			]
 		};
 
+		const taskNameTemplate = {
+			name: "taggerTaskName",
+			borderless: true,
+			hidden: true,
+			template: obj => (obj.name ? `<div class='task-name-template'>${obj.name}</div>` : "")
+		};
+
 		const ui = {
-			height: 60,
+			height: constants.HEADER_HEIGHT,
 			css: "main-header",
 			cols: [
 				undoIcon,
 				{width: 50},
 				headerLogo,
 				{},
+				taskNameTemplate,
+				{width: 20},
 				{
 					rows: [
 						{},
@@ -134,8 +144,8 @@ export default class TaggerHeaderClass extends JetView {
 	init(view) {
 		this.loginWindow = this.ui(LoginWindow);
 		this.hostBox = this.getHostBox();
+		const undoIcon = this.getUndoButton();
 		this.headerService = new HeaderService(view, this.loginWindow);
-		const undoIcon = this.getRoot().queryView({name: "taggerUndoIcon"});
 
 		this.undoModel = undoFactory.create("main", undoIcon);
 	}
@@ -154,5 +164,13 @@ export default class TaggerHeaderClass extends JetView {
 
 	getLoginPanel() {
 		return this.getRoot().queryView({name: LOGIN_PANEL_NAME});
+	}
+
+	getUndoButton() {
+		return this.getRoot().queryView({name: "taggerUndoIcon"});
+	}
+
+	getTaskNameTemplate() {
+		return this.getRoot().queryView({name: "taggerTaskName"});
 	}
 }

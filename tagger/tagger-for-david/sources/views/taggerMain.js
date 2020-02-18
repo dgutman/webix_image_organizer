@@ -1,27 +1,18 @@
 import {JetView} from "webix-jet";
-import mainColumns from "./subviews/mainColumns/mainColumns";
-import notesView from "./subviews/notesView/notesView";
 import header from "./subviews/header/header";
 import undoFactory from "../models/undoModel";
+import auth from "../services/authentication";
+import constants from "../constants";
 
 export default class TaggerMainClass extends JetView {
 	config() {
 		const ui = {
 			css: "tagger-app",
+			minWidth: 1180,
+			minHeight: 770,
 			rows: [
-				{
-					view: "accordion",
-					type: "line",
-					rows: [
-						header,
-						{body: mainColumns},
-						{view: "resizer"},
-						{
-							header: "Notes list",
-							body: notesView
-						}
-					]
-				}
+				header,
+				{$subview: true, minWidth: 1180}
 			]
 		};
 
@@ -30,5 +21,14 @@ export default class TaggerMainClass extends JetView {
 
 	init() {
 		undoFactory.clear();
+	}
+
+	urlChange() {
+		if (auth.isAdmin()) {
+			this.app.show(constants.APP_PATHS.TAGGER_ADMIN);
+		}
+		else {
+			this.app.show(constants.APP_PATHS.TAGGER_USER);
+		}
 	}
 }

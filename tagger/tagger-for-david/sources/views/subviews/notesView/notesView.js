@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import NotesService from "../../../services/notesService/notesService";
 import auth from "../../../services/authentication";
 import formats from "../../../utils/formats";
+import constants from "../../../constants";
 import "../../components/notesList";
 
 export default class NotesViewClass extends JetView {
@@ -62,8 +63,8 @@ export default class NotesViewClass extends JetView {
 		}
 		// fix bug with endless resizer
 		const accordionItem = view.getParentView();
+		const parent = accordionItem.getParentView();
 		accordionItem.attachEvent("onViewResize", () => {
-			const parent = accordionItem.getParentView();
 			const childs = parent.getChildViews();
 			let siblingsHeight = 0;
 			childs.forEach((child) => {
@@ -71,7 +72,7 @@ export default class NotesViewClass extends JetView {
 					siblingsHeight += child.$height;
 				}
 			});
-			parent.define("height", window.innerHeight);
+			parent.define("height", window.innerHeight - constants.HEADER_HEIGHT - 5);
 			parent.resize();
 			parent.define("height", undefined);
 			const viewHeight = parent.$height - siblingsHeight;

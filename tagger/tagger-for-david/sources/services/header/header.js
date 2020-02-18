@@ -18,6 +18,8 @@ export default class TaggerHeaderService {
 		this._loginPanel = this._view.$scope.getLoginPanel();
 		this._logoutPanel = this._view.$scope.getLogoutPanel();
 		this._logoutMenu = this._view.$scope.getLogoutMenu();
+		this._undoIcon = this._view.$scope.getUndoButton();
+		this._taskNameTemplate = this._view.$scope.getTaskNameTemplate();
 
 		this._setValueAndParseData();
 
@@ -34,8 +36,19 @@ export default class TaggerHeaderService {
 			this._loginPanel.show();
 		});
 
+		this._view.$scope.on(this._view.$scope.app, "OnTaskSelect", (task) => {
+			this._taskNameTemplate.setValues(task);
+		});
+
+		this._view.$scope.on(this._view.$scope.app, "getCollectionData", () => {
+			if (authService.isAdmin()) {
+				this._parseCollectionData();
+			}
+		});
+
 		this._attachHostBoxEvent();
 		this._attachLogoutPanelEvent();
+		this._rebuildHeaderUIForUser();
 	}
 
 	_attachHostBoxEvent() {
@@ -84,14 +97,13 @@ export default class TaggerHeaderService {
 		webix.storage.local.put("hostAPI", hostAPI);
 	}
 
-	// setting hosts value and parsing data to collection box
+	// setting hosts value
 	_setValueAndParseData() {
 		const localStorageHostId = webix.storage.local.get("hostId");
 		const firstHostItemId = process.env.SERVER_LIST[0].id;
 		const hostId = localStorageHostId || firstHostItemId;
 		this._putValuesAfterHostChange(hostId);
 		this._hostBox.setValue(hostId);
-		this._parseCollectionData();
 	}
 
 	_showLogoutPanel() {
@@ -125,5 +137,12 @@ export default class TaggerHeaderService {
 			.fail(() => {
 				this._parentView.hideProgress();
 			});
+	}
+
+	_rebuildHeaderUIForUser() {
+		if (!authService.isLoggedIn() || !authService.isAdmin()) {
+			this._taskNameTemplate.show();
+			this._undoIcon.hide();
+		}
 	}
 }

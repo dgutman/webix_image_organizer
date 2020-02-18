@@ -7,15 +7,15 @@ const notFoundStatuts = 404;
 
 function getResourceImages(req, res, next) {
 	const type = req.body.type || "collection";
-	const collectionId = req.body.collectionId;
+	const resourceId = req.body.resourceId;
 	const hostApi = req.body.hostApi;
 	const token = req.headers["girder-token"];
 	const userId = req.user ? req.user.sub : null;
 
 
-	imagesService.getResourceImages(collectionId, hostApi, token, userId, type)
+	imagesService.getResourceImages(resourceId, hostApi, token, userId, type)
 		.then((data) => {
-			if (data) res.json(data);
+			if (data) res.json({message: "Images received"});
 			else res.sendStatus(notFoundStatuts);
 		})
 		.catch(err => next(err));
@@ -69,6 +69,25 @@ function getFoldersImages(req, res, next) {
 		.catch(err => next(err));
 }
 
+function getTaskImages(req, res, next) {
+	const userId = req.user.sub;
+	let offset = req.query.offset || 0;
+	let limit = req.query.limit || 50;
+	offset = parseInt(offset);
+	limit = parseInt(limit);
+
+	const params = {
+		folderIds: JSON.parse(req.query.ids),
+		offset,
+		limit,
+		userId
+	};
+
+	imagesService.getTaskImages(params)
+		.then(data => res.send(data))
+		.catch(err => next(err));
+}
+
 function updateMany(req, res, next) {
 	const userId = req.user ? req.user.sub : null;
 	const addIds = JSON.parse(req.body.addIds);
@@ -82,10 +101,25 @@ function updateMany(req, res, next) {
 		.catch(err => next(err));
 }
 
+function reviewImages(req, res, next) {
+	const images = JSON.parse(req.body.images);
+	const taskIds = JSON.parse(req.body.taskIds);
+	const userId = req.user ? req.user.sub : null;
+
+	imagesService.reviewImages(images, taskIds, userId)
+		.then(({data, count}) => {
+			const correctString = data.length === 1 ? "image was" : "images were";
+			return res.send({message: `${data.length} ${correctString} succesfully updated`, data, count});
+		})
+		.catch(err => next(err));
+}
+
 // routes
 router.get("/tag/:tag/collections", getCollectionsImages);
 router.get("/tag/:tag/folders", getFoldersImages);
+router.get("/task", getTaskImages);
 router.put("/many", updateMany);
+router.put("/review", reviewImages);
 router.post("/resource", getResourceImages);
 
 module.exports = router;

@@ -1,9 +1,15 @@
+const location = window.location;
+
+const TAGGER_PATH = "app";
+
 export default {
 
 	KEY_TOKEN: "girderToken",
 
 	APP_PATHS: {
-		TAGGER: "app"
+		TAGGER: TAGGER_PATH,
+		TAGGER_ADMIN: `${TAGGER_PATH}/admin`,
+		TAGGER_USER: `${TAGGER_PATH}/user`
 	},
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
@@ -36,11 +42,23 @@ export default {
 		HEIGHT: 120
 	},
 
-	DATAVIEW_IMAGE_MULTIPLIERS: {
-		"Default size": 1,
-		"x1.5": 1.5,
-		"x2": 2,
-		"x2.5": 2.5,
-		"x3": 3
-	}
+	DATAVIEW_IMAGE_MULTIPLIERS: new Map([
+		["Small", 1],
+		["Medium", 1.75],
+		["Big", 2.5]
+	]),
+
+	TAG_TYPES: {
+		MULTI_WITH_DEFAULT: "multiple_with_default",
+		MULTI: "multiple"
+	},
+
+	TAG_SELECTION: {
+		SINGLE: "single",
+		MULTI: "multiple"
+	},
+
+	HEADER_HEIGHT: 60,
+
+	TAGGER_TASKS_COLLECTION_ID:  process.env.TAGGER_TASKS_COLLECTION_ID
 };

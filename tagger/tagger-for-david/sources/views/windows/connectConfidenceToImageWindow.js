@@ -243,7 +243,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		});
 
 		this.dataviewPager.attachEvent("onAfterPageChange", (page) => {
-			const offset = this.dataviewPager.data.size * page;
+			const offset = (this.dataviewPager.data.size * page) || 0;
 			if (!this.dataview.getIdByIndex(offset)) {
 				const params = this.getParamsForImages();
 				this.windowService.parseImages(params);
