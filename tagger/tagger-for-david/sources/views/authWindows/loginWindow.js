@@ -24,9 +24,9 @@ export default class LoginWindowView extends JetView {
 					view: "text",
 					css: "text-field",
 					name: "username",
-					label: "Login or email",
-					placeholder: "Enter login or email",
-					invalidMessage: "Enter login or email",
+					label: "Username",
+					placeholder: "Enter username",
+					invalidMessage: "Enter username",
 					on: {
 						onTimedKeyPress: () => this.hideErrorLabel()
 					}
@@ -95,8 +95,10 @@ export default class LoginWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "far times-circle",
+						icon: "fas fa-times",
+						hotkey: "esc",
 						width: 30,
+						height: 30,
 						align: "right",
 						click: () => this.cancelLogic()
 					},
@@ -150,6 +152,9 @@ export default class LoginWindowView extends JetView {
 						const errorLabel = this.form.elements["error-label"];
 						errorLabel.setValue("Login failed");
 						errorLabel.show();
+
+						this.form.markInvalid("username", "Enter correct username");
+						this.form.markInvalid("password", "Enter correct password");
 					}
 					this.view.hideProgress();
 				});
@@ -164,5 +169,8 @@ export default class LoginWindowView extends JetView {
 		this.form.clear();
 		this.getRoot().hide();
 		this.form.elements["error-label"].hide();
+
+		this.getLoginTextView().config.invalidMessage = "Enter username";
+		this.getPasswordTextView().config.invalidMessage = "Enter password";
 	}
 }

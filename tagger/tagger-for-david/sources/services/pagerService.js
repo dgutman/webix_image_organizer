@@ -41,7 +41,7 @@ export default class PagerService {
 
 	attachEventHandlers() {
 		this.pager.attachEvent("onAfterRender", () => {
-			this.onAfterRender(this.dataview);
+			this.onAfterRender();
 			this.setDataviewState();
 		});
 		this.dataview.data.attachEvent("onStoreUpdated", () => {

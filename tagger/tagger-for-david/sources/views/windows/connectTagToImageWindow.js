@@ -26,6 +26,8 @@ export default class ConnectTagToImageWindow extends JetView {
 			css: "window-dataview",
 			name: "windowDataview",
 			tooltip: "#name#",
+			minHeight: constants.DATAVIEW_IMAGE_SIZE.HEIGHT,
+			minWidth: constants.DATAVIEW_IMAGE_SIZE.WIDTH,
 			pager: PAGER_ID,
 			borderless: true,
 			template: (obj, common) => windowParts.getDataviewTempate(obj, common, this.dataview, true),
@@ -197,7 +199,7 @@ export default class ConnectTagToImageWindow extends JetView {
 				rows: [
 					{
 						view: "scrollview",
-						scroll: false,
+						scroll: "auto",
 						css: {"overflow-x": "auto"},
 						padding: 10,
 						margin: 10,
@@ -347,7 +349,7 @@ export default class ConnectTagToImageWindow extends JetView {
 		});
 
 		this.dataviewPager.attachEvent("onAfterPageChange", (page) => {
-			const offset = this.dataviewPager.data.size * page;
+			const offset = (this.dataviewPager.data.size * page) || 0;
 			if (!this.dataview.getIdByIndex(offset)) {
 				const params = this.getParamsForImages();
 				this.windowService.parseImages(params);
@@ -465,24 +467,15 @@ export default class ConnectTagToImageWindow extends JetView {
 		templateNode.appendChild(formatter.render());
 	}
 
-	getFirstItemIndexOnPage() {
-		const pData = this.dataviewPager.data;
-		return pData.page * pData.size;
-	}
-
-	getCurrentPageByItemIndex(index) {
-		return Math.floor(index / this.dataviewPager.data.size);
-	}
-
 	onResizeDataview() {
-		// const index = this.getFirstItemIndexOnPage();
+		const index = this.windowService.getFirstItemIndexOnPage();
 		this.windowService.setImagesRange();
-		// const page = this.getCurrentPageByItemIndex(index);
+		const page = this.windowService.getCurrentPageByItemIndex(index);
 		this.dataviewStore.clearAll();
 		this.windowService.getWindowImages();
-		// if (this.dataviewPager.data.page !== page) {
-		// 	this.dataviewPager.select(page);
-		// }
+		if (this.dataviewPager.data.page !== page) {
+			this.dataviewPager.select(page);
+		}
 	}
 
 	closeWindow() {

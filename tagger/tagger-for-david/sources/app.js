@@ -3,6 +3,9 @@ import "./styles/app.less";
 import state from "./models/state";
 import constants from "./constants";
 import taggerView from "./views/taggerMain";
+import taggerAdminView from "./views/subviews/adminView";
+import taggerUserView from "./views/subviews/userView";
+
 import "./utils/polyfills";
 
 webix.ready(() => {
@@ -11,7 +14,8 @@ webix.ready(() => {
 		version: "",
 		start: constants.APP_PATHS.TAGGER,
 		views: {
-			app: taggerView
+			admin: taggerAdminView,
+			user: taggerUserView
 		}
 	};
 

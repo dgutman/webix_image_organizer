@@ -2,7 +2,7 @@ import transitionalAjax from "../transitionalAjaxService";
 import ajaxActions from "../ajaxActions";
 import CustomDataPull from "../../models/customDataPullClass";
 import undoFactory from "../../models/undoModel";
-import SelectItemsService from "../selectItemsService";
+// import SelectItemsService from "../selectItemsService";
 import addValueWindow from "../../views/windows/addValueWindow";
 import connectTagToImageWindow from "../../views/windows/connectTagToImageWindow";
 import connectValueToImageWindow from "../../views/windows/connectValueToImageWindow";
@@ -179,11 +179,15 @@ export default class TaggerMainColumnsService {
 			const item = this._collectionTree.getItem(id);
 			const modelType = item._modelType;
 			this._parentView.showProgress();
+			item._wasOpened = true;
 			ajaxActions.getFolder(modelType, item._id)
 				.then((data) => {
 					this._collectionTree.parse({parent: id, data});
-					this._parentView.hideProgress();
 					this._windowCollectionTree.select(id);
+					this._parentView.hideProgress();
+				})
+				.catch(() => {
+					this._parentView.hideProgress();
 				});
 		});
 	}
@@ -539,6 +543,8 @@ export default class TaggerMainColumnsService {
 	}
 
 	_attachHostChangeEvent() {
+		this._view.$scope.app.callEvent("getCollectionData");
+
 		this._view.$scope.on(this._view.$scope.app, "collectionDataReceived", (collections) => {
 			// this._collectionListStore.parseItems(collections);
 			this._collectionTree.parse(collections);

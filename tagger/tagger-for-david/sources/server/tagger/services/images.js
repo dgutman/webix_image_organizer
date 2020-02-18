@@ -5,7 +5,7 @@ const Tags = require("../models/tags");
 const Values = require("../models/values");
 const confidenceModel = require("../models/confidence");
 const Fields = require("../models/updatedFields");
-const tagsServices = require("./tags");
+const tagsService = require("./tags");
 const http = require("http");
 const fromEntries = require("object.fromentries");
 const foldersService = require("./folders");
@@ -117,10 +117,10 @@ async function getResourceImages(collectionId, hostApi, token, userId, type) {
 					return image;
 				});
 
-				await Images.insertMany(images);
-				await tagsServices.create(tags, [collectionId]);
+				const createdImages = await Images.insertMany(images);
+				await tagsService.create(tags, [collectionId]);
 
-				resolve({message: "Images received"});
+				resolve(createdImages);
 			});
 		}).on("error", (err) => {
 			throw err;
@@ -324,6 +324,47 @@ async function getFoldersImages({tag, folderIds, offset, limit, value, confidenc
 	};
 }
 
+async function getTaskImages({folderIds, offset, limit, userId}) {
+	// validation
+	if (!Array.isArray(folderIds)) throw {message: "Query \"ids\" should be an array", name: "ValidationError"};
+	if (!userId) throw {name: "UnauthorizedError"};
+
+	let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
+
+	let searchParams = {
+		folderId: {$in: nestedFolderIds},
+		userId,
+		isReviewed: false
+	};
+
+	const aggregatePipeline = [
+		{$match: searchParams},
+		{
+			$project: {
+				name: 1,
+				expireDate: 1,
+				meta: 1,
+				parentId: 1,
+				mainId: 1
+			}
+		},
+		{$sort: {_marker: -1, name: 1}},
+		{$skip: offset},
+		{$limit: limit}
+	];
+
+	const data = await Images.aggregate(aggregatePipeline);
+
+	const count = await Images.countDocuments(searchParams);
+	const totalCount = await Images.countDocuments({folderId: {$in: nestedFolderIds}, userId});
+
+	return {
+		data,
+		count,
+		totalCount
+	};
+}
+
 async function updateImage(imageId, tag, action, value, confidence) {
 	const image = await Images.findById(imageId);
 
@@ -352,7 +393,7 @@ async function updateImage(imageId, tag, action, value, confidence) {
 
 		if (!tag.collectionIds.includes(image.baseParentId)) {
 			tag.collectionIds.push(image.baseParentId);
-			await tagsServices.updateTag(tag);
+			await tagsService.updateTag(tag);
 		}
 	}
 	else if (image.meta.hasOwnProperty("tags") && image.meta.tags.hasOwnProperty(tag.name)) {
@@ -411,9 +452,41 @@ async function updateMany(addIds, removeIds, tagId, valueId, confidence, userId)
 	return Promise.all([addPromises, removePromises]);
 }
 
+async function reviewImage(id, tags, taskIds, userId) {
+	// validation
+	if (typeof tags !== "object" || Array.isArray(tags)) throw "Field \"tags\" in image should be an hash";
+	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
+
+	const image = await Images.findOne({_id: mongoose.Types.ObjectId(id), userId, isReviewed: false});
+
+	if (!image) throw "Image not found";
+
+	image.meta = image.meta || {};
+	image.meta.tags = image.meta.tags || {};
+
+	Object.assign(image.meta.tags, tags);
+	image.isReviewed = true;
+
+	image.markModified("meta");
+	return image.save();
+}
+
+async function reviewImages(images, taskIds, userId) {
+	// validation
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!Array.isArray(images)) throw "Field \"images\" should be an array";
+	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
+
+	const reviewedImages = await Promise.all(images.map(image => reviewImage(image._id, image.tags, taskIds, userId)));
+	const count = await Images.countDocuments({folderId: {$in: taskIds}, userId});
+	return {data: reviewedImages, count};
+}
+
 module.exports = {
 	getCollectionsImages,
 	getFoldersImages,
+	getTaskImages,
 	getResourceImages,
-	updateMany
+	updateMany,
+	reviewImages
 };

@@ -5,23 +5,24 @@ const jwtBlacklist = require("express-jwt-blacklist");
 const successStatusCode = 200;
 
 async function login(hostApi, authHeader) {
-	const url = `${hostApi}/user/authentication`;
+	const url = new URL(hostApi);
+	const path = `${url.pathname}/user/authentication`;
 
 	const options = {
+		hostname: url.hostname,
+		path,
+		port: url.port,
+		method: "GET",
 		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
 			Authorization: authHeader
 		}
 	};
 
 	return new Promise((resolve, reject) => {
-		http.get(url, options, (response) => {
+		const request = http.request(options, (response) => {
 			let body = "";
 			const {statusCode} = response;
-			if (statusCode !== successStatusCode) {
-				const error = new Error("Request Failed.\n" +
-					`Status Code: ${statusCode}`);
-				return reject(error);
-			}
 
 			// A chunk of data has been recieved.
 			response.on("data", (data) => {
@@ -32,6 +33,11 @@ async function login(hostApi, authHeader) {
 				// parse user info
 				body = JSON.parse(body);
 
+				if (statusCode !== successStatusCode) {
+					const error = {name: "UnauthorizedError", message: body.message} || `Request Failed.\n Status Code: ${statusCode}`;
+					return reject(error);
+				}
+
 				const user = body.user;
 				const expireDate = new Date(body.authToken.expires);
 				const expiresIn = expireDate.getTime() - Date.now();
@@ -40,9 +46,13 @@ async function login(hostApi, authHeader) {
 
 				resolve(body);
 			});
-		}).on("error", (err) => {
+		});
+
+		request.on("error", (err) => {
 			reject(err);
 		});
+
+		request.end();
 	});
 }
 

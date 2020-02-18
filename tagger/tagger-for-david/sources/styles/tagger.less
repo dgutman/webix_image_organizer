@@ -95,6 +95,11 @@
                 }
             }
         }
+        .webix_disabled_view {
+            .webix_accordionitem_header, .webix_accordionitem_header:focus, .webix_accordionitem_header:hover {
+                background-color: @disabled-color;
+            }
+        }
     }
 
     .tagger-window {
@@ -119,12 +124,6 @@
                 position: relative;
                 &.not-highlighted {
                     // styles for not highlighted items in dataviews
-                    img {
-                        opacity: .3;
-                    }
-                    // .dataview-images-name {
-
-                    // }
                     .dataview-images-container {
                         border: 3px solid red;
                     }
@@ -267,6 +266,8 @@
 
     .tagger-app {
         max-height: 100vh;
+        max-width: 100vw;
+        overflow: auto;
         .logout-menu {
             .webix_scroll_cont {
                 text-align: end;
@@ -338,6 +339,129 @@
                     transform: rotate(180deg);
                 }
             }
+        }
+
+        .user-dataview {
+            overflow: auto !important;
+            .webix_dataview_item {
+                border: none;
+                cursor: default;
+                padding: 5px 5px 15px 5px;
+            }
+            .dataview-item {
+                position: relative;
+                &.highlighted {
+                    .dataview-images-container {
+                        border: 2px solid rgba(255, 3, 3, 0.8);
+                    }
+                }
+                &:hover {
+                    .dataview-image {
+                        transform: scale(0.85);
+                    }
+                    .dataview-images-icons .dataview-icon, .dataview-images-icons .checkbox {
+                        display: inline-block;
+                    }
+                }
+                .dataview-images-name {
+                    color: rgba(0,0,0,0.8);
+                    font-weight: 500;
+                    line-height: 20px;
+                    padding: 0;
+                    text-align: center;
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                }
+                .dataview-images-icons {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    z-index: 10;
+                    width: 100%;
+                    height: 100%;
+                }
+                .dataview-icons-top {
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: flex-start;
+                    line-height: 20px;
+                    font-size: 20px;
+                }
+                .checkbox {
+                    margin-top: -1px;
+                    cursor: pointer;
+                    display: none;
+                    &.enabled:hover {
+                        color: @btn-hover;
+                    }
+                    &.checked {
+                        display: inline-block;
+                        &.enabled {
+                            color: @btn-hover;
+                        }
+                    }
+                }
+            }
+            .dataview-images-container {
+                box-sizing: border-box;
+                position: relative;
+                cursor: pointer;
+                height: 80px;
+                background: @main-bg;
+                .border-radius(3px);
+                text-align: center;
+                .dataview-image {
+                    transition: all 0.3s ease;
+                    height: 100%;
+                    width: auto;
+                    display: inline-block;
+                }
+            }
+        }
+
+        .user-collection-list {
+            box-shadow: inset -1px 0px 0px 0px @lines-color;
+        }
+
+        .user-dataview-pager {
+            display: flex;
+            justify-content: center;
+            & > * {
+                margin: 0 3px;
+                height: unset;
+            }
+            .pager-amount {
+                line-height: 35px;
+            }
+        }
+        .info-template .webix_template {
+            padding: 5px 0;
+            display: flex;
+            .info-description {
+                padding: 0 0 0 5px;
+            }
+            .info-template-icon {
+                font-size: @icon-size;
+                cursor: pointer;
+                &:hover {
+                    color: @btn-hover;
+                }
+            }
+        }
+        .items-count-template {
+            display: flex;
+            align-items: flex-end;
+            font-size: @middle-font-size;
+            font-weight: bold;
+            height: 100%;
+        }
+        .task-name-template {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-size: @middle-font-size;
+            height: 100%;
         }
     }
     .list-edit-textarea {

@@ -143,14 +143,17 @@
   }
 
   .absolute-centered-image-template {
-    position: relative;
     overflow-y: auto !important;
     overflow-x: auto !important;
+    .webix_template {
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      padding: 0;
+    }
     img {
-      width: 100%;
+      width: auto;
       height: 100%;
-      position: absolute;
-      margin: auto;
     }
   }
 

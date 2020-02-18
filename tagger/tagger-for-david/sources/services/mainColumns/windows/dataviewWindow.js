@@ -92,28 +92,46 @@ export default class dataviewWindowService {
 	}
 
 	setImagesRange() {
-		this.pager.define("size", this.getPagerSize());
-		this.pager.refresh();
+		const prevSize = this.pager.data.size;
+		const size = this.getPagerSize();
+		if (prevSize !== size) {
+			this.pager.define("size", size);
+			this.pager.refresh();
+		}
 	}
 
 	changeImageSize(id) {
-		const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS[id];
+		const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(id);
 		const typeObj = windowParts.getDataviewTypeObject(multiplier, this.dataview);
+		this.dataview.define("minWidth", typeObj.width);
+		this.dataview.define("minHeight", typeObj.height);
 		this.dataview.customize(typeObj);
 		windowParts.setImageMultiplierId(id);
 		this.dataview.refresh();
 	}
 
 	onChangeImageSizeValue(id) {
-		// const index = this.scope.getFirstItemIndexOnPage();
+		const index = this.getFirstItemIndexOnPage();
 		this.scope.dataviewStore.clearAll();
 		this.changeImageSize(id);
 		this.setImagesRange();
-		// const page = this.scope.getCurrentPageByItemIndex(index);
+		const page = this.getCurrentPageByItemIndex(index);
 		this.getWindowImages();
-		// if (this.pager.data.page !== page) {
-		// 	this.pager.select(page);
-		// }
+		if (this.pager.data.page !== page && page > -1) {
+			this.pager.select(page);
+		}
+	}
+
+	getFirstItemIndexOnPage() {
+		const pData = this.pager.data || {page: 0, size: 0};
+		return pData.page * pData.size;
+	}
+
+	getCurrentPageByItemIndex(index) {
+		let page = Math.floor(index / this.pager.data.size);
+		const maxPage = this.pager.data.limit - 1;
+		page = page > -1 ? page : maxPage;
+		return Math.min(page, maxPage);
 	}
 
 	onWindowShow() {

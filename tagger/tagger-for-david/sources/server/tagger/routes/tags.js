@@ -2,6 +2,7 @@ const express = require("express");
 
 const router = express.Router();
 const tagsService = require("../services/tags");
+const userTagsService = require("../services/user/tags");
 
 const notFoundStatus = 404;
 const noContentStatus = 204;
@@ -49,8 +50,17 @@ function _delete(req, res, next) {
 		.catch(err => next(err));
 }
 
+function getTagsWithValuesByTask(req, res, next) {
+	const userId = req.user ? req.user.sub : null;
+	const taskId = req.query.taskId;
+	userTagsService.getTagsWithValuesByTask(taskId, userId)
+		.then(data => (data ? res.send(data) : res.sendStatus(notFoundStatus)))
+		.catch(err => next(err));
+}
+
 // routes
 router.get("", getAll);
+router.get("/task", getTagsWithValuesByTask);
 router.get("/collection", getByCollection);
 router.put("/many", updateMany);
 router.post("", create);
