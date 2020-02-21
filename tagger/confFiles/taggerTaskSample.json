@@ -1,0 +1,114 @@
+{
+    "task":
+    {
+        "checked_out": false,
+        "name": "ISIC 2020 Challenge Image QA",
+        "tags": [
+        {
+            "description": "Is the clinical diagnosis correct?",
+            "help": "Please mark any images with value FALSE for which the clinical diagnosis is incorrect!",
+            "name": "clinical_diagnosis_correct",
+            "selection": "single",
+            "type": "multiple_with_default",
+            "values":
+            {
+                "false":
+                {
+                    "default": false,
+                    "hotkey": "d"
+                },
+                "true":
+                {
+                    "default": true,
+                    "hotkey": ""
+                }
+            }
+        },
+        {
+            "description": "Is the image quality OK?",
+            "help": "Please mark any images with value NOT OK for which the quality is too low!",
+            "name": "image_quality",
+            "selection": "single",
+            "type": "multiple_with_default",
+            "values":
+            {
+                "not_ok":
+                {
+                    "default": false,
+                    "hotkey": "q"
+                },
+                "ok":
+                {
+                    "default": true,
+                    "hotkey": ""
+                }
+            }
+        },
+        {
+            "description": "How much hair is in the image?",
+            "help": "Please select the relative amount of hair you find in the image (none, very little, normal, a lot, too much)!",
+            "name": "hair_amount",
+            "selection": "single",
+            "type": "multiple",
+            "values":
+            {
+                "a_lot":
+                {
+                    "default": false,
+                    "hotkey": "4"
+                },
+                "none":
+                {
+                    "default": false,
+                    "hotkey": "1"
+                },
+                "normal":
+                {
+                    "default": false,
+                    "hotkey": "3"
+                },
+                "too_much":
+                {
+                    "default": false,
+                    "hotkey": "5"
+                },
+                "very_little":
+                {
+                    "default": false,
+                    "hotkey": "2"
+                }
+            }
+        },
+        {
+            "description": "Which colors are in the image?",
+            "help": "Please select the colors you find in the image (bEige, Red, brOwn, blacK)!",
+            "name": "colors_in_image",
+            "selection": "multiple",
+            "type": "multiple",
+            "values":
+            {
+                "beige":
+                {
+                    "hotkey": "e"
+                },
+                "black":
+                {
+                    "hotkey": "k"
+                },
+                "brown":
+                {
+                    "hotkey": "o"
+                },
+                "red":
+                {
+                    "hotkey": "r"
+                }
+            }
+        }],
+        "user":
+        {
+            "_id": "5e29bed912450d0d13e7d53f",
+            "name": "xbsTest1"
+        }
+    }
+}
