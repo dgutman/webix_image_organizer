@@ -1,8 +1,10 @@
 import utils from "../utils/utils";
 import webixViews from "./webixViews";
 import dataviewFilterModel from "./galleryDataviewFilterModel";
+import ajaxActions from "../services/ajaxActions";
 
 let realScrollPosition;
+let treeFolderId;
 
 function setRealScrollPosition(position) {
 	realScrollPosition = position;
@@ -63,7 +65,6 @@ function loadBranch(id, view) {
 	}
 }
 
-
 function defineSizesAndPositionForDynamicScroll(treeFolder) {
 	const finderView = webixViews.getFinderView();
 	let branchesArray = [];
@@ -87,11 +88,19 @@ function defineSizesAndPositionForDynamicScroll(treeFolder) {
 	return viewClientHeight + branchScrollHeight + 28;
 }
 
-function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
+function attachOnScrollEvent(scrollState, treeFolder, view, filterModel) {
 	const finderView = webixViews.getFinderView();
+	treeFolderId = treeFolder.id;
 	const itemsModel = webixViews.getItemsModel();
+
+	if (!treeFolder.linear) {
+		finderView.detachEvent("onAfterScroll");
+		return false;
+	}
+
 	const difference = realScrollPosition - (finderView.$height + scrollState.y - 18);
 	if (difference <= 0 && difference >= -200) {
+		finderView.select(treeFolderId);
 		finderView.blockEvent();
 		const count = treeFolder.$count;
 		const sourceParams = {
@@ -113,6 +122,7 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 					});
 					dataviewFilterModel.parseFilterToRichSelectList();
 					const filterValue = dataviewFilterModel.getRichselectDataviewFilter().getValue();
+					filterModel.clearFilters();
 					if (filterValue) {
 						dataviewFilterModel.getRichselectDataviewFilter().callEvent("onChange", [filterValue]);
 					}
@@ -130,9 +140,17 @@ function attachOnScrollEvent(scrollState, treeFolder, view, ajaxActions) {
 	}
 }
 
+function closePreviousLinearFolder() {
+	const finderView = webixViews.getFinderView();
+	if (treeFolderId) {
+		finderView.close(treeFolderId);
+	}
+}
+
 export default {
 	loadBranch,
 	defineSizesAndPositionForDynamicScroll,
 	attachOnScrollEvent,
-	setRealScrollPosition
+	setRealScrollPosition,
+	closePreviousLinearFolder
 };

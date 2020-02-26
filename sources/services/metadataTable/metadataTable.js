@@ -1,4 +1,3 @@
-import dot from "dot-object";
 import metadataTableModel from "../../models/metadataTableModel";
 import authService from "../authentication";
 import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
@@ -11,7 +10,6 @@ import constants from "../../constants";
 
 let editUniqueClick;
 let editValue;
-let metadataDotObject = {};
 let movedColumnsArray = [];
 let keyPressEventId;
 
@@ -39,29 +37,7 @@ class MetadataTableService {
 		this._editColumnsWindow = this._view.$scope.ui(EditColumnsWindow);
 
 		this._addColumnButton.attachEvent("onItemClick", () => {
-			const addButtonPromise = new Promise((success) => {
-				const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
-				const columnsToAdd = [];
-				metadataDotObject = {};
-				this._metadataTable.find((obj) => {
-					if (obj.hasOwnProperty("meta")) {
-						const copy = webix.copy(obj.meta);
-						dot.remove(constants.IGNORED_METADATA_COLUMNS, copy);
-						metadataDotObject = Object.assign(metadataDotObject, dot.dot(copy));
-						return obj;
-					}
-				});
-
-				const columnsToDelete = existedColumns.filter((columnConfig) => {
-					if (columnConfig.hidden) columnsToAdd.push(columnConfig);
-					return !columnConfig.hidden;
-				});
-
-				this._createColumnsConfig(columnsToAdd, columnsToDelete);
-
-				return success([columnsToAdd, columnsToDelete]);
-			});
-			addButtonPromise
+			this._editColumnsWindow.buildColumnsConfig(this._metadataTable)
 				.then(([columnsToAdd, columnsToDelete]) => {
 					this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
 				})
@@ -237,7 +213,8 @@ class MetadataTableService {
 	}
 
 	_createColumnsConfig(columnsToAdd, columnsToDelete) {
-		for (let key in metadataDotObject) {
+		const keys = Object.keys(metadataTableModel.metadataDotObject);
+		keys.forEach((key) => {
 			const dotNotation = key.split(".");
 			const header = dotNotation.map(text => ({text}));
 			const toDelete = columnsToDelete.find(columnToDelete => columnToDelete.id === key);
@@ -247,7 +224,7 @@ class MetadataTableService {
 					header
 				});
 			}
-		}
+		});
 	}
 
 	_setColspansForColumnsHeader(tableColumns) {

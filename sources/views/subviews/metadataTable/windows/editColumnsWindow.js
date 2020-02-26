@@ -1,6 +1,8 @@
 import {JetView} from "webix-jet";
+import dot from "dot-object";
 import metadataTableModel from "../../../../models/metadataTableModel";
 import authService from "../../../../services/authentication";
+import NewColumnsService from "../../../../services/metadataTable/newColumnsService";
 import constants from "../../../../constants";
 
 const WIDTH = 600;
@@ -9,6 +11,28 @@ const buttonPlusIcon = "fas fa-plus";
 
 export default class EditColumnsWindow extends JetView {
 	config() {
+		const addButton = {
+			view: "button",
+			css: "btn",
+			name: "addButton",
+			type: "iconButton",
+			icon: "fas fa-plus",
+			label: "Add",
+			height: 30,
+			width: 100,
+			click: () => this.newColumnsService.addNewColumn()
+		};
+
+		const saveButton = {
+			view: "button",
+			css: "btn-contour",
+			name: "saveButton",
+			value: "Save",
+			height: 30,
+			width: 100,
+			click: () => this.newColumnsService.saveNewColumns()
+		};
+
 		const cancelButton = {
 			view: "button",
 			css: "btn-contour",
@@ -24,8 +48,9 @@ export default class EditColumnsWindow extends JetView {
 			height: 45,
 			name: "hintTemplateName",
 			borderless: true,
-			template: () => "<center>Click \"plus\" button to add new column or \"minus\" button to hide it.</center>"
+			template: () => "<center>Click \"plus\" button to choose a column or \"minus\" button to hide it.</center>"
 		};
+
 		const windowForm = {
 			view: "form",
 			name: "windowFormView",
@@ -33,15 +58,53 @@ export default class EditColumnsWindow extends JetView {
 			elements: []
 		};
 
+		const newColumnsForm = {
+			view: "form",
+			name: "newColumnsFormView",
+			borderless: true,
+			elements: []
+		};
+
+		const newColumnsLayout = {
+			name: "newColumnsLayoutView",
+			hidden: true,
+			rows: [
+				{
+					css: "new-columns-header new-columns-header-main",
+					template: "New columns:",
+					height: 30
+				},
+				{
+					height: 30,
+					cols: [
+						{
+							template: "Item field",
+							borderless: true,
+							css: "new-columns-header"
+						},
+						{
+							template: "Column header",
+							borderless: true,
+							css: "new-columns-header"
+						}
+					]
+				},
+				newColumnsForm
+			]
+		};
+
 		const scrollWindowView = {
 			view: "scrollview",
 			height: 330,
 			scroll: true,
-			body: windowForm
+			body: {
+				rows: [windowForm, newColumnsLayout]
+			}
 		};
 
 		const window = {
 			view: "window",
+			css: "edit-column-window",
 			scroll: true,
 			paddingX: 35,
 			width: WIDTH,
@@ -55,7 +118,7 @@ export default class EditColumnsWindow extends JetView {
 						view: "template",
 						css: "edit-window-header",
 						name: "headerTemplateName",
-						template: () => "Show or hide columns",
+						template: () => "Columns settings",
 						borderless: true
 					},
 					{
@@ -82,6 +145,10 @@ export default class EditColumnsWindow extends JetView {
 									{height: 10},
 									{
 										cols: [
+											{width: 10},
+											addButton,
+											{width: 10},
+											saveButton,
 											{},
 											cancelButton,
 											{width: 10}
@@ -99,8 +166,21 @@ export default class EditColumnsWindow extends JetView {
 		return window;
 	}
 
+	ready(view) {
+		this.userInfo = authService.getUserInfo();
+		this.newColumnsService = new NewColumnsService(view, this.userInfo);
+	}
+
 	getWindowForm() {
 		return this.getRoot().queryView({name: "windowFormView"});
+	}
+
+	getFormForNewColumns() {
+		return this.getRoot().queryView({name: "newColumnsFormView"});
+	}
+
+	getLayoutForNewColumns() {
+		return this.getRoot().queryView({name: "newColumnsLayoutView"});
 	}
 
 	getActionButton(nameValue) {
@@ -163,7 +243,6 @@ export default class EditColumnsWindow extends JetView {
 
 		metadataTableModel.putInLocalStorage(existedColumns, this.userInfo._id);
 	}
-
 
 	createFormElement(columnConfig, buttonIcon) {
 		const columnTextValue = columnConfig.id;
@@ -248,15 +327,58 @@ export default class EditColumnsWindow extends JetView {
 		webix.ui(elements, windowForm);
 	}
 
+	buildColumnsConfig(metadataTable) {
+		const promise = new Promise((success) => {
+			const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
+			const columnsToAdd = [];
+			metadataTableModel.metadataDotObject = {};
+			metadataTable.find((obj) => {
+				if (obj.hasOwnProperty("meta")) {
+					const copy = webix.copy(obj.meta);
+					dot.remove(constants.IGNORED_METADATA_COLUMNS, copy);
+					metadataTableModel.metadataDotObject = Object.assign(metadataTableModel.metadataDotObject, dot.dot(copy));
+					return obj;
+				}
+			});
+
+			const columnsToDelete = existedColumns.filter((columnConfig) => {
+				if (columnConfig.hidden) columnsToAdd.push(columnConfig);
+				return !columnConfig.hidden;
+			});
+
+			// add columns of not existing item fields to window form
+			this.newColumnsService.addNewColumnsFromLS();
+
+			this.createColumnsConfig(columnsToAdd, columnsToDelete);
+
+			return success([columnsToAdd, columnsToDelete]);
+		});
+		return promise;
+	}
+
+	createColumnsConfig(columnsToAdd, columnsToDelete) {
+		const keys = Object.keys(metadataTableModel.metadataDotObject);
+		keys.forEach((key) => {
+			const dotNotation = key.split(".");
+			const header = dotNotation.map(text => ({text}));
+			const toDelete = columnsToDelete.find(columnToDelete => columnToDelete.id === key);
+			if (!toDelete) {
+				columnsToAdd.push({
+					id: key,
+					header
+				});
+			}
+		});
+	}
 
 	showWindow(columnsToAdd, columnsToDelete, datatable) {
 		this.metadataTable = datatable;
-		this.userInfo = authService.getUserInfo();
 		this.fillInFormElements(columnsToAdd, columnsToDelete);
 		this.getRoot().show();
 	}
 
 	close() {
+		this.newColumnsService.clearNewColumnsForm();
 		this.getRoot().hide();
 	}
 }

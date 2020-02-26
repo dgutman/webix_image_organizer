@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
 import ajax from "../../../services/ajaxActions";
 import "../../components/editableTree";
+import "../../components/finderCounter";
 
 export default class FinderViewClass extends JetView {
 	config() {
@@ -8,7 +9,7 @@ export default class FinderViewClass extends JetView {
 			view: "editableTree",
 			width: 320,
 			select: true,
-			scroll: "xy",
+			scroll: "auto",
 			css: "finder-view",
 			type: "lineTree",
 			editable: true,
@@ -17,7 +18,7 @@ export default class FinderViewClass extends JetView {
 			editValue: "name",
 			oncontext: {},
 			template(obj, common) {
-				const count = obj._modelType === "folder" && obj.$count !== -1 ? `(${obj.$count})` : "";
+				const count = obj._modelType === "folder" && obj.$count !== -1 ? `<span class='strong-font'>(${obj.$count})</span>` : "";
 				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name} ${count}</span>`;
 			},
 			scheme: {
@@ -29,17 +30,22 @@ export default class FinderViewClass extends JetView {
 			}
 		};
 
+		const finderCounter = {
+			view: "finderCounter"
+		};
+
 		return {
 			name: "finderClass",
 			rows: [
-				treeView
+				treeView,
+				finderCounter
 			]
 		};
 	}
 
 	loadTreeFolders(parentType, parentId) {
 		let foldersArray = [];
-		return ajax.getFolder(parentType, parentId)
+		return ajax.getFolders(parentType, parentId)
 			.then((folders) => {
 				foldersArray.push(...folders);
 			}).then(() => foldersArray);
@@ -55,6 +61,10 @@ export default class FinderViewClass extends JetView {
 
 	getTreeRoot() {
 		return this.getRoot().queryView({view: "editableTree"});
+	}
+
+	getTreeCountTemplate() {
+		return this.getRoot().queryView({view: "finderCounter"});
 	}
 
 	getTreePositionX() {

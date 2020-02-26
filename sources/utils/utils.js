@@ -88,11 +88,11 @@ function escapeHTML(str) {
 
 function searchForFileType(obj) {
 	let str = obj.name;
-	const pattern = /\.[0-9a-z]+$/i;
+	const pattern = /\.([0-9a-z]+)(?!\S)/gi; // /\.[0-9a-z]+$/i;
 	const matched = str.match(pattern);
-	const dotIndex = matched ? matched.index : 0;
-	str = str.slice(dotIndex + 1);
-	return str || "non-type";
+	str = matched ? matched.pop() : matched;
+	str = str ? str.replace(".", "") : "non-type";
+	return str;
 }
 
 function showAlert() {

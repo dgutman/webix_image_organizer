@@ -91,9 +91,16 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	getFolder(parentType, parentId) {
+	getFolders(parentType, parentId, offset, limit) {
 		return this._ajax()
-			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}`)
+			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}&limit=${limit || constants.FOLDERS_LIMIT}`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getFolderById(id) {
+		return this._ajax()
+			.get(`${this.getHostApiUrl()}/folder/${id}`)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
@@ -144,7 +151,7 @@ class AjaxActions {
 	getLinearStucture(folderId, sourceParams) {
 		const params = sourceParams ? {
 			type: "folder",
-			limit: sourceParams.limit || 1000,
+			limit: sourceParams.limit || constants.LINEAR_STRUCTURE_LIMIT,
 			offset: sourceParams.offset || 0,
 			sort: sourceParams.sort || "lowerName",
 			sortdir: sourceParams.sortdir || 1

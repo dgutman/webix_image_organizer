@@ -61,23 +61,15 @@ export default class GalleryFeatures extends JetView {
 			label: "Filter gallery",
 			labelWidth: 100,
 			placeholder: "Select file type",
+			value: "all",
 			options: {
 				body: {
 					template: (obj) => {
 						if (obj.value) {
 							return `Show ${obj.value.toUpperCase()} files`;
 						}
-					}
-				}
-			},
-			on: {
-				onAfterRender() {
-					const filterList = this.getList();
-					filterList.parse({
-						id: "all",
-						value: "all"
-					});
-					this.setValue("all");
+					},
+					data: [{id: "all", value: "all"}]
 				}
 			}
 		};

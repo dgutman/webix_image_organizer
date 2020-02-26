@@ -1,8 +1,11 @@
+import dot from "dot-object";
 import utils from "../utils/utils";
 import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
-import dot from "dot-object";
+import editableFoldersModel from "./editableFoldersModel";
+
+let metadataDotObject = {};
 
 function setFaIconsForDatatable(obj) {
 	let icon;
@@ -71,7 +74,7 @@ function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 			if (item.hasOwnProperty("meta")) {
 				const metadataValue = dot.pick(`meta.${columnId}`, item);
 				const index = options.map(obj => obj.value).indexOf(metadataValue);
-				if (metadataValue && !(metadataValue instanceof Object) && index === -1) {
+				if (metadataValue !== null && metadataValue !== undefined && metadataValue !== "" && !(metadataValue instanceof Object) && index === -1) {
 					options.push({
 						id: metadataValue, value: metadataValue
 					});
@@ -158,11 +161,6 @@ function getHeaderTextValue(columnConfig) {
 	return replacedHeaderValue;
 }
 
-function isEditable() {
-	if (authService.getUserInfo() && authService.getUserInfo().admin) return "webix_icon fas fa-pencil-alt";
-	return "";
-}
-
 function getInitialColumnsForDatatable() {
 	const initialColumnsConfig = [
 		{
@@ -227,11 +225,11 @@ function getInitialColumnsForDatatable() {
 	return initialColumnsConfig;
 }
 
-function getColumnsForDatatable(datatable) {
+function getColumnsForDatatable(datatable, folderId) {
 	let columnConfig = [];
 	const initialColumnsConfig = getInitialColumnsForDatatable();
 	const localStorageColumnsConfig = getLocalStorageColumnsConfig();
-	const isAdmin = authService.isLoggedIn() && authService.getUserInfo().admin;
+	// const isAdmin = authService.isLoggedIn() && authService.getUserInfo().admin;
 
 	if (localStorageColumnsConfig) {
 		localStorageColumnsConfig.forEach((localColumnConfig) => {
@@ -264,16 +262,17 @@ function getColumnsForDatatable(datatable) {
 			if (!localColumnConfig.initial) {
 				const headerValue = getHeaderTextValue(localColumnConfig);
 				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+				const isEditable = editableFoldersModel.isFolderEditable(folderId) ? "webix_icon fas fa-pencil-alt" : "";
 				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
-					localColumnHeader[localColumnHeader.length - 2] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable()}"></span>`;
+					localColumnHeader[localColumnHeader.length - 2] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
 				}
-				else localColumnHeader[localColumnHeader.length - 1] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable()}"></span>`;
+				else localColumnHeader[localColumnHeader.length - 1] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
 
 				localColumnConfig = {
 					id: columnId,
 					header: localColumnHeader,
 					fillspace: true,
-					editor: isAdmin ? "text" : false,
+					editor: authService.isLoggedIn() ? "text" : false,
 					sort: "text",
 					filterType,
 					minWidth: 180,
@@ -303,6 +302,28 @@ function clearColumnsInLocalStorage(userId) {
 	webix.storage.local.remove(`${constants.STORAGE_COLUMNS_CONFIG}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
 }
 
+function putNewItemFieldsToStorage(fields, userId) {
+	webix.storage.local.put(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`, fields);
+}
+
+function clearNewItemFieldsInStorage(userId) {
+	webix.storage.local.remove(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+}
+
+function getLocalStorageNewItemFields() {
+	if (authService.isLoggedIn()) {
+		return webix.storage.local.get(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+	} return false;
+}
+
+function getConfigForNewColumn() {
+	return {
+		id: webix.uid(),
+		header: [""],
+		minWidth: 180
+	};
+}
+
 export default {
 	getInitialColumnsForDatatable,
 	getColumnsForDatatable,
@@ -310,5 +331,10 @@ export default {
 	putInLocalStorage,
 	getOrEditMetadataColumnValue,
 	getHeaderTextValue,
-	clearColumnsInLocalStorage
+	clearColumnsInLocalStorage,
+	getConfigForNewColumn,
+	putNewItemFieldsToStorage,
+	clearNewItemFieldsInStorage,
+	getLocalStorageNewItemFields,
+	metadataDotObject
 };

@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import JSONFormatter from "json-formatter-js";
 import ajax from "../../../../services/ajaxActions";
 import galleryImageUrl from "../../../../models/galleryImageUrls";
+import nonImageUrls from "../../../../models/nonImageUrls";
 
 const HEIGHT = 553;
 const WIDTH = 750;
@@ -47,7 +48,7 @@ export default class ImageWindowView extends JetView {
 								this.view.hideProgress();
 							});
 					}
-					return `<img src="${getPreviewUrl(obj._id) || ""}">`;
+					return `<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">`;
 				} return "<div></div>";
 			},
 			borderless: true
