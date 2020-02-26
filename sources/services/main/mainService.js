@@ -26,6 +26,7 @@ import EmptyDataViewsService from "../views/emptyDataViews";
 import viewMouseEvents from "../../utils/viewMouseEvents";
 import recognizedItemsModel from "../../models/recognizedItems";
 import FilterModel from "../../models/filterModel";
+import editableFoldersModel from "../../models/editableFoldersModel";
 
 let contextToFolder;
 let scrollEventId;
@@ -65,6 +66,7 @@ class MainService {
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
 		this._pdfViewerWindow = this._view.$scope.ui(PdfViewerWindow);
 		// this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
+		this._finderCountTemplate = this._finder.$scope.getTreeCountTemplate();
 		this._finderContextMenu = this._view.$scope.ui(FinderContextMenu).getRoot();
 		this._cartViewButton = this._view.$scope.getSubDataviewActionPanelView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartListView().getDownloadingMenu();
@@ -109,7 +111,7 @@ class MainService {
 		this._metadataTable.sync(this._itemsDataCollection);
 
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
-		galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
+		// galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
 		this._filterTableView.getList().sync(this._galleryDataviewRichselectFilter.getList());
 		this._filterTableView.bind(this._galleryDataviewRichselectFilter);
 
@@ -314,7 +316,7 @@ class MainService {
 					}
 					utils.putHostsCollectionInLocalStorage(this.collectionItem);
 					// define datatable columns
-					const datatableColumns = metadataTableModel.getInitialColumnsForDatatable();
+					const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 					this._metadataTable.refreshColumns(datatableColumns);
 					this._itemsModel.parseItems(data);
 					// this._finder.parse(data);
@@ -423,31 +425,43 @@ class MainService {
 			this._finder.attachEvent("onBeforeContextMenu", (id) => {
 				const item = this._finder.getItem(id);
 				this._finderContextMenu.clearAll();
-				if (item._modelType === "folder") {
-					this._finderContextMenu.parse([
-						constants.REFRESH_FOLDER_CONTEXT_MENU_ID,
-						{$template: "Separator"},
-						constants.LINEAR_CONTEXT_MENU_ID
-					]);
-					if (authService.getUserInfo().admin) {
+				switch (item._modelType) {
+					case "folder": {
 						this._finderContextMenu.parse([
+							constants.REFRESH_FOLDER_CONTEXT_MENU_ID,
 							{$template: "Separator"},
-							constants.RENAME_CONTEXT_MENU_ID,
-							{$template: "Separator"},
-							constants.RUN_RECOGNITION_SERVICE
+							constants.LINEAR_CONTEXT_MENU_ID
 						]);
+						if (editableFoldersModel.isFolderEditable(item._id)) {
+							this._finderContextMenu.parse([
+								{$template: "Separator"},
+								constants.RENAME_CONTEXT_MENU_ID
+							]);
+						}
+						if (authService.getUserInfo() && authService.getUserInfo().admin) {
+							this._finderContextMenu.parse([
+								{$template: "Separator"},
+								constants.RUN_RECOGNITION_SERVICE
+							]);
+						}
+						contextToFolder = true;
+						this._finderFolder = item;
+						break;
 					}
-					contextToFolder = true;
-					this._finderFolder = item;
-				}
-				else if ((item._modelType === "item" || !item._modelType) && authService.getUserInfo().admin) {
-					this._finderContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
-					contextToFolder = false;
-					this._finderItem = item;
-				}
-				else {
-					this._finderContextMenu.hide();
-					return false;
+					case "item":
+					default: {
+						const itemFolder = this._finder.getItem(item.$parent);
+						if (editableFoldersModel.isFolderEditable(itemFolder._id)) {
+							this._finderContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
+							contextToFolder = false;
+							this._finderItem = item;
+						}
+						else {
+							this._finderContextMenu.hide();
+							return false;
+						}
+						break;
+					}
 				}
 			});
 
@@ -471,9 +485,10 @@ class MainService {
 					case constants.LINEAR_CONTEXT_MENU_ID: {
 						this._finder.detachEvent(scrollEventId);
 						const sourceParams = {
-							sort: "_id"
+							sort: "lowerName"
 						};
 						this._view.showProgress();
+						finderModel.closePreviousLinearFolder();
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
 							utils.findAndRemove(folderId, this._finderFolder, items);
 						}
@@ -504,7 +519,7 @@ class MainService {
 											this._view.$scope.getSubFinderView().setTreePosition(scrollState.x);
 											return false;
 										}
-										finderModel.attachOnScrollEvent(scrollState, this._finderFolder, this._view, ajaxActions);
+										finderModel.attachOnScrollEvent(scrollState, this._finderFolder, this._view, this._filterModel);
 									});
 
 									utils.parseDataToViews(webix.copy(data));
@@ -536,6 +551,9 @@ class MainService {
 							.filter(item => item.largeImage && (item.folderId === this._finderFolder._id || !item._modelType));
 						this._recognitionOptionsWindow.setItemsToRecognize(dataviewItems);
 						this._recognitionOptionsWindow.showWindow(this._finder, this._finderFolder, this._galleryDataview, this._recognitionStatusTemplate);
+						break;
+					}
+					default: {
 						break;
 					}
 				}
@@ -822,6 +840,11 @@ class MainService {
 			this._setDataviewColumns(newitemWidth, newItemHeight);
 		});
 
+		this._finder.data.attachEvent("onStoreUpdated", () => {
+			const count = this._countFinderItems();
+			this._finderCountTemplate.setCount(count);
+		});
+
 		this._itemsDataCollection.attachEvent("onAfterLoad", () => {
 			const dataviewSelectionId = utils.getDataviewSelectionId();
 			const datatableState = this._metadataTable.getState();
@@ -841,7 +864,9 @@ class MainService {
 				}
 			});
 
-			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+			const selectedItem = this._finder.getSelectedItem();
+			const folderId = selectedItem._modelType === "folder" ? selectedItem._id : selectedItem.folderId;
+			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable, folderId);
 			this._metadataTable.refreshColumns(datatableColumns);
 		});
 
@@ -849,7 +874,7 @@ class MainService {
 			this._setFilesToLargeImage();
 		});
 
-		if (authService.isLoggedIn() && authService.getUserInfo().admin) {
+		if (authService.isLoggedIn()) {
 			this._galleryDataviewContextMenu.attachTo(this._galleryDataview);
 		}
 
@@ -1221,6 +1246,12 @@ class MainService {
 			_y: t.height,
 			_dx: dx
 		};
+	}
+
+	_countFinderItems() {
+		let items = Object.values(this._finder.data.pull);
+		items = items.filter(item => item._modelType === "item" || !item._modelType);
+		return items.length;
 	}
 }
 

@@ -1,5 +1,5 @@
-import utils from "../utils/utils";
 import dot from "dot-object";
+import utils from "../utils/utils";
 
 export default class FilterModel {
 	constructor(dataCollection) {
@@ -35,7 +35,7 @@ export default class FilterModel {
 				const condition = filterNames.every((name) => {
 					let doesItFit = false;
 					const value = this.filters[name].value;
-					const itemFiledValue = dot.pick(name, item) || dot.pick(name, item.meta) || "";
+					const itemFiledValue = dot.pick(name, item) || this.returnString(dot.pick(name, item.meta)) || "";
 					switch (this.filters[name].type) {
 						case "date": {
 							const formatToSting = webix.Date.dateToStr("%m/%d/%y");
@@ -80,5 +80,12 @@ export default class FilterModel {
 	clearFilters() {
 		this.filters = {};
 		this.dataCollection.filter();
+	}
+
+	returnString(val) {
+		if (typeof val === "number" || typeof val === "boolean") {
+			return val.toString();
+		}
+		return val;
 	}
 }

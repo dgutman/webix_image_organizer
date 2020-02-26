@@ -4,6 +4,7 @@ import constants from "../constants";
 import utils from "./utils";
 import ajaxActions from "../services/ajaxActions";
 import authService from "../services/authentication";
+import editableFoldersModel from "../models/editableFoldersModel";
 
 let largeImageFiles;
 let makeLargeImageButton;
@@ -18,7 +19,7 @@ function setMakeLargeImageButton(largeImageButton) {
 
 function setDefaultGalleryContextMenu(dataview) {
 	let galleryDataviewItem;
-	if (authService.isLoggedIn() && authService.getUserInfo().admin) {
+	if (authService.isLoggedIn()) {
 		let itemId;
 		let item;
 		const galleryDataviewContextMenu = webixViews.getGalleryDataviewContextMenu();
@@ -27,17 +28,27 @@ function setDefaultGalleryContextMenu(dataview) {
 			item = dataview.getItem(id);
 			const itemType = utils.searchForFileType(item);
 			itemId = item._id;
-			if (item) {
-				galleryDataviewItem = item;
-				galleryDataviewContextMenu.clearAll();
-				galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
-				if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "jpeg") {
-					if (!item.largeImage) {
-						galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
+			if (editableFoldersModel.getFolderAccessLvl(item.folderId) > -1) {
+				const isFolderEditable = editableFoldersModel.isFolderEditable(item.folderId);
+				if (item && isFolderEditable) {
+					galleryDataviewItem = item;
+					galleryDataviewContextMenu.clearAll();
+					galleryDataviewContextMenu.parse([constants.RENAME_FILE_CONTEXT_MENU_ID]);
+					if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff" || itemType === "jpeg") {
+						if (!item.largeImage) {
+							galleryDataviewContextMenu.parse([constants.MAKE_LARGE_IMAGE_CONTEXT_MENU_ID]);
+						}
 					}
+				}
+				else {
+					return false;
 				}
 			}
 			else {
+				editableFoldersModel.getFolderFromServer(item.folderId)
+					.then(() => {
+						dataview.callEven("onBeforeContextMenu", [id]);
+					});
 				return false;
 			}
 		});
@@ -74,6 +85,8 @@ function setDefaultGalleryContextMenu(dataview) {
 						.fail(() => mainView.hideProgress());
 					break;
 				}
+				default:
+					break;
 			}
 		});
 	}
@@ -96,6 +109,8 @@ function setDataviewMouseEvents(dataview, action, event) {
 			});
 			break;
 		}
+		default:
+			break;
 	}
 }
 
@@ -113,14 +128,35 @@ function setDatatableMouseEvents(datatable, action, event) {
 		}
 		case "edit": {
 			datatable.attachEvent(event, (object) => {
+				const item = datatable.getItem(object.row);
 				const columnConfig = datatable.getColumnConfig(object.column);
 				if (!columnConfig.editor) {
 					return false;
 				}
-				datatable.edit({
-					column: object.column,
-					row: object.row
-				});
+				else if (editableFoldersModel.getFolderAccessLvl(item.folderId) > -1) {
+					const isFolderEditable = editableFoldersModel.isFolderEditable(item.folderId);
+					if (isFolderEditable) {
+						datatable.edit({
+							column: object.column,
+							row: object.row
+						});
+					}
+					else {
+						return false;
+					}
+				}
+				else {
+					editableFoldersModel.getFolderFromServer(item.folderId)
+						.then((isFolderEditable) => {
+							if (isFolderEditable) {
+								datatable.edit({
+									column: object.column,
+									row: object.row
+								});
+							}
+						});
+					return false;
+				}
 			});
 			break;
 		}
@@ -135,6 +171,8 @@ function setDatatableMouseEvents(datatable, action, event) {
 			});
 			break;
 		}
+		default:
+			break;
 	}
 }
 

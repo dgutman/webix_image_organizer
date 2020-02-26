@@ -56,9 +56,6 @@ export default class ItemsModel {
 			this.finderCollection.remove(item.id);
 			delete this.customFinderDataPull[baseId];
 		}
-		else {
-			webix.message("Nothing to remove");
-		}
 	}
 
 	findItem(id, baseId) {
@@ -68,9 +65,6 @@ export default class ItemsModel {
 		}
 		else if (baseId) {
 			item = this.customFinderDataPull[baseId];
-		}
-		else {
-			webix.message("Nothing was found");
 		}
 		return item;
 	}

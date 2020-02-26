@@ -1,8 +1,8 @@
 import utils from "../../utils/utils";
 
 const overlayNode = `<div class='data-subview-overlay'>
-                                <span class='overlay-text'>There are no items</span>
-                            </div>`;
+						<span class='overlay-text'>There are no items</span>
+					</div>`;
 
 export default class MainDataViewsStateSetter {
 	constructor(dataCollection, dataview, metadataTable, pager, selectItemsTemplate) {

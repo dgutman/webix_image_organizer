@@ -7,6 +7,7 @@ export default {
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
+	PATTERN_ITEM_FIELDS: "^[A-Za-z0-9.]+",
 
 	SCROLL_VIEW_METADATA_ID: "scroll-view-metadata-id",
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
@@ -45,6 +46,10 @@ export default {
 	DEFAULT_DATAVIEW_COLUMNS: "Display small images",
 
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
+	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
+
+	LINEAR_STRUCTURE_LIMIT: 150,
+	FOLDERS_LIMIT: 500,
 
 	MAX_COUNT_IMAGES_SELECTION: 100,
 
@@ -80,5 +85,7 @@ export default {
 		WARNS: {icon: "fas fa-exclamation-triangle", iconColor: "#FD7E14", value: "Done with errors"}
 	},
 
-	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000"
+	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000",
+
+	EDIT_ACCESS_LEVEL: 1
 };

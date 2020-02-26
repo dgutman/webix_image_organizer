@@ -5,7 +5,6 @@ import imagesTagsModel from "./imagesTagsModel";
 
 let filtersArray = [];
 let richSelectDataviewFilter;
-let nameFilterView;
 
 function setRichselectDataviewFilter(dataviewFilter) {
 	richSelectDataviewFilter = dataviewFilter;
@@ -13,14 +12,6 @@ function setRichselectDataviewFilter(dataviewFilter) {
 
 function getRichselectDataviewFilter() {
 	return richSelectDataviewFilter;
-}
-
-function setNameDataviewFilter(dataviewFilter) {
-	nameFilterView = dataviewFilter;
-}
-
-function getNameDataviewFilter() {
-	return nameFilterView;
 }
 
 function addFilterValue(filterValue) {
@@ -35,10 +26,6 @@ function getFiltersArray() {
 
 function clearFilterValues() {
 	filtersArray = [];
-}
-
-function setFilterValue(valueToSet) {
-	richSelectDataviewFilter.setValue(valueToSet);
 }
 
 function addNoFiltersSelection() {
@@ -126,10 +113,6 @@ function parseFilterToRichSelectList() {
 // }
 
 function prepareDataToFilter(dataArray) {
-	richSelectDataviewFilter.blockEvent();
-	setFilterValue("");
-	richSelectDataviewFilter.unblockEvent();
-	clearFilterValues();
 
 	dataArray.forEach((item) => {
 		const itemType = utils.searchForFileType(item);
@@ -160,39 +143,14 @@ function prepareDataToFilter(dataArray) {
 	parseFilterToRichSelectList();
 }
 
-// function filterByName(dataview, searchValue) {
-// 	let richSelectValue = richSelectDataviewFilter.getValue();
-// 	let lowerCaseSearchValue = searchValue.toLowerCase();
-// 	dataview.filter((obj) => {
-// 		let lowerCaseName;
-// 		let itemType = utils.searchForFileType(obj);
-// 		if (richSelectValue) {
-// 			if (itemType === richSelectValue || richSelectValue === "all") {
-// 				lowerCaseName = obj.name.toString().toLowerCase();
-// 			}
-// 		}
-// 		else {
-// 			lowerCaseName = obj.name.toString().toLowerCase();
-// 		}
-// 		if (lowerCaseName) {
-// 			return lowerCaseName.indexOf(lowerCaseSearchValue) !== -1;
-// 		}
-// 	});
-// }
-
 export default {
 	setRichselectDataviewFilter,
 	getRichselectDataviewFilter,
-	setNameDataviewFilter,
-	getNameDataviewFilter,
 	addFilterValue,
 	clearFilterValues,
 	clearFilterRichSelectList,
 	parseFilterToRichSelectList,
 	addNoFiltersSelection,
 	getFiltersArray,
-	// filterData,
-	setFilterValue,
 	prepareDataToFilter
-	// filterByName
 };
