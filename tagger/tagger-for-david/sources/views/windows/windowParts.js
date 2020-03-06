@@ -219,7 +219,7 @@ function setImageMultiplierId(id) {
 }
 
 function getImageMultiplierId() {
-	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || imageSizeMultipliersKeys[0];
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || imageSizeMultipliersKeys[1];
 }
 
 function getImageSizeSelectorConfig() {

@@ -1,23 +1,28 @@
 import transitionalAjax from "../../transitionalAjaxService";
 import windowParts from "../../../views/windows/windowParts";
 import responsiveWindows from "../../../models/windows/responsiveWindows";
-import constants from "../../../constants";
+import DataviewService from "../../user/dataviewService";
 
-export default class dataviewWindowService {
+export default class DataviewWindowService extends DataviewService {
 	constructor(windowScope) {
+		super(
+			windowScope.getWindowDataview(),
+			windowScope.dataviewStore,
+			windowScope.getDataviewPager(),
+			windowScope.getSelectImageSize()
+		);
 		this.scope = windowScope;
 		this.window = this.scope.getRoot();
-		this.dataview = windowScope.getWindowDataview();
-		this.pager = windowScope.getDataviewPager();
+		this.attachWindowViewsEvents();
 	}
 
 	getWindowImages() {
-		this.scope.dataviewPager.blockEvent();
-		this.scope.dataviewPager.select(0);
-		this.scope.dataviewPager.unblockEvent();
+		this.pager.blockEvent();
+		this.pager.select(0);
+		this.pager.unblockEvent();
 		// remember selected items
 		this.scope.selectImagesService.onBeforeNewDataLoad();
-		this.scope.dataviewStore.clearAll();
+		this.dataviewStore.clearAll();
 		const params = this.scope.getParamsForImages();
 		return this.parseImages(params);
 	}
@@ -57,62 +62,9 @@ export default class dataviewWindowService {
 			});
 	}
 
-	getVisibleRange() {
-		const state = this.dataview.getScrollState();
-		const top = Math.max(0, state.y);
-		const width = this.dataview._content_width;
-		const height = this.dataview._content_height; // size of single item
-
-		const t = this.dataview.type;
-		let dx = Math.floor(width / t.width) || 1; // at least single item per row
-
-		let min = Math.floor(top / t.height); // index of first visible row
-
-		let dy = Math.ceil((height + top) / t.height) - 1; // index of last visible row
-		// total count of items, paging can affect this math
-
-		let count = this.dataview.data.$max ? this.dataview.data.$max - this.dataview.data.$min : this.dataview.count();
-		let max = Math.ceil(count / dx) * t.height; // size of view in rows
-
-		return {
-			_from: min,
-			_dy: dy,
-			_top: top,
-			_max: max,
-			_y: t.height,
-			_dx: dx
-		};
-	}
-
-	getPagerSize() {
-		const vr = this.getVisibleRange();
-		const yCount = vr._dy || 1;
-		const xCount = vr._dx || 1;
-		return yCount * xCount;
-	}
-
-	setImagesRange() {
-		const prevSize = this.pager.data.size;
-		const size = this.getPagerSize();
-		if (prevSize !== size) {
-			this.pager.define("size", size);
-			this.pager.refresh();
-		}
-	}
-
-	changeImageSize(id) {
-		const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(id);
-		const typeObj = windowParts.getDataviewTypeObject(multiplier, this.dataview);
-		this.dataview.define("minWidth", typeObj.width);
-		this.dataview.define("minHeight", typeObj.height);
-		this.dataview.customize(typeObj);
-		windowParts.setImageMultiplierId(id);
-		this.dataview.refresh();
-	}
-
 	onChangeImageSizeValue(id) {
 		const index = this.getFirstItemIndexOnPage();
-		this.scope.dataviewStore.clearAll();
+		this.dataviewStore.clearAll();
 		this.changeImageSize(id);
 		this.setImagesRange();
 		const page = this.getCurrentPageByItemIndex(index);
@@ -120,11 +72,6 @@ export default class dataviewWindowService {
 		if (this.pager.data.page !== page && page > -1) {
 			this.pager.select(page);
 		}
-	}
-
-	getFirstItemIndexOnPage() {
-		const pData = this.pager.data || {page: 0, size: 0};
-		return pData.page * pData.size;
 	}
 
 	getCurrentPageByItemIndex(index) {
@@ -145,5 +92,62 @@ export default class dataviewWindowService {
 		this.window.show();
 
 		responsiveWindows.addWindow(this.window.config.id, this.window);
+	}
+
+	attachWindowViewsEvents() {
+		this.dataview.data.attachEvent("onStoreUpdated", () => {
+			const count = this.dataview.count();
+			if (!count) {
+				this.pager.hide();
+			}
+			else if (count && !this.pager.isVisible()) {
+				this.pager.show();
+			}
+		});
+
+		this.scope.searchInput.attachEvent("onEnter", () => {
+			this.getWindowImages();
+		});
+		this.scope.searchInput.attachEvent("onSearchIconClick", () => {
+			this.getWindowImages();
+		});
+
+		this.scope.selectAllTemplate.define("onClick", {
+			"select-all-images": () => {
+				this.scope.selectImagesService.selectAllItems(this.pager);
+			},
+			"unselect-all-images": () => {
+				this.scope.selectImagesService.unselectAllItems();
+				this.scope.selectImagesService.clearInvisibleItems();
+			}
+		});
+
+		this.pager.attachEvent("onAfterPageChange", (page) => {
+			const offset = this.pager.data.size * page || 0;
+			if (!this.dataview.getIdByIndex(offset)) {
+				const params = this.scope.getParamsForImages();
+				this.parseImages(params);
+			}
+		});
+
+		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
+			this.scope.connectedImagesModel.putInitialIdsFromItems(rawData.data);
+			this.setImagesRange();
+		});
+
+		this.scope.filterTemplate.define("onClick", {
+			"filter-latest-changed": () => {
+				this.scope.filterTemplate.setValues({latest: true});
+				this.getWindowImages();
+			},
+			"filter-all": () => {
+				this.scope.filterTemplate.setValues({latest: false});
+				this.getWindowImages();
+			}
+		});
+
+		this.imageSizeSelect.attachEvent("onChange", (val) => {
+			this.onChangeImageSizeValue(val);
+		});
 	}
 }

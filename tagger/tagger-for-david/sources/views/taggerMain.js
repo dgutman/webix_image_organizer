@@ -8,11 +8,11 @@ export default class TaggerMainClass extends JetView {
 	config() {
 		const ui = {
 			css: "tagger-app",
-			minWidth: 1180,
-			minHeight: 770,
+			minWidth: 1100,
+			minHeight: 620,
 			rows: [
 				header,
-				{$subview: true, minWidth: 1180}
+				{$subview: true, minWidth: 1100}
 			]
 		};
 
