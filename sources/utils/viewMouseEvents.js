@@ -80,9 +80,9 @@ function setDefaultGalleryContextMenu(dataview) {
 
 									mainView.hideProgress();
 								})
-								.fail(() => mainView.hideProgress());
+								.catch(() => mainView.hideProgress());
 						})
-						.fail(() => mainView.hideProgress());
+						.catch(() => mainView.hideProgress());
 					break;
 				}
 				default:

@@ -73,7 +73,7 @@ export default class ImagesTagsWindow extends JetView {
 						this.view.hideProgress();
 						this.closeWindow();
 					})
-					.fail(() => {
+					.catch(() => {
 						this.view.hideProgress();
 						this.closeWindow();
 					});

@@ -28,7 +28,6 @@
   }
 
   .gallery-images-container {
-
     position: relative;
     cursor: pointer;
     height: 100px;
@@ -36,8 +35,14 @@
     .border-radius(3px);
     text-align: center;
 
+    .gallery-image-wrap {
+      width: 100%;
+    }
+
     .gallery-image {
       display: inline-block;
+      vertical-align: bottom;
+      height: 100%;
     }
 
     .gallery-images-info {

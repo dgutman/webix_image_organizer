@@ -215,7 +215,7 @@ export default class RecognitionServiceWindow extends JetView {
 					errorsArray = [];
 				}
 			})
-			.fail((xhr) => {
+			.catch((xhr) => {
 				statuses.ERROR.text = xhr.responseText || "Unidentified error";
 				recognizeButton.enable();
 				this.setTemplateStatus(statuses.ERROR);

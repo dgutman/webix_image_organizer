@@ -36,15 +36,17 @@ export default class ImageWindowView extends JetView {
 				const setPreviewUrl = obj.label ? galleryImageUrl.setPreviewLabelImageUrl : galleryImageUrl.setNormalImageUrl;
 
 				if (obj._id && !obj.emptyObject) {
-					if (typeof getPreviewUrl(obj._id) === "undefined") {
+					const previewImageUrl = getPreviewUrl(obj._id);
+					if (typeof previewImageUrl === "undefined") {
 						this.view.showProgress();
-						setPreviewUrl(obj._id, "");
-						ajax.getImage(obj._id, HEIGHT, WIDTH, imageType)
-							.then((data) => {
-								setPreviewUrl(obj._id, URL.createObjectURL(data));
+						ajax.getImage(obj._id, imageType)
+							.then((url) => {
+								setPreviewUrl(obj._id, url);
 								this.view.hideProgress();
 								this.getLargeTemplateView().refresh();
-							}).fail(() => {
+							})
+							.catch(() => {
+								setPreviewUrl(obj._id, false);
 								this.view.hideProgress();
 							});
 					}
@@ -137,7 +139,7 @@ export default class ImageWindowView extends JetView {
 					this.createOpenSeadragonViewer(obj, templateNode.firstChild);
 					this.view.hideProgress();
 				})
-				.fail(() => {
+				.catch(() => {
 					this.view.hideProgress();
 				});
 		}
@@ -148,7 +150,7 @@ export default class ImageWindowView extends JetView {
 					this.createJSONViewer(data, templateNode.firstChild);
 					this.view.hideProgress();
 				})
-				.fail(() => {
+				.catch(() => {
 					this.view.hideProgress();
 				});
 		}

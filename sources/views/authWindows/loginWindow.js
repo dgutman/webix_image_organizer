@@ -145,7 +145,7 @@ export default class LoginWindowView extends JetView {
 					this.view.hideProgress();
 					this.cancelLogic();
 				})
-				.fail((xhr) => {
+				.catch((xhr) => {
 					if (xhr.status === 401) {
 						const errorLabel = this.form.elements["error-label"];
 						errorLabel.setValue("Login failed");

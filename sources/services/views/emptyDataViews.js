@@ -36,7 +36,7 @@ export default class MainDataViewsStateSetter {
 		const vr = this.getVisibleRange(pData, count);
 		const dataviewNode = this.dataview.getNode();
 		const scrollView = dataviewNode.querySelector(".webix_scroll_cont");
-		scrollView.style.height = `${vr.actualMax}px`;
+		scrollView.style.height = `${Math.min(vr.actualMax, vr.pageMax)}px`;
 		if (!count) {
 			// Gallery Dataview
 			dataviewNode.classList.add("hidden-overflow");

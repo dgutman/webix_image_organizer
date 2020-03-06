@@ -8,7 +8,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
-module.exports = function (env) {
+module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
@@ -95,7 +95,8 @@ module.exports = function (env) {
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "2", value: "ISIC Archive", hostAPI: "http://isic-archive.com/girder/api/v1"}
+					{id: "2", value: "ISIC Archive", hostAPI: "http://isic-archive.com/girder/api/v1"},
+//					{id: "4", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"}
 //					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
 //					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
 //					{id: "4", value: "Computablebrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
