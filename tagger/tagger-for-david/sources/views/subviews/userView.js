@@ -5,6 +5,7 @@ import nonImageUrls from "../../models/nonImageUrls";
 import ajaxService from "../../services/ajaxActions";
 import constants from "../../constants";
 import UserViewService from "../../services/user/userService";
+import UserDataviewTagIcons from "../components/dataviewItemIcons";
 
 const PAGER_ID = "user-dataview-pager";
 const imageSizeMultipliersKeys = Array.from(constants.DATAVIEW_IMAGE_MULTIPLIERS.keys());
@@ -18,7 +19,6 @@ export default class TaggerUserView extends JetView {
 			labelWidth: 90,
 			name: "userSelectImageSize",
 			css: "select-field",
-			value: imageSizeMultipliersKeys[0],
 			options: imageSizeMultipliersKeys
 
 		};
@@ -79,8 +79,8 @@ export default class TaggerUserView extends JetView {
 			view: "dataview",
 			css: "user-dataview",
 			name: "userDataview",
-			minWidth: 500,
-			minHeight: 300,
+			minWidth: 350,
+			minHeight: 290,
 			tooltip: (obj) => {
 				let html = `<div class='webix_strong'>${obj.name}</div>`;
 				const tags = dot.pick("meta.tags", obj);
@@ -103,7 +103,7 @@ export default class TaggerUserView extends JetView {
 				const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 				const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 				const setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
-				const highlightState = obj._updated ? "highlighted" : "";
+				const highlightState = obj.isUpdated ? "highlighted" : "";
 
 				if (typeof getPreviewUrl(obj._id) === "undefined") {
 					setPreviewUrl(obj._id, "");
@@ -113,7 +113,7 @@ export default class TaggerUserView extends JetView {
 							if (data.type === "image/jpeg") {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
 								if (this.dataview.exists(obj.id)) {
-									this.dataview.updateItem(obj.id, obj); // to call item render, not whole dataview
+									this.dataview.render(obj.id, obj, "update"); // to call item render, not whole dataview
 								}
 							}
 						});
@@ -125,10 +125,14 @@ export default class TaggerUserView extends JetView {
 									<div class="dataview-icons-top">
 										<i class='checkbox ${common.checkboxState(obj, common)}'></i>
 									</div>
+									<div class="dataview-icons-bottom">
+										${common.tagIcons(obj, common)}
+										<i webix_tooltip='Show metadata' class='dataview-show-metadata-icon show-metadata fas fa-info-circle'></i>
+									</div>
 								</div>
 								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image">
 							</div>
-							<div class="dataview-images-name ellipsis-text">${common.tagsState(obj, common)}</div>
+							<div class="dataview-images-name ellipsis-text">${obj.name}</div>
 						</div>`;
 			},
 			type: {
@@ -152,29 +156,16 @@ export default class TaggerUserView extends JetView {
 					}
 					return str;
 				},
-				tagsState: (obj) => {
-					if (obj.meta && obj.meta.tags) {
-						const tagsObj = obj.meta.tags;
-						const tags = Object.keys(tagsObj);
-						if (tags.length === 1) {
-							const tagValues = tagsObj[tags[0]];
-							const firstValue = typeof tagValues[0] === "object" ? tagValues[0].value : tagValues[0];
-							const displayedValue = tagValues.length === 1 ? firstValue : `(${tagValues.length})`;
-							return `${tags[0]}: ${displayedValue}`;
-						}
-						return `Tags: (${tags.length})`;
-					}
-					return "Tags: (0)";
-				}
+				tagIcons: (obj, common) => this.dataviewIcons.getItemIconsTemplate(obj, common.width)
 			}
 		};
 
 		const itemsCountTemplate = {
 			name: "itemsCountTemplate",
-
 			template: (obj) => {
-				if (obj.count) {
-					return `<div class='items-count-template'><span>Items ${obj.count} of ${obj.totalCount} left</span></div>`;
+				const shown = obj.unfilteredCount !== obj.count ? ` (shown by filters ${obj.count})` : "";
+				if (obj.unfilteredCount) {
+					return `<div class='items-count-template'><span class='bold'>Items ${obj.unfilteredCount} of ${obj.totalCount} left</span>${shown}</div>`;
 				}
 				return "";
 			},
@@ -188,27 +179,66 @@ export default class TaggerUserView extends JetView {
 			borderless: true,
 			select: true,
 			scroll: "auto",
-			template: obj => `<div onmousedown='return false' onselectstart='return false'><i class='icon-btn fas fa-folder'></i> <span class='item-name'>${obj.name}</span></div>`
+			tooltip: obj => obj.name,
+			template: obj => `<div class='ellipsis-text' onmousedown='return false' onselectstart='return false'><i class='icon-btn fas fa-folder'></i> <span class='item-name'>${obj.name}</span></div>`
 		};
 
 		const buttons = {
 			margin: 5,
 			padding: 15,
 			height: 70,
-			selector: "hidden_view",
-			hidden: true,
 			borderless: true,
 			cols: [
 				itemsCountTemplate,
 				{},
 				{
 					view: "button",
+					css: "btn-contour",
+					width: 80,
+					name: "backButton",
+					hidden: true,
+					value: "Show reviewed"
+				},
+				{width: 20},
+				{
+					view: "button",
 					css: "btn",
 					width: 80,
 					name: "nextButton",
-					value: "Next"
+					selector: "hidden_view",
+					hidden: true,
+					value: "Submit"
 				}
 			]
+		};
+
+		const selectAllFiltersTemplate = {
+			name: "selectAllFiltersTemplate",
+			height: 50,
+			css: "select-dataview-filters-template",
+			template: () => "<div><a class='select-all'>Select all</a></div> <div><a class='unselect-all'>Unselect all</a></div>",
+			borderless: true
+		};
+
+		const filtersTree = {
+			view: "tree",
+			name: "filtersTree",
+			type: "lineTree",
+			scroll: "auto",
+			css: "dataview-filters-tree",
+			template: (obj, common) => {
+				const tree = this.getFiltersTree();
+				const checkboxState = tree.isSelected(obj.id) ? "checked fas fa-check-square" : "unchecked far fa-square";
+				return `<span onmousedown='return false' onselectstart='return false'>${common.icon(obj, common)} <i class='tree-checkbox ${checkboxState}'></i> <span>${obj.name}</span></span>`;
+			}
+		};
+
+		const applyFiltersBtn = {
+			view: "button",
+			css: "btn",
+			width: 80,
+			name: "applyFiltersBtn",
+			value: "Apply"
 		};
 
 		const ui = {
@@ -222,15 +252,19 @@ export default class TaggerUserView extends JetView {
 					body: {
 						view: "accordion",
 						type: "clean",
+						multi: true,
 						cols: [
 							{
 								header: "Tasks",
 								name: "tasksAccordionItem",
+								css: "tagger-accordion-item",
 								collapsed: true,
 								disabled: true,
 								headerAltHeight: 44,
-								minWidth: 300,
+								minWidth: 230,
 								body: {
+									css: "tagger-tasks-accordion-items-body",
+									paddingX: 1,
 									rows: [taskList]
 								}
 							},
@@ -285,6 +319,31 @@ export default class TaggerUserView extends JetView {
 									},
 									buttons
 								]
+							},
+							{
+								header: "Filters (0)",
+								name: "filtersAccordionItem",
+								css: "tagger-accordion-item",
+								collapsed: true,
+								disabled: true,
+								headerAltHeight: 44,
+								minWidth: 230,
+								body: {
+									css: "tagger-filters-accordion-item-body",
+									padding: 1,
+									rows: [
+										selectAllFiltersTemplate,
+										filtersTree,
+										{
+											padding: 15,
+											height: 70,
+											cols: [
+												{},
+												applyFiltersBtn
+											]
+										}
+									]
+								}
 							}
 						]
 					}
@@ -297,7 +356,8 @@ export default class TaggerUserView extends JetView {
 
 	ready(view) {
 		this.dataview = this.getUserDataview();
-		this.userViewService = new UserViewService(view);
+		this.dataviewIcons = new UserDataviewTagIcons(this.getTagSelect(), this.getValueSelect());
+		this.userViewService = new UserViewService(view, this.dataviewIcons);
 	}
 
 	getInfoViewConfig(name, icon) {
@@ -352,6 +412,10 @@ export default class TaggerUserView extends JetView {
 		return this.getRoot().queryView({name: "nextButton"});
 	}
 
+	getBackButton() {
+		return this.getRoot().queryView({name: "backButton"});
+	}
+
 	getSelectImageSize() {
 		return this.getRoot().queryView({name: "userSelectImageSize"});
 	}
@@ -366,5 +430,21 @@ export default class TaggerUserView extends JetView {
 
 	getItemsCountTemplate() {
 		return this.getRoot().queryView({name: "itemsCountTemplate"});
+	}
+
+	getFiltersAccordionItem() {
+		return this.getRoot().queryView({name: "filtersAccordionItem"});
+	}
+
+	getFiltersTree() {
+		return this.getRoot().queryView({name: "filtersTree"});
+	}
+
+	getSelectAllFiltersTemplate() {
+		return this.getRoot().queryView({name: "selectAllFiltersTemplate"});
+	}
+
+	getApplyFiltersButton() {
+		return this.getRoot().queryView({name: "applyFiltersBtn"});
 	}
 }
