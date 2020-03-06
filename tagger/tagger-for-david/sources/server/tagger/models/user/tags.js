@@ -26,8 +26,33 @@ const tagsSchema = new Schema({
 		required() {
 			return this.type === "multiple_with_default";
 		}
+	},
+	icontype: {
+		type: String
+	},
+	icon: {
+		type: String,
+		required() {
+			return this.icontype === "badge" || this.icontype === "badgecolor";
+		}
 	}
 });
+
+tagsSchema.index({taskId: 1, name: 1}, {unique: true});
+
+tagsSchema.statics.collectDefaultValues = async function collectDefaultValues(taskId) {
+	const data = await this.aggregate([
+		{$match: {taskId: mongoose.Types.ObjectId(taskId)}}
+	]);
+
+	return data.reduce((result, item) => {
+		result[item.name] = [];
+		if (item.type === "multiple_with_default" && item.default) {
+			result[item.name].push({value: item.default});
+		}
+		return result;
+	}, {});
+};
 
 tagsSchema.set("toJSON", {virtuals: false, versionKey: false});
 const UsersTags = mongoose.model("Users_tags", tagsSchema);

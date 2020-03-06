@@ -115,7 +115,7 @@ async function updateMany(item) {
 }
 
 async function _delete(tagId) {
-	await Fields.remove({tag: tagId});
+	await Fields.deleteMany({tag: tagId});
 	await Values.updateMany({tagIds: tagId}, {$pull: {tagIds: tagId}});
 	await Values.deleteOne({tagIds: {$size: 0}});
 	return Tags.findOneAndDelete({_id: tagId});
