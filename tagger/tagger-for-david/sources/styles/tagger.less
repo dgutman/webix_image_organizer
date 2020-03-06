@@ -29,6 +29,12 @@
             justify-content: space-between;
             padding: 0 20px;
         }
+        .select-dataview-filters-template .webix_template {
+            text-decoration: underline;
+            div {
+                margin-bottom: 5px;
+            }
+        }
         .add-new-item-flex-container {
             display: flex !important;
             justify-content: space-around;
@@ -98,6 +104,79 @@
         .webix_disabled_view {
             .webix_accordionitem_header, .webix_accordionitem_header:focus, .webix_accordionitem_header:hover {
                 background-color: @disabled-color;
+            }
+        }
+
+        .tagger-hotkeys-list {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            .item-tag-related-icon, .hotkey-none-icon {
+              display: inline-flex;
+              vertical-align: middle;
+              transform: scale(0.8);
+              .icon-badge {
+                background-color: @main-bg;
+                border: 1px solid @badge-color;
+                color: @badge-color;
+              }
+            }
+            .hotkey-none-icon {
+                margin: 3px;
+                color: @selected-bg;
+                flex: 0 0 auto;
+                justify-content: center;
+                align-items: center;
+                box-sizing: border-box;
+                font-size: 20px;
+                width: 22px;
+                height: 22px;
+            }
+        }
+          .user-dataview, .tagger-hotkeys-list {
+            .item-tag-related-icon {
+                position: relative;
+                flex: 0 0 auto;
+                justify-content: center;
+                align-items: center;
+                border: 2px solid @dark-main-bg;
+                background: @main-bg;
+                font-size: 14px;
+                border-radius: 50%;
+                box-sizing: border-box;
+                &.colorized i {
+                    opacity: .8;
+                }
+                .icon-badge {
+                    display: inline-block;
+                    position: absolute;
+                    top: -10px;
+                    right: -10px;
+                    border-radius: 50%;
+                    font-family: @main-font;
+                    font-weight: 600;
+                    text-align: center;
+                    line-height: 18px;
+                    min-width: 18px;
+                    width: max-content;
+                    height: 18px;
+                }
+            }
+        }
+        .dataview-filters-tree {
+            .webix_scroll_cont {
+                min-width: 100%;
+                width: max-content !important;
+            }
+            .webix_selected, .webix_selected span {
+                background: transparent !important;
+                color: @main-color;
+                .tree-checkbox {
+                    color: @btn-hover;
+                }
+            }
+            .tree-checkbox {
+                padding: 0 5px;
             }
         }
     }
@@ -402,6 +481,53 @@
                         }
                     }
                 }
+                .dataview-icons-bottom {
+                    position: absolute;
+                    bottom: 0;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 3px;
+                    width: 100%;
+                    box-sizing: border-box;
+                    .item-tag-related-icons {
+                        max-width: calc(100% - 50px);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        .dataview-item-dots-icon {
+                            font-size: 14px;
+                            width: 22px;
+                            height: 22px;
+                            background: @selected-bg;
+                            color: @select-color;
+                            border: 1px solid @selected-bg;
+                        }
+                        .item-tag-related-icon {
+                            display: flex;
+                            margin-right: 3px;
+                            .icon-badge {
+                              background-color: @badge-color;
+                              border: 1px solid @badge-color;
+                              color: @select-color;
+                            }
+                          }
+                        .dataview-item-dots-icon {
+                            display: flex;
+                            border-radius: 50%;
+                            flex: 0 0 auto;
+                            justify-content: center;
+                            align-items: center;
+                            box-sizing: border-box;
+                        }
+                    }
+                    .dataview-show-metadata-icon {
+                        font-size: 20px;
+                        &:hover {
+                            color: @btn-hover;
+                        }
+                    }
+                }
             }
             .dataview-images-container {
                 box-sizing: border-box;
@@ -419,9 +545,20 @@
                 }
             }
         }
+        
+        // .user-collection-list {
+        //     box-shadow: inset -1px 0px 0px 0px @lines-color;
+        // }
 
-        .user-collection-list {
-            box-shadow: inset -1px 0px 0px 0px @lines-color;
+        .tagger-accordion-item {
+            .webix_accordionitem_body {
+                .tagger-filters-accordion-item-body {
+                    box-shadow: inset 0px 0px 0px 1px @lines-color;
+                }
+                .tagger-tasks-accordion-items-body {
+                    box-shadow: inset 0px 0px 0px 1px @lines-color;
+                }
+            }
         }
 
         .user-dataview-pager {
@@ -453,8 +590,11 @@
             display: flex;
             align-items: flex-end;
             font-size: @middle-font-size;
-            font-weight: bold;
             height: 100%;
+            span.bold {
+                font-weight: bold;
+                padding-right: 5px;
+            }
         }
         .task-name-template {
             display: flex;
