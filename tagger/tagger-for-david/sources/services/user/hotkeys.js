@@ -60,12 +60,15 @@ class HotkeysService {
 		const currentTag = tagList.find(tag => tag.name === currentKey[0], true);
 		const currentValue = currentTag.values.find(value => value.name === currentKey[1], true);
 
-		this.tagSelect.setValue(currentTag.id);
-		this.valueSelect.setValue(currentValue.id);
-
 		if (this.image) {
 			this.imageService.updateImageByHotkey(key, this.image, currentTag, currentValue);
 		}
+
+		// to avoid double changing of value in valueSelect
+		this.tagSelect.blockEvent();
+		this.tagSelect.setValue(currentTag.id);
+		this.tagSelect.unblockEvent();
+		this.tagSelect.callEvent("onChange", [currentTag.id, null, currentValue]);
 	}
 }
 

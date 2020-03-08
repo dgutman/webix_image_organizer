@@ -75,12 +75,14 @@ function getTaskImages(req, res, next) {
 	let limit = req.query.limit || 50;
 	offset = parseInt(offset);
 	limit = parseInt(limit);
+	const filters = req.query.filters ? JSON.parse(req.query.filters) : null;
 
 	const params = {
 		folderIds: JSON.parse(req.query.ids),
 		offset,
 		limit,
-		userId
+		userId,
+		filters
 	};
 
 	imagesService.getTaskImages(params)
@@ -105,11 +107,24 @@ function reviewImages(req, res, next) {
 	const images = JSON.parse(req.body.images);
 	const taskIds = JSON.parse(req.body.taskIds);
 	const userId = req.user ? req.user.sub : null;
+	const preliminarily = req.body.preliminarily || null;
 
-	imagesService.reviewImages(images, taskIds, userId)
+	imagesService.reviewImages(images, taskIds, userId, preliminarily)
 		.then(({data, count}) => {
 			const correctString = data.length === 1 ? "image was" : "images were";
 			return res.send({message: `${data.length} ${correctString} succesfully updated`, data, count});
+		})
+		.catch(err => next(err));
+}
+
+function unreviewTaskImages(req, res, next) {
+	const taskIds = JSON.parse(req.body.taskIds);
+	const userId = req.user ? req.user.sub : null;
+
+	imagesService.unreviewTaskImages(taskIds, userId)
+		.then((data) => {
+			const correctString = data.nModified === 1 ? "image was" : "images were";
+			return res.send({message: `${data.nModified} ${correctString} succesfully updated`, data});
 		})
 		.catch(err => next(err));
 }
@@ -120,6 +135,7 @@ router.get("/tag/:tag/folders", getFoldersImages);
 router.get("/task", getTaskImages);
 router.put("/many", updateMany);
 router.put("/review", reviewImages);
+router.put("/unreview", unreviewTaskImages);
 router.post("/resource", getResourceImages);
 
 module.exports = router;

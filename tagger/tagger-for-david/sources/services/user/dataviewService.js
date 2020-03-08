@@ -169,4 +169,17 @@ export default class UserViewService {
 			height
 		};
 	}
+
+	getNotLoadedItemIndex() {
+		const pData = this.pager.data;
+		const offset = pData.size * pData.page;
+		const last = offset + pData.size;
+		const items = this.dataview.data.serialize();
+		const pageItems = items.slice(offset, last);
+		const pageIndex = Math.max(pageItems.findIndex(item => !item), pageItems.length);
+		const index = pageIndex + offset;
+		const limit = pData.size - pageIndex;
+
+		return {index, pageIndex, limit};
+	}
 }

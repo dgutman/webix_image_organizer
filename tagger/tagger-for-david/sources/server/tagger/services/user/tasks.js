@@ -126,7 +126,11 @@ async function checkTask(taskId, hostApi, token, userId) {
 	if (!folder) {
 		promises.push(folderService.getResourceFolders(task.baseParentId, hostApi, token));
 	}
-	promises.push(imagesService.getResourceImages(task.folderId, hostApi, token, userId, "folder"));
+	promises.push(imagesService.getResourceImages(task.folderId, hostApi, token, userId, "folder")
+		.then(async (images) => {
+			const defaultTagValues = await Tags.collectDefaultValues(taskId);
+			return imagesService.setTagsByTask(images, defaultTagValues);
+		}));
 
 	await Promise.all(promises);
 

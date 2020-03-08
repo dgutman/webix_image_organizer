@@ -3,7 +3,7 @@ import dot from "dot-object";
 import JSONFormatter from "json-formatter-js";
 import CustomDataPull from "../../models/customDataPullClass";
 import ConnectedImagesModel from "../../models/connectedImagesModel";
-import PagerService from "../../services/pagerService";
+// import PagerService from "../../services/pagerService";
 import windowParts from "./windowParts";
 import transitionalAjax from "../../services/transitionalAjaxService";
 import SelectItemsService from "../../services/selectItemsService";
@@ -268,7 +268,7 @@ export default class ConnectTagToImageWindow extends JetView {
 																					</div>
 																					<div class='flex-table-row'>
 																						<div class='flex-table-col flex-table-header'>ID:</div>
-																						<div class='flex-table-col'>${obj._id}</div>
+																						<div class='flex-table-col'>${obj.mainId}</div>
 																					</div>
 																					<div class='flex-table-row'>
 																						<div class='flex-table-col flex-table-header'>Tags:</div>
@@ -303,9 +303,7 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.ProgressBar);
-		this.windowService = new DataviewWindowService(this);
 		this.view = view;
-		// this.collectionList = this.getCollectionList();
 		this.dataview = this.getWindowDataview();
 		this.selectImagesService = new SelectItemsService(this.dataview);
 		this.dataviewStore = new CustomDataPull(this.dataview);
@@ -313,13 +311,14 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.searchInput = this.getSearchInput();
 		this.selectAllTemplate = this.getSelectAllTemplate();
 		this.connectedImagesModel = new ConnectedImagesModel();
-		this.pagerService = new PagerService(this.dataviewPager, this.dataview);
 		this.filterTemplate = this.getFilterTemplate();
 		this.imageSizeSelect = this.getSelectImageSize();
 		this.itemInfoTemplate = this.getRoot().queryView({name: "itemInfoTemplate"});
 		this.accordion = this.getRoot().queryView({view: "accordion"});
 
 		this.undoModel = undoFactory.create("tagPopup", this.getUndoIcon());
+
+		this.windowService = new DataviewWindowService(this);
 
 		this.accordion.attachEvent("onAfterCollapse", () => {
 			this.onResizeDataview();
@@ -329,51 +328,6 @@ export default class ConnectTagToImageWindow extends JetView {
 		});
 		view.attachEvent("onViewResize", () => {
 			this.onResizeDataview();
-		});
-
-		this.searchInput.attachEvent("onEnter", () => {
-			this.windowService.getWindowImages();
-		});
-		this.searchInput.attachEvent("onSearchIconClick", () => {
-			this.windowService.getWindowImages();
-		});
-
-		this.selectAllTemplate.define("onClick", {
-			"select-all-images": () => {
-				this.selectImagesService.selectAllItems(this.dataviewPager);
-			},
-			"unselect-all-images": () => {
-				this.selectImagesService.unselectAllItems();
-				this.selectImagesService.clearInvisibleItems();
-			}
-		});
-
-		this.dataviewPager.attachEvent("onAfterPageChange", (page) => {
-			const offset = (this.dataviewPager.data.size * page) || 0;
-			if (!this.dataview.getIdByIndex(offset)) {
-				const params = this.getParamsForImages();
-				this.windowService.parseImages(params);
-			}
-		});
-
-		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
-			this.connectedImagesModel.putInitialIdsFromItems(rawData.data);
-			this.windowService.setImagesRange();
-		});
-
-		this.filterTemplate.define("onClick", {
-			"filter-latest-changed": () => {
-				this.filterTemplate.setValues({latest: true});
-				this.windowService.getWindowImages();
-			},
-			"filter-all": () => {
-				this.filterTemplate.setValues({latest: false});
-				this.windowService.getWindowImages();
-			}
-		});
-
-		this.imageSizeSelect.attachEvent("onChange", (val) => {
-			this.windowService.onChangeImageSizeValue(val);
 		});
 
 		this.getCollectionTreeView().attachEvent("onSelectChange", () => {
@@ -400,11 +354,6 @@ export default class ConnectTagToImageWindow extends JetView {
 
 		this.windowService.onWindowShow();
 	}
-
-	// parseCollections() {
-	// 	const collections = this.collectionStore.getArrayOfItems();
-	// 	this.collectionList.parse(collections);
-	// }
 
 	getParamsForImages() {
 		// const collections = this.collectionSelectService.getSelectedItems();

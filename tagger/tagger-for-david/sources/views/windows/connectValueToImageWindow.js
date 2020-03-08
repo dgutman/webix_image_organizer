@@ -1,7 +1,6 @@
 import {JetView} from "webix-jet";
 import CustomDataPull from "../../models/customDataPullClass";
 import ConnectedImagesModel from "../../models/connectedImagesModel";
-import PagerService from "../../services/pagerService";
 import windowParts from "./windowParts";
 import transitionalAjax from "../../services/transitionalAjaxService";
 import SelectItemsService from "../../services/selectItemsService";
@@ -174,7 +173,6 @@ export default class ConnectTagToImageWindow extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.ProgressBar);
-		this.windowService = new DataviewWindowService(this);
 		this.view = view;
 		this.dataview = this.getWindowDataview();
 		this.selectImagesService = new SelectItemsService(this.dataview);
@@ -183,61 +181,17 @@ export default class ConnectTagToImageWindow extends JetView {
 		this.searchInput = this.getSearchInput();
 		this.selectAllTemplate = this.getSelectAllTemplate();
 		this.connectedImagesModel = new ConnectedImagesModel();
-		this.pagerService = new PagerService(this.dataviewPager, this.dataview);
 		this.filterTemplate = this.getFilterTemplate();
 		this.imageSizeSelect = this.getSelectImageSize();
 
 		this.undoModel = undoFactory.create("valuePopup", this.getUndoIcon());
 
+		this.windowService = new DataviewWindowService(this);
+
 		view.attachEvent("onViewResize", () => {
 			this.windowService.setImagesRange();
 			this.dataviewStore.clearAll();
 			this.windowService.getWindowImages();
-		});
-
-		this.searchInput.attachEvent("onEnter", () => {
-			this.windowService.getWindowImages();
-		});
-		this.searchInput.attachEvent("onSearchIconClick", () => {
-			this.windowService.getWindowImages();
-		});
-
-		this.selectAllTemplate.define("onClick", {
-			"select-all-images": () => {
-				this.selectImagesService.selectAllItems(this.dataviewPager);
-			},
-			"unselect-all-images": () => {
-				this.selectImagesService.unselectAllItems();
-				this.selectImagesService.clearInvisibleItems();
-			}
-		});
-
-		this.dataviewPager.attachEvent("onAfterPageChange", (page) => {
-			const offset = (this.dataviewPager.data.size * page) || 0;
-			if (!this.dataview.getIdByIndex(offset)) {
-				const params = this.getParamsForImages();
-				this.windowService.parseImages(params);
-			}
-		});
-
-		this.dataview.data.attachEvent("onStoreLoad", (driver, rawData) => {
-			this.connectedImagesModel.putInitialIdsFromItems(rawData.data);
-			this.windowService.setImagesRange();
-		});
-
-		this.filterTemplate.define("onClick", {
-			"filter-latest-changed": () => {
-				this.filterTemplate.setValues({latest: true});
-				this.windowService.getWindowImages();
-			},
-			"filter-all": () => {
-				this.filterTemplate.setValues({latest: false});
-				this.windowService.getWindowImages();
-			}
-		});
-
-		this.imageSizeSelect.attachEvent("onChange", (val) => {
-			this.windowService.onChangeImageSizeValue(val);
 		});
 	}
 
