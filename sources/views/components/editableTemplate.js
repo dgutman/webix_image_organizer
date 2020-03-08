@@ -69,7 +69,7 @@ if (!webix.ui.editabletemplate) {
 					webix.message("Project schema was successfully updated");
 					mainView.hideProgress();
 				})
-				.fail(() => {
+				.catch(() => {
 					this.setValues(previousValues, true);
 					mainView.hideProgress();
 				});

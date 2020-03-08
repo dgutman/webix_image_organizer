@@ -41,11 +41,11 @@ function loadBranch(id, view) {
 						item.hasOpened = true;
 						view.hideProgress();
 					})
-					.fail(() => {
+					.catch(() => {
 						view.hideProgress();
 					});
 			})
-			.fail(() => {
+			.catch(() => {
 				view.hideProgress();
 			});
 	}
@@ -133,7 +133,7 @@ function attachOnScrollEvent(scrollState, treeFolder, view, filterModel) {
 				finderView.unblockEvent();
 				view.hideProgress();
 			})
-			.fail(() => {
+			.catch(() => {
 				finderView.unblockEvent();
 				view.hideProgress();
 			});

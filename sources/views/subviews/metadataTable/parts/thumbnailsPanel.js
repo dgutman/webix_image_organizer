@@ -18,24 +18,28 @@ export default class TableRightPanelView extends JetView {
 				if (!utils.isObjectEmpty(obj)) {
 					const IMAGE_HEIGHT = 150;
 					const IMAGE_WIDTH = 180;
+
 					if (obj.largeImage) {
-						if (typeof galleryImageUrl.getPreviewImageUrl(obj._id) === "undefined") {
-							galleryImageUrl.setPreviewImageUrl(obj._id, "");
-							// to prevent sending query more than 1 times
-							ajaxActions.getImage(obj._id, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
-								.then((data) => {
-									galleryImageUrl.setPreviewImageUrl(obj._id, URL.createObjectURL(data));
+						const previewImageUrl = galleryImageUrl.getPreviewImageUrl(obj._id);
+						const labelPreviewImageUrl = galleryImageUrl.getLabelPreviewImageUrl(obj._id);
+						if (typeof previewImageUrl === "undefined") {
+							ajaxActions.getImage(obj._id, "thumbnail")
+								.then((url) => {
+									galleryImageUrl.setPreviewImageUrl(obj._id, url);
 									this.getRoot().refresh();
+								})
+								.catch(() => {
+									galleryImageUrl.setPreviewImageUrl(obj._id, false);
 								});
 						}
-						if (typeof galleryImageUrl.getLabelPreviewImageUrl(obj._id) === "undefined") {
-							galleryImageUrl.setPreviewLabelImageUrl(obj._id, "");
-							ajaxActions.getImage(obj._id, IMAGE_HEIGHT, IMAGE_WIDTH, "images/label")
-								.then((data) => {
-									if (data.type === "image/jpeg") {
-										galleryImageUrl.setPreviewLabelImageUrl(obj._id, URL.createObjectURL(data));
-										this.getRoot().refresh();
-									}
+						if (typeof labelPreviewImageUrl === "undefined") {
+							ajaxActions.getImage(obj._id, "images/label")
+								.then((url) => {
+									galleryImageUrl.setPreviewLabelImageUrl(obj._id, url);
+									this.getRoot().refresh();
+								})
+								.catch(() => {
+									galleryImageUrl.setPreviewLabelImageUrl(obj._id, false);
 								});
 						}
 					}

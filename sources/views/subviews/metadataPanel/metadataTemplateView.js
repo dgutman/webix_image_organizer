@@ -109,7 +109,7 @@ export default class MetadataPanelClass extends JetView {
 							galleryDataview.updateItem(itemGalleryDataviewId, item);
 							this.metadataTemplate.hideProgress();
 						})
-						.fail(() => {
+						.catch(() => {
 							const previousItemMetadata = this.metadataTemplate.getValues().meta;
 							this.jsonEditor.set(previousItemMetadata);
 							this.metadataTemplate.hideProgress();

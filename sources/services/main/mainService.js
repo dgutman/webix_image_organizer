@@ -179,9 +179,7 @@ class MainService {
 			let dataviewNewItemWidth = utils.getDataviewItemWidth();
 			let IMAGE_HEIGHT;
 			let IMAGE_WIDTH;
-			let getPreviewUrl;
-			let setPreviewUrl;
-			let imageType;
+			const {getPreviewUrl, setPreviewUrl, imageType} = this._getCurrentItemPreviewType();
 
 			if (dataviewNewImageHeight) {
 				IMAGE_HEIGHT = dataviewNewImageHeight - 10;
@@ -196,43 +194,28 @@ class MainService {
 				IMAGE_WIDTH = 150;
 			}
 			const checkedClass = obj.markCheckbox ? "is-checked" : "";
-			const imageViewerValue = this._galleryDataviewImageViewer.getValue();
-			switch (imageViewerValue) {
-				case constants.THUMBNAIL_DATAVIEW_IMAGES: {
-					getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
-					setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
-					imageType = "thumbnail";
-					break;
-				}
-				case constants.LABEL_DATAVIEW_IMAGES: {
-					getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
-					setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
-					imageType = "images/label";
-					break;
-				}
-				case constants.MACRO_DATAVIEW_IMAGES: {
-					getPreviewUrl = galleryImageUrl.getPreviewMacroImageUrl;
-					setPreviewUrl = galleryImageUrl.setPreviewMacroImageUrl;
-					imageType = "images/macro";
-					break;
-				}
-			}
 
-			if (obj.largeImage) {
-				if (typeof getPreviewUrl(obj._id) === "undefined") {
-					setPreviewUrl(obj._id, "");
-					// to prevent sending query more than 1 times
-					ajaxActions.getImage(obj._id, IMAGE_HEIGHT, IMAGE_WIDTH, imageType)
-						.then((data) => {
-							if (data.type === "image/jpeg") {
-								setPreviewUrl(obj._id, URL.createObjectURL(data));
-								if (this._galleryDataview.exists(obj.id)) {
-									this._galleryDataview.updateItem(obj.id, obj); // update only one item
-								}
+			if (obj.largeImage && !getPreviewUrl(obj._id)) {
+				if (getPreviewUrl(obj._id) === false) {
+					if (this._galleryDataview.exists(obj.id) && !obj.imageWarning) {
+						obj.imageWarning = true;
+						this._galleryDataview.render(obj.id, obj, "update");
+					}
+				}
+				else {
+					ajaxActions.getImage(obj._id, imageType)
+						.then((url) => {
+							setPreviewUrl(obj._id, url);
+							if (this._galleryDataview.exists(obj.id)) {
+								this._galleryDataview.render(obj.id, obj, "update");
 							}
 						})
-						.fail(() => {
-							obj.imageWarning = true;
+						.catch(() => {
+							if (this._galleryDataview.exists(obj.id) && !obj.imageWarning) {
+								obj.imageWarning = true;
+								this._galleryDataview.render(obj.id, obj, "update");
+							}
+							setPreviewUrl(obj._id, false);
 						});
 				}
 			}
@@ -245,6 +228,8 @@ class MainService {
 				galleryDataviewFilterModel.parseFilterToRichSelectList();
 			}
 
+			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
+
 			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
 			return `<div class='unselectable-dataview-items'>
 						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
@@ -254,9 +239,11 @@ class MainService {
 											<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
 										</div>
 									</div>
-							${starHtml}
-							${warning}
-							<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
+							<div class="gallery-image-wrap" style="${bgIcon} height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
+								${starHtml}
+								${warning}
+								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+							</div>
 						</div>
 						<div class="thumbnails-name">${obj.name}</div>
 					</div>`;
@@ -322,7 +309,7 @@ class MainService {
 					// this._finder.parse(data);
 					this._view.hideProgress();
 				})
-				.fail(() => {
+				.catch(() => {
 					this._view.hideProgress();
 				});
 		});
@@ -376,7 +363,7 @@ class MainService {
 					.then(() => {
 						this._finder.unselectAll();
 					})
-					.fail(() => {
+					.catch(() => {
 						isRecognitionResultMode = false;
 						this._changeRecognitionResultsMode();
 						this._selectFinderItem(id);
@@ -527,7 +514,7 @@ class MainService {
 								}
 								this._view.hideProgress();
 							})
-							.fail(() => {
+							.catch(() => {
 								this._finder.parse({name: "error"});
 								this._view.hideProgress();
 							});
@@ -570,7 +557,7 @@ class MainService {
 								webix.message({text: "Folder name was successfully updated!"});
 								this._view.hideProgress();
 							})
-							.fail(() => {
+							.catch(() => {
 								this._finderFolder.name = values.old;
 								this._finder.updateItem(this._finderFolder.id, this._finderFolder);
 								this._view.hideProgress();
@@ -600,7 +587,7 @@ class MainService {
 								webix.message({text: "Item name was successfully updated!"});
 								this._view.hideProgress();
 							})
-							.fail(() => {
+							.catch(() => {
 								this._finderItem.name = values.old;
 								this._finder.updateItem(this._finderItem.id, this._finderItem);
 								this._galleryDataview.updateItem(item.id, item);
@@ -803,8 +790,9 @@ class MainService {
 		this._galleryDataviewYCountSelection.unblockEvent();
 
 		window.addEventListener("resize", (event) => {
+			const dataviewSizeId = utils.getDataviewSelectionId() || constants.DEFAULT_DATAVIEW_COLUMNS;
 			if (event.currentTarget.innerWidth >= this._minCurrentTargenInnerWidth) {
-				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
+				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSizeId]);
 			}
 		});
 
@@ -1252,6 +1240,38 @@ class MainService {
 		let items = Object.values(this._finder.data.pull);
 		items = items.filter(item => item._modelType === "item" || !item._modelType);
 		return items.length;
+	}
+
+	_getCurrentItemPreviewType() {
+		let imageType;
+		let getPreviewUrl;
+		let setPreviewUrl;
+
+		const imageViewerValue = this._galleryDataviewImageViewer.getValue();
+		switch (imageViewerValue) {
+			case constants.THUMBNAIL_DATAVIEW_IMAGES: {
+				getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
+				setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
+				imageType = "thumbnail";
+				break;
+			}
+			case constants.LABEL_DATAVIEW_IMAGES: {
+				getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
+				setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
+				imageType = "images/label";
+				break;
+			}
+			case constants.MACRO_DATAVIEW_IMAGES: {
+				getPreviewUrl = galleryImageUrl.getPreviewMacroImageUrl;
+				setPreviewUrl = galleryImageUrl.setPreviewMacroImageUrl;
+				imageType = "images/macro";
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+		return {imageType, getPreviewUrl, setPreviewUrl};
 	}
 }
 

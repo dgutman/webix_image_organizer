@@ -40,40 +40,34 @@ function getUserId() {
 }
 
 function setDataviewItemDimensions(imageWidth, imageHeight) {
-	if (getUserId()) {
-		webix.storage.local.put(`dataviewItemWidth-${getUserId()}`, imageWidth);
-		webix.storage.local.put(`dataviewItemHeight-${getUserId()}`, imageHeight);
-	}
+	webix.storage.local.put(`dataviewItemWidth-${getUserId() || "unregistered"}`, imageWidth);
+	webix.storage.local.put(`dataviewItemHeight-${getUserId() || "unregistered"}`, imageHeight);
 }
 
 function getDataviewItemWidth() {
-	let localWidth = webix.storage.local.get(`dataviewItemWidth-${getUserId()}`);
+	let localWidth = webix.storage.local.get(`dataviewItemWidth-${getUserId() || "unregistered"}`);
 	return localWidth || DEFAULT_WIDTH;
 }
 
 function getDataviewItemHeight() {
-	let localHeight = webix.storage.local.get(`dataviewItemHeight-${getUserId()}`);
+	let localHeight = webix.storage.local.get(`dataviewItemHeight-${getUserId() || "unregistered"}`);
 	return localHeight || DEFAULT_HEIGHT;
 }
 
 function setDataviewSelectionId(id) {
-	if (getUserId()) {
-		webix.storage.local.put(`dataviewSelectionId-${getUserId()}`, id);
-	}
+	webix.storage.local.put(`dataviewSelectionId-${getUserId() || "unregistered"}`, id);
 }
 
 function getDataviewSelectionId() {
-	return webix.storage.local.get(`dataviewSelectionId-${getUserId()}`);
+	return webix.storage.local.get(`dataviewSelectionId-${getUserId() || "unregistered"}`);
 }
 
 function setNewImageHeight(newItemHeight) {
-	if (getUserId()) {
-		webix.storage.local.put(`newImageHeight-${getUserId()}`, newItemHeight);
-	}
+	webix.storage.local.put(`newImageHeight-${getUserId() || "unregistered"}`, newItemHeight);
 }
 
 function getNewImageHeight() {
-	return webix.storage.local.get(`newImageHeight-${getUserId()}`);
+	return webix.storage.local.get(`newImageHeight-${getUserId() || "unregistered"}`);
 }
 
 function escapeHTML(str) {
