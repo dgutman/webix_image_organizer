@@ -116,7 +116,13 @@ class AjaxActions {
 	}
 
 	getImage(imageId, height, width, imageType) {
-		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
+		let img = new Image();
+		//THIS IS THE ISSUE WE ARE EXPECTING A BLOB bot on REDIRECT we are running into issues
+//		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
+		//Set the onload function... and then replace the source
+		return img 
+	
+
 	}
 
 	downloadItem(itemId) {
