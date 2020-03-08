@@ -8,7 +8,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
-module.exports = function (env) {
+module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
@@ -99,7 +99,7 @@ module.exports = function (env) {
 					{id: "3", value: "Computable Brain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
 					{id: "4", value: "Transplant", hostAPI: "http://170.140.232.21:8080/api/v1"},
 					{id: "5", value: "STYX", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"},
-					{id: "6", value: "Canine", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"} 
+					{id: "6", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"} 
 				]
 			})
 		]

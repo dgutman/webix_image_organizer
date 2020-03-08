@@ -153,7 +153,7 @@ class MetadataTableService {
 						this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
 						this._view.hideProgress();
 					})
-					.fail(() => {
+					.catch(() => {
 						this._view.hideProgress();
 					});
 			}

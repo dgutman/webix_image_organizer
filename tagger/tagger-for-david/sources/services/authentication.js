@@ -1,21 +1,13 @@
 import state from "../models/state";
-import ajax from "./ajaxActions";
+// import ajax from "./ajaxActions";
 import transitionalAjax from "./transitionalAjaxService";
 
-function login(params, afterLoginPage) {
+function login(params) {
 	return transitionalAjax.login(params).then((data) => {
 		webix.storage.local.put(`authToken-${getHostId()}`, data.authToken);
 		webix.storage.local.put(`taggerJWT-${getHostId()}`, data.taggerJWT);
 		webix.storage.local.put(`user-${getHostId()}`, data.user);
-		// trigger event
-		state.app.callEvent("login");
-		// path that we should show after login. it can be set in any place of app
-		if (afterLoginPage) {
-			state.app.show(afterLoginPage);
-		}
-		else {
-			state.app.refresh();
-		}
+		window.location.reload();
 	});
 }
 
@@ -24,13 +16,12 @@ function logout() {
 		webix.storage.local.remove(`user-${getHostId()}`);
 		webix.storage.local.remove(`taggerJWT-${getHostId()}`);
 		webix.storage.local.remove(`authToken-${getHostId()}`);
-		state.app.refresh();
+		window.location.reload();
 	});
-	// state.app.callEvent("logout");
 }
 
 function getToken() {
-	const authToken = webix.storage.local.get(`${"authToken" + "-"}${getHostId()}`);
+	const authToken = webix.storage.local.get(`authToken-${getHostId()}`);
 	if (!authToken) {
 		return null;
 	}
@@ -50,7 +41,7 @@ function showMainPage() {
 }
 
 function getUserInfo() {
-	return webix.storage.local.get(`${"user" + "-"}${getHostId()}`);
+	return webix.storage.local.get(`user-${getHostId()}`);
 }
 
 function getHostId() {

@@ -165,25 +165,37 @@ class TransitionalAjaxService {
 			.then(result => this._parseData(result));
 	}
 
-	getImagesByTask({ids, offset, limit}) {
+	getImagesByTask({ids, offset, limit, filters}) {
 		const params = {
 			ids: ids || [],
 			offset: offset || 0,
 			limit: limit || 50
 		};
+		if (filters) params.filters = filters;
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/task`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
 
-	reviewImages(images, taskIds) {
+	reviewImages(images, taskIds, preliminarily) {
 		const params = {
 			images: images || [],
-			taskIds: taskIds || []
+			taskIds: taskIds || [],
+			preliminarily
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/images/review`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	unreviewImages(taskIds) {
+		const params = {
+			taskIds: taskIds || []
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/images/unreview`, params)
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}

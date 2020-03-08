@@ -11,6 +11,15 @@ const valuesSchema = new Schema({
 	},
 	tagId: {
 		type: Schema.Types.ObjectId, required: true
+	},
+	icon: {
+		type: String
+	},
+	badgevalue: {
+		type: String
+	},
+	badgecolor: {
+		type: String
 	}
 });
 

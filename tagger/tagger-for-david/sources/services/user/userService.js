@@ -1,6 +1,7 @@
 import transitionalAjax from "../transitionalAjaxService";
 import auth from "../authentication";
 import DataviewService from "./dataviewService";
+import DataviewFilters from "./dataviewFilters";
 import CustomDataPull from "../../models/customDataPullClass";
 import "../globalEvents";
 import imageWindow from "../../views/windows/imageWindow";
@@ -8,11 +9,13 @@ import UpdatedImagesService from "./updateImageService";
 import constants from "../../constants";
 import InfoPopup from "../../views/windows/infoPopup";
 import hotkeysFactory from "./hotkeys";
+import AsyncQueue from "../asyncQueue";
 
 export default class UserViewService {
-	constructor(view) {
+	constructor(view, iconsTemplateService) {
 		this._view = view;
 		this.dataviewOverlayText = "No items loaded. Please, log in";
+		this._iconsTemplateService = iconsTemplateService;
 		this._ready();
 	}
 
@@ -32,14 +35,24 @@ export default class UserViewService {
 		this._valueSelect = scope.getValueSelect();
 		this._itemsCountTemplate = scope.getItemsCountTemplate();
 		this._nextButton = scope.getNextButton();
+		this._backButton = scope.getBackButton();
 		this._imageWindow = scope.ui(imageWindow);
 		this._tagInfoTemplate = scope.getTagInfoTemplate();
 		this._hotkeyInfoTemplate = scope.getHotkeysInfoTemplate();
-		this._dataviewService = new DataviewService(this._dataview,	this._dataviewStore, this._pager, this._imageSizeSelect);
+		this._filtersAccordionItem = scope.getFiltersAccordionItem();
+		this._filtersTree = scope.getFiltersTree();
+		this._selectFiltersTemplate = scope.getSelectAllFiltersTemplate();
+		this._applyFiltersBtn = scope.getApplyFiltersButton();
 		this._tagInfoPopup = scope.ui(new InfoPopup(scope.app, "tag", "Tag help"));
 		this._hotkeysInfoPopup = scope.ui(new InfoPopup(scope.app, "hotkeys", "Hot-keys"));
+		this._itemMetadataPopup = scope.ui(new InfoPopup(scope.app, "metadata", "Metadata", true));
+
+		this._dataviewService = new DataviewService(this._dataview,	this._dataviewStore, this._pager, this._imageSizeSelect);
+		this._dataviewFilters = new DataviewFilters(this._dataview, this._filtersTree, this._selectFiltersTemplate, this._filtersAccordionItem);
 
 		webix.extend(this._taskList, webix.OverlayBox);
+
+		this._getImagesQueue = new AsyncQueue(this._getImagesByPageChange.bind(this));
 
 		this._updatedImagesService = new UpdatedImagesService(
 			this._dataview,
@@ -56,11 +69,11 @@ export default class UserViewService {
 			this._updatedImagesService
 		);
 
+		this._attachViewEvents();
+
 		if (auth.isLoggedIn() && !auth.isAdmin()) {
 			this._loggedInUserService();
 		}
-
-		this._attachViewEvents();
 	}
 
 	_attachViewEvents() {
@@ -109,7 +122,7 @@ export default class UserViewService {
 			this._view.$scope.app.callEvent("OnTaskSelect", [task]);
 		});
 
-		this._tagSelect.attachEvent("onChange", (id) => {
+		this._tagSelect.attachEvent("onChange", (id, oldId, preselectedValue) => {
 			valuesList.clearAll();
 			this._valueSelect.setValue();
 			this._tagInfoTemplate.setValues({});
@@ -124,8 +137,8 @@ export default class UserViewService {
 					this._tagInfoPopup.setNewData(obj);
 				}
 
-				let preselectedId = valuesList.getFirstId();
-				if (tag.type === constants.TAG_TYPES.MULTI_WITH_DEFAULT) {
+				let preselectedId = preselectedValue ? preselectedValue.id : valuesList.getFirstId();
+				if (!preselectedValue && tag.type === constants.TAG_TYPES.MULTI_WITH_DEFAULT) {
 					preselectedId = valuesList.find(value => value.name === tag.default, true).id;
 					valuesList.updateItem(preselectedId, {default: true});
 				}
@@ -140,10 +153,7 @@ export default class UserViewService {
 		});
 
 		this._pager.attachEvent("onAfterPageChange", () => {
-			const indexes = this._getNotLoadedItemIndex();
-			if (indexes.pageIndex > -1) {
-				this._getImages(indexes.index, indexes.limit);
-			}
+			this._getImagesQueue.addJobToQueue();
 		});
 
 		this._nextButton.attachEvent("onItemClick", () => {
@@ -158,7 +168,8 @@ export default class UserViewService {
 				if (item.meta && item.meta.hasOwnProperty("tags")) {
 					dataToUpdate.push({
 						_id: item._id,
-						tags: item.meta.tags
+						tags: item.meta.tags,
+						isUpdated: item.isUpdated || changedItems.hasOwnProperty(item._id)
 					});
 				}
 			});
@@ -168,6 +179,24 @@ export default class UserViewService {
 					images.forEach((image) => {
 						delete changedItems[image._id];
 					});
+					webix.message(response.message);
+					this._view.hideProgress();
+
+					this._dataviewStore.clearAll();
+					this._getImages();
+				})
+				.catch(() => {
+					this._view.hideProgress();
+				});
+		});
+
+		this._backButton.attachEvent("onItemClick", () => {
+			const tasks = this._taskList.getSelectedItem(true);
+			const taskIds = tasks.map(task => task._id);
+
+			this._view.showProgress();
+			transitionalAjax.unreviewImages(taskIds)
+				.then((response) => {
 					webix.message(response.message);
 					this._view.hideProgress();
 
@@ -190,6 +219,73 @@ export default class UserViewService {
 				this._showInfoPopup(this._tagInfoTemplate, this._tagInfoPopup);
 			}
 		});
+
+		this._applyFiltersBtn.attachEvent("onItemClick", () => {
+			const changedItems = this._updatedImagesService.changedItems;
+			const changedItemsIds = Object.keys(changedItems);
+			if (changedItemsIds.length) {
+				webix.confirm({
+					title: "Save",
+					text: "Before using filters, you need to save changes. Save?",
+					ok: "Yes",
+					cancel: "No"
+				})
+					.catch(() => {
+						this._updatedImagesService.changedItems = {};
+						this._applyFilters();
+						return false;
+					})
+					.then((result) => {
+						if (result) {
+							this._view.showProgress();
+							const dataToUpdate = [];
+							changedItemsIds.forEach((id) => {
+								dataToUpdate.push({
+									_id: id,
+									tags: changedItems[id],
+									isUpdated: true
+								});
+							});
+							const tasks = this._taskList.getSelectedItem(true);
+							const taskIds = tasks.map(task => task._id);
+
+							return transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
+						}
+					})
+					.then((response) => {
+						if (response) {
+							const images = response.data;
+							images.forEach((image) => {
+								delete changedItems[image._id];
+							});
+							webix.message(response.message);
+						}
+
+						this._applyFilters();
+						this._view.hideProgress();
+					})
+					.catch(() => {
+						this._view.hideProgress();
+					});
+			}
+			else {
+				this._applyFilters();
+			}
+		});
+	}
+
+	_applyFilters() {
+		this._dataviewFilters.applyFilters();
+		this._dataviewStore.clearAll();
+		this._getImages();
+	}
+
+	_getImagesByPageChange() {
+		const indexes = this._getNotLoadedItemIndex();
+		if (indexes.pageIndex > -1) {
+			return this._getImages(indexes.index, indexes.limit);
+		}
+		return Promise.resolve(false);
 	}
 
 	_showInfoPopup(template, popupClass) {
@@ -222,46 +318,46 @@ export default class UserViewService {
 		transitionalAjax.getTasks()
 			.then((data) => {
 				this._taskListStore.parseItems(data);
-				if (!data.length) {
-					this._taskAccordionItem.collapse();
-					this._taskAccordionItem.disable();
-				}
-				else {
+				if (data.length) {
 					const firstId = this._taskList.getFirstId();
 					this._taskAccordionItem.enable();
+					this._filtersAccordionItem.enable();
 					this._taskList.select(firstId);
 				}
-
 				this._setDataviewOverLay();
 				this._view.hideProgress();
 			})
 			.fail(() => {
-				this._taskAccordionItem.collapse();
-				this._taskAccordionItem.disable();
 				this._view.hideProgress();
 			});
 	}
 
 	_parseHoteysInfoTemplateData() {
 		const keysObj = this._updatedImagesService.hotkeys;
+		const hotkeyIcons = this._updatedImagesService.hotkeyIcons;
 		const hotkeys = Object.keys(keysObj);
+
 		let help = "<ul class='tagger-hotkeys-list'>";
 		hotkeys.forEach((key) => {
+			let iconName = "<div webix_tooltip='There is no icon' class='hotkey-none-icon'><i class='fas fa-times'></i></div>";
+			if (hotkeyIcons[key]) {
+				iconName = this._iconsTemplateService.getSingleIconTemplate(...hotkeyIcons[key]);
+			}
 			// 0 is the name of the tag, 1 is the name of the value
-			help += `<li><b style='font-weight: bold'>"${key}"</b> - ${keysObj[key][0]}: ${keysObj[key][1]}</li>`;
+			help += `<li>${iconName} <b style='font-weight: bold'>"${key}"</b> - ${keysObj[key][0]}: ${keysObj[key][1]}</li>`;
 		});
 		help += "</ul>";
 		const infoObject = {
 			description: `<span><b style='font-weight: bold'>Hot-keys (${hotkeys.length})</b> Please, mouse over an image and press:</span>`,
-			help,
-			showHelp: false
+			help
 		};
 		this._hotkeyInfoTemplate.setValues(infoObject);
 	}
 
 	_selectTask(task) {
-		this._updatedImagesService.predefinedTags = {};
+		this._updatedImagesService.changedItems = {};
 		this._updatedImagesService.hotkeys = {};
+		this._updatedImagesService.hotkeyIcons = {};
 		const tagList = this._tagSelect.getList();
 		tagList.clearAll();
 
@@ -275,7 +371,11 @@ export default class UserViewService {
 					this._tagSelect.setValue(firstId);
 				}
 
-				this._updatedImagesService.collectDefaultValuesAndHotkeys();
+				this._dataviewFilters.parseFiltersToTree(webix.copy(data), task._id);
+
+				this._dataviewFilters.setInitialFiltersState();
+
+				this._updatedImagesService.collectValueHotkeys();
 				this._parseHoteysInfoTemplateData();
 				this._hotkeysService.selectNewScope(task.name, this._updatedImagesService.hotkeys);
 
@@ -286,6 +386,9 @@ export default class UserViewService {
 				if (this._hotkeysInfoPopup.isVisible()) {
 					const obj = this._hotkeyInfoTemplate.getValues() || {};
 					this._hotkeysInfoPopup.setNewData(obj);
+				}
+				if (this._itemMetadataPopup.isVisible()) {
+					this._itemMetadataPopup.closeWindow();
 				}
 
 				this._toggleVisibilityOfDropdowns(true);
@@ -321,15 +424,17 @@ export default class UserViewService {
 		return promise
 			.then((images) => {
 				if (images) {
-					// define tags with default values to images
-					const processedImages = this._updatedImagesService.presetDefaultValues(images.data);
-
+					// define tags with changed values to images
+					const processedImages = this._updatedImagesService.presetChangedValues(images.data);
 					this._dataviewStore.parseItems(processedImages, params.offset, images.count);
 
-					this._itemsCountTemplate.setValues({
+					const templateValues = {
 						count: images.count,
-						totalCount: images.totalCount
-					});
+						totalCount: images.totalCount,
+						unfilteredCount: images.unfilteredCount
+					};
+					this._itemsCountTemplate.setValues(templateValues);
+					this._toggleBackButtonVisibility(templateValues);
 
 					if (!images.count) {
 						this._toggleVisibilityOfHiddenViews();
@@ -358,12 +463,16 @@ export default class UserViewService {
 			offset,
 			limit
 		};
+		if (this._dataviewFilters.enabled) {
+			this._dataviewFilters.setInitialFiltersState();
+			params.filters = this._dataviewFilters.getSelectedFilters();
+		}
+
 		return params;
 	}
 
 	_attachDataviewEvents() {
 		this._setDataviewOverLay();
-		this._dataviewService.onResizeDataview();
 
 		this._dataview.data.attachEvent("onStoreUpdated", () => {
 			this._setDataviewOverLay();
@@ -375,6 +484,7 @@ export default class UserViewService {
 		});
 
 		this._dataview.attachEvent("onItemClick", (id, e) => {
+			const item = this._dataviewStore.getItemById(id);
 			if (e.target.classList.contains("unchecked")) {
 				this._updatedImagesService.addSelectedTagValueToImage(id);
 				return false;
@@ -382,6 +492,23 @@ export default class UserViewService {
 			else if (e.target.classList.contains("checked") && e.target.classList.contains("enabled")) {
 				this._updatedImagesService.removeSelectedTagValueFromImage(id);
 				return false;
+			}
+			else if (e.target.classList.contains("show-metadata")) {
+				if (!this._itemMetadataPopup.isVisible() || !this._itemMetadataPopup._wasMoved) {
+					this._itemMetadataPopup.showWindow(e.target, {pos: "bottom"}, item, true);
+				}
+				else {
+					this._itemMetadataPopup.createJSONViewer(item);
+				}
+				return false;
+			}
+		});
+
+		// to update dataview item tooltip by data updating
+		this._dataview.attachEvent("onDataUpdate", () => {
+			const tooltip = webix.TooltipControl.getTooltip();
+			if (tooltip && tooltip.isVisible()) {
+				tooltip.render();
 			}
 		});
 	}
@@ -409,7 +536,11 @@ export default class UserViewService {
 		if (ySpacer.isVisible()) ySpacer.hide();
 		this._dataviewService.onResizeDataview()
 			.then((page) => {
-				this._pager.select(page);
+				const lastPage = this._pager.data.limit - 1 || 0;
+				// to fix bug with 2 times last page selecting.
+				if (this._pager.data.page !== lastPage) {
+					this._pager.select(page);
+				}
 				// to align dataview to center
 				const {xReminder, yReminder} = this._dataviewService.getVisibleRange();
 
@@ -419,7 +550,9 @@ export default class UserViewService {
 
 				const ySpacerHeight = yReminder / 2;
 				ySpacer.define("height", ySpacerHeight);
-				if (xSpacerWidth >= 16 && this._dataview.count()) ySpacer.show();
+				if (ySpacerHeight >= 16 && this._dataview.count()) ySpacer.show();
+
+				this._itemMetadataPopup.setInitPosition();
 			});
 	}
 
@@ -447,5 +580,14 @@ export default class UserViewService {
 	_setPopupsPosition() {
 		this._hotkeysInfoPopup.setInitPosition();
 		this._tagInfoPopup.setInitPosition();
+	}
+
+	_toggleBackButtonVisibility({totalCount, unfilteredCount}) {
+		if (totalCount && totalCount !== unfilteredCount) {
+			this._backButton.show();
+		}
+		else {
+			this._backButton.hide();
+		}
 	}
 }

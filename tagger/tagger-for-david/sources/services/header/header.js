@@ -28,14 +28,6 @@ export default class TaggerHeaderService {
 			this._setUserName();
 		}
 
-		this._view.$scope.on(this._view.$scope.app, "login", () => {
-			this._showLogoutPanel();
-		});
-
-		this._view.$scope.on(this._view.$scope.app, "logout", () => {
-			this._loginPanel.show();
-		});
-
 		this._view.$scope.on(this._view.$scope.app, "OnTaskSelect", (task) => {
 			this._taskNameTemplate.setValues(task);
 		});
@@ -63,7 +55,7 @@ export default class TaggerHeaderService {
 					callback: (result) => {
 						if (result) {
 							this._putValuesAfterHostChange(newId);
-							this._view.$scope.app.refresh();
+							window.location.reload();
 						}
 						else {
 							this._hostBox.blockEvent();

@@ -1,3 +1,4 @@
+import "@fortawesome/fontawesome-free/css/all.css";
 import {JetApp, plugins} from "webix-jet";
 import "./styles/app.less";
 import state from "./models/state";

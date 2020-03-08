@@ -11,7 +11,7 @@ export default class UpdatedImagesService {
 		this.changedItems = {};
 
 		this.hotkeys = {};
-		this.predefinedTags = {};
+		this.hotkeyIcons = {};
 	}
 
 	getTagSettings(tag, value) {
@@ -54,7 +54,7 @@ export default class UpdatedImagesService {
 		dot.remove(`meta.tags.${settings.tag}`, image);
 		dot.str(`meta.tags.${settings.tag}`, tagValues, image);
 
-		image._updated = true;
+		image.isUpdated = true;
 		this.updateImage(image);
 	}
 
@@ -77,31 +77,38 @@ export default class UpdatedImagesService {
 		}
 		dot.str(`meta.tags.${settings.tag}`, tagValues, image);
 
-		image._updated = true;
+		image.isUpdated = true;
 		this.updateImage(image);
 	}
 
-	collectDefaultValuesAndHotkeys() {
+	collectValueHotkeys() {
 		const tagList = this.tagSelect.getList();
-		let tagsObject = {};
 		const tags = tagList.data.serialize();
 		tags.forEach((tag) => {
-			this.collectValueHotkeys(tag);
-			tagsObject[tag.name] = [];
-			if (tag.type === constants.TAG_TYPES.MULTI_WITH_DEFAULT) {
-				tagsObject[tag.name].push({value: tag.default});
-			}
-		});
-		this.predefinedTags = webix.copy(tagsObject);
-	}
+			const values = tag.values;
+			values.forEach((value) => {
+				const hotkey = value.hotkey;
+				if (hotkey) {
+					this.hotkeys[hotkey] = [tag.name, value.name];
 
-	collectValueHotkeys(tag) {
-		const values = tag.values;
-		values.forEach((value) => {
-			const hotkey = value.hotkey;
-			if (hotkey) {
-				this.hotkeys[hotkey] = [tag.name, value.name];
-			}
+					switch (tag.icontype) {
+						case "pervalue": {
+							if (value.icon) this.hotkeyIcons[hotkey] = [value.icon];
+							break;
+						}
+						case "badge": {
+							if (tag.icon) this.hotkeyIcons[hotkey] = value.badgevalue ? [tag.icon, value.badgevalue] : [tag.icon];
+							break;
+						}
+						case "badgecolor": {
+							if (tag.icon) this.hotkeyIcons[hotkey] = value.badgecolor ? [tag.icon, null, [value.badgecolor]] : [tag.icon];
+							break;
+						}
+						default:
+							break;
+					}
+				}
+			});
 		});
 	}
 
@@ -110,21 +117,17 @@ export default class UpdatedImagesService {
 		this.changedItems[image._id] = dot.pick("meta.tags", image);
 	}
 
-	presetDefaultValues(images) {
+	presetChangedValues(images) {
 		return images.map((image) => {
-			let imageTags = dot.pick("meta.tags", image) || {};
-			dot.remove("meta.tags", image);
-
 			if (this.changedItems[image._id]) {
+				let imageTags = dot.pick("meta.tags", image) || {};
+				dot.remove("meta.tags", image);
+
 				imageTags = this.changedItems[image._id];
-				image._updated = true;
-			}
-			else {
-				Object.assign(imageTags, webix.copy(this.predefinedTags));
-			}
+				image.isUpdated = true;
 
-			dot.str("meta.tags", imageTags, image);
-
+				dot.str("meta.tags", imageTags, image);
+			}
 			return image;
 		});
 	}

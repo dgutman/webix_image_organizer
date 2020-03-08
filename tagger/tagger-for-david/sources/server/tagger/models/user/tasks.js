@@ -27,6 +27,15 @@ const tasksSchema = new Schema({
 	}
 });
 
+tasksSchema.statics.validateByUserId = async function validateByUserId(taskIds, userId) {
+	const tasks = await this.find({
+		_id: {$in: taskIds.map(id => mongoose.Types.ObjectId(id))},
+		userId: mongoose.Types.ObjectId(userId)
+	});
+	if (tasks.length !== taskIds.length) throw {name: "AccessError", message: "Access denied"};
+	return tasks;
+};
+
 tasksSchema.set("toJSON", {virtuals: false});
 const Tasks = mongoose.model("Tasks", tasksSchema);
 

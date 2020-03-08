@@ -1,24 +1,28 @@
 import {JetView} from "webix-jet";
+import JSONFormatter from "json-formatter-js";
 
 const SCROLLVIEW_MIN_HEIGHT = 160;
 
 export default class InfoPopup extends JetView {
-	constructor(app, name, header) {
+	constructor(app, name, header, isJSONViewer) {
 		super(app, name);
 		this.header = header;
+		this.isJSONViewer = isJSONViewer;
 	}
 
 	config() {
 		const infoPopup = {
 			view: "window",
-			css: "tagger-info-popup",
+			css: "tagger-info-popup tagger-window",
 			width: 370,
 			move: true,
 			head: {
 				cols: [
 					{
-						template: this.header,
-						css: "main-subtitle2",
+						template: obj => `<span webix_tooltip='${obj.header}'>${obj.header}</span>`,
+						name: "header",
+						data: {header: this.header},
+						css: "main-subtitle2 ellipsis-text",
 						borderless: true
 					},
 					{
@@ -36,13 +40,20 @@ export default class InfoPopup extends JetView {
 				height: SCROLLVIEW_MIN_HEIGHT,
 				css: "tagger-info-help",
 				template: (obj) => {
-					const helpTemplate = obj.help ? `<div class='info-help-content'>${obj.help}</div>` : "";
+					const helpTemplate = `<div class='info-help-content'>${obj.help || ""}</div>`;
 					return helpTemplate;
 				},
 				borderless: true
 			}
 		};
 		return infoPopup;
+	}
+
+	ready() {
+		const header = this.getRoot().queryView({name: "header"});
+		const template = this.getRoot().queryView({view: "template"});
+		webix.TooltipControl.addTooltip(template.$view);
+		webix.TooltipControl.addTooltip(header.$view);
 	}
 
 	getInfoPopup() {
@@ -66,11 +77,15 @@ export default class InfoPopup extends JetView {
 		const template = this.getRoot().queryView({view: "template"});
 		const templateNode = template.getNode();
 		this.getRoot().show(iconNode, posObj);
-		templateNode.style.overflow = "hidden";
-		requestAnimationFrame(() => {
-			templateNode.style.overflow = "auto";
-		});
-		this.setNewData(info);
+		templateNode.style.overflow = "auto";
+
+		if (this.isJSONViewer) {
+			template.setValues(info);
+			this.createJSONViewer(info);
+		}
+		else {
+			this.setNewData(info);
+		}
 	}
 
 	setNewData(obj) {
@@ -81,6 +96,18 @@ export default class InfoPopup extends JetView {
 
 		template.define("height", Math.min(templateNode.offsetHeight + 15, SCROLLVIEW_MIN_HEIGHT));
 		template.resize();
+	}
+
+	createJSONViewer(item) {
+		const header = this.getRoot().queryView({name: "header"});
+		header.setValues({header: item.name});
+
+		const metadata = JSON.parse(JSON.stringify(item.meta || {}));
+		const template = this.getRoot().queryView({view: "template"});
+		template.refresh();
+		const templateNode = template.getNode().querySelector(".info-help-content");
+		const formatter = new JSONFormatter(metadata);
+		templateNode.appendChild(formatter.render());
 	}
 
 	isVisible() {
@@ -96,8 +123,13 @@ export default class InfoPopup extends JetView {
 
 	setInitPosition() {
 		if (!this._wasMoved && this.isVisible()) {
-			const {pos, node} = this.posSettings;
-			this.getRoot().show(node, pos);
+			let {pos, node} = this.posSettings;
+			if (this.isJSONViewer) {
+				this.closeWindow();
+			}
+			else {
+				this.getRoot().show(node, pos);
+			}
 		}
 	}
 }

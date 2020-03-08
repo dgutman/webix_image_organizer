@@ -37,6 +37,9 @@ const imagesSchema = new Schema({
 	},
 	isReviewed: {
 		type: Boolean, default: false
+	},
+	isUpdated: {
+		type: Boolean, default: false
 	}
 });
 imagesSchema.set("toJSON", {virtuals: false});
