@@ -89,7 +89,7 @@ export default class TaggerUserView extends JetView {
 					const tagKeys = Object.keys(tags);
 					tagKeys.sort().forEach((tagKey) => {
 						const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
-						const displayedValue = tags[tagKey].length ? `${valuesNames.join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
+						const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
 						html += `${tagKey}: ${displayedValue}<br />`;
 					});
 					html += "</div>";
@@ -156,7 +156,8 @@ export default class TaggerUserView extends JetView {
 					}
 					return str;
 				},
-				tagIcons: (obj, common) => this.dataviewIcons.getItemIconsTemplate(obj, common.width)
+				tagIcons: (obj, common) => this.dataviewIcons.getItemIconsTemplate(obj, common.width),
+				templateLoading: () => "<div class='dataview-item-loading-overlay'>Loading...</div>"
 			}
 		};
 
