@@ -215,11 +215,11 @@ function getDataviewTypeObject(multiplier, dataview) {
 }
 
 function setImageMultiplierId(id) {
-	webix.storage.local.put(`sizeMultiplierId-${auth.getUserId()}`, id);
+	webix.storage.local.put(`sizeMultiplierId-${auth.getUserId() || "unregistered"}`, id);
 }
 
 function getImageMultiplierId() {
-	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || imageSizeMultipliersKeys[1];
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId() || "unregistered"}`) || imageSizeMultipliersKeys[1];
 }
 
 function getImageSizeSelectorConfig() {

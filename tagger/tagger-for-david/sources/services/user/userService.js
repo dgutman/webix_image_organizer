@@ -14,7 +14,6 @@ import AsyncQueue from "../asyncQueue";
 export default class UserViewService {
 	constructor(view, iconsTemplateService) {
 		this._view = view;
-		this.dataviewOverlayText = "No items loaded. Please, log in";
 		this._iconsTemplateService = iconsTemplateService;
 		this._ready();
 	}
@@ -106,20 +105,53 @@ export default class UserViewService {
 		const tagList = this._tagSelect.getList();
 		const valuesList = this._valueSelect.getList();
 
+		this._taskList.attachEvent("onItemClick", (taskId) => {
+			const changedItems = this._updatedImagesService.changedItems;
+			const changedItemsIds = Object.keys(changedItems);
+			if (changedItemsIds.length) {
+				webix.confirm({
+					title: "Save",
+					text: "Do you want to save unsaved data before choosing a new task?",
+					ok: "Yes",
+					cancel: "No"
+				})
+					.catch(() => {
+						this._updatedImagesService.clearChangedItems();
+						this._taskList.select(taskId);
+						return false;
+					})
+					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then((response) => {
+						if (response) {
+							webix.message(response.message);
+						}
+
+						this._taskList.select(taskId);
+						this._view.hideProgress();
+					})
+					.catch(() => {
+						this._view.hideProgress();
+					});
+			}
+			else {
+				this._taskList.select(taskId);
+			}
+			return false;
+		});
+
 		this._taskList.attachEvent("onSelectChange", () => {
-			this._toggleVisibilityOfHiddenViews();
 			const task = this._taskList.getSelectedItem();
-			this._pager.blockEvent();
 			this._pager.select(0);
-			this._pager.unblockEvent();
 			this._dataviewStore.clearAll();
+			this._toggleVisibilityOfHiddenViews();
+			this._itemsCountTemplate.setValues({});
 			if (task) {
 				this._selectTask(task);
 			}
 			else {
 				this._toggleVisibilityOfDropdowns();
 			}
-			this._view.$scope.app.callEvent("OnTaskSelect", [task]);
+			this._view.$scope.app.callEvent("OnTaskSelect", [task || {}]);
 		});
 
 		this._tagSelect.attachEvent("onChange", (id, oldId, preselectedValue) => {
@@ -152,7 +184,7 @@ export default class UserViewService {
 			}
 		});
 
-		this._pager.attachEvent("onAfterPageChange", () => {
+		this._dataview.attachEvent("onDataRequest", () => {
 			this._getImagesQueue.addJobToQueue();
 		});
 
@@ -231,27 +263,11 @@ export default class UserViewService {
 					cancel: "No"
 				})
 					.catch(() => {
-						this._updatedImagesService.changedItems = {};
+						this._updatedImagesService.clearChangedItems();
 						this._applyFilters();
 						return false;
 					})
-					.then((result) => {
-						if (result) {
-							this._view.showProgress();
-							const dataToUpdate = [];
-							changedItemsIds.forEach((id) => {
-								dataToUpdate.push({
-									_id: id,
-									tags: changedItems[id],
-									isUpdated: true
-								});
-							});
-							const tasks = this._taskList.getSelectedItem(true);
-							const taskIds = tasks.map(task => task._id);
-
-							return transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
-						}
-					})
+					.then(result => (result ? this._saveUnsavedImages() : false))
 					.then((response) => {
 						if (response) {
 							const images = response.data;
@@ -355,7 +371,7 @@ export default class UserViewService {
 	}
 
 	_selectTask(task) {
-		this._updatedImagesService.changedItems = {};
+		this._updatedImagesService.clearChangedItems();
 		this._updatedImagesService.hotkeys = {};
 		this._updatedImagesService.hotkeyIcons = {};
 		const tagList = this._tagSelect.getList();
@@ -464,7 +480,6 @@ export default class UserViewService {
 			limit
 		};
 		if (this._dataviewFilters.enabled) {
-			this._dataviewFilters.setInitialFiltersState();
 			params.filters = this._dataviewFilters.getSelectedFilters();
 		}
 
@@ -536,9 +551,8 @@ export default class UserViewService {
 		if (ySpacer.isVisible()) ySpacer.hide();
 		this._dataviewService.onResizeDataview()
 			.then((page) => {
-				const lastPage = this._pager.data.limit - 1 || 0;
 				// to fix bug with 2 times last page selecting.
-				if (this._pager.data.page !== lastPage) {
+				if (this._pager.data.page !== page) {
 					this._pager.select(page);
 				}
 				// to align dataview to center
@@ -589,5 +603,23 @@ export default class UserViewService {
 		else {
 			this._backButton.hide();
 		}
+	}
+
+	_saveUnsavedImages() {
+		this._view.showProgress();
+		const dataToUpdate = [];
+		const changedItems = this._updatedImagesService.changedItems;
+		const changedItemsIds = Object.keys(changedItems);
+		changedItemsIds.forEach((id) => {
+			dataToUpdate.push({
+				_id: id,
+				tags: changedItems[id],
+				isUpdated: true
+			});
+		});
+		const tasks = this._taskList.getSelectedItem(true);
+		const taskIds = tasks.map(task => task._id);
+
+		return transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
 	}
 }

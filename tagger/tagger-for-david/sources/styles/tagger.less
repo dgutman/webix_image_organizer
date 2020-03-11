@@ -144,15 +144,12 @@
                 font-size: 14px;
                 border-radius: 50%;
                 box-sizing: border-box;
-                &.colorized i {
-                    opacity: .8;
-                }
                 .icon-badge {
                     display: inline-block;
                     position: absolute;
                     top: -10px;
                     right: -10px;
-                    border-radius: 50%;
+                    border-radius: 10px;
                     font-family: @main-font;
                     font-weight: 600;
                     text-align: center;
@@ -435,9 +432,6 @@
                     }
                 }
                 &:hover {
-                    .dataview-image {
-                        transform: scale(0.85);
-                    }
                     .dataview-images-icons .dataview-icon, .dataview-images-icons .checkbox {
                         display: inline-block;
                     }
@@ -622,6 +616,14 @@
         &:focus {
             border: 1px solid #3498db;
             box-shadow: 0 0 1px #3498db inset
+        }
+    }
+}
+
+body.focused {
+    .tagger-app .user-dataview .dataview-item:hover {
+        .dataview-image {
+            transform: scale(0.85);
         }
     }
 }
