@@ -239,10 +239,10 @@ class MainService {
 											<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
 										</div>
 									</div>
-							<div class="gallery-image-wrap" style="${bgIcon} height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
+							<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 								${starHtml}
 								${warning}
-								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+								<img style="${bgIcon}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
 							</div>
 						</div>
 						<div class="thumbnails-name">${obj.name}</div>
@@ -852,9 +852,7 @@ class MainService {
 				}
 			});
 
-			const selectedItem = this._finder.getSelectedItem();
-			const folderId = selectedItem._modelType === "folder" ? selectedItem._id : selectedItem.folderId;
-			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable, folderId);
+			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 			this._metadataTable.refreshColumns(datatableColumns);
 		});
 
