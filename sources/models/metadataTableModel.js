@@ -4,6 +4,7 @@ import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
 import editableFoldersModel from "./editableFoldersModel";
+import webixViews from "./webixViews";
 
 let metadataDotObject = {};
 
@@ -225,7 +226,21 @@ function getInitialColumnsForDatatable() {
 	return initialColumnsConfig;
 }
 
-function getColumnsForDatatable(datatable, folderId) {
+function getSelectedFolderState() {
+	const finder = webixViews.getFinderView();
+	let isEditable = false;
+	if (finder) {
+		const selectedItem = finder.getSelectedItem();
+		let folderId = null;
+		if (selectedItem) {
+			folderId = selectedItem._modelType === "folder" ? selectedItem._id : selectedItem.folderId;
+			isEditable = editableFoldersModel.isFolderEditable(folderId);
+		}
+	}
+	return isEditable;
+}
+
+function getColumnsForDatatable(datatable) {
 	let columnConfig = [];
 	const initialColumnsConfig = getInitialColumnsForDatatable();
 	const localStorageColumnsConfig = getLocalStorageColumnsConfig();
@@ -262,7 +277,7 @@ function getColumnsForDatatable(datatable, folderId) {
 			if (!localColumnConfig.initial) {
 				const headerValue = getHeaderTextValue(localColumnConfig);
 				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-				const isEditable = editableFoldersModel.isFolderEditable(folderId) ? "webix_icon fas fa-pencil-alt" : "";
+				const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
 				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
 					localColumnHeader[localColumnHeader.length - 2] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
 				}
@@ -284,6 +299,7 @@ function getColumnsForDatatable(datatable, folderId) {
 				const initialColumn = initialColumnsConfig.find(initialColumnConfig => initialColumnConfig.id === localColumnConfig.id && !localColumnConfig.hidden);
 				if (initialColumn && initialColumn.template) localColumnConfig.template = initialColumn.template;
 			}
+			if (filterTypeValue) localColumnConfig.filterTypeValue = filterTypeValue;
 			columnConfig.push(localColumnConfig);
 		});
 	}

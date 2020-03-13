@@ -140,7 +140,7 @@ class MetadataTableService {
 		});
 
 		this._metadataTable.attachEvent("onBeforeEditStop", (values, obj) => {
-			if (typeof editValue !== "object" && editValue.toString() !== values.value) {
+			if (typeof editValue !== "object" && editValue != values.value) {
 				const columnId = obj.column;
 				const rowId = obj.row;
 				const itemToEdit = this._metadataTable.getItem(rowId);
