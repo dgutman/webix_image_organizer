@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import webixViews from "../../../../models/webixViews";
 
 let uniqueValuesArray = [];
+const htmlTagsRexeg = /<\/?[^>]+(>|$)/g;
 
 export default class UniqueValuesWindow extends JetView {
 	config() {
@@ -31,17 +32,19 @@ export default class UniqueValuesWindow extends JetView {
 								let newValue = arrayOfNewValues[index];
 								let valuesObjectToEdit = {
 									value: newValue,
-									old: uniqueValue
+									old: uniqueValue.replace(htmlTagsRexeg, "")
 								};
 								let objectOfIds = {
 									column: this.columnId,
 									row: rowId
 								};
-								this.datatable.callEvent("onBeforeEditStop", [valuesObjectToEdit, objectOfIds]);
-								this.hideWindow();
+								if (valuesObjectToEdit.value !== valuesObjectToEdit.old) {
+									this.datatable.callEvent("onBeforeEditStop", [valuesObjectToEdit, objectOfIds]);
+								}
 							}
 						});
 					});
+					this.hideWindow();
 				}
 			}
 		};
@@ -128,7 +131,6 @@ export default class UniqueValuesWindow extends JetView {
 
 	createFormElements() {
 		let formElements = [];
-		const htmlTagsRexeg = /<\/?[^>]+(>|$)/g;
 		const firstUniqueValue = uniqueValuesArray[0].replace(htmlTagsRexeg, "");
 		const firstUniqueTextValue = {
 			name: "firstUniqueValue",

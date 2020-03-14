@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 import authService from "../../../services/authentication";
+import galleryImageUrl from "../../../models/galleryImageUrls";
 import SettingsWindow from "../windows/settings";
 
 export default class LogoutPanelView extends JetView {
@@ -35,6 +36,9 @@ export default class LogoutPanelView extends JetView {
 										break;
 									}
 									case "logout": {
+										galleryImageUrl.clearPreviewUrls();
+										galleryImageUrl.clearPreviewLabelUrls();
+										galleryImageUrl.clearPreviewMacroImageUrl();
 										authService.logout();
 										break;
 									}

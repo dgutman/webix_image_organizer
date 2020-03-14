@@ -7,7 +7,7 @@ export default {
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
-	PATTERN_ITEM_FIELDS: "^[A-Za-z0-9.]+",
+	PATTERN_ITEM_FIELDS: "^[A-Za-z0-9._]+",
 
 	SCROLL_VIEW_METADATA_ID: "scroll-view-metadata-id",
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
