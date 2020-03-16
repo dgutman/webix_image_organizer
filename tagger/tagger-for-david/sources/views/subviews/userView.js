@@ -100,7 +100,7 @@ export default class TaggerUserView extends JetView {
 			borderless: true,
 			template: (obj, common) => {
 				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
-				const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
+				// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 				const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 				const setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 				const highlightState = obj.isUpdated ? "highlighted" : "";
@@ -108,7 +108,7 @@ export default class TaggerUserView extends JetView {
 				if (typeof getPreviewUrl(obj._id) === "undefined") {
 					setPreviewUrl(obj._id, "");
 					// to prevent sending query more than 1 times
-					ajaxService.getImage(obj.mainId, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
+					ajaxService.getImage(obj.mainId, "thumbnail")
 						.then((data) => {
 							if (data.type === "image/jpeg") {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
