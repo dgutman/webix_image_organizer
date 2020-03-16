@@ -21,7 +21,7 @@ export default class ImageWindowView extends JetView {
 					if (typeof getPreviewUrl(obj._id) === "undefined") {
 						this.view.showProgress();
 						setPreviewUrl(obj._id, "");
-						ajaxService.getImage(obj.mainId, HEIGHT, WIDTH, imageType)
+						ajaxService.getImage(obj.mainId, imageType, {height: HEIGHT, width: WIDTH})
 							.then((data) => {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
 								this.view.hideProgress();

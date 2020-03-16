@@ -163,6 +163,13 @@
 
   /* text-field */
   .text-field {
+    .webix_el_box {
+      display: flex;
+      justify-content: space-between;
+      .webix_inp_label {
+        float: none;
+      }
+    }
     &.webix_invalid.webix_el_text {
       input {
         border-color: @lines-color-invalid;
