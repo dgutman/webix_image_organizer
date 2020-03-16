@@ -20,6 +20,9 @@ const valuesSchema = new Schema({
 	},
 	badgecolor: {
 		type: String
+	},
+	default: {
+		type: Boolean
 	}
 });
 
