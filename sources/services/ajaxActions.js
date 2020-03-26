@@ -123,11 +123,11 @@ class AjaxActions {
 		const searchParams = new URLSearchParams("");
 		paramsArray.forEach((item) => { searchParams.append(...item); });
 		const queryString = searchParams.toString();
-		const url = `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`;
+		const url = `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}?${queryString || ""}`;
 
 		return new Promise((resolve, reject) => {
 			const img = new Image();
-			img.src = `${url}?${queryString || ""}`;
+			img.src = url;
 			img.addEventListener("error", () => {
 				reject();
 			});

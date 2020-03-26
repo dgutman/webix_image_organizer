@@ -83,7 +83,7 @@ function getPagerConfig(id) {
 
 function getDataviewTempate(obj, common, dataview, info) {
 	const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
-	const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
+	// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 	const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 	const setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 	let isHighlighted = "not-highlighted";
@@ -101,7 +101,7 @@ function getDataviewTempate(obj, common, dataview, info) {
 	if (typeof getPreviewUrl(obj._id) === "undefined") {
 		setPreviewUrl(obj._id, "");
 		// to prevent sending query more than 1 times
-		ajaxService.getImage(obj.mainId, IMAGE_HEIGHT, IMAGE_WIDTH, "thumbnail")
+		ajaxService.getImage(obj.mainId, "thumbnail")
 			.then((data) => {
 				if (data.type === "image/jpeg") {
 					setPreviewUrl(obj._id, URL.createObjectURL(data));
@@ -215,11 +215,11 @@ function getDataviewTypeObject(multiplier, dataview) {
 }
 
 function setImageMultiplierId(id) {
-	webix.storage.local.put(`sizeMultiplierId-${auth.getUserId()}`, id);
+	webix.storage.local.put(`sizeMultiplierId-${auth.getUserId() || "unregistered"}`, id);
 }
 
 function getImageMultiplierId() {
-	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId()}`) || imageSizeMultipliersKeys[1];
+	return webix.storage.local.get(`sizeMultiplierId-${auth.getUserId() || "unregistered"}`) || imageSizeMultipliersKeys[1];
 }
 
 function getImageSizeSelectorConfig() {

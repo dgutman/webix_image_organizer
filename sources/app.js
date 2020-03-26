@@ -1,5 +1,5 @@
-import "./styles/app.less";
 import {JetApp, plugins} from "webix-jet";
+import "./styles/app.less";
 import state from "./models/state";
 import utils from "./utils/utils";
 

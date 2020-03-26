@@ -80,7 +80,7 @@ export default class UserDataviewTagIcons {
 							.filter(valObj => tagWithIcon.values.hasOwnProperty(valObj.value))
 							.map(valObj => tagWithIcon.values[valObj.value]);
 						if (tagWithIcon.icon) {
-							icons[tagWithIcon.icon] = this.getSingleIconTemplate(tagWithIcon.icon, null, colors);
+							icons[tagWithIcon.icon] = this.getSingleIconTemplate(tagWithIcon.icon, null, colors.sort());
 						}
 					}
 				}

@@ -143,4 +143,8 @@ export default class UpdatedImagesService {
 			this.addTagValueToImage(image, settings);
 		}
 	}
+
+	clearChangedItems() {
+		this.changedItems = {};
+	}
 }

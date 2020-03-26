@@ -65,7 +65,7 @@ export default class DataviewFilters {
 	}
 
 	getSelectedFilters() {
-		const selected = this.filtersTree.getSelectedItem(true);
+		const selected = this.getSelectedFiltersFromSessionStorage() || [];
 		return selected.reduce((result, item) => {
 			if (item.$parent) {
 				const parent = this.filtersTree.getItem(item.$parent);

@@ -10,7 +10,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
 // eslint-disable-next-line func-names
-module.exports = function (env) {
+module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")

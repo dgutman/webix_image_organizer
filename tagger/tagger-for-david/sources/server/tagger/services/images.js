@@ -330,6 +330,7 @@ async function getTaskImages({folderIds, offset, limit, userId, filters}) {
 	// validation
 	if (!Array.isArray(folderIds)) throw {message: "Query \"ids\" should be an array", name: "ValidationError"};
 	if (!userId) throw {name: "UnauthorizedError"};
+	if (filters && (typeof filters !== "object" || Array.isArray(filters))) throw {message: "Query \"filters\" should be an JSON hash", name: "ValidationError"};
 
 	let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
 

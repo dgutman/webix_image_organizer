@@ -117,8 +117,8 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	getImage(imageId, height, width, imageType) {
-		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`);
+	getImage(imageId, imageType, params) {
+		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params);
 	}
 
 	downloadItem(itemId) {
