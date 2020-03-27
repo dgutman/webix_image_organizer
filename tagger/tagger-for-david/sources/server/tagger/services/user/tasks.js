@@ -53,14 +53,18 @@ async function getTasks(collectionId, host, token, userId) {
 
 			const {statusCode} = response;
 			if (statusCode !== successStatusCode) {
-				const error = new Error("Request Failed.\n" +
-					`Status Code: ${statusCode}`);
+				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
+				const error = new Error(
+					`Request to ${url} failed\n
+					${errorMessage}\n
+					Status Code: ${statusCode}`
+				);
 				return reject(error);
 			}
 			resolve(body);
 		});
 	});
-		// filter new tasks
+	// filter new tasks
 	newTasks = newTasks
 		.filter(folder => dot.pick("meta.taggerMetadata.task.user._id", folder) === userId
 		&& !existingTasks.find(task => task.folderId === folder._id))
