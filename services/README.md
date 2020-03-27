@@ -1,8 +1,9 @@
 RUN:
 
 `$ docker build -t=yourname .`<br>
-`$ docker run -p yourport:5000 yourname`
+`$ docker run -p 5050:5000 yourname`
 
+## I am changing the port since I have some other services running on 5000
 
 Default user/pass:` webix/xbsxbs` <br>
 Default api url: `http://dermannotator.org:8080/api/v1`
@@ -27,3 +28,9 @@ Return: array of statuses and results<br>
 	 {id: 'id2', status: 'error', error: 'error decr.'}]`
 	
 	
+
+
+##https://www.pyimagesearch.com/2018/09/17/opencv-ocr-and-text-recognition-with-tesseract/
+
+
+###https://cloud.google.com/vision/docs/ocr

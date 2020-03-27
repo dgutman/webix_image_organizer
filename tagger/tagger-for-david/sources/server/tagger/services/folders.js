@@ -31,7 +31,7 @@ async function getNestedFolderIds(resArr, ids) {
 }
 
 async function getResourceFolders(resourceId, host, token) {
-	const url = `${host}/resource/mongo_search?type=folder&q={"baseParentId": {"$oid": "${resourceId}"}}&limit=0`;
+	const url = `${host}/folder/query?query={"baseParentId": {"$oid": "${resourceId}"}}&limit=0`;
 	const options = {
 		url,
 		json: true,
