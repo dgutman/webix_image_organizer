@@ -522,6 +522,19 @@ function once(fn, context) {
 	};
 }
 
+function escapeURIChars(string) {
+	return string.replace(/[;,/?:@&=+$_.!~*'()#]/g, "");
+}
+
+function compareURLStrings(str1, str2) {
+	str1 = decodeURI(str1);
+	str2 = decodeURI(str2);
+	if (escapeURIChars(str1) === escapeURIChars(str2)) {
+		return true;
+	}
+	return false;
+}
+
 export default {
 	openInNewTab,
 	downloadByLink,
@@ -563,5 +576,7 @@ export default {
 	setAppSkinToLocalStorage,
 	getAppSkinFromLocalStorage,
 	getSelectIcon,
-	once
+	once,
+	compareURLStrings,
+	escapeURIChars
 };

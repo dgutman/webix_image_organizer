@@ -1,4 +1,4 @@
-import {JetView} from "webix-jet";
+import {JetView, plugins} from "webix-jet";
 import authService from "../../services/authentication";
 import ajax from "../../services/ajaxActions";
 import HeaderService from "../../services/header/headerService";
@@ -99,12 +99,6 @@ export default class Header extends JetView {
 				{id: "mini", value: "mini"},
 				{id: "compact", value: "compact"},
 				{id: "contrast", value: "contrast"}
-				// {id: "glamour", value: "glamour"},
-				// {id: "light", value: "light"},
-				// {id: "metro", value: "metro"},
-				// {id: "terrace", value: "terrace"},
-				// {id: "touch", value: "touch"},
-				// {id: "web", value: "web"}
 			]
 		};
 
@@ -143,24 +137,34 @@ export default class Header extends JetView {
 		};
 
 		return {
-			css: "global-header",
-			name: "headerClass",
-			cols: [
-				{},
-				header,
-				{}
+			rows: [
+				{
+					css: "global-header",
+					name: "headerClass",
+					cols: [
+						{},
+						header,
+						{}
+					]
+				},
+				{$subview: true}
 			]
 		};
 	}
 
 	init(view) {
+		// URL-NAV enable URL params with /
+		this.use(plugins.UrlParam, ["host", "collection"]);
+
 		this.loginPanel = this.getRoot().queryView({name: LOGIN_PANEL_NAME});
 		this.logoutPanel = this.getRoot().queryView({name: LOGOUT_PANEL_NAME});
 		this.loginWindow = this.ui(LoginWindow);
 		this.headerService = new HeaderService(
 			view,
 			this.loginPanel,
-			this.logoutPanel
+			this.logoutPanel,
+			this.getHostBox(),
+			this.getCollectionBox()
 		);
 		if (authService.isLoggedIn()) {
 			this.headerService.showLogoutPanel();
@@ -168,13 +172,11 @@ export default class Header extends JetView {
 		}
 	}
 
-	loadCollectionData() {
-		return ajax.getCollection().then(collections => collections);
-	}
-
-	parseToList(collections) {
-		this.getCollectionBox().getList().clearAll();
-		this.getCollectionBox().getList().parse(collections);
+	// URL-NAV
+	urlChange(...args) {
+		if (this.headerService) {
+			this.headerService._urlChange(...args);
+		}
 	}
 
 	getHostBox() {
@@ -187,18 +189,5 @@ export default class Header extends JetView {
 
 	getSkinSwitcher() {
 		return this.getRoot().queryView({name: "skin"});
-	}
-
-	parseCollectionData() {
-		this.loadCollectionData()
-			.then((data) => {
-				this.parseToList({
-					data: webix.copy(data)
-				});
-				let collectionList = this.getCollectionBox().getList();
-				let firstId = collectionList.getFirstId();
-				collectionList.select(firstId);
-				this.getCollectionBox().setValue(firstId);
-			});
 	}
 }
