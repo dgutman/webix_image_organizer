@@ -77,7 +77,7 @@ export default class FolderNav {
 			let parentId = this.finder.getParentId(selectedFolderId);
 			do {
 				const folder = this.finder.getItem(selectedFolderId);
-				if (folder._modelType === "folder") folders.unshift(folder.name);
+				if (folder._modelType === "folder") folders.unshift(utils.escapeURIChars(folder.name));
 				selectedFolderId = parentId;
 				parentId = selectedFolderId ? this.finder.getParentId(selectedFolderId) : null;
 			}

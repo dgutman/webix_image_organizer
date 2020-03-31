@@ -523,7 +523,7 @@ function once(fn, context) {
 }
 
 function escapeURIChars(string) {
-	return string.replace(/[;,/?:@&=+$_.!~*'()#]/g, "");
+	return string.replace(/[;,/?:@&=+$.!~*'()#]/g, "");
 }
 
 function compareURLStrings(str1, str2) {
