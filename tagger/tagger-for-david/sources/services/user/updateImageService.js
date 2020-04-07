@@ -93,15 +93,15 @@ export default class UpdatedImagesService {
 
 					switch (tag.icontype) {
 						case "pervalue": {
-							if (value.icon) this.hotkeyIcons[hotkey] = [value.icon];
+							if (value.icon) this.hotkeyIcons[hotkey] = [value.icon, null, value.badgecolor];
 							break;
 						}
 						case "badge": {
-							if (tag.icon) this.hotkeyIcons[hotkey] = value.badgevalue ? [tag.icon, value.badgevalue] : [tag.icon];
+							if (tag.icon) this.hotkeyIcons[hotkey] = [tag.icon, value.badgevalue, value.badgecolor];
 							break;
 						}
 						case "badgecolor": {
-							if (tag.icon) this.hotkeyIcons[hotkey] = value.badgecolor ? [tag.icon, null, [value.badgecolor]] : [tag.icon];
+							if (tag.icon) this.hotkeyIcons[hotkey] = [tag.icon, null, value.badgecolor];
 							break;
 						}
 						default:
