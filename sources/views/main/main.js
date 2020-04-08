@@ -1,15 +1,13 @@
-import {JetView} from "webix-jet";
-import header from "./header/header";
-// import hostsCollectionAndThemes from "./subviews/hostsCollectionThemes/hostsCollectionsThemes";
-import finderView from "./subviews/finder/finderView";
-import multiview from "./subviews/multiDataView/multiDataView";
-import dataviewActionPanel from "./subviews/dataviewActionPanel/dataviewActionPanel";
-import metadataTemplateView from "./subviews/metadataPanel/metadataTemplateView";
-import collapser from "./components/collapser";
-import constants from "../constants";
-import MainService from "../services/main/mainService";
-import cartList from "./subviews/cartList/cardList";
-import galleryFeatures from "./subviews/galleryFeatures/galleryFeatures";
+import {JetView, plugins} from "webix-jet";
+import finderView from "../subviews/finder/finderView";
+import multiview from "../subviews/multiDataView/multiDataView";
+import dataviewActionPanel from "../subviews/dataviewActionPanel/dataviewActionPanel";
+import metadataTemplateView from "../subviews/metadataPanel/metadataTemplateView";
+import collapser from "../components/collapser";
+import constants from "../../constants";
+import MainService from "../../services/main/mainService";
+import cartList from "../subviews/cartList/cardList";
+import galleryFeatures from "../subviews/galleryFeatures/galleryFeatures";
 
 const collapserName = "metadataCollapser";
 
@@ -19,13 +17,11 @@ export default class MainView extends JetView {
 
 		return {
 			rows: [
-				header,
 				galleryFeatures,
 				dataviewActionPanel,
 				{
 					cols: [
 						finderView,
-						{view: "resizer"},
 						multiview,
 						rightCollapser,
 						metadataTemplateView,
@@ -38,6 +34,8 @@ export default class MainView extends JetView {
 	}
 
 	ready(view) {
+		// URL-NAV enable URL params with /
+		this.use(plugins.UrlParam, ["folders"]);
 		// init child views
 		const hostBox = this.getSubHeaderView().getHostBox();
 		const collectionBox = this.getSubHeaderView().getCollectionBox();
@@ -65,6 +63,13 @@ export default class MainView extends JetView {
 			metadataPanelScrollView,
 			cartList
 		);
+	}
+
+	// URL-NAV
+	urlChange(...args) {
+		if (this._mainService) {
+			this._mainService._urlChange(...args);
+		}
 	}
 
 	// getting child views
@@ -109,6 +114,6 @@ export default class MainView extends JetView {
 	}
 
 	getSubHeaderView() {
-		return this.getRoot().queryView({name: "headerClass"}).$scope;
+		return this.getRoot().getTopParentView().queryView({name: "headerClass"}).$scope;
 	}
 }

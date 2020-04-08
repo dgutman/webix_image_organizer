@@ -27,6 +27,7 @@ import viewMouseEvents from "../../utils/viewMouseEvents";
 import recognizedItemsModel from "../../models/recognizedItems";
 import FilterModel from "../../models/filterModel";
 import editableFoldersModel from "../../models/editableFoldersModel";
+import FolderNav from "./folderNav";
 
 let contextToFolder;
 let scrollEventId;
@@ -57,7 +58,6 @@ class MainService {
 		const scrollPosition = this._finder.getScrollState();
 		webix.extend(this._view, webix.ProgressBar);
 		this._metadataPanelScrollView.hide();
-		this._setValueAndParseData();
 
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
@@ -104,6 +104,8 @@ class MainService {
 		webixViews.setRenamePopup(this._renamePopup);
 		webixViews.setMetadataTemplate(this._metadataTemplate);
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
+
+		this._folderNav = new FolderNav(this._view.$scope, this._finder);
 
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
@@ -242,77 +244,27 @@ class MainService {
 							<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 								${starHtml}
 								${warning}
-								<img style="${bgIcon}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+								<img style="${bgIcon}" height="${this._checkForImageHeight(IMAGE_HEIGHT)}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
 							</div>
 						</div>
 						<div class="thumbnails-name">${obj.name}</div>
 					</div>`;
 		});
 
-		// setting onChange event for hosts
-		this._hostBox.attachEvent("onChange", (newId, oldId) => {
-			if (newId !== oldId) {
-				webix.confirm({
-					title: "Attention!",
-					type: "confirm-warning",
-					text: "Are you sure you want to change host? All data will be cleared.",
-					cancel: "Yes",
-					ok: "No",
-					callback: (result) => {
-						if (!result) {
-							selectDataviewItems.clearAll();
-							this._putValuesAfterHostChange(newId);
-							this._view.$scope.app.refresh();
-						}
-						else {
-							this._hostBox.blockEvent();
-							this._hostBox.setValue(oldId);
-							this._hostBox.unblockEvent();
-						}
-					}
-				});
-			}
+		// // setting onChange event for hosts
+		this._view.$scope.on(this._view.$scope.app, "hostChange", () => {
+			selectDataviewItems.clearAll();
 		});
 
 		// setting onChange event for collection
-		this._collectionBox.attachEvent("onChange", (id) => {
-			this._filterModel.clearFilters();
-			isRecognitionResultMode = false;
-			this._changeRecognitionResultsMode();
-			this.collectionItem = this._collectionBox.getList().getItem(id);
-			this._itemsModel.clearAll();
-			// this._finder.clearAll();
-			this._itemsDataCollection.clearAll();
-			this._metadataTemplate.setValues({});
-			this._collapser.config.setClosedState();
-			// this._galleryDataview.clearAll();
-			// this._metadataTable.clearAll();
-			this._view.showProgress();
-			this._view.$scope.getSubFinderView()
-				.loadTreeFolders("collection", this.collectionItem._id)
-				.then((data) => {
-					const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
-					projectMetadataCollection.clearAll();
-					projectMetadata.clearWrongMetadata();
-					if (projectMetadataFolder) {
-						projectMetadataCollection.add(projectMetadataFolder);
-						this._projectFolderWindowButton.show();
-					}
-					else {
-						this._projectFolderWindowButton.hide();
-					}
-					utils.putHostsCollectionInLocalStorage(this.collectionItem);
-					// define datatable columns
-					const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-					this._metadataTable.refreshColumns(datatableColumns);
-					this._itemsModel.parseItems(data);
-					// this._finder.parse(data);
-					this._view.hideProgress();
-				})
-				.catch(() => {
-					this._view.hideProgress();
-				});
+		this._view.$scope.on(this._view.$scope.app, "collectionChange", (id, collectionItem) => {
+			this._collectionChangeHandler(collectionItem);
 		});
+		const collectionBoxValue = this._collectionBox.getValue();
+		if (collectionBoxValue && !this._finder.count()) {
+			const collectionItem = this._collectionBox.getList().getItem(collectionBoxValue);
+			this._collectionChangeHandler(collectionItem);
+		}
 
 		// switching between data table and data view
 		this._multiviewSwitcher.attachEvent("onChange", (value) => {
@@ -944,10 +896,10 @@ class MainService {
 					webix.confirm({
 						text: "Are you sure you want to show results?",
 						type: "confirm-warning",
-						cancel: "Yes",
-						ok: "No",
+						ok: "Yes",
+						cancel: "No",
 						callback: (result) => {
-							if (!result) {
+							if (result) {
 								switch (statusObj.value) {
 									case constants.RECOGNITION_STATUSES.WARNS.value:
 									case constants.RECOGNITION_STATUSES.DONE.value: {
@@ -983,29 +935,17 @@ class MainService {
 		this._setGallerySelectedItemsFromLocalStorage();
 	}
 
+	// URL-NAV get host and collection from URL params and select it
+	_urlChange(view, url) {
+		this._folderNav.openFirstFolder();
+	}
+
 	_setGallerySelectedItemsFromLocalStorage() {
 		selectDataviewItems.clearAll();
 		selectDataviewItems.add(utils.getSelectedItemsFromLocalStorage());
 		if (selectDataviewItems.count()) {
 			this._galleryDataview.callEvent("onCheckboxClicked", [selectDataviewItems.getSelectedImages(), true]);
 		}
-	}
-
-	_putValuesAfterHostChange(hostId) {
-		const hostBoxItem = this._hostBox.getList().getItem(hostId);
-		const hostAPI = hostBoxItem.hostAPI;
-		webix.storage.local.put("hostId", hostId);
-		webix.storage.local.put("hostAPI", hostAPI);
-	}
-
-	// setting hosts value and parsing data to collection and tree
-	_setValueAndParseData() {
-		const localStorageHostId = webix.storage.local.get("hostId");
-		const firstHostItemId = process.env.SERVER_LIST[0].id;
-		const hostId = localStorageHostId || firstHostItemId;
-		this._putValuesAfterHostChange(hostId);
-		this._hostBox.setValue(hostId);
-		this._view.$scope.getSubHeaderView().parseCollectionData();
 	}
 
 	_setDataviewColumns(width, height) {
@@ -1164,7 +1104,10 @@ class MainService {
 		}
 		else if (item._modelType === "folder") {
 			finderModel.loadBranch(id, this._view)
-				.then(() => this._highlightLastSelectedFolder());
+				.then(() => {
+					this._highlightLastSelectedFolder();
+					this._folderNav.openNextFolder(item);
+				});
 		}
 	}
 
@@ -1270,6 +1213,42 @@ class MainService {
 			}
 		}
 		return {imageType, getPreviewUrl, setPreviewUrl};
+	}
+
+	_collectionChangeHandler(collectionItem) {
+		this._filterModel.clearFilters();
+		isRecognitionResultMode = false;
+		this._changeRecognitionResultsMode();
+		this._itemsModel.clearAll();
+
+		this._itemsDataCollection.clearAll();
+		this._metadataTemplate.setValues({});
+		this._collapser.config.setClosedState();
+		this._view.showProgress();
+		this._view.$scope.getSubFinderView()
+			.loadTreeFolders("collection", collectionItem._id)
+			.then((data) => {
+				this._folderNav.openFirstFolder();
+				const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
+				projectMetadataCollection.clearAll();
+				projectMetadata.clearWrongMetadata();
+				if (projectMetadataFolder) {
+					projectMetadataCollection.add(projectMetadataFolder);
+					this._projectFolderWindowButton.show();
+				}
+				else {
+					this._projectFolderWindowButton.hide();
+				}
+				utils.putHostsCollectionInLocalStorage(collectionItem);
+				// define datatable columns
+				const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
+				this._metadataTable.refreshColumns(datatableColumns);
+				this._itemsModel.parseItems(data);
+				this._view.hideProgress();
+			})
+			.catch(() => {
+				this._view.hideProgress();
+			});
 	}
 }
 

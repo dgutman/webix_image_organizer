@@ -1,8 +1,15 @@
 const location = window.location;
 
+const APP_URL_PATH = "app";
+
 export default {
 
 	KEY_TOKEN: "girderToken",
+
+	APP_PATHS: {
+		APP: APP_URL_PATH,
+		MAIN: `${APP_URL_PATH}///main`
+	},
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",

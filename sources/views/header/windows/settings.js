@@ -194,10 +194,10 @@ export default class SettingsWindow extends JetView {
 				title: "Attention!",
 				text: "Are you sure you don't want to save your changes?",
 				type: "confirm-warning",
-				cancel: "Yes",
-				ok: "No",
+				ok: "Yes",
+				cancel: "No",
 				callback: (result) => {
-					if (!result) {
+					if (result) {
 						this.settingsForm.clearValidation();
 						this.getRoot().hide();
 					}
