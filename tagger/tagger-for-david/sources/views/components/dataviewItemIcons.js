@@ -40,7 +40,11 @@ export default class UserDataviewTagIcons {
 		const values = {};
 		const icons = [];
 		arr.forEach((val) => {
-			values[val.name] = val.icon || val.badgevalue || val.badgecolor || null;
+			values[val.name] = {
+				icon: val.icon,
+				badgevalue: val.badgevalue,
+				badgecolor: val.badgecolor
+			}; // val.icon || val.badgevalue || val.badgecolor || null;
 			if (val.icon) icons.push(val.icon);
 		});
 		if (icons.length && selection === "single") this.iconsList.push(icons);
@@ -60,8 +64,9 @@ export default class UserDataviewTagIcons {
 					const itemTag = tags[tagWithIconName];
 					if (tagWithIcon.type === "pervalue") {
 						itemTag.forEach((valObj) => {
-							if (tagWithIcon.values[valObj.value]) {
-								icons[tagWithIcon.values[valObj.value]] = this.getSingleIconTemplate(tagWithIcon.values[valObj.value]);
+							const curValue = tagWithIcon.values[valObj.value];
+							if (curValue.icon) {
+								icons[curValue.icon] = this.getSingleIconTemplate(curValue.icon, null, curValue.badgecolor);
 							}
 						});
 					}
@@ -70,15 +75,15 @@ export default class UserDataviewTagIcons {
 						itemTag.forEach((valObj) => {
 							if (tagWithIcon.values.hasOwnProperty(valObj.value)) {
 								const curValue = tagWithIcon.values[valObj.value];
-								tagIcon = this.getSingleIconTemplate(tagWithIcon.icon, curValue);
+								tagIcon = this.getSingleIconTemplate(tagWithIcon.icon, curValue.badgevalue, curValue.badgecolor);
 							}
 						});
 						if (tagIcon) icons[tagWithIcon.icon] = tagIcon;
 					}
 					else if (tagWithIcon.type === "badgecolor" && itemTag.length) {
 						const colors = itemTag
-							.filter(valObj => tagWithIcon.values.hasOwnProperty(valObj.value))
-							.map(valObj => tagWithIcon.values[valObj.value]);
+							.filter(valObj => tagWithIcon.values.hasOwnProperty(valObj.value) && tagWithIcon.values[valObj.value].hasOwnProperty("badgecolor"))
+							.map(valObj => tagWithIcon.values[valObj.value].badgecolor);
 						if (tagWithIcon.icon) {
 							icons[tagWithIcon.icon] = this.getSingleIconTemplate(tagWithIcon.icon, null, colors.sort());
 						}
@@ -108,6 +113,7 @@ export default class UserDataviewTagIcons {
 	}
 
 	getColorsGradientString(colors) {
+		if (typeof colors === "string") return `background-color: ${colors};`;
 		const fullCircleDegrees = 360;
 		const singleColorRange = Math.round(fullCircleDegrees / colors.length);
 		const colorGradient = colors.map((color, i) => `${color} 0 ${singleColorRange * (i + 1)}deg`);
@@ -116,8 +122,7 @@ export default class UserDataviewTagIcons {
 
 	getSortedIcons(icons) {
 		// get icons that are in item
-		const iconNames = this.iconsList.flat().filter(icon => icons[icon]);
-		return iconNames.map(name => icons[name]);
+		return this.iconsList.flat().filter(icon => icons[icon]).map(name => icons[name]);
 	}
 
 	getCuttedIconsTemplate(iconsArray, itemWidth) {
@@ -145,7 +150,7 @@ export default class UserDataviewTagIcons {
 
 			if (tagWithIcon && tagWithIcon.type === "pervalue" && valueId) {
 				const selectedValue = this.valueList.getItem(valueId);
-				mainIcon = tagWithIcon.values[selectedValue.name];
+				mainIcon = tagWithIcon.values[selectedValue.name].icon;
 			}
 
 			// put mainIcon to the beginning of the array

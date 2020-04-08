@@ -49,8 +49,12 @@ async function getResourceFolders(resourceId, host, token) {
 
 			const {statusCode} = response;
 			if (statusCode !== successStatusCode) {
-				const error = new Error("Request Failed.\n" +
-					`Status Code: ${statusCode}`);
+				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
+				const error = new Error(
+					`Request to ${url} failed\n
+					${errorMessage}\n
+					Status Code: ${statusCode}`
+				);
 				return reject(error);
 			}
 
