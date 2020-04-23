@@ -14,10 +14,10 @@ let movedColumnsArray = [];
 let keyPressEventId;
 
 class MetadataTableService {
-	constructor(view, metadataTable, addColumnButton, exportButton, metadataTableThumbnailsTemplate) {
+	constructor(view, metadataTable, editColumnButton, exportButton, metadataTableThumbnailsTemplate) {
 		this._view = view;
 		this._metadataTable = metadataTable;
-		this._addColumnButton = addColumnButton;
+		this._editColumnButton = editColumnButton;
 		this._exportButton = exportButton;
 		this._metadataTableThumbnailsTemplate = metadataTableThumbnailsTemplate;
 		this._ready();
@@ -36,7 +36,7 @@ class MetadataTableService {
 		this._uniqueValuesWindow = this._view.$scope.ui(UniqueValuesWindow);
 		this._editColumnsWindow = this._view.$scope.ui(EditColumnsWindow);
 
-		this._addColumnButton.attachEvent("onItemClick", () => {
+		this._editColumnButton.attachEvent("onItemClick", () => {
 			this._editColumnsWindow.buildColumnsConfig(this._metadataTable)
 				.then(([columnsToAdd, columnsToDelete]) => {
 					this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
@@ -50,6 +50,7 @@ class MetadataTableService {
 		});
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
+			this._clearDatatableFilters();
 			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
 			this._setColspansForColumnsHeader(newDatatableColumns);
 			// to prevent null header bug
@@ -145,8 +146,14 @@ class MetadataTableService {
 				const rowId = obj.row;
 				const itemToEdit = this._metadataTable.getItem(rowId);
 				const copyOfAnItemToEdit = webix.copy(itemToEdit);
-				// insert new metadata value or edit already existed
-				utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
+				try {
+					// insert new metadata value or edit already existed
+					utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
+				}
+				catch (err) {
+					webix.message(`Can't define ${columnId} property for ${copyOfAnItemToEdit.name} item`);
+					return true;
+				}
 				this._view.showProgress();
 				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
 					.then(() => {
@@ -210,21 +217,6 @@ class MetadataTableService {
 		}
 		array.splice(newIndex, 0, array.splice(oldIndex, 1)[0]);
 		return array;
-	}
-
-	_createColumnsConfig(columnsToAdd, columnsToDelete) {
-		const keys = Object.keys(metadataTableModel.metadataDotObject);
-		keys.forEach((key) => {
-			const dotNotation = key.split(".");
-			const header = dotNotation.map(text => ({text}));
-			const toDelete = columnsToDelete.find(columnToDelete => columnToDelete.id === key);
-			if (!toDelete) {
-				columnsToAdd.push({
-					id: key,
-					header
-				});
-			}
-		});
 	}
 
 	_setColspansForColumnsHeader(tableColumns) {
@@ -314,6 +306,17 @@ class MetadataTableService {
 			filterInput.removeEventListener("input", inputEvent);
 			filterInput.addEventListener("input", inputEvent);
 		}
+	}
+
+	_clearDatatableFilters() {
+		const dataviewSearchInput = webixViews.getDataviewSearchInput();
+		dataviewSearchInput.blockEvent();
+		dataviewSearchInput.setValue("");
+		dataviewSearchInput.unblockEvent();
+
+		const itemsModel = webixViews.getItemsModel();
+		const dataCollection = itemsModel.getDataCollection();
+		dataCollection.callEvent("clear-filters");
 	}
 }
 

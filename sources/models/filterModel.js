@@ -5,6 +5,10 @@ export default class FilterModel {
 	constructor(dataCollection) {
 		this.dataCollection = dataCollection;
 		this.filters = {};
+
+		this.dataCollection.attachEvent("clear-filters", () => {
+			this.clearFilters();
+		});
 	}
 
 	addFilter(name, value, type) {

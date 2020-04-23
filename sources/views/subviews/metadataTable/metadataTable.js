@@ -17,7 +17,6 @@ export default class MetadataTableCellClass extends JetView {
 			drag: true,
 			select: true,
 			editaction: "custom",
-			css: "metadata-table",
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,
@@ -93,7 +92,7 @@ export default class MetadataTableCellClass extends JetView {
 		);
 
 		if (authService.isLoggedIn()) {
-			return this.getEditColumnsPanel().show();
+			this.getEditColumnsPanel().show();
 		}
 	}
 
