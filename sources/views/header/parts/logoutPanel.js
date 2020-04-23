@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 import authService from "../../../services/authentication";
-import galleryImageUrl from "../../../models/galleryImageUrls";
 import SettingsWindow from "../windows/settings";
+import galleryImageUrl from "../../../models/galleryImageUrls";
 
 export default class LogoutPanelView extends JetView {
 	config() {
@@ -62,8 +62,11 @@ export default class LogoutPanelView extends JetView {
 	}
 
 	getUserName() {
-		const user = authService.getUserInfo() || {};
-		const name = `${user.firstName || ""} ${user.lastName || ""}`;
+		const user = authService.getUserInfo();
+		let name = "";
+		if (user) {
+			name = `${user.firstName || ""} ${user.lastName || ""}`;
+		}
 		return name;
 	}
 

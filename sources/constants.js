@@ -8,13 +8,14 @@ export default {
 
 	APP_PATHS: {
 		APP: APP_URL_PATH,
-		MAIN: `${APP_URL_PATH}///main`
+		MAIN: `${APP_URL_PATH}///main`,
+		UPLOAD_METADATA: `${APP_URL_PATH}///upload-metadata`
 	},
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
-	PATTERN_ITEM_FIELDS: "^[A-Za-z0-9._]+",
+	PATTERN_ITEM_FIELDS: "^[a-zA-Z0-9_](?:\\.?[a-zA-Z0-9_]+)*$",
 
 	SCROLL_VIEW_METADATA_ID: "scroll-view-metadata-id",
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
@@ -25,6 +26,8 @@ export default {
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 	RUN_RECOGNITION_SERVICE: "Recognition service",
+	UPLOAD_METADATA_MENU_ID: "Upload metadata",
+
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 
@@ -92,7 +95,13 @@ export default {
 		WARNS: {icon: "fas fa-exclamation-triangle", iconColor: "#FD7E14", value: "Done with errors"}
 	},
 
-	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://imageorganizer.dermannotator.org:5050",
+	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000",
 
-	EDIT_ACCESS_LEVEL: 1
+	EDIT_ACCESS_LEVEL: 1,
+
+	ALLOWED_FILE_EXTENSIONS: ["csv"],
+	ITEM_NAME_COLUMN: "filename",
+
+	ACCEPT_METADATA_LIMIT: 100,
+	ESTIMATED_LOADING_TIME: 5000 // milliseconds for 100 items
 };

@@ -318,23 +318,29 @@ function getDefaultMouseSettingsValues() {
 	return mouseSettingsValues;
 }
 
+function getMouseWebixEvent(key) {
+	let event;
+	switch (key) {
+		case constants.MOUSE_LEFT_SINGLE_CLICK: {
+			event = "onItemClick";
+			break;
+		}
+		case constants.MOUSE_RIGHT_SINGLE_CLICK: {
+			event = "onBeforeContextMenu";
+			break;
+		}
+		case constants.MOUSE_LEFT_DOUBLE_CLICK:
+		default: {
+			event = "onItemDblClick";
+			break;
+		}
+	}
+	return event;
+}
+
 function setMouseSettingsEvents(dataview, datatable, values) {
 	for (let key in values) {
-		let event;
-		switch (key) {
-			case constants.MOUSE_LEFT_SINGLE_CLICK: {
-				event = "onItemClick";
-				break;
-			}
-			case constants.MOUSE_RIGHT_SINGLE_CLICK: {
-				event = "onBeforeContextMenu";
-				break;
-			}
-			case constants.MOUSE_LEFT_DOUBLE_CLICK: {
-				event = "onItemDblClick";
-				break;
-			}
-		}
+		const event = getMouseWebixEvent(key);
 		viewMouseEvents.setDataviewMouseEvents(dataview, values[key], event);
 		viewMouseEvents.setDatatableMouseEvents(datatable, values[key], event);
 	}
@@ -523,7 +529,7 @@ function once(fn, context) {
 }
 
 function escapeURIChars(string) {
-	return string.replace(/[;,/?:@&=+$.!~*'()#]/g, "");
+	return string.replace(/[;,/?:@&=+$_.!~*'()#]/g, "");
 }
 
 function compareURLStrings(str1, str2) {
@@ -533,6 +539,30 @@ function compareURLStrings(str1, str2) {
 		return true;
 	}
 	return false;
+}
+
+function isObject(item) {
+	return (item && typeof item === "object" && !Array.isArray(item));
+}
+
+function mergeDeep(target, source) {
+	let output = Object.assign({}, target);
+	if (isObject(target) && isObject(source)) {
+		Object.keys(source).forEach((key) => {
+			if (isObject(source[key])) {
+				if (!(key in target)) {
+					Object.assign(output, {[key]: source[key]});
+				}
+				else {
+					output[key] = mergeDeep(isObject(target[key]) ? target[key] : {}, source[key]);
+				}
+			}
+			else {
+				Object.assign(output, {[key]: source[key]});
+			}
+		});
+	}
+	return output;
 }
 
 export default {
@@ -578,5 +608,8 @@ export default {
 	getSelectIcon,
 	once,
 	compareURLStrings,
-	escapeURIChars
+	escapeURIChars,
+	getMouseWebixEvent,
+	isObject,
+	mergeDeep
 };

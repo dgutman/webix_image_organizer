@@ -1,4 +1,4 @@
-import utils from "../../utils/utils";
+import utils from "../utils/utils";
 
 export default class FolderNav {
 	constructor(scope, finder) {
@@ -7,8 +7,24 @@ export default class FolderNav {
 		this.inProgress = false;
 		this.urlFolderNames = [];
 
+		this.setWaitDataPromise();
+
 		this.finder.attachEvent("onSelectChange", () => {
 			this.setFoldersIntoUrl();
+		});
+
+		this.finder.data.attachEvent("onStoreUpdated", () => {
+			if (!this.finder.count()) {
+				this.setWaitDataPromise();
+			}
+		});
+	}
+
+	setWaitDataPromise() {
+		this.waitData = new Promise((resolve) => {
+			this.finder.attachEvent("onAfterLoad", () => {
+				resolve();
+			});
 		});
 	}
 
@@ -24,7 +40,7 @@ export default class FolderNav {
 				this.urlFolderNames = [];
 			}
 
-			this.finder.waitData.then(() => {
+			this.waitData.then(() => {
 				this.openSingleFolder(this.urlFolderNames[0]);
 			});
 		}
@@ -61,9 +77,14 @@ export default class FolderNav {
 		// check if folder is last in URL folder names and if it has selected child items
 		const compareNames = utils.compareURLStrings(folder.name, this.urlFolderNames[this.urlFolderNames.length - 1]);
 		const selectedItem = this.finder.getSelectedItem();
-		const isFolder = selectedItem._modelType === "folder";
-		const isFolderHasSelectedItem = !isFolder && selectedItem.$parent === folder.id;
-		return selectedItem.id !== folder.id && !isFolderHasSelectedItem && compareNames;
+		let selectedItemQualifier = true;
+		if (selectedItem) {
+			const isFolder = selectedItem._modelType === "folder";
+			const isFolderHasSelectedItem = !isFolder && +selectedItem.$parent === folder.id;
+			selectedItemQualifier = selectedItem.id !== folder.id && !isFolderHasSelectedItem;
+		}
+		
+		return selectedItemQualifier && compareNames;
 	}
 
 	findFolderByName(name) {
@@ -77,7 +98,7 @@ export default class FolderNav {
 			let parentId = this.finder.getParentId(selectedFolderId);
 			do {
 				const folder = this.finder.getItem(selectedFolderId);
-				if (folder._modelType === "folder") folders.unshift(utils.escapeURIChars(folder.name));
+				if (folder._modelType === "folder") folders.unshift(folder.name);
 				selectedFolderId = parentId;
 				parentId = selectedFolderId ? this.finder.getParentId(selectedFolderId) : null;
 			}
