@@ -21,6 +21,7 @@ const notesRoutes = require("./routes/notes");
 const authRoutes = require("./routes/auth");
 const foldersRoutes = require("./routes/folders");
 const tasksRoutes = require("./routes/tasks");
+const notificationsRoutes = require("./routes/notifications");
 
 app.use(bodyParser.urlencoded({limit: "10mb", extended: false}));
 app.use(bodyParser.json({limit: "10mb"}));
@@ -36,6 +37,7 @@ app.use("/api/confidence", confidenceRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/folders", foldersRoutes);
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/notifications", notificationsRoutes);
 app.use("/api/auth", authRoutes);
 
 // global error handler

@@ -23,17 +23,14 @@ const imagesSchema = new Schema({
 	folderId: {
 		type: String, required: true
 	},
-	updatedDate: {
-		type: Date, default: new Date()
-	},
-	addedDate: {
-		type: Date, default: new Date()
-	},
 	userId: {
 		type: String, required: true
 	},
 	mainId: {
 		type: String, required: true
+	},
+	taskId: {
+		type: Schema.Types.ObjectId
 	},
 	isReviewed: {
 		type: Boolean, default: false
@@ -41,7 +38,7 @@ const imagesSchema = new Schema({
 	isUpdated: {
 		type: Boolean, default: false
 	}
-});
+}, {timestamps: {createdAt: "addedDate", updatedAt: "updatedDate"}});
 imagesSchema.set("toJSON", {virtuals: false});
 
 imagesSchema.statics.groupByCollectionIds = async function groupByCollectionIds(ids) {

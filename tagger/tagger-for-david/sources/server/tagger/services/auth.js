@@ -41,7 +41,7 @@ async function login(hostApi, authHeader) {
 				const user = body.user;
 				const expireDate = new Date(body.authToken.expires);
 				const expiresIn = expireDate.getTime() - Date.now();
-				const token = jwt.sign({sub: user._id, lvl: user._accessLevel, prms: user.admin, exp: expiresIn}, process.env.SECRET_KEY);
+				const token = jwt.sign({sub: user._id, prms: user.admin, exp: expiresIn}, process.env.SECRET_KEY);
 				body.taggerJWT = token;
 
 				resolve(body);
@@ -76,7 +76,7 @@ async function logout(host, token, user) {
 			let body = "";
 			const {statusCode} = response;
 			if (statusCode !== successStatusCode) {
-				const errorMessage = response.body && response.body.message ? `with message: ${body.message}` : "&lt;none&gt;";
+				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
 				const error = new Error(
 					`Request to ${url} failed\n
 					${errorMessage}\n
