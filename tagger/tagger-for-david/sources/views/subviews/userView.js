@@ -3,6 +3,7 @@ import dot from "dot-object";
 import galleryImageUrl from "../../models/galleryImageUrls";
 import nonImageUrls from "../../models/nonImageUrls";
 import ajaxService from "../../services/ajaxActions";
+import auth from "../../services/authentication";
 import constants from "../../constants";
 import UserViewService from "../../services/user/userService";
 import UserDataviewTagIcons from "../components/dataviewItemIcons";
@@ -356,6 +357,10 @@ export default class TaggerUserView extends JetView {
 	}
 
 	ready(view) {
+		if (auth.isAdmin()) {
+			this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
+		}
+
 		this.dataview = this.getUserDataview();
 		this.dataviewIcons = new UserDataviewTagIcons(this.getTagSelect(), this.getValueSelect());
 		this.userViewService = new UserViewService(view, this.dataviewIcons);

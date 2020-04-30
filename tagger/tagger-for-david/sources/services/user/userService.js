@@ -10,6 +10,7 @@ import constants from "../../constants";
 import InfoPopup from "../../views/windows/infoPopup";
 import hotkeysFactory from "./hotkeys";
 import AsyncQueue from "../asyncQueue";
+import notificationsModel from "../../models/notificationsModel";
 
 export default class UserViewService {
 	constructor(view, iconsTemplateService) {
@@ -101,6 +102,7 @@ export default class UserViewService {
 	}
 
 	_loggedInUserService() {
+		this._showPopupNotifications();
 		this._getTasks();
 		const tagList = this._tagSelect.getList();
 		const valuesList = this._valueSelect.getList();
@@ -621,5 +623,34 @@ export default class UserViewService {
 		const taskIds = tasks.map(task => task._id);
 
 		return transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
+	}
+
+	_showPopupNotifications() {
+		notificationsModel.collection.waitData
+			.then(() => {
+				const newItems = notificationsModel
+					.collection.data
+					.serialize()
+					.filter(not => !not.isRead);
+
+				newItems.forEach((not) => {
+					webix.message({
+						text: this._getWebixMessageNotificationText(not),
+						type: "info",
+						expire: 5000
+					});
+				});
+			});
+	}
+
+	_getWebixMessageNotificationText(notification) {
+		const text = notification.text.length > constants.WEBIX_MESSAGE_TEXT_LIMIT ?
+			`${notification.text.slice(0, constants.WEBIX_MESSAGE_TEXT_LIMIT).trim()}...` :
+			notification.text;
+
+		return `<span class='strong-font ellipsis-text'>
+					${notification.taskName}
+				</span>
+				<span>${text}</span>`;
 	}
 }

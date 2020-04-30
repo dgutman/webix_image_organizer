@@ -62,7 +62,7 @@ export default class TaggerHeaderClass extends JetView {
 			name: "logoutMenu",
 			css: "logout-menu",
 			openAction: "click",
-			width: 185,
+			autowidth: true,
 			data: [
 				{
 					id: "name",

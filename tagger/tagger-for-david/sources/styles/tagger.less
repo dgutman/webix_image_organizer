@@ -597,6 +597,59 @@
             font-size: @middle-font-size;
             height: 100%;
         }
+
+        .tagger-dashboard {
+            border: 1px solid @lines-color !important;
+            .progress-header {
+                text-align: center;
+                line-height: 20px !important;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .user-notifications-list {
+            background: @dark-main-bg;
+            .webix_list_item {
+                margin: 15px;
+                padding: 0;
+                background: @main-bg;
+            }
+            .user-notification {
+                cursor: default;
+                font-family: @main-font;
+                .user-notification-header {
+                    padding: 5px 15px;
+                    display: flex;
+                    justify-content: space-between;
+                    border-bottom: 1px solid @lines-color;
+                    .task-name {
+                        position: relative;
+                        font-size: @middle-font-size;
+                        font-weight: 600;
+                    }
+                    .date {
+                        font-size: @main-font-size;
+                    }
+                    .new-flag {
+                        color: #ff8839;
+                        position: absolute;
+                        font-size: 12px;
+                        top: 9px;
+                        right: -16px;
+                    }
+                    .remove-icon {
+                        &:hover {
+                            color: @btn-hover;
+                            cursor: pointer;
+                        }
+                    }
+                }
+                .user-notification-body {
+                    padding: 0 10px;
+                }
+            }
+        }
     }
     .list-edit-textarea {
         white-space: pre-line;

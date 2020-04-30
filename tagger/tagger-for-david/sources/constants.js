@@ -9,8 +9,11 @@ export default {
 	APP_PATHS: {
 		TAGGER: TAGGER_PATH,
 		TAGGER_ADMIN: `${TAGGER_PATH}/admin`,
-		TAGGER_USER: `${TAGGER_PATH}/user`
+		TAGGER_ADMIN_DASHBOARD: "/dashboard",
+		TAGGER_USER: `${TAGGER_PATH}/user`,
+		TAGGER_USER_NOTIFICATIONS: "/notifications"
 	},
+	ADMIN_VIEW_PATTERN: "^(\\/app\\/admin|app\\/admin|\\/dashboard)",
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
@@ -64,5 +67,9 @@ export default {
 
 	TAGGER_TASKS_COLLECTION_ID:  process.env.TAGGER_TASKS_COLLECTION_ID,
 
-	TAGGER_NO_VALUE_FILTER: "&lt;no value&gt;"
+	TAGGER_NO_VALUE_FILTER: "&lt;no value&gt;",
+
+	DEFAULT_NOTIFICATION_TEXT: "Dear Colleague,\n\nplease, speed up task completion. We hope, that your progress can be increased.\n\nAdministration.",
+
+	WEBIX_MESSAGE_TEXT_LIMIT: 140
 };
