@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const CONFIG = require("./etc/config.json");
+const CONFIG = require("./etc/config.js");
 
 mongoose.connect(`mongodb://${CONFIG.db.host}:${CONFIG.db.port}/${CONFIG.db.name}`, {useUnifiedTopology: true, useNewUrlParser: true, useCreateIndex: true});
 

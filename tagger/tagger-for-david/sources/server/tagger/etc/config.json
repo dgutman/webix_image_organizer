@@ -1,8 +1,0 @@
-{
-  "serverPort": 4000,
-  "db":{
-    "name": "taggerdb",
-    "host": "localhost",
-    "port": 27017
-  }
-}
