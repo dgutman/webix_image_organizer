@@ -24,7 +24,9 @@ class NotificationModel {
 				.then(() => {
 					setTimeout(() => {
 						data.forEach((item) => {
-							this.collection.updateItem(item.id, {isRead: true});
+							if (this.collection.exists(item.id)) {
+								this.collection.updateItem(item.id, {isRead: true});
+							}
 						});
 					}, 2000);
 				});

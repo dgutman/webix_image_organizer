@@ -1,44 +1,9 @@
 import constants from "../constants";
+import AjaxClass from "./ajaxClass";
 
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
 
-function parseError(xhr) {
-	let message;
-	switch (xhr.status) {
-		case 404: {
-			message = "Not found";
-			webix.message({type: "error", text: message});
-			break;
-		}
-		default: {
-			try {
-				let response = JSON.parse(xhr.response);
-				message = response.message;
-			}
-			catch (e) {
-				message = xhr.response;
-				console.log(`Not JSON response for request to ${xhr.responseURL}`);
-			}
-			webix.message({text: message, expire: 5000});
-			break;
-		}
-	}
-	return Promise.reject(xhr);
-}
-
-class TransitionalAjaxService {
-	getHostApiUrl() {
-		return webix.storage.local.get("hostAPI");
-	}
-
-	_ajax() {
-		return webix.ajax();
-	}
-
-	_parseData(data) {
-		return data ? data.json() : data;
-	}
-
+class TransitionalAjaxService extends AjaxClass {
 	login(sourceParams) {
 		const params = sourceParams ? {
 			username: sourceParams.username || 0,
@@ -57,7 +22,7 @@ class TransitionalAjaxService {
 				Authorization: `Basic ${hash}`
 			})
 			.get(`${TRANSITIONAL_API}/auth`, {redirect_url: this.getHostApiUrl()})
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -67,7 +32,7 @@ class TransitionalAjaxService {
 		};
 
 		return webix.ajax().del(`${TRANSITIONAL_API}/auth`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -76,7 +41,7 @@ class TransitionalAjaxService {
 			collectionIds: collectionIds || []
 		};
 		return this._ajax().get(`${TRANSITIONAL_API}/tags/collection`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -86,7 +51,7 @@ class TransitionalAjaxService {
 			collectionIds
 		};
 		return this._ajax().post(`${TRANSITIONAL_API}/tags`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -95,7 +60,7 @@ class TransitionalAjaxService {
 			tags
 		};
 		return this._ajax().put(`${TRANSITIONAL_API}/tags/many`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -104,7 +69,7 @@ class TransitionalAjaxService {
 			tagIds
 		};
 		return this._ajax().del(`${TRANSITIONAL_API}/tags`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -117,7 +82,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/images/resource`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -129,7 +94,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/folders/resource`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -145,7 +110,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/tag/${tag}/collections`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -161,7 +126,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/tag/${tag}/folders`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -174,7 +139,7 @@ class TransitionalAjaxService {
 		if (filters) params.filters = filters;
 
 		return this._ajax().get(`${TRANSITIONAL_API}/images/task`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -186,7 +151,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/images/review`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -196,7 +161,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/images/unreview`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -210,7 +175,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/images/many`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -220,7 +185,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/values`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -230,7 +195,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/values/tag`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -239,19 +204,19 @@ class TransitionalAjaxService {
 			values
 		};
 		return this._ajax().put(`${TRANSITIONAL_API}/values/many`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
 	getConfidenceLevels() {
 		return this._ajax().get(`${TRANSITIONAL_API}/confidence`)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
 	getNotesByUser(userId) {
 		return this._ajax().get(`${TRANSITIONAL_API}/notes/${userId}`)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -262,7 +227,7 @@ class TransitionalAjaxService {
 			userId
 		};
 		return this._ajax().post(`${TRANSITIONAL_API}/notes`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -271,13 +236,13 @@ class TransitionalAjaxService {
 			content: content || ""
 		};
 		return this._ajax().put(`${TRANSITIONAL_API}/notes/${id}`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
 	removeNote(id) {
 		return this._ajax().del(`${TRANSITIONAL_API}/notes/${id}`)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -289,7 +254,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/tasks`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -299,7 +264,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/tags/task`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -310,7 +275,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/tasks/check/${taskId}`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -322,13 +287,13 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/tasks/data`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
 	getNotifications() {
 		return this._ajax().get(`${TRANSITIONAL_API}/notifications`)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -339,7 +304,7 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/notifications`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
@@ -349,13 +314,13 @@ class TransitionalAjaxService {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/notifications`, params)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
 	removeNotification(id) {
 		return this._ajax().del(`${TRANSITIONAL_API}/notifications/${id}`)
-			.fail(parseError)
+			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 }
