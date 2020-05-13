@@ -50,6 +50,6 @@
     "openseadragon": "^2.3.1",
     "path": "^0.12.7",
     "webix": "6.2.0",
-    "webix-jet": "^1.5.3"
+    "webix-jet": "^2.0.0"
   }
 }
