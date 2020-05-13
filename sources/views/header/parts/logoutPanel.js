@@ -62,7 +62,7 @@ export default class LogoutPanelView extends JetView {
 	}
 
 	getUserName() {
-		const user = authService.getUserInfo();
+		const user = authService.getUserInfo() || {};
 		const name = `${user.firstName || ""} ${user.lastName || ""}`;
 		return name;
 	}

@@ -2,12 +2,19 @@ import {JetApp, plugins} from "webix-jet";
 import "./styles/app.less";
 import state from "./models/state";
 import utils from "./utils/utils";
+import constants from "./constants";
+import Header from "./views/header/header";
+import MainView from "./views/main/main";
 
 webix.ready(() => {
 	const app = new JetApp({
 		id: "",
 		version: "",
-		start: "/main"
+		start: constants.APP_PATHS.MAIN,
+		views: {
+			app: Header,
+			main: MainView
+		}
 	});
 
 	app.render();
