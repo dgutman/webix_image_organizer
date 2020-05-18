@@ -1,3 +1,5 @@
+import constants from "../constants";
+
 function getTagValue(obj) {
 	let value = "";
 	switch (typeof obj) {
@@ -14,6 +16,12 @@ function getTagValue(obj) {
 	return value;
 }
 
+function isAdminView(url) {
+	const regex = new RegExp(constants.ADMIN_VIEW_PATTERN);
+	return regex.test(url);
+}
+
 export default {
-	getTagValue
+	getTagValue,
+	isAdminView
 };

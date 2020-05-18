@@ -27,8 +27,21 @@ function checkTask(req, res, next) {
 		.catch(err => next(err));
 }
 
+function getTasksData(req, res, next) {
+	const collectionId = req.query.collectionId;
+	const host = req.query.host;
+	const token = req.headers["girder-token"];
+	const userId = req.user ? req.user.sub : null;
+	const isAdmin = req.user ? req.user.prms : false;
+
+	tasksService.getTasksData(collectionId, host, token, userId, isAdmin)
+		.then(data => res.json({data}))
+		.catch(err => next(err));
+}
+
 // routes
 router.get("/", getTasks);
+router.get("/data", getTasksData);
 router.put("/check/:id", checkTask);
 
 module.exports = router;

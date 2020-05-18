@@ -18,7 +18,7 @@ function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
 }
 
-async function getResourceImages(collectionId, hostApi, token, userId, type) {
+async function getResourceImages(collectionId, hostApi, token, userId, type, taskId) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
 
@@ -28,7 +28,7 @@ async function getResourceImages(collectionId, hostApi, token, userId, type) {
 			let body = "";
 			const {statusCode} = response;
 			if (statusCode !== successStatusCode) {
-				const errorMessage = response.body && response.body.message ? `with message: ${body.message}` : "&lt;none&gt;";
+				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
 				const error = new Error(
 					`Request to ${url} failed\n
 					${errorMessage}\n
@@ -119,6 +119,7 @@ async function getResourceImages(collectionId, hostApi, token, userId, type) {
 					else image.meta = {};
 					image.userId = userId;
 					image.mainId = image._id;
+					if (taskId) image.taskId = taskId;
 					delete image._id;
 					return image;
 				});
@@ -488,7 +489,9 @@ async function reviewImage(id, tags, taskIds, userId, preliminarily, isUpdated) 
 	Object.assign(image.meta.tags, tags);
 	image.isReviewed = !preliminarily;
 	image.isUpdated = isUpdated;
+	image.updatedDate = imageUpdatedDate.getDate();
 
+	image.markModified("updatedDate");
 	image.markModified("meta");
 	return image.save();
 }
@@ -519,7 +522,8 @@ async function unreviewTaskImages(taskIds, userId) {
 			folderId: {$in: nestedFolderIds}
 		},
 		{$set: { // updated fields
-			isReviewed: false
+			isReviewed: false,
+			updatedDate: imageUpdatedDate.getDate()
 		}}
 	);
 

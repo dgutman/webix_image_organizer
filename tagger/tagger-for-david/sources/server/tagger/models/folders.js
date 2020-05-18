@@ -14,9 +14,6 @@ const foldersSchema = new Schema({
 	},
 	baseParentId: {
 		type: String, required: true
-	},
-	nestedFolderIds: {
-		type: [String], default: []
 	}
 });
 

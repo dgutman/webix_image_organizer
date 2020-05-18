@@ -21,6 +21,9 @@ const tasksSchema = new Schema({
 	folderId: {
 		type: String, required: true
 	},
+	deadline: {
+		type: Date
+	},
 	checked_out: {
 		type: Boolean,
 		default: false

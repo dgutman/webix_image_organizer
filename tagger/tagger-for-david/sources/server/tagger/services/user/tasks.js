@@ -10,11 +10,12 @@ const imagesService = require("../images");
 const ObjectID = mongoose.mongo.ObjectID;
 const successStatusCode = 200;
 
-async function deleteUncheckedTasks(userId) {
+async function deleteUncheckedTasks(userId, isAdmin) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"}
 
-	const tasksToDelete = await Tasks.find({userId, checked_out: false});
+	const tasksToDeleteQuery = isAdmin ? {checked_out: false} : {userId, checked_out: false};
+	const tasksToDelete = await Tasks.find(tasksToDeleteQuery);
 	const taskIdsToDelete = tasksToDelete.map(task => task._id);
 	const tagsToDelete = await Tags.find({taskId: {$in: taskIdsToDelete}});
 	const tagIdsToDelete = tagsToDelete.map(tag => tag._id);
@@ -26,12 +27,11 @@ async function deleteUncheckedTasks(userId) {
 	]);
 }
 
-async function getTasks(collectionId, host, token, userId) {
+async function getNewTasksFromGirger(collectionId, host, token, userId, isAdmin) {
 	// validation
-	if (!userId) throw {name: "UnauthorizedError"}
 	if (!collectionId) throw "Field \"collectionId\" should be set";
 
-	const url = `${host}/folder?parentType=collection&parentId=${collectionId}&limit=0`;
+	const url = `${host}/folder/query?query={"baseParentId": {"$oid": "${collectionId}"}}&limit=0`;
 	const options = {
 		url,
 		json: true,
@@ -44,7 +44,8 @@ async function getTasks(collectionId, host, token, userId) {
 	let tags = [];
 	let values = [];
 
-	const existingTasks = await Tasks.find({userId, checked_out: true});
+	const existingTasksQuery = isAdmin ? {} : {userId};
+	const existingTasks = await Tasks.find(existingTasksQuery);
 	let newTasks = await new Promise((resolve, reject) => {
 		request(options, async (err, response, body) => {
 			if (err) {
@@ -66,13 +67,18 @@ async function getTasks(collectionId, host, token, userId) {
 	});
 	// filter new tasks
 	newTasks = newTasks
-		.filter(folder => dot.pick("meta.taggerMetadata.task.user._id", folder) === userId
-		&& !existingTasks.find(task => task.folderId === folder._id))
+		.filter((folder) => {
+			const taskData = dot.pick("meta.taggerMetadata.task", folder);
+			const taskUserId = dot.pick("user._id", taskData || {});
+			const checkOwner = isAdmin ? true : taskUserId === userId;
+			return taskData && checkOwner && !existingTasks.find(task => (task.checked_out && task.folderId === folder._id));
+		})
 		.map((folder) => {
 			const task = folder.meta.taggerMetadata.task;
+			const existedTask = existingTasks.find(exTask => exTask.name === task.name && exTask.folderId === folder._id);
 
 			const taskProps = {
-				_id: new ObjectID(),
+				_id: existedTask ? existedTask._id : new ObjectID(),
 				folderId: folder._id,
 				parentId: folder.parentId,
 				baseParentId: folder.baseParentId,
@@ -105,15 +111,22 @@ async function getTasks(collectionId, host, token, userId) {
 		});
 
 	// delete old unchecked tasks with tags and values
-	await deleteUncheckedTasks(userId);
+	await deleteUncheckedTasks(userId, isAdmin);
 
 	// insert new unchecked tasks with tags and values
-	await Promise.all([
+	return Promise.all([
 		Tasks.insertMany(newTasks),
 		Tags.insertMany(tags),
 		Values.insertMany(values)
 	]);
+}
 
+async function getTasks(collectionId, host, token, userId) {
+	// validation
+	if (!userId) throw {name: "UnauthorizedError"}
+	if (!collectionId) throw "Field \"collectionId\" should be set";
+
+	await getNewTasksFromGirger(collectionId, host, token, userId);
 	return Tasks.find({userId});
 }
 
@@ -122,6 +135,7 @@ async function checkTask(taskId, hostApi, token, userId) {
 
 	// validation
 	if (!task) throw "Task not found";
+	if (task.checked_out) throw `The task ${taskId} has already loaded`;
 	if (!userId) throw {name: "UnauthorizedError"}
 
 	const promises = [];
@@ -130,7 +144,7 @@ async function checkTask(taskId, hostApi, token, userId) {
 	if (!folder) {
 		promises.push(folderService.getResourceFolders(task.baseParentId, hostApi, token));
 	}
-	promises.push(imagesService.getResourceImages(task.folderId, hostApi, token, userId, "folder")
+	promises.push(imagesService.getResourceImages(task.folderId, hostApi, token, userId, "folder", taskId)
 		.then(async (images) => {
 			const defaultTagValues = await Tags.collectDefaultValues(taskId);
 			return imagesService.setTagsByTask(images, defaultTagValues);
@@ -142,7 +156,109 @@ async function checkTask(taskId, hostApi, token, userId) {
 	return task.save();
 }
 
+async function getUsersFromGirger(host, token, userId, isAdmin) {
+	// validation
+	if (!userId || !isAdmin) throw {name: "UnauthorizedError"};
+
+	const url = `${host}/user?limit=0&sort=lastName`;
+	const options = {
+		url,
+		json: true,
+		method: "GET",
+		headers: {
+			"Girder-Token": token
+		}
+	};
+
+	return new Promise((resolve, reject) => {
+		request(options, async (err, response, body) => {
+			if (err) {
+				return reject(err);
+			}
+
+			const {statusCode} = response;
+			if (statusCode !== successStatusCode) {
+				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
+				const error = new Error(
+					`Request to ${url} failed\n
+					${errorMessage}\n
+					Status Code: ${statusCode}`
+				);
+				return reject(error);
+			}
+			resolve(body);
+		});
+	});
+}
+
+async function getTasksData(collectionId, host, token, userId, isAdmin) {
+	// validation
+	if (!userId || !isAdmin) throw {name: "UnauthorizedError"};
+	if (!collectionId) throw "Field \"collectionId\" should be set";
+
+	const [, users] = await Promise.all([
+		getNewTasksFromGirger(collectionId, host, token, userId, isAdmin),
+		getUsersFromGirger(host, token, userId, isAdmin)
+	]);
+
+	const aggregatePipeline = [
+		{$match: {}},
+		{
+			$lookup: {
+				from: "images",
+				localField: "_id",
+				foreignField: "taskId",
+				as: "images"
+			}
+		},
+		{
+			$project: {
+				_id: 1,
+				name: 1,
+				checked_out: 1,
+				userId: 1,
+				deadline: 1,
+				latest: {$max: "$images.updatedDate"},
+				count: {
+					$size: "$images"
+				},
+				reviewed: {
+					$filter: {
+						input: "$images",
+						as: "item",
+						cond: {$eq: ["$$item.isReviewed", true]}
+					}
+				}
+			}
+		},
+		{
+			$project: {
+				_id: 1,
+				name: 1,
+				checked_out: 1,
+				userId: 1,
+				deadline: 1,
+				latest: 1,
+				count: 1,
+				reviewed: {
+					$size: "$reviewed"
+				}
+			}
+		},
+		{$sort: {checked_out: -1, userId: 1, name: 1, _id: 1}}
+	];
+
+	const tasks = await Tasks.aggregate(aggregatePipeline);
+
+	return tasks.map((task) => {
+		const taskUser = users.find(user => user._id === task.userId.toString());
+		task.userName = taskUser ? `${taskUser.firstName || ""} ${taskUser.lastName || ""}` : "unreachable";
+		return task;
+	});
+}
+
 module.exports = {
 	getTasks,
-	checkTask
+	checkTask,
+	getTasksData
 };

@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --env.production true",
     "start": "webpack-dev-server --no-inline",
-    "server": "nodemon sources/server/tagger"
+    "server": "nodemon sources/server/tagger",
+    "merge-script": "node sources/server/tagger/temporary/merge-data.js",
+    "debug-server": "nodemon --inspect sources/server/tagger/index.js"
   },
   "keywords": [
     "webix",

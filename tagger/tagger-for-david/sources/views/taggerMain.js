@@ -22,13 +22,4 @@ export default class TaggerMainClass extends JetView {
 	init() {
 		undoFactory.clear();
 	}
-
-	urlChange() {
-		if (auth.isAdmin()) {
-			this.app.show(constants.APP_PATHS.TAGGER_ADMIN);
-		}
-		else {
-			this.app.show(constants.APP_PATHS.TAGGER_USER);
-		}
-	}
 }

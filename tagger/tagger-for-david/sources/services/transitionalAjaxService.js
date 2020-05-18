@@ -313,6 +313,51 @@ class TransitionalAjaxService {
 			.fail(parseError)
 			.then(result => this._parseData(result));
 	}
+
+	getTaskData(collectionId) {
+		const hostApi = this.getHostApiUrl();
+		const params = {
+			collectionId: collectionId || constants.TAGGER_TASKS_COLLECTION_ID,
+			host: hostApi
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/tasks/data`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getNotifications() {
+		return this._ajax().get(`${TRANSITIONAL_API}/notifications`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	sendNotifications(text, taskIds) {
+		const params = {
+			taskIds: taskIds || [],
+			text: text || ""
+		};
+
+		return this._ajax().post(`${TRANSITIONAL_API}/notifications`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	readNotifications(ids) {
+		const params = {
+			ids: ids || []
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/notifications`, params)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	removeNotification(id) {
+		return this._ajax().del(`${TRANSITIONAL_API}/notifications/${id}`)
+			.fail(parseError)
+			.then(result => this._parseData(result));
+	}
 }
 
 const instance = new TransitionalAjaxService();

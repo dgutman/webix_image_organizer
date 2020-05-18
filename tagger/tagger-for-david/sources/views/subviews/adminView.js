@@ -1,6 +1,8 @@
 import {JetView} from "webix-jet";
 import mainColumns from "./mainColumns/mainColumns";
 import notesView from "./notesView/notesView";
+import constants from "../../constants";
+import auth from "../../services/authentication";
 
 export default class TaggerAdminView extends JetView {
 	config() {
@@ -22,5 +24,11 @@ export default class TaggerAdminView extends JetView {
 		};
 
 		return ui;
+	}
+
+	ready() {
+		if (!auth.isAdmin()) {
+			this.app.show(constants.APP_PATHS.TAGGER_USER);
+		}
 	}
 }
