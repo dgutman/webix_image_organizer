@@ -38,7 +38,7 @@ function setFaIconsForDatatable(obj) {
 			break;
 		}
 	}
-	return `<span class='webix_icon far ${icon}'></span> ${obj.name}`;
+	return `<span class='item-icon webix_icon far ${icon}'></span> ${obj.name}`;
 }
 
 function getLocalStorageColumnsConfig() {
@@ -62,7 +62,9 @@ function setSelectFilterOptions(filterType, columnId, datatable, initial) {
 	let options = [];
 	if (filterType === "select") {
 		options = [{id: "", value: ""}, {id: "empty_value", value: "empty value"}];
-		datatable.data.each((item) => {
+		const itemsModel = webixViews.getItemsModel();
+		const dataCollection = itemsModel.getDataCollection();
+		dataCollection.data.serialize(true).forEach((item) => {
 			if (initial) {
 				const value = columnId === "_modelType" && !item[columnId] ? "item" : item[columnId];
 				const index = options.map(obj => obj.value).indexOf(value);
@@ -97,38 +99,6 @@ function getMetadataColumnTemplate(obj, columnId) {
 		}
 	}
 	return "No present metadata";
-}
-
-function compareColumnFilter(value, filter, obj, columnId, filterType, filterTypeValue, initial) {
-	if (initial) {
-		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-			const date = new Date(value);
-			const formatToSting = webix.Date.dateToStr("%m/%d/%y");
-			const dateToCompare = formatToSting(date);
-			return dateToCompare.indexOf(filter) !== -1;
-		}
-		else if (filterType === "text") {
-			return obj[columnId].toString().toLowerCase().indexOf(filter) !== -1;
-		}
-		else if (filterType === "select") {
-			return obj[columnId].toString().toLowerCase() === filter;
-		}
-	}
-	else if (obj && obj.hasOwnProperty("meta")) {
-		let metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
-		if (!metadataColumnValue && metadataColumnValue !== 0 && metadataColumnValue !== "") {
-			metadataColumnValue = "null";
-		}
-		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-			return metadataColumnValue.toString().indexOf(filter) !== -1;
-		}
-		else if (filterType === "text") {
-			return metadataColumnValue.toString().toLowerCase().indexOf(filter) !== -1;
-		}
-		else if (filterType === "select") {
-			return metadataColumnValue.toString() === filter;
-		}
-	}
 }
 
 function getForHeaderValue(columnConfig, columnHeaderLength) {
@@ -268,10 +238,12 @@ function getColumnsForDatatable(datatable) {
 				localColumnHeader.push({
 					content: `${filterType}Filter`,
 					options: setSelectFilterOptions(filterType, columnId, datatable, localColumnConfig.initial),
-					placeholder,
-					compare: (value, filter, obj) => compareColumnFilter(value, filter, obj,
-						columnId, filterType, filterTypeValue, localColumnConfig.initial)
+					placeholder
 				});
+			}
+			else {
+				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
 			}
 
 			if (!localColumnConfig.initial) {
@@ -352,5 +324,6 @@ export default {
 	putNewItemFieldsToStorage,
 	clearNewItemFieldsInStorage,
 	getLocalStorageNewItemFields,
+	setFaIconsForDatatable,
 	metadataDotObject
 };

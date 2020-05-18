@@ -41,13 +41,14 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
-    "file-saver": "^2.0.0",
     "PubSub": "^3.4.0",
     "codemirror": "^5.39.2",
     "dot-object": "^1.7.1",
+    "file-saver": "^2.0.0",
     "json-formatter-js": "^2.2.0",
     "jsoneditor": "^6.1.0",
     "openseadragon": "^2.3.1",
+    "papaparse": "^5.1.1",
     "path": "^0.12.7",
     "webix": "6.2.0",
     "webix-jet": "^2.0.0"

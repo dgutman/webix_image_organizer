@@ -62,7 +62,7 @@ class HeaderService {
 		this._collectionBox.attachEvent("onChange", (id, oldId) => {
 			const collectionItem = this._collectionBox.getList().getItem(id);
 			this._view.$scope.setParam("collection", collectionItem.name, true);
-			this._view.$scope.app.callEvent("collectionChange", [id, collectionItem]);
+			this._view.$scope.app.callEvent("collectionChange", [id, collectionItem, oldId]);
 		});
 	}
 	

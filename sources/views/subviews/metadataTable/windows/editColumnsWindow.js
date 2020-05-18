@@ -15,9 +15,7 @@ export default class EditColumnsWindow extends JetView {
 			view: "button",
 			css: "btn",
 			name: "addButton",
-			type: "iconButton",
-			icon: "fas fa-plus",
-			label: "Add",
+			label: "Add new",
 			height: 30,
 			width: 100,
 			click: () => this.newColumnsService.addNewColumn()
@@ -71,7 +69,13 @@ export default class EditColumnsWindow extends JetView {
 			rows: [
 				{
 					css: "new-columns-header new-columns-header-main",
-					template: "New columns:",
+					template: "<i class='fas fa-info-circle'></i> New columns:",
+					tooltip: `This form allows to define columns for nested fields by "Dot Notation".
+								<br />Column header will be filled by the value of the last specified property
+								<br /> <b class='strong-font'>For example:</b> 
+								<br /> If you specify "<b class='strong-font'>my.test.data.field</b>" column
+								<br /> the column header will be filled by "<b class='strong-font'>field</b>" value
+								`,
 					height: 30
 				},
 				{
@@ -183,12 +187,12 @@ export default class EditColumnsWindow extends JetView {
 		return this.getRoot().queryView({name: "newColumnsLayoutView"});
 	}
 
-	getActionButton(nameValue) {
-		return this.getRoot().queryView({actionButtonName: `${nameValue}-button`});
+	getActionButton(nameValue, isInitial) {
+		return this.getRoot().queryView({actionButtonName: `${nameValue}-button${isInitial ? "" : "-meta"}`});
 	}
 
-	getFilterTypeField(nameValue) {
-		return this.getRoot().queryView({name: `${nameValue}-filterType`});
+	getFilterTypeField(nameValue, isInitial) {
+		return this.getRoot().queryView({name: `${nameValue}-filterType${isInitial ? "" : "-meta"}`});
 	}
 
 	removeOldDatatableColumns(columnConfig) {
@@ -200,7 +204,7 @@ export default class EditColumnsWindow extends JetView {
 				delete existedColumn.filterTypeValue;
 				return existedColumn;
 			}
-			return existedColumn.id !== columnConfig.id;
+			return !columnConfig.initial && existedColumn.id !== columnConfig.id;
 		});
 
 		metadataTableModel.putInLocalStorage(newDatatableColumns, this.userInfo._id);
@@ -245,8 +249,32 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	createFormElement(columnConfig, buttonIcon) {
+		const newFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+		const isNew = newFields.includes(columnConfig.id);
+		const isInitial = columnConfig.initial;
+
 		const columnTextValue = columnConfig.id;
 		const headerTextValue = metadataTableModel.getHeaderTextValue(columnConfig);
+
+		const usersColId = webix.uid();
+		const deleteButton = {
+			view: "button",
+			type: "icon",
+			icon: "fas fa-times",
+			width: 30,
+			click: () => {
+				this.removeOldDatatableColumns(columnConfig);
+
+				const localNewItemFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+				const remainingItemFields = localNewItemFields.filter(id => id !== columnConfig.id);
+				metadataTableModel.putNewItemFieldsToStorage(remainingItemFields, this.userInfo._id);
+				const usersSection = $$("users-section");
+				if (!remainingItemFields.length && usersSection) {
+					this.getWindowForm().removeView(usersSection.config.id);
+				}
+				this.getWindowForm().removeView(usersColId);
+			}
+		};
 
 		const element = {
 			cols: [
@@ -269,7 +297,7 @@ export default class EditColumnsWindow extends JetView {
 				{width: 10},
 				{
 					view: "select",
-					name: `${columnTextValue}-filterType`,
+					name: `${columnTextValue}-filterType${isInitial ? "" : "-meta"}`,
 					css: "select-field",
 					disabled: buttonIcon === "fas fa-minus",
 					height: 20,
@@ -284,12 +312,12 @@ export default class EditColumnsWindow extends JetView {
 				{
 					view: "button",
 					type: "icon",
-					actionButtonName: `${columnTextValue}-button`,
+					actionButtonName: `${columnTextValue}-button${isInitial ? "" : "-meta"}`,
 					icon: buttonIcon,
 					width: 30,
 					click: () => {
-						const actionButton = this.getActionButton(columnTextValue);
-						const filterTypeField = this.getFilterTypeField(columnTextValue);
+						const actionButton = this.getActionButton(columnTextValue, isInitial);
+						const filterTypeField = this.getFilterTypeField(columnTextValue, isInitial);
 						const filterTypeValue = filterTypeField.getValue();
 
 						if (actionButton.config.icon === buttonMinusIcon) {
@@ -308,20 +336,61 @@ export default class EditColumnsWindow extends JetView {
 				}
 			]
 		};
+
+		if (isNew) {
+			element.id = usersColId;
+			element.cols.push(deleteButton);
+		}
 		return element;
 	}
 
 	// filling form view with new dynamic elements
 	fillInFormElements(columnsToAdd, columnsToDelete) {
-		const elements = [];
+		let elements = [];
 		const windowForm = this.getWindowForm();
 
-		columnsToAdd.forEach((configToAdd) => {
-			elements.push(this.createFormElement(configToAdd, buttonPlusIcon));
+		const newFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+
+		const columns = {
+			users: [],
+			initial: [],
+			generated: []
+		};
+
+		columnsToAdd.forEach((config) => {
+			const formElement = this.createFormElement(config, buttonPlusIcon);
+			if (newFields.includes(config.id)) columns.users.push(formElement);
+			else if (config.initial) columns.initial.push(formElement);
+			else columns.generated.push(formElement);
 		});
 
-		columnsToDelete.forEach((configToDelete) => {
-			elements.push(this.createFormElement(configToDelete, buttonMinusIcon));
+		columnsToDelete.forEach((config) => {
+			const formElement = this.createFormElement(config, buttonMinusIcon);
+			if (newFields.includes(config.id)) columns.users.push(formElement);
+			else if (config.initial) columns.initial.push(formElement);
+			else columns.generated.push(formElement);
+		});
+
+		Object.keys(columns).forEach((k) => {
+			if (columns[k].length) {
+				let template = "";
+				switch (k) {
+					case "users": {
+						template = "USER'S COLUMNS";
+						break;
+					}
+					case "initial": {
+						template = "INITIAL COLUMNS";
+						break;
+					}
+					default: {
+						template = "GENERATED COLUMNS";
+						break;
+					}
+				}
+				elements.push({type: "section", template, id: `${k}-section`});
+				elements.push(...columns[k]);
+			}
 		});
 
 		webix.ui(elements, windowForm);
@@ -362,7 +431,7 @@ export default class EditColumnsWindow extends JetView {
 			const dotNotation = key.split(".");
 			const header = dotNotation.map(text => ({text}));
 			const toDelete = columnsToDelete.find(columnToDelete => columnToDelete.id === key);
-			if (!toDelete) {
+			if (!toDelete && !columnsToAdd.find(columnToAdd => columnToAdd.id === key)) {
 				columnsToAdd.push({
 					id: key,
 					header

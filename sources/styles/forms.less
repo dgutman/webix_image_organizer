@@ -36,7 +36,7 @@
       cursor: pointer;
       text-overflow: ellipsis;
       overflow: hidden;
-      width: 275px;
+      // width: 275px;
       white-space: nowrap;
       /*line-height: 16px;
       padding: 10px 0 0 10px;*/
@@ -398,10 +398,24 @@
     padding-left: 3px;
   }
 
-  .metadata-table {
-    .webix_ss_sort_asc, .webix_ss_sort_desc {
-      position: relative;
-      float: right;
+  .upload-metadatatable {
+    .accept-button, .adjust-icon {
+      cursor: pointer;
+      &:hover {
+        color: @btn-hover;
+      }
+    }
+    .upload-metadata-column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .column-header-name {
+        flex-shrink: 1;
+      }
+      .adjust-icon {
+        padding-right: 10px;
+        flex-shrink: 0;
+      }
     }
   }
 

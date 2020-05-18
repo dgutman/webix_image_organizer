@@ -1,6 +1,8 @@
 import authService from "./authentication";
 import constants from "../constants";
 
+const connectionMessage = "Server connection error.<br /> Please check the connection.";
+
 function parseError(xhr) {
 	let message;
 	switch (xhr.status) {
@@ -15,10 +17,13 @@ function parseError(xhr) {
 				message = response.message;
 			}
 			catch (e) {
-				message = xhr.response;
-				console.log(`Not JSON response for request to ${xhr.responseURL}`);
+				message = xhr.response || connectionMessage;
+				if (xhr.responseURL) console.log(`Not JSON response for request to ${xhr.responseURL}`);
 			}
-			webix.message({text: message, expire: 5000});
+			if (!webix.message.pull[message]) {
+				const expire = message === connectionMessage ? -1 : 5000;
+				webix.message({text: message, expire, id: message});
+			}
 			break;
 		}
 	}
@@ -92,8 +97,9 @@ class AjaxActions {
 	}
 
 	getFolders(parentType, parentId, offset, limit) {
+		limit = typeof limit === "number" ? limit : constants.FOLDERS_LIMIT;
 		return this._ajax()
-			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}&limit=${limit || constants.FOLDERS_LIMIT}`)
+			.get(`${this.getHostApiUrl()}/folder?parentType=${parentType}&parentId=${parentId}&limit=${limit}`)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}
@@ -203,6 +209,18 @@ class AjaxActions {
 		} : {};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, metadata)
+			.catch(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	deleteItemMetadata(itemId, fields) {
+		fields = fields || [];
+		const params = {
+			fields
+		};
+
+		return this._ajax()
+			.del(`${this.getHostApiUrl()}/item/${itemId}/metadata`, params)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}

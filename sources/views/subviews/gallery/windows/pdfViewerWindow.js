@@ -3,7 +3,7 @@ import ajaxActions from "../../../../services/ajaxActions";
 
 export default class PdfViewerWindowView extends JetView {
 	config() {
-		const PdfViewerWindowView = {
+		const pdfViewerWindowView = {
 			view: "window",
 			head: {
 				cols: [
@@ -39,7 +39,7 @@ export default class PdfViewerWindowView extends JetView {
 				]
 			}
 		};
-		return PdfViewerWindowView;
+		return pdfViewerWindowView;
 	}
 
 	getPdfViewerTemplate() {

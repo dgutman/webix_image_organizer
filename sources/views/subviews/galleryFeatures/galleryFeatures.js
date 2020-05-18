@@ -102,6 +102,7 @@ export default class GalleryFeatures extends JetView {
 
 		return {
 			name: "galleryFeaturesClass",
+			padding: 5,
 			rows: [
 				{
 					cols: [
