@@ -11,6 +11,7 @@ services:
         container_name: production_nginx
         volumes:
             - ./conf/nginx/custom.conf:/etc/nginx/conf.d/default.conf
+            # - ./conf/nginx/https.conf:/etc/nginx/conf.d/default.conf
             - ./conf/nginx/snippets:/etc/nginx/snippets
             - ./conf/nginx/logs/:/var/log/nginx/
             - /etc/letsencrypt/:/etc/letsencrypt/
