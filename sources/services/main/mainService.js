@@ -112,6 +112,12 @@ class MainService {
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
 
+		this._itemsDataCollection.define("scheme", {
+			$init: (obj) => {
+				obj.$height = this._metadataTable.config._rowHeight || constants.METADATA_TABLE_ROW_HEIGHT;
+			}
+		});
+
 		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
 		// galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
 		this._filterTableView.getList().sync(this._galleryDataviewRichselectFilter.getList());
@@ -571,7 +577,7 @@ class MainService {
 					if (obj._id === item._id) {
 						item.id = obj.id;
 						webix.dp(this._finder).ignore(() => {
-							this._galleryDataview.updateItem(item.id, item);
+							this._itemsDataCollection.updateItem(item.id, item);
 						});
 					}
 				});
@@ -765,6 +771,22 @@ class MainService {
 				// 	const windowAction = "set";
 				// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
 				// }
+				case constants.EMPTY_CART_MENU_ID: {
+					const selectedItems = selectDataviewItems.getSelectedImages();
+					selectedItems.forEach((obj) => {
+						obj.markCheckbox = 0;
+					});
+
+					this._galleryDataview.callEvent("onCheckboxClicked", [selectedItems, 0, true]);
+					this._galleryDataview.refresh();
+					selectDataviewItems.clearAll();
+					selectDataviewItems.putSelectedImagesToLocalStorage();
+					this._view.$scope.app.callEvent("changedSelectedImagesCount");
+					break;
+				}
+				default: {
+					break;
+				}
 			}
 		});
 
@@ -842,8 +864,7 @@ class MainService {
 				}
 			});
 
-			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-			this._metadataTable.refreshColumns(datatableColumns);
+			metadataTableModel.refreshDatatableColumns();
 		});
 
 		this._makeLargeImageWindow.getRoot().attachEvent("onHide", () => {
@@ -973,7 +994,7 @@ class MainService {
 		this._setGallerySelectedItemsFromLocalStorage();
 	}
 
-	// URL-NAV get host and collection from URL params and select it
+	// URL-NAV get folders and open it
 	_urlChange(view, url) {
 		this._folderNav.openFirstFolder();
 	}
@@ -1284,8 +1305,7 @@ class MainService {
 				}
 				utils.putHostsCollectionInLocalStorage(collectionItem);
 				// define datatable columns
-				const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-				this._metadataTable.refreshColumns(datatableColumns);
+				metadataTableModel.refreshDatatableColumns();
 				this._itemsModel.parseItems(data);
 				this.pendingCollectionChange = false;
 				this._view.hideProgress();

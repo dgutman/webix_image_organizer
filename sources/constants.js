@@ -35,6 +35,7 @@ export default {
 	IMAGES_AND_METADATA_MENU_ID: "Download selected items and metadata",
 	COPY_TO_CLIPBOARD_MENU_ID: "Copy selected items",
 	ADD_TAG_TO_IMAGES_MENU_ID: "Add tag to images",
+	EMPTY_CART_MENU_ID: "Empty cart",
 
 	EDIT_COLUMN_MODE_ADD: "addColumn",
 	EDIT_COLUMN_MODE_DELETE: "deleteColumn",
@@ -103,5 +104,18 @@ export default {
 	ITEM_NAME_COLUMN: "filename",
 
 	ACCEPT_METADATA_LIMIT: 100,
-	ESTIMATED_LOADING_TIME: 5000 // milliseconds for 100 items
+	ESTIMATED_LOADING_TIME: 5000, // milliseconds for 100 items
+
+	METADATA_TABLE_IMAGES_SIZES: ["32", "48", "64"],
+	METADATA_TABLE_IMAGES_TYPES: ["thumbnail", "label", "macro"],
+
+	METADATA_TABLE_IMAGE_COLUMN_CONFIG: {
+		imageSize: "32",
+		imageType: "thumbnail",
+		columnType: "image",
+		header: "Preview",
+		id: "-image"
+	},
+
+	METADATA_TABLE_ROW_HEIGHT: 34
 };

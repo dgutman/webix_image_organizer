@@ -4,7 +4,10 @@ import constants from "../constants";
 import format from "../utils/formats";
 import authService from "../services/authentication";
 import editableFoldersModel from "./editableFoldersModel";
+import galleryImageUrl from "./galleryImageUrls";
+import nonImageUrls from "./nonImageUrls";
 import webixViews from "./webixViews";
+import ajaxActions from "../services/ajaxActions";
 
 let metadataDotObject = {};
 
@@ -210,6 +213,79 @@ function getSelectedFolderState() {
 	return isEditable;
 }
 
+function getCurrentItemPreviewType(type) {
+	let imageType;
+	let getPreviewUrl;
+	let setPreviewUrl;
+
+	switch (type) {
+		case "thumbnail": {
+			getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
+			setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
+			imageType = "thumbnail";
+			break;
+		}
+		case "label": {
+			getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
+			setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
+			imageType = "images/label";
+			break;
+		}
+		case "macro": {
+			getPreviewUrl = galleryImageUrl.getPreviewMacroImageUrl;
+			setPreviewUrl = galleryImageUrl.setPreviewMacroImageUrl;
+			imageType = "images/macro";
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+	return {imageType, getPreviewUrl, setPreviewUrl};
+}
+
+function getImageColumnTemplate(columnConfig, size) {
+	return (obj) => {
+		const metadataTable = webixViews.getMetadataTableView();
+		const {imageType, getPreviewUrl, setPreviewUrl} = getCurrentItemPreviewType(columnConfig.imageType);
+
+		if (obj.largeImage && !getPreviewUrl(obj._id)) {
+			if (getPreviewUrl(obj._id) === false) {
+				if (metadataTable.exists(obj.id) && !obj.imageWarning) {
+					obj.imageWarning = true;
+					metadataTable.render(obj.id, obj, "update");
+				}
+			}
+			else {
+				ajaxActions.getImage(obj._id, imageType)
+					.then((url) => {
+						setPreviewUrl(obj._id, url);
+						if (metadataTable.exists(obj.id)) {
+							metadataTable.render(obj.id, obj, "update");
+						}
+					})
+					.catch(() => {
+						if (metadataTable.exists(obj.id) && !obj.imageWarning) {
+							obj.imageWarning = true;
+							metadataTable.render(obj.id, obj, "update");
+						}
+						setPreviewUrl(obj._id, false);
+					});
+			}
+		}
+
+		return `<div class='datatable-image-column'>
+					<img
+						style='background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;'
+						width='${size - 2}'
+						height='${size - 2}'
+						loading='lazy'
+						src='${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}'
+					>
+				</div>`;
+	};
+}
+
 function getColumnsForDatatable(datatable) {
 	let columnConfig = [];
 	const initialColumnsConfig = getInitialColumnsForDatatable();
@@ -218,60 +294,65 @@ function getColumnsForDatatable(datatable) {
 
 	if (localStorageColumnsConfig) {
 		localStorageColumnsConfig.forEach((localColumnConfig) => {
-			const filterType = localColumnConfig.filterType;
-			const filterTypeValue = localColumnConfig.filterTypeValue;
-			const columnId = localColumnConfig.id;
-			let localColumnHeader = localColumnConfig.header;
-			let placeholder;
-
-			if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-				placeholder = "mm/dd/yy";
-			}
-
-			if (!Array.isArray(localColumnHeader)) {
-				localColumnHeader = [localColumnHeader];
-			}
-
-			if (filterType) {
-				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
-				localColumnHeader.push({
-					content: `${filterType}Filter`,
-					options: setSelectFilterOptions(filterType, columnId, datatable, localColumnConfig.initial),
-					placeholder
-				});
+			if (localColumnConfig.columnType === "image") {
+				localColumnConfig.template = getImageColumnTemplate(localColumnConfig, localColumnConfig.imageSize);
+				localColumnConfig.tooltip = getImageColumnTemplate(localColumnConfig, 64);
 			}
 			else {
-				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
-			}
-
-			if (!localColumnConfig.initial) {
-				const headerValue = getHeaderTextValue(localColumnConfig);
-				const lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-				const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
-				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
-					localColumnHeader[localColumnHeader.length - 2] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
+				const filterType = localColumnConfig.filterType;
+				const filterTypeValue = localColumnConfig.filterTypeValue;
+				const columnId = localColumnConfig.id;
+				let localColumnHeader = localColumnConfig.header;
+				let placeholder;
+	
+				if (filterTypeValue === constants.FILTER_TYPE_DATE) {
+					placeholder = "mm/dd/yy";
 				}
-				else localColumnHeader[localColumnHeader.length - 1] = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
+	
+				if (!Array.isArray(localColumnHeader)) {
+					localColumnHeader = [localColumnHeader];
+				}
 
-				localColumnConfig = {
-					id: columnId,
-					header: localColumnHeader,
-					fillspace: true,
-					editor: authService.isLoggedIn() ? "text" : false,
-					sort: "text",
-					filterType,
-					minWidth: 180,
-					template: obj => getMetadataColumnTemplate(obj, columnId)
-				};
+				let lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
+				if (filterType) {
+					localColumnHeader.push({
+						content: `${filterType}Filter`,
+						options: setSelectFilterOptions(filterType, columnId, datatable, localColumnConfig.initial),
+						placeholder
+					});
+				}
+				if (!localColumnConfig.initial) {
+					const headerValue = getHeaderTextValue(localColumnConfig);
+					lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+					const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
+					const headerText = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
+					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
+						localColumnHeader.splice(-2, 2);
+						localColumnHeader = [...localColumnHeader, headerText, lastHeaderItem];
+					}
+					else {
+						localColumnHeader.splice(-1, 1);
+						localColumnHeader = [...localColumnHeader, headerText];
+					}
+					localColumnConfig = {
+						id: columnId,
+						header: localColumnHeader,
+						fillspace: true,
+						editor: authService.isLoggedIn() ? "text" : false,
+						sort: "text",
+						filterType,
+						minWidth: 180,
+						template: obj => getMetadataColumnTemplate(obj, columnId)
+					};
+				}
+				else {
+					localColumnConfig.header = localColumnHeader;
+					const initialColumn = initialColumnsConfig.find(initialColumnConfig => initialColumnConfig.id === localColumnConfig.id && !localColumnConfig.hidden);
+					if (initialColumn && initialColumn.template) localColumnConfig.template = initialColumn.template;
+				}
+				if (filterTypeValue) localColumnConfig.filterTypeValue = filterTypeValue;
 			}
-			else {
-				localColumnConfig.header = localColumnHeader;
-				const initialColumn = initialColumnsConfig.find(initialColumnConfig => initialColumnConfig.id === localColumnConfig.id && !localColumnConfig.hidden);
-				if (initialColumn && initialColumn.template) localColumnConfig.template = initialColumn.template;
-			}
-			if (filterTypeValue) localColumnConfig.filterTypeValue = filterTypeValue;
 			columnConfig.push(localColumnConfig);
 		});
 	}
@@ -312,6 +393,26 @@ function getConfigForNewColumn() {
 	};
 }
 
+function refreshDatatableColumns() {
+	const defaultHeight = constants.METADATA_TABLE_ROW_HEIGHT;
+	const metadataTable = webixViews.getMetadataTableView();
+	const datatableColumns = getColumnsForDatatable(metadataTable);
+	const imageColumn = datatableColumns.find(col => col.id === "-image");
+
+	const newRowHeight = Math.max(imageColumn ? imageColumn.imageSize : defaultHeight, defaultHeight);
+	const oldRowHeight = metadataTable.config._rowHeight || defaultHeight;
+
+	if (newRowHeight !== oldRowHeight) {
+		webixViews.getItemsModel().dataCollection.waitData.then(() => {
+			metadataTable.data.each((obj) => { obj.$height = newRowHeight; });
+			metadataTable.define("_rowHeight", newRowHeight);
+			metadataTable.refresh();
+		});
+	}
+
+	metadataTable.refreshColumns(datatableColumns);
+}
+
 export default {
 	getInitialColumnsForDatatable,
 	getColumnsForDatatable,
@@ -325,5 +426,6 @@ export default {
 	clearNewItemFieldsInStorage,
 	getLocalStorageNewItemFields,
 	setFaIconsForDatatable,
+	refreshDatatableColumns,
 	metadataDotObject
 };
