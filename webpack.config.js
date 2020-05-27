@@ -77,7 +77,7 @@ module.exports = (env) => {
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
 			inline: true,
-                        disableHostCheck: true
+			disableHostCheck: true
 		},
 		plugins: [
 			new ExtractTextPlugin("./app.css"),
