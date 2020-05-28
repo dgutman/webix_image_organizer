@@ -8,7 +8,7 @@ volumes:
 services:
     nginx:
         image: nginx:1
-         container_name: production_nginx
+        container_name: production_nginx
         volumes:
             - ./conf/nginx/custom.conf:/etc/nginx/conf.d/default.conf
             # - ./conf/nginx/https.conf:/etc/nginx/conf.d/default.conf
@@ -22,18 +22,18 @@ services:
             - 443:443
         restart: always
     tagger_client:
-        env_file: ./tagger/tagger-for-david/.env
+        env_file: ./tagger/.env
         volumes:
             - tagger_codebase_volume:/app/dev/codebase
         build:
-            context: ./tagger/tagger-for-david/
+            context: ./tagger/
             dockerfile: ./Dockerfile
     tagger_backend:
-        env_file: ./tagger/tagger-for-david/.env
+        env_file: ./tagger/.env
         environment:
             - MONGODB_HOST=mongodb
         build:
-            context: ./tagger/tagger-for-david/
+            context: ./tagger/
             dockerfile: sources/server/Dockerfile
         ports:
             - "4000:4000"

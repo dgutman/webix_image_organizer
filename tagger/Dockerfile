@@ -11,7 +11,7 @@ RUN git --version
 RUN npm -v
 
 # build app bundles
-RUN npm ci
+RUN npm i
 
 RUN npm run build
 

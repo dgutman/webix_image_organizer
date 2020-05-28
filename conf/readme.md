@@ -3,7 +3,7 @@ Docker configuration to run both apps at the same by dockerized nginx.
 To run:
 1. change `server_name` properties to your domain names in custom.conf (for https: https.conf);
 2. make sure 80 and/or 443 ports are available;
-(don't forget to change `.env` file at` tagger/tagger-for-david` directory)
+(don't forget to change `.env` file at` tagger` directory)
 3. `run docker-compose up -d --build`;
 
 To configure https and run:
@@ -12,7 +12,7 @@ To configure https and run:
 3. get certbot with additional packages and crontab (or similar);
 4. run `certbot --standalone -d your.server.url` command to get the SSL certificate;
 5. make sure 80 and 443 ports are available;
-(don't forget to change` .env` file at `tagger/tagger-for-david` directory)
+(don't forget to change` .env` file at `tagger` directory)
 6. run `docker-compose up -d --build`;
 
 To renew the cert:
