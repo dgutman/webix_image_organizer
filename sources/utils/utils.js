@@ -1,9 +1,9 @@
 import FileSaver from "file-saver";
+import dot from "dot-object";
 import authService from "../services/authentication";
 import projectMetadata from "../models/projectMetadata";
 import galleryDataviewFilterModel from "../models/galleryDataviewFilterModel";
 import webixViews from "../models/webixViews";
-import metadataTableModel from "../models/metadataTableModel";
 import viewMouseEvents from "./viewMouseEvents";
 import constants from "../constants";
 
@@ -146,10 +146,11 @@ function findStarColorForItem(item) {
 	let starColor;
 
 	if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
-		const projectSchema = projectMetadataCollection.getItem(projectMetadataCollection.getLastId()).meta.projectSchema;
+		const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
+		const projectSchema = projectSchemaItem.meta.projectSchema || projectSchemaItem.meta.ProjectSchema;
 
 		for (let key in projectSchema) {
-			const metadataValue = metadataTableModel.getOrEditMetadataColumnValue(item.meta, `meta.${key}`);
+			const metadataValue = dot.pick(`meta.${key}`, item);
 
 			if (metadataValue !== undefined) {
 				const correctValue = projectSchema[key].find(correctValue => metadataValue === correctValue);

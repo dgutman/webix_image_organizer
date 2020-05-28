@@ -14,12 +14,12 @@ export default class MetadataTableCellClass extends JetView {
 
 		const itemsDataTable = {
 			view: "datatable",
-			drag: true,
 			select: true,
 			editaction: "custom",
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,
+			fixedRowHeight: false,
 			spans: true,
 			tooltip: true,
 			columns: [] // init in mainService.js

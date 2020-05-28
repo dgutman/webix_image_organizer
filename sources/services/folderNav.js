@@ -41,7 +41,7 @@ export default class FolderNav {
 			}
 
 			this.waitData.then(() => {
-				this.openSingleFolder(this.urlFolderNames[0]);
+				this.openSingleFolder(this.urlFolderNames[0], 0);
 			});
 		}
 	}
@@ -49,15 +49,15 @@ export default class FolderNav {
 	openNextFolder(folder) {
 		const nextFolderName = this.urlFolderNames[folder.$level];
 		if (this.inProgress && nextFolderName) {
-			this.openSingleFolder(nextFolderName);
+			this.openSingleFolder(nextFolderName, folder.$level);
 		}
 		else {
 			this.inProgress = false;
 		}
 	}
 
-	openSingleFolder(folderName) {
-		const folder = this.findFolderByName(folderName);
+	openSingleFolder(folderName, position) {
+		const folder = this.findCurrentFolder(folderName, position);
 		if (folder) {
 			if (!folder.hasOpened || !folder.open || this.isLastFolderToSelect(folder)) {
 				this.finder.select(folder.id);
@@ -87,8 +87,25 @@ export default class FolderNav {
 		return selectedItemQualifier && compareNames;
 	}
 
-	findFolderByName(name) {
-		return this.finder.find(item => item._modelType === "folder" && utils.compareURLStrings(item.name, name), true);
+	findFolderByName(name, pos) {
+		return this.finder.find(item => item._modelType === "folder" && utils.compareURLStrings(item.name, name) && item.$level === pos + 1);
+	}
+
+	findCurrentFolder(name, pos) {
+		const folders = this.findFolderByName(name, pos);
+		if (!folders.length) return false;
+		if (folders.length === 1) return folders[0];
+		return folders.find(folder => this.findFolderByParent(folder, pos));
+	}
+
+	findFolderByParent(folder, pos) {
+		const parentFolder = this.finder.getItem(folder.$parent);
+		const parentPos = pos - 1;
+		if (utils.compareURLStrings(parentFolder.name, this.urlFolderNames[parentPos])) {
+			if (parentPos > 0) return this.findFolderByParent(parentFolder, parentPos);
+			return true;
+		}
+		return false;
 	}
 
 	setFoldersIntoUrl() {

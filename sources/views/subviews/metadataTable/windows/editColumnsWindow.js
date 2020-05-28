@@ -3,6 +3,7 @@ import dot from "dot-object";
 import metadataTableModel from "../../../../models/metadataTableModel";
 import authService from "../../../../services/authentication";
 import NewColumnsService from "../../../../services/metadataTable/newColumnsService";
+import ImageColumnService from "../../../../services/metadataTable/imageColumnService";
 import constants from "../../../../constants";
 
 const WIDTH = 600;
@@ -173,6 +174,7 @@ export default class EditColumnsWindow extends JetView {
 	ready(view) {
 		this.userInfo = authService.getUserInfo();
 		this.newColumnsService = new NewColumnsService(view, this.userInfo);
+		this.imageColumnService = new ImageColumnService(view);
 	}
 
 	getWindowForm() {
@@ -354,20 +356,23 @@ export default class EditColumnsWindow extends JetView {
 		const columns = {
 			users: [],
 			initial: [],
-			generated: []
+			generated: [],
+			image: []
 		};
 
 		columnsToAdd.forEach((config) => {
-			const formElement = this.createFormElement(config, buttonPlusIcon);
+			const formElement = config.columnType === "image" ? this.imageColumnService.getFormElementForImageColumn(false) : this.createFormElement(config, buttonPlusIcon);
 			if (newFields.includes(config.id)) columns.users.push(formElement);
 			else if (config.initial) columns.initial.push(formElement);
+			else if (config.columnType === "image") columns.image.push(formElement);
 			else columns.generated.push(formElement);
 		});
 
 		columnsToDelete.forEach((config) => {
-			const formElement = this.createFormElement(config, buttonMinusIcon);
+			const formElement = config.columnType === "image" ? this.imageColumnService.getFormElementForImageColumn(true, config) : this.createFormElement(config, buttonMinusIcon);
 			if (newFields.includes(config.id)) columns.users.push(formElement);
 			else if (config.initial) columns.initial.push(formElement);
+			else if (config.columnType === "image") columns.image.push(formElement);
 			else columns.generated.push(formElement);
 		});
 
@@ -382,6 +387,12 @@ export default class EditColumnsWindow extends JetView {
 					case "initial": {
 						template = "INITIAL COLUMNS";
 						break;
+					}
+					case "image": {
+						template = "IMAGE COLUMN";
+						elements.unshift(...columns[k]);
+						elements.unshift({type: "section", template, id: `${k}-section`});
+						return;
 					}
 					default: {
 						template = "GENERATED COLUMNS";
@@ -414,6 +425,10 @@ export default class EditColumnsWindow extends JetView {
 				if (columnConfig.hidden) columnsToAdd.push(columnConfig);
 				return !columnConfig.hidden;
 			});
+
+			if (!existedColumns.find(col => col.columnType === "image")) {
+				columnsToAdd.unshift(constants.METADATA_TABLE_IMAGE_COLUMN_CONFIG);
+			}
 
 			// add columns of not existing item fields to window form
 			this.newColumnsService.addNewColumnsFromLS();

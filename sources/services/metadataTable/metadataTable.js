@@ -55,7 +55,7 @@ class MetadataTableService {
 			this._setColspansForColumnsHeader(newDatatableColumns);
 			// to prevent null header bug
 			this._metadataTable.refreshColumns([]);
-			this._metadataTable.refreshColumns(newDatatableColumns);
+			metadataTableModel.refreshDatatableColumns();
 		});
 
 		this._metadataTable.attachEvent("onBeforeColumnDrop", (sourceId, targetId) => {
@@ -92,8 +92,7 @@ class MetadataTableService {
 		});
 
 		this._metadataTable.attachEvent("onAfterColumnDrop", () => {
-			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-			this._metadataTable.refreshColumns(newDatatableColumns);
+			metadataTableModel.refreshDatatableColumns();
 		});
 
 		this._metadataTable.on_click["fa-pencil-alt"] = (e, obj) => {
@@ -122,8 +121,7 @@ class MetadataTableService {
 		});
 
 		this._metadataTable.attachEvent("onAfterLoad", () => {
-			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-			this._metadataTable.refreshColumns(newDatatableColumns);
+			metadataTableModel.refreshDatatableColumns();
 		});
 
 		this._metadataTable.attachEvent("onBeforeEditStart", (infoObject) => {

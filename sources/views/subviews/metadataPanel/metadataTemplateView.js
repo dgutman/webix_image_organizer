@@ -1,10 +1,10 @@
 import {JetView} from "webix-jet";
+import JSONEditor from "jsoneditor";
+import "jsoneditor/dist/jsoneditor.min.css";
 import constants from "../../../constants";
 import format from "../../../utils/formats";
 import AddMetadataWindow from "./window/addMetadataWindow";
 import utils from "../../../utils/utils";
-import JSONEditor from "jsoneditor";
-import "jsoneditor/dist/jsoneditor.min.css";
 import ajaxActions from "../../../services/ajaxActions";
 import webixViews from "../../../models/webixViews";
 
@@ -28,16 +28,26 @@ export default class MetadataPanelClass extends JetView {
 			}
 		};
 
+		const toggleState = {
+			view: "switch",
+			type: "icon",
+			name: "toggleState",
+			width: 150,
+			value: 1,
+			offLabel: "Hide metadata",
+			onLabel: "Show metadata"
+		};
+
 		const templateView = {
 			view: "template",
 			name: "templateViewName",
 			css: "metadata-template",
+			borderless: true,
 			width: 350,
 			template: (obj) => {
 				if (this.jsonEditor) {
 					this.jsonEditor.set(obj.meta);
 					this.jsonEditor.setName("Metadata properties");
-					this.jsonEditor.collapseAll();
 				}
 				item = obj;
 				let template = `<div class="templateMain">
@@ -78,10 +88,24 @@ export default class MetadataPanelClass extends JetView {
 			id: constants.SCROLL_VIEW_METADATA_ID,
 			name: "metadataPanelClass",
 			rows: [
-				templateView,
+				{
+					css: "lines-layout",
+					rows: [
+						{
+							borderless: true,
+							cols: [
+								{},
+								toggleState,
+								{}
+							]
+						},
+						templateView
+					]
+				},
 				{
 					borderless: true,
 					css: "button-icon-button",
+					height: 34,
 					rows: [
 						showAddMetadataWindowButton
 					]
@@ -121,6 +145,25 @@ export default class MetadataPanelClass extends JetView {
 		// set debounce interval for onChangeValue
 		this.jsonEditor.node.__proto__.DEBOUNCE_INTERVAL = 2000;
 		this.metadataTemplate.parse({});
+
+		const toggle = this.getToggleState();
+
+		toggle.attachEvent("onChange", (v) => {
+			this.changeMetadataVisibility(v);
+		});
+
+		this.metadataTemplate.attachEvent("onAfterRender", () => {
+			this.changeMetadataVisibility(toggle.getValue());
+		});
+	}
+
+	changeMetadataVisibility(value) {
+		if (value) {
+			this.jsonEditor.expandAll();
+		}
+		else {
+			this.jsonEditor.collapseAll();
+		}
 	}
 
 	getScrollView() {
@@ -133,5 +176,9 @@ export default class MetadataPanelClass extends JetView {
 
 	getShowAddMetadataWindowButton() {
 		return this.getRoot().queryView({name: "showAddMetadataWindowButtonName"});
+	}
+
+	getToggleState() {
+		return this.getRoot().queryView({name: "toggleState"});
 	}
 }

@@ -20,7 +20,8 @@ export default class CartView extends JetView {
 					submenu: [
 						constants.IMAGES_ONLY_MENU_ID,
 						constants.IMAGES_AND_METADATA_MENU_ID,
-						constants.COPY_TO_CLIPBOARD_MENU_ID
+						constants.COPY_TO_CLIPBOARD_MENU_ID,
+						constants.EMPTY_CART_MENU_ID
 						// constants.ADD_TAG_TO_IMAGES_MENU_ID
 					]
 				}

@@ -86,10 +86,9 @@ class GalleryService {
 
 	_unselectImages() {
 		const value = 0;
-		let items = [];
-		this._galleryDataview.data.each((item) => {
+		const items = selectedDataviewItems.getSelectedImages();
+		items.forEach((item) => {
 			item.markCheckbox = value;
-			items.push(item);
 		});
 
 		this._galleryDataview.callEvent("onCheckboxClicked", [items, value, true]);

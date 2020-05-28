@@ -61,7 +61,8 @@
 .ellipsis-text .webix_list_item,
 .ellipsis-text .webix_template,
 .ellipsis-text .webix_el_box,
-.ellipsis-text .webix_inp_static {
+.ellipsis-text .webix_inp_static,
+.ellipsis-text label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -134,9 +135,9 @@
   }
 
   .templateName{
-    height: 15px;
+    height: 25px;
     font-size: @large-font-size;
-    padding: 10px;
+    padding: 0 10px;
     margin-bottom: 40px;
   }
 
@@ -189,5 +190,12 @@
       padding: 5px;
       box-sizing: border-box;
     }
+  }
+
+  .datatable-image-column {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
   }
 }
