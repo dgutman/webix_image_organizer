@@ -54,7 +54,7 @@ export default class TaggerDashboard extends JetView {
 				$init: (obj) => {
 					obj.progress = `${obj.reviewed}/${obj.count}`;
 					const format = webix.Date.dateToStr("%d.%m.%Y %H:%i");
-					obj.latest = obj.latest ? format(new Date(obj.latest)) : null;
+					obj.latest = obj.latest ? format(new Date(obj.latest)) : "no info";
 
 					if (obj.deadline) {
 						const {days, hours, minutes} = this.getTimeRemaining(new Date(obj.deadline));
@@ -87,9 +87,8 @@ export default class TaggerDashboard extends JetView {
 					id: "latest",
 					header: [{css: {"text-align": "center"}, text: "Latest user activity"}, {content: "textFilter"}],
 					tooltip: obj => obj.latest || "",
-					template: obj => obj.latest || "no info",
 					css: {"text-align": "center"},
-					sort: "date",
+					sort: "text",
 					width: 180,
 					minWidth: 100
 				},
@@ -132,10 +131,10 @@ export default class TaggerDashboard extends JetView {
 				{
 					id: "checked_out",
 					header: [{text: "Checked", rowspan: 2}],
+					sort: "text",
 					template: obj => (obj.checked_out ? "<i class='fas fa-check'></i>" : "<i class='fas fa-times'></i>"),
 					css: {"text-align": "center"},
-					sort: "text",
-					width: 75
+					width: 90
 				}
 			],
 			on: { // to fix unfocus bug with built-in filters
@@ -153,10 +152,14 @@ export default class TaggerDashboard extends JetView {
 		const notificationTextarea = {
 			view: "textarea",
 			css: "textarea-field",
-			height: 100,
+			name: "textarea",
+			height: 120,
+			inputHeight: 120,
 			borderless: true,
 			attributes: {maxlength: 500},
-			value: constants.DEFAULT_NOTIFICATION_TEXT
+			value: constants.DEFAULT_NOTIFICATION_TEXT,
+			invalidMessage: "The text of the message can't be empty",
+			validate: value => value && webix.rules.isNotEmpty(value.trim())
 		};
 
 		const notificationForm = {
@@ -200,10 +203,18 @@ export default class TaggerDashboard extends JetView {
 		};
 
 		const notificationsLayout = {
-			padding: 5,
+			height: 170,
 			cols: [
-				notificationTextarea,
-				notificationForm
+				{
+					view: "form",
+					type: "form",
+					elements: [
+						{cols: [
+							notificationTextarea,
+							notificationForm
+						]}
+					]
+				}
 			]
 		};
 

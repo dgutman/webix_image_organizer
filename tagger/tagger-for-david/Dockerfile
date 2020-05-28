@@ -1,0 +1,18 @@
+FROM node:12-alpine3.10
+
+WORKDIR /app/dev
+
+COPY . .
+
+RUN apk add --no-cache git
+
+RUN git --version
+
+RUN npm -v
+
+# build app bundles
+RUN npm ci
+
+RUN npm run build
+
+CMD ["npm", "run", "build"]

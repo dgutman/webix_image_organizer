@@ -5,7 +5,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("./etc/jwt");
 const errorHandler = require("./etc/errorHandler");
-const config = require("./etc/config");
+const config = require("./etc/config.js");
 const dotenv = require("dotenv");
 
 // load process env constants

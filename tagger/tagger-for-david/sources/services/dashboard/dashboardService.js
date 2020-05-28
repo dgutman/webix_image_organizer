@@ -36,16 +36,18 @@ export default class TaggerDashboardService {
 			const value = this._textarea.getValue().trim();
 			const selectedItems = this._dashboard.getSelectedItem(true);
 			const taskIds = selectedItems.map(item => item._id);
-			this._view.showProgress();
-			transitionalAjax.sendNotifications(value, taskIds)
-				.then((data) => {
-					const string = data.length > 1 ? "messages were" : "message was";
-					webix.message(`${data.length} ${string} successfully sent`);
-					this._view.hideProgress();
-				})
-				.catch(() => {
-					this._view.hideProgress();
-				});
+			if (this._textarea.validate()) {
+				this._view.showProgress();
+				transitionalAjax.sendNotifications(value, taskIds)
+					.then((data) => {
+						const string = data.length > 1 ? "messages were" : "message was";
+						webix.message(`${data.length} ${string} successfully sent`);
+						this._view.hideProgress();
+					})
+					.catch(() => {
+						this._view.hideProgress();
+					});
+			}
 		});
 	}
 

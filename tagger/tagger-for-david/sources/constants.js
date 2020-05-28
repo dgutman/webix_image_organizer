@@ -70,6 +70,7 @@ export default {
 	TAGGER_NO_VALUE_FILTER: "&lt;no value&gt;",
 
 	DEFAULT_NOTIFICATION_TEXT: "Dear Colleague,\n\nplease, speed up task completion. We hope, that your progress can be increased.\n\nAdministration.",
+	CONNECTION_ERROR_MESSAGE: "Server connection error.<br /> Please check the connection.",
 
 	WEBIX_MESSAGE_TEXT_LIMIT: 140
 };
