@@ -5,6 +5,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
@@ -18,7 +19,7 @@ module.exports = (env) => {
 		entry: "./sources/app.js",
 		output: {
 			path: path.join(__dirname, "codebase"),
-			publicPath: "/",
+			publicPath: "",
 			filename: "app.js"
 		},
 		mode: "development",
@@ -90,7 +91,8 @@ module.exports = (env) => {
 				PRODUCTION: production
 			}),
 			new CopyWebpackPlugin([
-				{from: path.join(__dirname, "sources/images/"), to: "sources/images"}
+				{from: path.join(__dirname, "sources/images/"), to: "sources/images"},
+				{from: path.join(__dirname, "node_modules/webix/"), to: "webix"}
 			]),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
@@ -103,6 +105,9 @@ module.exports = (env) => {
 //					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
 //					{id: "5", value: "Candygram", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
 				]
+			}),
+			new Dotenv({
+				path: path.resolve(__dirname, ".env") // Path to .env file
 			})
 		]
 	};
