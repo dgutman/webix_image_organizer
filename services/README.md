@@ -4,11 +4,7 @@ RUN:
 `$ docker run -p 5050:5000 yourname`
 
 ## I am changing the port since I have some other services running on 5000
-
-Default user/pass:` webix/xbsxbs` <br>
-Default api url: `http://dermannotator.org:8080/api/v1`
-
-API: 
+API:
 
 1. URL: `/label?ids=id1,id2…` <br>
  Descr: label recognition <br>
@@ -26,8 +22,8 @@ Note: same as in 2.<br>
 Return: array of statuses and results<br>
 `[{id: 'id1', status: 'ok', results: ['red', 'blue', 'green', 'azure', 'orange', 'violet', 'yellow', 'gray'] },
 	 {id: 'id2', status: 'error', error: 'error decr.'}]`
-	
-	
+
+
 
 
 ##https://www.pyimagesearch.com/2018/09/17/opencv-ocr-and-text-recognition-with-tesseract/
