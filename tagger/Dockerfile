@@ -15,4 +15,6 @@ RUN npm i
 
 RUN npm run build
 
-CMD ["npm", "run", "build"]
+EXPOSE 80
+
+CMD ["npx", "http-server", "/app/dev/codebase", "-p", "80"]
