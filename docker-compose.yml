@@ -24,6 +24,8 @@ services:
             dockerfile: ./Dockerfile
         expose:
             - "80"
+        ports:
+            - 2000:80
     tagger_backend:
         container_name: tagger_backend
         env_file: ./tagger/.env
@@ -40,6 +42,8 @@ services:
         build: ./
         expose:
             - "80"
+        ports:
+            - 3000:80
     recognition_service:
         container_name: recognition_service
         build:
