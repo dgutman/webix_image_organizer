@@ -245,7 +245,7 @@ class AjaxActions {
 	recognizeOption(idsArray, option) {
 		const ids = idsArray.join(",");
 		return this._ajax()
-			.get(`${constants.RECOGNIZE_SERVICE_PATH}/${option}?ids=${ids}`)
+			.get(`${constants.RECOGNIZE_SERVICE_PATH}/${option}?ids=${ids}&apiUrl=${this.getHostApiUrl()}`)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}

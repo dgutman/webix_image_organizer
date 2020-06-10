@@ -96,7 +96,7 @@ export default {
 		WARNS: {icon: "fas fa-exclamation-triangle", iconColor: "#FD7E14", value: "Done with errors"}
 	},
 
-	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000",
+	RECOGNIZE_SERVICE_PATH: process.env.RECOGNITION_SERVICE_API,
 
 	EDIT_ACCESS_LEVEL: 1,
 
