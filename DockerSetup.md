@@ -57,3 +57,14 @@ So try to run docker-compose up -d --build now and check /tagger, /io /api, /mar
 ### Remove all images.
 
     docker rmi $(docker images -q)
+
+## After running docker build
+
+You should see something like this if you run `docker ps` which indicates the various containers and services are up and running. 
+![](mdImages/2020-06-10-13-00-27.png)
+
+
+## Accessing services
+
+In this configuration, the image organizer is running on port 3000, tagger on port 2000, and the image recognition service is running on port 5000.
+
