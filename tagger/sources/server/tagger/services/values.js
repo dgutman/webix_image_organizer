@@ -1,16 +1,18 @@
 const Values = require("../models/values");
 const imageUpdateService = require("./imageUpdate");
+const mongoose = require("mongoose");
 
 async function create(values, createdTagIds) {
 	// validation
 	if (!Array.isArray(values)) throw "Field \"values\" should be an array";
 	// if (!Array.isArray(tagIds)) throw "Field \"tagIds\" should be an array";
 
-	return Promise.all(values.map(async (value) => {
+	return Promise.all(values.map(async (valueObj) => {
 		let tagIds = [];
-		if (typeof value === "object") {
-			tagIds = value.tagIds && Array.isArray(value.tagIds) ? value.tagIds : tagIds;
-			value = value.value;
+		let value = "";
+		if (typeof valueObj === "object") {
+			tagIds = valueObj.tagIds && Array.isArray(valueObj.tagIds) ? valueObj.tagIds : tagIds;
+			value = valueObj.value;
 		}
 		if (value === "") return false;
 		value = typeof value === "string" ? value : value.toString();
@@ -19,11 +21,14 @@ async function create(values, createdTagIds) {
 		const existedValue = await Values.findOne({value});
 
 		if (existedValue) {
-			existedValue.tagIds = existedValue.tagIds.concat(tagIds).unique();
+			valueObj.tagIds = existedValue.tagIds.map(id => id.toString());
+			valueObj.tagIds = existedValue.tagIds.concat(tagIds).unique();
+
+			Object.assign(existedValue, valueObj);
 			return existedValue.save();
 		}
 
-		const newValue = new Values({value});
+		const newValue = new Values(valueObj);
 		newValue.tagIds = tagIds;
 		return newValue.save();
 	}));
@@ -38,11 +43,11 @@ async function getByTags(tagIds) {
 	// validation
 	if (!Array.isArray(tagIds)) throw "Field \"tagIds\" should be an array";
 
-	const values = await Values.find({tagIds: {$in: tagIds}}).sort({value: 1});
+	const values = await Values.find({tagIds: {$in: tagIds.map(id => mongoose.Types.ObjectId(id))}}).sort({value: 1});
 	return values;
 }
 
-async function updateValue(item) {
+async function updateValue(item, onlyValue) {
 	const value = await Values.findById(item._id);
 
 	// validation
@@ -56,13 +61,14 @@ async function updateValue(item) {
 	if (value.value !== item.value) {
 		const existedValue = await Values.findOne({value: item.value});
 		if (existedValue) {
+			existedValue.tagIds = existedValue.tagIds.map(id => id.toString());
 			value.tagIds = Array.isArray(value.tagIds) ? value.tagIds : [];
 			existedValue.tagIds = existedValue.tagIds.concat(value.tagIds).unique();
 
 			await Values.deleteOne({_id: value._id});
 
 			// update images which linked with this value
-			await imageUpdateService.updateImagesByValue(oldValue, item, existedValue.tagIds);
+			if (!onlyValue) await imageUpdateService.updateImagesByValue(oldValue, item, existedValue.tagIds);
 
 			return existedValue.save();
 		}
@@ -72,10 +78,10 @@ async function updateValue(item) {
 	delete item.tagIds;
 
 	// update images which linked with this value
-	await imageUpdateService.updateImagesByValue(oldValue, item, value.tagIds);
+	if (!onlyValue) await imageUpdateService.updateImagesByValue(oldValue, item, value.tagIds);
 
 	if (!value.tagIds.length) {
-		return _delete([value._id]);
+		return _delete(value._id);
 	}
 
 	// copy item properties to value
@@ -83,11 +89,11 @@ async function updateValue(item) {
 	return value.save();
 }
 
-async function updateMany(values) {
+async function updateMany(values, onlyValues) {
 	// validation
 	if (!Array.isArray(values)) throw "Field \"values\" should be an array";
 
-	return Promise.all(values.map(async value => updateValue(value)));
+	return Promise.all(values.map(async value => updateValue(value, onlyValues)));
 }
 
 async function _delete(valueId) {

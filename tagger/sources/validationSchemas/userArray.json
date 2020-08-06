@@ -1,0 +1,58 @@
+{
+    "$id": "json.defs",
+    "definitions": {
+        "user": {
+            "oneOf": [
+                {
+                    "type": "string",
+                    "maxLength": 24
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "_id": {
+                            "type": "string",
+                            "maxLength": 24
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": true,
+                    "required": [
+                        "_id"
+                    ]
+                },
+                {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "maxLength": 24
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "_id": {
+                                        "type": "string",
+                                        "maxLength": 24
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "additionalProperties": true,
+                                "required": [
+                                    "_id"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

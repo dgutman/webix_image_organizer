@@ -48,8 +48,7 @@ export default class SelectedItemsModel {
 	}
 
 	getArrayOfSelectedItems() {
-		let array = this.selectedItems.data.serialize();
-		return array;
+		return this.selectedItems.data.serialize();
 	}
 
 	setLastUnselectedItem(element) {

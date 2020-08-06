@@ -11,11 +11,11 @@ export default class SelectItemsService {
 	markMainSelectedItems() {
 		const selectedItemsArray = this.selectModel.getArrayOfSelectedItems();
 		this.dataView.unselectAll();
-		selectedItemsArray.forEach((item) => {
-			if (this.dataView.exists(item.id)) {
-				this.dataView.select(item.id, true);
-			}
-		});
+		this.dataView.select(
+			selectedItemsArray
+				.filter(item => this.dataView.exists(item.id))
+				.map(obj => obj.id)
+		);
 	}
 
 	markSecondarySelectedItems() {
@@ -64,7 +64,7 @@ export default class SelectItemsService {
 		this.dataView.callEvent("customSelectChange", [this.selectModel.getArrayOfSelectedItems()]);
 	}
 
-	selectAllItems(pager) {
+	selectAllVisibleItems(pager) {
 		let visibleData = this.dataView.serialize();
 		if (pager) {
 			const pData = pager.data;
@@ -76,6 +76,13 @@ export default class SelectItemsService {
 			visibleData = visibleData.slice(values.start, values.end);
 		}
 		this.selectModel.add(visibleData);
+		this.dataView.callEvent("customSelectChange", [this.selectModel.getArrayOfSelectedItems()]);
+	}
+
+	selectAllItems() {
+		let data = this.dataView.serialize();
+
+		this.selectModel.add(data);
 		this.dataView.callEvent("customSelectChange", [this.selectModel.getArrayOfSelectedItems()]);
 	}
 
@@ -115,7 +122,7 @@ export default class SelectItemsService {
 		this.unselectAllItems();
 	}
 
-	onAfterNewDataLoad(collectionIds) {
+	onAfterNewDataLoad(collectionIds, skipCollectionChecking) {
 		this.invisibleItems = this.invisibleItems.filter((item) => {
 			const isCollectionExists = collectionIds.includes(item.baseParentId);
 
@@ -123,13 +130,13 @@ export default class SelectItemsService {
 			if (foundedItem) {
 				this.selectModel.add(foundedItem);
 			}
-			return !foundedItem && isCollectionExists;
+			return !foundedItem && (isCollectionExists || skipCollectionChecking);
 		});
-		this.markAllSelectedItems();
+		this.dataView.callEvent("customSelectChange", [this.selectModel.getArrayOfSelectedItems()]);
 	}
 
-	parseInvisibleItems(arr) {
-		this.invisibleItems = this.invisibleItems.concat(arr);
+	parseInvisibleItems(items) {
+		this.invisibleItems = this.invisibleItems.concat(items);
 		return this.invisibleItems;
 	}
 

@@ -52,7 +52,7 @@ export default class ChangesBeforeSave {
 		return Object.values(this.dataArrays).some(arr => removeItemFromArray(item, arr));
 	}
 
-	addUniqueItem(item, arr) {
+	addUniqueItem(item, arrayOfItems) {
 		const types = Object.keys(this.dataArrays);
 		types.forEach((type) => {
 			const foundedItemIndex = this.dataArrays[type]
@@ -61,12 +61,12 @@ export default class ChangesBeforeSave {
 				this.dataArrays[type].splice(foundedItemIndex, 1);
 			}
 		});
-		arr.push(item);
+		arrayOfItems.push(item);
 	}
 
 	findItemByProperty(property, value) {
-		const arrays = Object.values(this.dataArrays);
-		const items = arrays.reduce((acc, val) => acc.concat(val), []);
+		const arraysOfItems = Object.values(this.dataArrays);
+		const items = arraysOfItems.reduce((acc, val) => acc.concat(val), []);
 		return items.find(item => item[property] === value);
 	}
 

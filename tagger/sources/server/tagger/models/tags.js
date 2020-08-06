@@ -10,7 +10,31 @@ const tagsSchema = new Schema({
 		type: [String], default: []
 	},
 	type: {
-		type: String, default: "single"
+		type: String,
+		enum: ["multiple", "multiple_with_default"],
+		default: "multiple"
+	},
+	icontype: {
+		type: String,
+		enum: ["pervalue", "badge", "badgecolor"],
+		default: "pervalue"
+	},
+	icon: {
+		type: String,
+		required() {
+			return this.icontype === "badge" || this.icontype === "badgecolor";
+		}
+	},
+	selection: {
+		type: String,
+		enum: ["multiple", "single"],
+		default: "single"
+	},
+	help: {
+		type: String
+	},
+	description: {
+		type: String
 	}
 });
 

@@ -29,7 +29,8 @@ function getByTags(req, res, next) {
 
 function updateMany(req, res, next) {
 	const values = JSON.parse(req.body.values);
-	valuesServices.updateMany(values)
+	const onlyValues = req.body.onlyValues;
+	valuesServices.updateMany(values, onlyValues)
 		.then((data) => {
 			const correctString = data.length === 1 ? "Value was" : "Values were";
 			return res.json({message: `${data.length} ${correctString} successfully updated`, data});

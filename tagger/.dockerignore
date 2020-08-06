@@ -1,3 +1,8 @@
-node_modules
-codebase
 npm-debug.log
+.idea/
+codebase/
+node_modules/
+*.log
+*.lock
+.vscode/
+testdata/

@@ -72,10 +72,18 @@ class AjaxActions extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	getItems(folderId) {
-		const params = {
+	getFolderDetails(id) {
+		return this._ajax()
+			.get(`${this.getHostApiUrl()}/folder/${id}/details`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getItems(folderId, options) {
+		const params = options || {
 			limit: 0
 		};
+
 		return this._ajax()
 			.get(`${this.getHostApiUrl()}/item?folderId=${folderId}`, params)
 			.fail(this._parseError)
@@ -86,99 +94,6 @@ class AjaxActions extends AjaxClass {
 		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params);
 	}
 
-	downloadItem(itemId) {
-		return `${this.getHostApiUrl()}/item/${itemId}/download${this.setTokenIntoUrl(authService.getToken(), "?")}`;
-	}
-
-	getImageTiles(itemId) {
-		return this._ajax()
-			.get(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	getImageTileUrl(itemId, z, x, y) {
-		return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?edge=crop${this.setTokenIntoUrl(authService.getToken(), "&")}`;
-	}
-
-	getOpenFileUrl(itemId) {
-		return `${this.getHostApiUrl()}/item/${itemId}/download?contentDisposition=inline${this.setTokenIntoUrl(authService.getToken(), "&")}`;
-	}
-
-	getJSONFileData(itemId, sourceParams) {
-		const params = sourceParams || {
-			contentDisposition: "inline"
-		};
-		return this._ajax()
-			.get(`${this.getHostApiUrl()}/item/${itemId}/download`, params)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	getLinearStucture(folderId, sourceParams) {
-		const params = sourceParams ? {
-			type: "folder",
-			limit: sourceParams.limit || 50,
-			offset: sourceParams.offset || 0,
-			sort: sourceParams.sort || "lowerName",
-			sortdir: sourceParams.sortdir || 1
-		} : {};
-		return this._ajax()
-			.get(`${this.getHostApiUrl()}/resource/${folderId}/items`, params)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	putNewFolderName(folderId, name) {
-		const params = {
-			name
-		};
-		return this._ajax()
-			.put(`${this.getHostApiUrl()}/folder/${folderId}`, params)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	makeLargeImage(itemId) {
-		return this._ajax()
-			.post(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	updateItemMetadata(itemId, metadataObject) {
-		const metadata = metadataObject ? {
-			metadata: metadataObject
-		} : {};
-		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, metadata)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	deleteItemMetadata(itemId, fields) {
-		if (!Array.isArray(fields)) {
-			fields = [fields];
-		}
-		const fielsdObj = fields.length ? {
-			fields
-		} : {};
-		return this._ajax()
-			.del(`${this.getHostApiUrl()}/item/${itemId}/metadata`, fielsdObj)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
-	putNewItemName(itemId, name) {
-		const params = {
-			name
-		};
-		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}`, params)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	}
-
 	updateFolderMetadata(folderId, metadata) {
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
@@ -186,25 +101,16 @@ class AjaxActions extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	recognizeOption(idsArray, option) {
-		const ids = idsArray.join(",");
+	getItem(id) {
 		return this._ajax()
-			.get(`${constants.RECOGNIZE_SERVICE_PATH}/${option}?ids=${ids}`)
+			.get(`${this.getHostApiUrl()}/item/${id}`)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
 
-	// update when API fixes
-	/* updateItemTag(itemId, itemTag) {
+	getUsers() {
 		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}/aperio?tag=${itemTag}`)
-			.fail(this._parseError)
-			.then(result => this._parseData(result));
-	} */
-
-	getItem(id) {
-		return this._ajax()
-			.get(`${this.getHostApiUrl()}/item/${id}`)
+			.get(`${this.getHostApiUrl()}/user?limit=0&sort=lastName&sortdir=1`)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

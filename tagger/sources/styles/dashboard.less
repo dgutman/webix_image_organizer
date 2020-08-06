@@ -1,0 +1,114 @@
+.dashboard-action-buttons {
+    display: flex;
+    justify-content: space-between;
+    height: 100%;
+    align-items: center;
+    .dashboard-button {
+        padding: 2px 5px;
+        cursor: pointer;
+    }
+    .icon-button:hover {
+        color: @btn-hover;
+        cursor: pointer;
+    }
+}
+
+.dashboard-users-column .webix_cell:hover {
+    overflow: visible;
+}
+
+.dashboard-users {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-around;
+    align-items: center;
+    padding-left: 7px;
+    .delete-icon {
+        display: none;
+    }
+    .dashboard-user-dots-icon {
+        z-index: 2;
+        flex: 0 0 22px;
+        margin-left: -11px;
+        font-size: 14px;
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        text-align: center;
+        border-radius: 50%;
+        background: @selected-bg;
+        color: @select-color;
+        border: 1px solid @selected-bg;
+    }
+}
+
+.users-list {
+    .user-item:hover {
+        .checkbox {
+            color: @btn-hover;
+            cursor: pointer;
+        }
+    }
+
+}
+
+.results-layout {
+    .results-template {
+        .task-name {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .users-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            .progress-bar {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 15px;
+                width: 100px;
+                border: 1px solid @lines-color;
+                .bar, .progress {
+                    height: 100%;
+                    display: block;
+                }
+                .bar {
+                    width: 100%;
+                    position: relative;
+                }
+                .progress {
+                    height: 100%;
+                    background-color: #75b800;
+                }
+                .progress-text {
+                    position: absolute;
+                    text-align: center;
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    .tags-statistic-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .tag-container {
+        display: flex;
+        flex-direction: column;
+        .tag-name {
+            margin-top: 15px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #0f77a7;
+          }
+          .value-container {
+            display: flex;
+            justify-content: space-between;
+          }
+      }
+}

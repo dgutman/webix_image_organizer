@@ -114,7 +114,7 @@ export default class DataviewWindowService extends DataviewService {
 
 		this.scope.selectAllTemplate.define("onClick", {
 			"select-all-images": () => {
-				this.scope.selectImagesService.selectAllItems(this.pager);
+				this.scope.selectImagesService.selectAllVisibleItems(this.pager);
 			},
 			"unselect-all-images": () => {
 				this.scope.selectImagesService.unselectAllItems();

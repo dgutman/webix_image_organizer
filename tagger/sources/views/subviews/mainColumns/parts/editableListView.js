@@ -32,8 +32,8 @@ export default class EditableListView extends JetView {
 			type: {
 				switchIcon(obj) {
 					let switchState = "off";
-					switch (obj.type) {
-						case "multi": {
+					switch (obj.selection) {
+						case "multiple": {
 							switchState = "on";
 							break;
 						}
@@ -45,7 +45,7 @@ export default class EditableListView extends JetView {
 							return "";
 						}
 					}
-					let switchIcon = `<div class='switch-icon icon-btn switch-type'>${obj.type} <span class='switch-type fas fa-toggle-${switchState}'></span></div>`;
+					let switchIcon = `<div class='switch-icon icon-btn switch-type'>${obj.selection} <span class='switch-type fas fa-toggle-${switchState}'></span></div>`;
 					return switchIcon;
 				}
 			},

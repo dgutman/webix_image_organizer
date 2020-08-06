@@ -11,7 +11,8 @@ export default {
 		TAGGER_ADMIN: `${TAGGER_PATH}/admin`,
 		TAGGER_ADMIN_DASHBOARD: "/dashboard",
 		TAGGER_USER: `${TAGGER_PATH}/user`,
-		TAGGER_USER_NOTIFICATIONS: "/notifications"
+		TAGGER_USER_NOTIFICATIONS: "/notifications",
+		TAGGER_TASK_TOOL: `${TAGGER_PATH}/task_tool`
 	},
 	ADMIN_VIEW_PATTERN: "^(\\/app\\/admin|app\\/admin|\\/dashboard)",
 
@@ -72,5 +73,14 @@ export default {
 	DEFAULT_NOTIFICATION_TEXT: "Dear Colleague,\n\nplease, speed up task completion. We hope, that your progress can be increased.\n\nAdministration.",
 	CONNECTION_ERROR_MESSAGE: "Server connection error.<br /> Please check the connection.",
 
-	WEBIX_MESSAGE_TEXT_LIMIT: 140
+	WEBIX_MESSAGE_TEXT_LIMIT: 140,
+
+	DEFAULT_TAG_SETTINGS: {
+		type: "multiple",
+		selection: "single",
+		icontype: "pervalue"
+	},
+
+	CREATE_TASK_BUTTON_ID: "task-creation:create-task",
+	EDIT_TASK_BUTTON_ID: "task-creation:edit-task"
 };

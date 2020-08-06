@@ -390,6 +390,16 @@
     margin-left: 20px;
   }
 
+  .value-radio-button-template .webix_template {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    &:hover .value-radio {
+      color: @btn-hover;
+    }
+  }
+
   .images-tags-active-list {
     .webix_list_item {
       border-bottom: 1px solid #dddddd;
@@ -428,6 +438,11 @@
   .last-selected-folder {
     background: @selected-bg2;
     color: @select-color;
+  }
+
+  .add-new-button .webix_template {
+    display: flex;
+    align-items: center;
   }
 }
 

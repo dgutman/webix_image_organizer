@@ -7,7 +7,23 @@ const valuesSchema = new Schema({
 		type: String, required: true
 	},
 	tagIds: {
-		type: [String], default: []
+		type: [Schema.Types.ObjectId], default: []
+	},
+	icon: {
+		type: String
+	},
+	hotkey: {
+		type: String
+	},
+	badgevalue: {
+		type: String
+	},
+	badgecolor: {
+		type: String
+	},
+	default: {
+		type: Boolean,
+		default: false
 	}
 });
 

@@ -6,133 +6,154 @@ const Values = require("../models/values");
 const confidenceModel = require("../models/confidence");
 const Fields = require("../models/updatedFields");
 const tagsService = require("./tags");
-const http = require("http");
 const fromEntries = require("object.fromentries");
 const foldersService = require("./folders");
 const imageFilters = require("./imageFilters");
 const Tasks = require("../models/user/tasks");
-
-const successStatusCode = 200;
+const girderREST = require("./girderServerRequest");
 
 function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
 }
 
-async function getResourceImages(collectionId, hostApi, token, userId, type, taskId) {
-	// validation
-	if (!userId) throw {name: "UnauthorizedError"};
+async function countImagesByTask(taskId, userId) {
+	const reviewedCount = await Images.countDocuments({
+		taskId: mongoose.Types.ObjectId(taskId),
+		userId,
+		isReviewed: true
+	});
+	const allCount = await Images.countDocuments({
+		taskId: mongoose.Types.ObjectId(taskId),
+		userId
+	});
+	return {reviewedCount, allCount};
+}
 
-	const url = `${hostApi}/resource/${collectionId}/items?type=${type}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
-	return new Promise((resolve, reject) => {
-		http.get(url, (response) => {
-			let body = "";
-			const {statusCode} = response;
-			if (statusCode !== successStatusCode) {
-				const errorMessage = body && body.message ? `with message: ${body.message}` : "&lt;none&gt;";
-				const error = new Error(
-					`Request to ${url} failed\n
-					${errorMessage}\n
-					Status Code: ${statusCode}`
-				);
-				return reject(error);
-			}
-			// A chunk of data has been recieved.
-			response.on("data", (data) => {
-				body += data;
-			});
-			// The whole response has been received. Print out the result.
-			response.on("end", async () => {
-				// remove all existing images for that collection
-				if (type === "folder") {
-					const folderIds = await foldersService.getNestedFolderIds([collectionId], [collectionId]);
-					await Images.deleteMany({folderId: {$in: folderIds}, userId});
-				}
-				else {
-					await Images.deleteMany({baseParentId: collectionId, userId});
-				}
-
-				// add new images
-				body = JSON.parse(body);
-
-				const regex = (/\.(gif|jpg|jpeg|tiff|png|bmp)$/i);
-				let images = body.filter(item => regex.test(item.name));
-				const tags = [];
-
-				images = images.map((image) => {
-					if (image.hasOwnProperty("meta") && typeof image.meta === "object") {
-						if (image.meta.hasOwnProperty("tags")) {
-							const entries = typeof image.meta.tags === "object" ? Object.entries(image.meta.tags) : [];
-							entries.forEach((entry) => {
-								if (Array.isArray(entry[1]) || typeof entry[1] !== "object") {
-									if (!Array.isArray(entry[1])) {
-										// to check for replies
-										entry[1] = [entry[1]];
-									}
-									else {
-										// to check if array contains object and get value
-										entry[1] = entry[1]
-											.filter((value) => {
-												if (!Array.isArray(value) && typeof value === "object") {
-													return value.value;
-												}
-												else if (typeof value !== "object") {
-													return value;
-												}
-											}) // transform values to lower case and make objects
-											.map((value) => {
-												if (!Array.isArray(value) && typeof value === "object") {
-													value.value = value.value.toString().toLowerCase();
-													return value;
-												}
-												else if (value && typeof value !== "object") {
-													return {value: value.toString().toLowerCase()};
-												}
-											});
-									}
-
-									entry[0] = entry[0].toLowerCase();
-
-									const existedTag = tags.find((tag) => {
-										if (tag.name === entry[0]) {
-											tag.values = tag.values.concat(entry[1]).unique();
-											return true;
-										}
-									});
-									if (!existedTag) {
-										tags.push({
-											name: entry[0],
-											values: entry[1]
-										});
-									}
+function parseTagsAndValues(image, collectionId) {
+	const tags = [];
+	if (image.hasOwnProperty("meta") && typeof image.meta === "object") {
+		if (image.meta.hasOwnProperty("tags")) {
+			const entries = typeof image.meta.tags === "object" ? Object.entries(image.meta.tags) : [];
+			entries.forEach(([tagName, values]) => {
+				if (Array.isArray(values) || typeof values !== "object") {
+					if (!Array.isArray(values)) {
+						// to check for replies
+						values = [values];
+					}
+					else {
+						// to check if array contains object and get value
+						values = values
+							.filter((value) => {
+								if (!Array.isArray(value) && typeof value === "object") {
+									return value.value;
+								}
+								else if (typeof value !== "object") {
+									return value;
+								}
+							}) // transform values to lower case and make objects
+							.map((value) => {
+								if (!Array.isArray(value) && typeof value === "object") {
+									value.value = value.value.toString().toLowerCase();
+									return value;
+								}
+								else if (value && typeof value !== "object") {
+									return {value: value.toString().toLowerCase()};
 								}
 							});
-
-							// save initial metadata to resolve merge conflicts in the future
-							image.oldMeta = image.meta;
-
-							// replace old keys with new lowercase
-							image.meta.tags = fromEntries(entries);
-						}
-						else image.oldMeta = image.meta;
 					}
-					// if image does not contain meta we'll create one
-					else image.meta = {};
-					image.userId = userId;
-					image.mainId = image._id;
-					if (taskId) image.taskId = taskId;
-					delete image._id;
-					return image;
-				});
+					tagName = tagName.toLowerCase();
 
-				const createdImages = await Images.insertMany(images);
-				await tagsService.create(tags, [collectionId]);
-
-				resolve(createdImages);
+					const existedTag = tags.find((tag) => {
+						if (tag.name === tagName) {
+							tag.values = tag.values.concat(values).unique();
+							return true;
+						}
+					});
+					if (!existedTag) {
+						tags.push({
+							name: tagName,
+							values
+						});
+					}
+				}
 			});
-		}).on("error", (err) => {
-			throw err;
+
+			// save initial metadata to resolve merge conflicts in the future
+			image.oldMeta = image.meta;
+
+			// replace old keys with new lowercase
+			image.meta.tags = fromEntries(entries);
+		}
+		else image.oldMeta = image.meta;
+	}
+	else image.meta = {};
+
+	tagsService.create(tags, [collectionId]);
+}
+
+async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) {
+	// validation
+	if (!userId) throw {name: "UnauthorizedError"};
+	const query = imageIds.map(id => ({$oid: id.toString()}));
+
+	const url = `${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
+	return girderREST.get(url)
+		.then(async (data) => {
+			// remove all existing images for that task
+			await Images.deleteMany({
+				mainId: {$in: imageIds},
+				taskId: mongoose.Types.ObjectId(taskId),
+				userId
+			});
+
+			// add new images
+			let images = data.map((image) => {
+				image.taskId = taskId;
+				image.userId = userId;
+				image.mainId = image._id;
+				delete image._id;
+				return image;
+			});
+
+			return Images.insertMany(images);
 		});
-	});
+}
+
+async function getResourceImages({collectionId, hostApi, token, userId, type, taskId, nested}) {
+	// validation
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!collectionId) throw {name: "ValidationError", message: "Query \"resourceId\" should be an specified"};
+
+	const url = nested ? `${hostApi}/resource/${collectionId}/items?type=${type}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`
+		: `${hostApi}/item?folderId=${collectionId}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
+	return girderREST.get(url)
+		.then(async (data) => {
+			// remove all existing images for that collection
+			if (type === "folder") {
+				const folderIds = await foldersService.getNestedFolderIds([collectionId], [collectionId]);
+				const queryToDelete = {folderId: {$in: folderIds}, userId};
+				if (taskId) queryToDelete.taskId = taskId;
+				await Images.deleteMany(queryToDelete);
+			}
+			else {
+				await Images.deleteMany({baseParentId: collectionId, userId});
+			}
+
+			// add new images
+			const regex = (/\.(gif|jpg|jpeg|tiff|png|bmp)$/i);
+			let images = data.filter(item => regex.test(item.name));
+
+			images = images.map((image) => {
+				if (!taskId) parseTagsAndValues(image, collectionId);
+				else image.taskId = taskId;
+				image.userId = userId;
+				image.mainId = image._id;
+				delete image._id;
+				return image;
+			});
+
+			return Images.insertMany(images);
+		});
 }
 
 async function getCollectionsImages({tag, collectionIds, offset, limit, value, confidence, latest, name, userId}) {
@@ -206,7 +227,6 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 		{
 			$project: {
 				name: 1,
-				expireDate: 1,
 				meta: 1,
 				baseParentId: 1,
 				mainId: 1,
@@ -222,16 +242,8 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 
 	const count = await Images.countDocuments(searchParams);
 
-	const update = collectionIds.filter(async (collectionId) => {
-		const firstImage = await Images.findOne({baseParentId: collectionId});
-		if (!firstImage || firstImage.expireDate < new Date()) {
-			return collectionId;
-		}
-	});
-
 	return {
 		data,
-		update,
 		count
 	};
 }
@@ -309,7 +321,6 @@ async function getFoldersImages({tag, folderIds, offset, limit, value, confidenc
 		{
 			$project: {
 				name: 1,
-				expireDate: 1,
 				meta: 1,
 				parentId: 1,
 				mainId: 1,
@@ -331,16 +342,16 @@ async function getFoldersImages({tag, folderIds, offset, limit, value, confidenc
 	};
 }
 
-async function getTaskImages({folderIds, offset, limit, userId, filters}) {
+async function getTaskImages({ids, offset, limit, userId, filters}) {
 	// validation
-	if (!Array.isArray(folderIds)) throw {message: "Query \"ids\" should be an array", name: "ValidationError"};
+	if (!Array.isArray(ids)) throw {message: "Query \"ids\" should be an array", name: "ValidationError"};
 	if (!userId) throw {name: "UnauthorizedError"};
 	if (filters && (typeof filters !== "object" || Array.isArray(filters))) throw {message: "Query \"filters\" should be an JSON hash", name: "ValidationError"};
 
-	let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
+	// let nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
 
 	let searchParams = {
-		folderId: {$in: nestedFolderIds},
+		taskId: {$in: ids.map(id => mongoose.Types.ObjectId(id))},
 		userId,
 		isReviewed: false
 	};
@@ -354,7 +365,6 @@ async function getTaskImages({folderIds, offset, limit, userId, filters}) {
 		{
 			$project: {
 				name: 1,
-				expireDate: 1,
 				meta: 1,
 				parentId: 1,
 				mainId: 1,
@@ -367,6 +377,10 @@ async function getTaskImages({folderIds, offset, limit, userId, filters}) {
 		{$limit: limit}
 	];
 
+	if (!limit) {
+		aggregatePipeline.splice(-1, 1);
+	}
+
 	const data = await Images.aggregate(aggregatePipeline);
 
 	const count = await Images.countDocuments(searchParams);
@@ -376,7 +390,7 @@ async function getTaskImages({folderIds, offset, limit, userId, filters}) {
 		unfilteredCount = await Images.countDocuments(searchParams);
 	}
 
-	const totalCount = await Images.countDocuments({folderId: {$in: nestedFolderIds}, userId});
+	const totalCount = await Images.countDocuments({taskId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}, userId});
 
 	return {
 		data,
@@ -396,7 +410,7 @@ async function updateImage(imageId, tag, action, value, confidence) {
 	if (action !== "delete") {
 		if (!image.meta.hasOwnProperty("tags")) image.meta.tags = {};
 		if (image.meta.tags.hasOwnProperty(tag.name) && value) {
-			if (tag.type === "single") {
+			if (tag.selection === "single") {
 				image.meta.tags[tag.name] = [];
 			}
 			let existedValue = image.meta.tags[tag.name].find(item => item.value === value.value);
@@ -504,6 +518,16 @@ async function reviewImages(images, taskIds, userId, preliminarily) {
 	await Tasks.validateByUserId(taskIds, userId);
 
 	const reviewedImages = await Promise.all(images.map(image => reviewImage(image._id, image.tags, taskIds, userId, preliminarily, image.isUpdated)));
+	// update task status by reviewed images
+	await Promise.all(
+		taskIds.map(async (id) => {
+			const {reviewedCount, allCount} = await countImagesByTask(id, userId);
+			if (allCount === reviewedCount) {
+				return Tasks.findByIdAndUpdate(id, {$set: {status: "finished"}});
+			}
+			return Promise.resolve(false);
+		})
+	);
 	return {data: reviewedImages};
 }
 
@@ -511,20 +535,22 @@ async function unreviewTaskImages(taskIds, userId) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
 	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
-	const tasks = await Tasks.validateByUserId(taskIds, userId);
-	const folderIds = tasks.map(task => mongoose.Types.ObjectId(task.folderId));
-	const nestedFolderIds = await foldersService.getNestedFolderIds(folderIds, folderIds);
+	await Tasks.validateByUserId(taskIds, userId);
 
 	const imagesData = await Images.updateMany(
 		{ // filter
 			userId: mongoose.Types.ObjectId(userId),
 			isReviewed: true,
-			folderId: {$in: nestedFolderIds}
+			taskId: {$in: taskIds.map(id => mongoose.Types.ObjectId(id))}
 		},
 		{$set: { // updated fields
 			isReviewed: false,
 			updatedDate: imageUpdatedDate.getDate()
 		}}
+	);
+
+	await Promise.all(
+		taskIds.map(async id => Tasks.findOneAndUpdate({_id: mongoose.Types.ObjectId(id), status: {$ne: "in_progress"}}, {$set: {status: "in_progress"}}))
 	);
 
 	return imagesData;
@@ -547,5 +573,6 @@ module.exports = {
 	updateMany,
 	reviewImages,
 	setTagsByTask,
-	unreviewTaskImages
+	unreviewTaskImages,
+	getDefaultTaskImages
 };

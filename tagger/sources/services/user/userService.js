@@ -3,7 +3,7 @@ import auth from "../authentication";
 import DataviewService from "./dataviewService";
 import DataviewFilters from "./dataviewFilters";
 import CustomDataPull from "../../models/customDataPullClass";
-import "../globalEvents";
+import globalEvents from "../globalEvents";
 import imageWindow from "../../views/windows/imageWindow";
 import UpdatedImagesService from "./updateImageService";
 import constants from "../../constants";
@@ -186,6 +186,10 @@ export default class UserViewService {
 			}
 		});
 
+		// this._pager.attachEvent("onAfterPageChange", () => {
+		// 	this._getImagesQueue.addJobToQueue();
+		// });
+
 		this._dataview.attachEvent("onDataRequest", () => {
 			this._getImagesQueue.addJobToQueue();
 		});
@@ -276,6 +280,11 @@ export default class UserViewService {
 							images.forEach((image) => {
 								delete changedItems[image._id];
 							});
+
+							// if (!Object.keys(changedItems).length) {
+							// 	globalEvents.clearCallbacks("unload");
+							// }
+
 							webix.message(response.message);
 						}
 
@@ -473,15 +482,16 @@ export default class UserViewService {
 
 	_getParamsForImages(startWith, limit) {
 		const tasks = this._taskList.getSelectedItem(true);
-		const folderIds = tasks.map(task => task.folderId);
+		const taskIds = tasks.map(task => task._id);
 		const offset = startWith || this._pager.data.size * this._pager.data.page;
 		limit = limit || this._pager.data.size;
 		const params = {
-			ids: folderIds,
+			ids: taskIds,
 			offset,
 			limit
 		};
 		if (this._dataviewFilters.enabled) {
+			// this._dataviewFilters.setInitialFiltersState();
 			params.filters = this._dataviewFilters.getSelectedFilters();
 		}
 

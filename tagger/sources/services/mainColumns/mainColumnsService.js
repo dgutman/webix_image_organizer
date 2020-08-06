@@ -2,7 +2,7 @@ import transitionalAjax from "../transitionalAjaxService";
 import ajaxActions from "../ajaxActions";
 import CustomDataPull from "../../models/customDataPullClass";
 import undoFactory from "../../models/undoModel";
-// import SelectItemsService from "../selectItemsService";
+import SelectItemsService from "../selectItemsService";
 import addValueWindow from "../../views/windows/addValueWindow";
 import connectTagToImageWindow from "../../views/windows/connectTagToImageWindow";
 import connectValueToImageWindow from "../../views/windows/connectValueToImageWindow";
@@ -156,7 +156,7 @@ export default class TaggerMainColumnsService {
 	_attachCollectionColumnEvents() {
 		// this._collectionSelectTemplate.define("onClick", {
 		// 	"select-all": () => {
-		// 		this._collectionSelectItemsService.selectAllItems();
+		// 		this._collectionSelectItemsService.selectAllVisibleItems();
 		// 	},
 		// 	"unselect-all": () => {
 		// 		this._collectionSelectItemsService.unselectAllItems();
@@ -196,7 +196,7 @@ export default class TaggerMainColumnsService {
 		this._addTagTemplate.define("onClick", {
 			"add-new": () => {
 				if (this._checkColumnEditMode(this._tagColumnClass)) {
-					this._tagListStore.addItem({name: "", type: "single"});
+					this._tagListStore.addItem({name: "", selection: "single"});
 					this._tagList.edit(this._tagList.getLastId());
 				}
 			}
@@ -299,7 +299,7 @@ export default class TaggerMainColumnsService {
 			}
 			else if (ev.target.classList.contains("switch-type")) {
 				if (this._checkColumnEditMode(this._tagColumnClass)) {
-					tag.type = tag.type === "single" ? "multi" : "single";
+					tag.selection = tag.selection === "single" ? "multiple" : "single";
 					this._tagListStore.updateItem(tag.id, null, tag);
 					if (!tag._id) {
 						this._changesTagsModel.addItem(tag, "created");
@@ -671,7 +671,7 @@ export default class TaggerMainColumnsService {
 
 	_updateTags(updatedTags) {
 		if (updatedTags.length) {
-			return transitionalAjax.updateTags(updatedTags)
+			return transitionalAjax.updateTags(updatedTags, true)
 				.then((response) => {
 					response.data.forEach((tag) => {
 						if (tag) {
