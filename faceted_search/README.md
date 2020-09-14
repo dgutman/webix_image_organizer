@@ -18,5 +18,9 @@ bower install
 #### Run
 
 ```bash
-npm start
+1. `npm i`
+2. create `tmp`, `upload`, `upload/images`, `upload/archive`, `upload/extract` folders
+3. create `config.js` file and add fields like in `sample_config.js`
+4. `npm start`.
+The app uses `8000` port.
 ```
