@@ -176,9 +176,42 @@ function setDatatableMouseEvents(datatable, action, event) {
 	}
 }
 
+function getMouseWebixEvent(key) {
+	let event;
+	switch (key) {
+		case constants.MOUSE_LEFT_SINGLE_CLICK: {
+			event = "onItemClick";
+			break;
+		}
+		case constants.MOUSE_RIGHT_SINGLE_CLICK: {
+			event = "onBeforeContextMenu";
+			break;
+		}
+		case constants.MOUSE_LEFT_DOUBLE_CLICK:
+		default: {
+			event = "onItemDblClick";
+			break;
+		}
+	}
+	return event;
+}
+
+function setMouseSettingsEvents(dataview, datatable, values) {
+	const keys = Object.keys(values);
+	keys.forEach((key) => {
+		const event = getMouseWebixEvent(key);
+		setDataviewMouseEvents(dataview, values[key], event);
+		setDatatableMouseEvents(datatable, values[key], event);
+	});
+
+	utils.setLocalStorageSettingsValues(values);
+}
+
 export default {
 	setDataviewMouseEvents,
 	setDatatableMouseEvents,
 	setFilesToLargeImage,
-	setMakeLargeImageButton
+	setMakeLargeImageButton,
+	setMouseSettingsEvents,
+	getMouseWebixEvent
 };

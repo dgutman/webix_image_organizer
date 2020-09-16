@@ -46,7 +46,7 @@ export default class MainDataViewsStateSetter {
 			this.pager.showOverlay("<div class='empty-overlay'></div>");
 
 			// Select Items Template
-			utils.showOrHideImageSelectionTemplate("hide", this.selectItemsTemplate);
+			this.showOrHideImageSelectionTemplate("hide", this.selectItemsTemplate);
 		}
 		else {
 			// Gallery Dataview
@@ -57,7 +57,7 @@ export default class MainDataViewsStateSetter {
 			this.pager.hideOverlay();
 
 			// Select Items Template
-			utils.showOrHideImageSelectionTemplate("show", this.selectItemsTemplate);
+			this.showOrHideImageSelectionTemplate("show", this.selectItemsTemplate);
 		}
 	}
 
@@ -96,6 +96,17 @@ export default class MainDataViewsStateSetter {
 			itemHeight: t.height,
 			_dx: dx
 		};
+	}
+
+	showOrHideImageSelectionTemplate(action, template) {
+		if (action === "show") {
+			template.show();
+			this.dataview.getNode().style.borderTop = "none";
+		}
+		else {
+			template.hide();
+			this.dataview.getNode().style.borderTop = "1px solid #DDDDDD";
+		}
 	}
 }
 

@@ -59,7 +59,7 @@ export default {
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
 
-	LINEAR_STRUCTURE_LIMIT: 150,
+	LINEAR_STRUCTURE_LIMIT: 2000,
 	FOLDERS_LIMIT: 500,
 
 	MAX_COUNT_IMAGES_SELECTION: 100,
@@ -89,7 +89,7 @@ export default {
 		LABEL: "Find labels"
 	},
 
-	RECOGNITION_STATUSES: {
+	LOADING_STATUSES: {
 		DONE: {icon: "fas fa-check", iconColor: "#4caf50", value: "Done"},
 		IN_PROGRESS: {icon: "fas fa-sync fa-spin", iconColor: "#ffb300", value: "In progress"},
 		ERROR: {icon: "fas fa-times", iconColor: "#b71c1c", value: "Error"},
@@ -100,7 +100,7 @@ export default {
 
 	EDIT_ACCESS_LEVEL: 1,
 
-	ALLOWED_FILE_EXTENSIONS: ["csv"],
+	ALLOWED_FILE_EXTENSIONS: ["csv", "xls", "xlsx"],
 	ITEM_NAME_COLUMN: "filename",
 
 	ACCEPT_METADATA_LIMIT: 100,
@@ -116,6 +116,9 @@ export default {
 		header: "Preview",
 		id: "-image"
 	},
+
+	SUB_FOLDER_MODEL_TYPE: "itemsSubFolder",
+	FOLDER_MAX_SHOWED_ITEMS: 5000,
 
 	METADATA_TABLE_ROW_HEIGHT: 34
 };

@@ -28,6 +28,10 @@ function clearFilterValues() {
 	filtersArray = [];
 }
 
+function setFilterValue(valueToSet) {
+	richSelectDataviewFilter.setValue(valueToSet);
+}
+
 function addNoFiltersSelection() {
 	richSelectDataviewFilter.getList().parse({
 		id: "all",
@@ -113,6 +117,10 @@ function parseFilterToRichSelectList() {
 // }
 
 function prepareDataToFilter(dataArray) {
+	richSelectDataviewFilter.blockEvent();
+	setFilterValue("");
+	richSelectDataviewFilter.unblockEvent();
+	clearFilterValues();
 
 	dataArray.forEach((item) => {
 		const itemType = utils.searchForFileType(item);
@@ -152,5 +160,6 @@ export default {
 	parseFilterToRichSelectList,
 	addNoFiltersSelection,
 	getFiltersArray,
+	setFilterValue,
 	prepareDataToFilter
 };

@@ -7,6 +7,9 @@ import AddMetadataWindow from "./window/addMetadataWindow";
 import utils from "../../../utils/utils";
 import ajaxActions from "../../../services/ajaxActions";
 import webixViews from "../../../models/webixViews";
+import projectMetadata from "../../../models/projectMetadata";
+
+const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
 
 let item;
 const mainPropertiesClassName = constants.MAIN_PROPERTIES_CLASS_NAME;
@@ -124,14 +127,19 @@ export default class MetadataPanelClass extends JetView {
 			mainMenuBar: false,
 			onChangeJSON: (updatedMetadata) => {
 				if (!updatedMetadata.hasOwnProperty("")) {
+					const galleryDataview = webixViews.getGalleryDataview();
 					const itemId = this.metadataTemplate.getValues()._id;
 					const itemGalleryDataviewId = this.metadataTemplate.getValues().id;
+					const oldItem = galleryDataview.getItem(itemGalleryDataviewId);
+					const removedFields = this.getRemovedFields(webix.copy(oldItem.meta), updatedMetadata);
+					let promise = removedFields.length ? ajaxActions.deleteItemMetadata(itemId, removedFields) : ajaxActions.updateItemMetadata(itemId, updatedMetadata);
+
 					this.metadataTemplate.showProgress();
-					ajaxActions.updateItemMetadata(itemId, updatedMetadata)
-						.then((item) => {
-							const galleryDataview = webixViews.getGalleryDataview();
-							galleryDataview.updateItem(itemGalleryDataviewId, item);
+					promise
+						.then((obj) => {
+							galleryDataview.updateItem(itemGalleryDataviewId, obj);
 							this.metadataTemplate.hideProgress();
+							this.jsonEditor.refresh();
 						})
 						.catch(() => {
 							const previousItemMetadata = this.metadataTemplate.getValues().meta;
@@ -139,6 +147,15 @@ export default class MetadataPanelClass extends JetView {
 							this.metadataTemplate.hideProgress();
 						});
 				}
+			},
+			onClassName: ({path}) => {
+				let highlight;
+				const itemId = this.metadataTemplate.getValues()._id;
+				const invalidItem = wrongMetadataCollection.getItem(itemId);
+				if (invalidItem && invalidItem.incorrectKeys.find(key => key === path.join("."))) {
+					highlight = "invalid-field";
+				}
+				return highlight;
 			}
 		});
 
@@ -164,6 +181,13 @@ export default class MetadataPanelClass extends JetView {
 		else {
 			this.jsonEditor.collapseAll();
 		}
+	}
+
+	getRemovedFields(oldData, newData) {
+		const oldKeys = Object.keys(oldData);
+		const newKeys = Object.keys(newData);
+		const removedFields = oldKeys.filter(key => !newKeys.find(newKey => newKey === key));
+		return removedFields;
 	}
 
 	getScrollView() {

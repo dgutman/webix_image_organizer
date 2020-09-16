@@ -73,7 +73,6 @@ export default class MakeLargeImageWindow extends JetView {
 		const windowActiveList = {
 			view: "activeList",
 			borderless: true,
-			tooltip: obj => obj.name,
 			name: "makeLargeImageWindowActiveListName",
 			activeContent: {
 				markListCheckbox: {
@@ -110,7 +109,7 @@ export default class MakeLargeImageWindow extends JetView {
 					// }
 				}
 			},
-			template: (obj, common) => `<div class='large-image-window'>
+			template: (obj, common) => `<div title='${obj.name}' class='large-image-window'>
 						<div class='image-window-checkbox'>${common.markListCheckbox(obj, common)}</div>
  						<div class='image-window-list-name'>${obj.name}</div>
 					</div>`

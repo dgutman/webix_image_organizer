@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import ajax from "../../../services/ajaxActions";
 import "../../components/editableTree";
 import "../../components/finderCounter";
+import constants from "../../../constants";
 
 export default class FinderViewClass extends JetView {
 	config() {
@@ -17,9 +18,15 @@ export default class FinderViewClass extends JetView {
 			editaction: "custom",
 			editValue: "name",
 			oncontext: {},
-			template(obj, common) {
-				const count = obj._modelType === "folder" && obj.$count !== -1 ? `<span class='strong-font'>(${obj.$count})</span>` : "";
-				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name} ${count}</span>`;
+			template: (obj, common) => {
+				const branch = this.getTreeRoot().data.getBranch(obj.id);
+				let count = obj._modelType === "folder" ? obj.$count : -1;
+				if (obj._modelType === "folder" && branch.length === 1 && branch[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+					count = branch[0].$count;
+				}
+				const countTemplate = count >= 0 ? `<span class='strong-font'>(${count})</span>` : "";
+				const loadingIcon = obj.linear ? `<i class='${obj.linear.icon}' style='color: ${obj.linear.iconColor};'></i>` : "";
+				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name} ${countTemplate} ${loadingIcon}</span>`;
 			},
 			scheme: {
 				$init(obj) {

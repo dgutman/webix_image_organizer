@@ -1,8 +1,37 @@
+import dot from "dot-object";
+import galleryDataviewFilterModel from "./galleryDataviewFilterModel";
+import projectMetadata from "./projectMetadata";
+import constants from "../constants";
+
+const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
+const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
+
+const subFolderType = constants.SUB_FOLDER_MODEL_TYPE;
+
 export default class ItemsModel {
-	constructor(finder) {
-		this.finderCollection = finder;
-		this.dataCollection = new webix.DataCollection();
-		this.customFinderDataPull = {};
+	constructor(finder, dataview, table) {
+		if (!ItemsModel.instance) {
+			this.finderCollection = finder;
+			this.dataCollection = new webix.DataCollection();
+			this.customFinderDataPull = {};
+			this.dataview = dataview;
+			this.table = table;
+			this.selectedItem = null;
+
+			this.dataCollection.data.attachEvent("onDataUpdate", (id) => {
+				const item = this.dataCollection.getItem(id);
+				const starColor = this.findStarColorForItem(item);
+				if (starColor && starColor !== item.starColor) {
+					galleryDataviewFilterModel.addFilterValue(`${starColor} star`);
+					galleryDataviewFilterModel.parseFilterToRichSelectList();
+					item.starColor = starColor;
+					this.dataview.render(item.id, item, "update");
+				}
+			});
+
+			ItemsModel.instance = this;
+		}
+		return ItemsModel.instance;
 	}
 
 	parseItems(dataArray, parentId) {
@@ -14,11 +43,51 @@ export default class ItemsModel {
 		});
 
 		if (parentId) {
-			this.finderCollection.parse({data: dataArray, parent: parentId});
+			this.parseItemsToFolder(dataArray, parentId);
 		}
 		else {
 			this.finderCollection.parse(dataArray);
 		}
+
+		Object.assign(this.customFinderDataPull, finderDataPull);
+	}
+
+	parseItemsToFolder(dataArray, parentId) {
+		let branch = this.finderCollection.data.getBranch(parentId) || [];
+		const parent = this.findItem(parentId);
+		const count = this.getFolderCount(parent) + dataArray.length;
+		let items = dataArray;
+		if (count >= constants.FOLDER_MAX_SHOWED_ITEMS && !parent._showMany) {
+			if (branch.length === 1 && branch[0]._modelType === subFolderType) {
+				parentId = branch[0].id;
+			}
+			else {
+				this.finderCollection.callEvent("putItemsToSubFolder");
+				this.finderCollection.blockEvent();
+				this.finderCollection.close(parentId);
+				branch.forEach(item => this.removeItem(item.id));
+				this.finderCollection.unblockEvent();
+
+				items = [{
+					_modelType: subFolderType,
+					data: branch.concat(dataArray),
+					name: "&lt;items&gt;"
+				}];
+			}
+		}
+		this.finderCollection.parse({data: items, parent: parentId});
+		this.finderCollection.blockEvent();
+		this.finderCollection.open(parent.id);
+		this.finderCollection.unblockEvent();
+	}
+
+	openSubFolder(id) {
+		const subFolder = this.findItem(id);
+		const parent = this.findItem(subFolder.$parent);
+		const branch = this.finderCollection.data.getBranch(id);
+		parent._showMany = true;
+		this.removeItem(id);
+		this.parseItems(branch, parent.id);
 	}
 
 	addItem(item) {
@@ -84,5 +153,129 @@ export default class ItemsModel {
 
 	getDataCollection() {
 		return this.dataCollection;
+	}
+
+	parseDataToViews(data, linearData, folderId) {
+		if (this.selectedItem && folderId === this.selectedItem.id) {
+			const dataview = this.dataview;
+			const pager = dataview.getPager();
+
+			if (!pager.isVisible() && dataview.isVisible()) {
+				pager.show();
+			}
+			if (!linearData) {
+				this.dataCollection.clearAll();
+			}
+
+			if (!Array.isArray(data)) {
+				data = [data];
+			}
+
+			data.forEach((item) => {
+				item.starColor = this.findStarColorForItem(item);
+			});
+
+			this.dataCollection.parse(data);
+			dataview.refresh();
+			let dataForFilter = data;
+			if (linearData) {
+				dataForFilter = this.dataCollection.data.serialize();
+			}
+			galleryDataviewFilterModel.prepareDataToFilter(dataForFilter);
+		}
+	}
+
+	findStarColorForItem(item) {
+		let hasFoundMissingKey = false;
+		let hasFoundIncorrectKey = false;
+		let starColor;
+
+		if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
+			const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
+			const projectSchema = projectSchemaItem.meta.schema || projectSchemaItem.meta.ProjectSchema || projectSchemaItem.meta.projectSchema || {};
+
+			const schemaKeys = Object.keys(projectSchema);
+
+			schemaKeys.forEach((key) => {
+				const metadataValue = dot.pick(`meta.${key}`, item);
+
+				if (metadataValue !== undefined) {
+					const correctValue = projectSchema[key].find(value => metadataValue === value);
+					const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
+
+					if (!correctValue) {
+						if (wrongMetadataItem) {
+							wrongMetadataItem.incorrectKeys.push(key);
+						}
+						else {
+							wrongMetadataCollection.add({
+								id: item._id,
+								incorrectKeys: [key]
+							});
+						}
+	
+						hasFoundIncorrectKey = true;
+					}
+					else if (wrongMetadataItem) {
+						wrongMetadataItem.incorrectKeys = wrongMetadataItem.incorrectKeys.filter(value => value !== key);
+						if (!wrongMetadataItem.incorrectKeys.length) {
+							wrongMetadataCollection.remove(item._id);
+						}
+						else {
+							wrongMetadataCollection.updateItem(item._id, wrongMetadataItem);
+						}
+					}
+				}
+				else {
+					hasFoundMissingKey = true;
+				}
+			});
+
+			if (!hasFoundIncorrectKey && !hasFoundMissingKey) {
+				starColor = "green";
+			}
+			else if (!hasFoundIncorrectKey && hasFoundMissingKey) {
+				starColor = "orange";
+			}
+			else if (hasFoundIncorrectKey && !hasFoundMissingKey) {
+				starColor = "yellow";
+			}
+			else {
+				starColor = "red";
+			}
+			return starColor;
+		}
+		return null;
+	}
+
+	findAndRemove(id, folder) {
+		const array = this.finderCollection.data.getBranch(id);
+
+		array.forEach(item => this.removeItem(item.id));
+		folder.$count = -1; // typical for folders with webix_kids and no actual data
+		folder.hasOpened = false;
+
+		webix.dp(this.finderCollection).ignore(() => {
+			this.finderCollection.updateItem(folder.id, folder);
+		});
+
+		this.dataview.getPager().hide();
+		this.getDataCollection().clearAll();
+	}
+
+	getFolderItems(folderId) {
+		const branch = this.finderCollection.data.getBranch(folderId);
+		if (branch.length === 1 && branch[0]._modelType === subFolderType) {
+			return this.finderCollection.data.getBranch(branch[0].id);
+		}
+		return branch;
+	}
+
+	getFolderCount(folder) {
+		return this.getFolderItems(folder.id).length;
+	}
+
+	destroy() {
+		ItemsModel.instance = null;
 	}
 }

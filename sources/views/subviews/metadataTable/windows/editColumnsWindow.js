@@ -206,7 +206,7 @@ export default class EditColumnsWindow extends JetView {
 				delete existedColumn.filterTypeValue;
 				return existedColumn;
 			}
-			return !columnConfig.initial && existedColumn.id !== columnConfig.id;
+			return existedColumn.id !== columnConfig.id;
 		});
 
 		metadataTableModel.putInLocalStorage(newDatatableColumns, this.userInfo._id);

@@ -189,7 +189,7 @@ export default class RecognitionServiceWindow extends JetView {
 
 	runRecognizeService(options, itemIds) {
 		const recognizeButton = this.getRoot().queryView({name: "recognizeButton"});
-		const statuses = constants.RECOGNITION_STATUSES;
+		const statuses = constants.LOADING_STATUSES;
 		let slicedItemIds = this.sliceItemIds(itemIds);
 		statuses.IN_PROGRESS.count = this.images.length;
 		statuses.IN_PROGRESS.recognized = this.images.length - itemIds.length;
