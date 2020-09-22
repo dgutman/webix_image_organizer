@@ -61,7 +61,7 @@ function getOrEditMetadataColumnValue(obj, valuePath) {
 	return newObj;
 }
 
-function setSelectFilterOptions(filterType, columnId, datatable, initial) {
+function setSelectFilterOptions(filterType, columnId, initial) {
 	let options = [];
 	if (filterType === "select") {
 		options = [{id: "", value: ""}, {id: "empty_value", value: "empty value"}];
@@ -318,7 +318,7 @@ function getColumnsForDatatable(datatable) {
 				if (filterType) {
 					localColumnHeader.push({
 						content: `${filterType}Filter`,
-						options: setSelectFilterOptions(filterType, columnId, datatable, localColumnConfig.initial),
+						options: setSelectFilterOptions(filterType, columnId, localColumnConfig.initial),
 						placeholder
 					});
 				}

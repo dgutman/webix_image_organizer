@@ -16,9 +16,9 @@ async function getNotifications(req, res, next) {
 async function sendNotifications(req, res, next) {
 	const isAdmin = req.user ? req.user.prms : null;
 	const text = req.body.text;
-	const taskIds = JSON.parse(req.body.taskIds);
+	const userIds = JSON.parse(req.body.userIds);
 
-	notificationService.sendNotifications(text, taskIds, isAdmin)
+	notificationService.sendNotifications(text, userIds, isAdmin)
 		.then(data => res.send(data))
 		.catch(err => next(err));
 }

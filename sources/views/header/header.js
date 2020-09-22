@@ -16,7 +16,7 @@ export default class Header extends JetView {
 			template: "Image Organizer",
 			css: "main-header-logo",
 			borderless: true,
-			width: 165
+			width: 175
 		};
 
 		const loginMenu = {
@@ -62,10 +62,14 @@ export default class Header extends JetView {
 			css: "select-field ellipsis-text",
 			label: "Hosts",
 			labelWidth: 70,
-			width: 300,
+			width: 250,
 			options: {
 				template: "#value#",
-				data: serverListData
+				data: serverListData,
+				body: {
+					template: obj => `<span title='${obj.value}'>${obj.value}</span>`,
+					css: "ellipsis-text"
+				}
 			}
 		};
 
@@ -75,11 +79,12 @@ export default class Header extends JetView {
 			name: "collectionBoxName",
 			css: "select-field ellipsis-text",
 			label: "Collections",
-			width: 330,
+			width: 250,
 			labelWidth: 100,
 			options: {
 				body: {
-					template: obj => obj.name || ""
+					css: "ellipsis-text",
+					template: obj => `<span title='${obj.name}'>${obj.name}</span>` || "",
 				}
 			}
 		};
@@ -87,19 +92,24 @@ export default class Header extends JetView {
 		const skinSwitcher = {
 			name: "skin",
 			labelWidth: 70,
-			width: 300,
+			width: 200,
 			view: "richselect",
 			icon: utils.getSelectIcon(),
 			css: "select-field",
 			value: this.app.getService("theme").getTheme(),
 			label: "Theme",
-			options: [
-				{id: "flat", value: "flat"},
-				{id: "material", value: "material"},
-				{id: "mini", value: "mini"},
-				{id: "compact", value: "compact"},
-				{id: "contrast", value: "contrast"}
-			]
+			options: {
+				data: [
+					{id: "flat", value: "flat"},
+					{id: "material", value: "material"},
+					{id: "mini", value: "mini"},
+					{id: "compact", value: "compact"},
+					{id: "contrast", value: "contrast"}
+				],
+				body: {
+					css: "ellipsis-text"
+				}
+			}
 		};
 
 		const header = {
@@ -189,5 +199,11 @@ export default class Header extends JetView {
 
 	getSkinSwitcher() {
 		return this.getRoot().queryView({name: "skin"});
+	}
+
+	getCurrentCollection() {
+		const box = this.getCollectionBox();
+		const list = box.getList();
+		return list.getItem(box.getValue());
 	}
 }

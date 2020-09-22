@@ -7,7 +7,7 @@ const imageUpdateService = require("./imageUpdate");
 async function create(tags, collectionIds) {
 	// validation
 	if (!Array.isArray(tags)) throw "Field \"tags\" should be an array";
-	if (!Array.isArray(collectionIds)) throw "Field \"collectionIds\" should be an array";
+	if (collectionIds && !Array.isArray(collectionIds)) throw "Field \"collectionIds\" should be an array";
 
 	return Promise.all(tags.map(async (tag) => {
 		let name = tag;
@@ -19,19 +19,23 @@ async function create(tags, collectionIds) {
 				values = Array.isArray(tag.values) ? tag.values : [tag.values];
 			}
 		}
+		else {
+			return false;
+		}
 
 		name = name.toLowerCase();
 		const existedTag = await Tags.findOne({name});
 		let createdTag;
 
 		if (existedTag) {
-			existedTag.collectionIds = existedTag.collectionIds.concat(collectionIds).unique();
+			tag.collectionIds = existedTag.collectionIds.concat(collectionIds || []).unique();
+			Object.assign(existedTag, tag);
 			existedTag.save();
 		}
 		else {
-			const newTag = new Tags({name});
-			newTag.collectionIds = collectionIds;
-			newTag.type = tag.type || (values.length > 1 ? "multi" : "single");
+			const newTag = new Tags(tag);
+			newTag.collectionIds = collectionIds || [];
+			newTag.selection = tag.selection || (values.length > 1 ? "multiple" : "single");
 			createdTag = await newTag.save();
 		}
 
@@ -57,7 +61,7 @@ async function getByCollection(collectionIds) {
 	return tags;
 }
 
-async function updateTag(item) {
+async function updateTag(item, onlyTag) {
 	const tag = await Tags.findById(item._id);
 
 	// validation
@@ -96,9 +100,9 @@ async function updateTag(item) {
 	delete item.collectionIds;
 
 	// update images which linked with this tag
-	await imageUpdateService.updateImagesByTag(oldTag, item.name, tag.collectionIds);
+	if (!onlyTag) await imageUpdateService.updateImagesByTag(oldTag, item.name, tag.collectionIds);
 
-	if (!tag.collectionIds.length) {
+	if (!onlyTag && !tag.collectionIds.length) {
 		return _delete(tag._id);
 	}
 
@@ -107,11 +111,11 @@ async function updateTag(item) {
 	return tag.save();
 }
 
-async function updateMany(item) {
+async function updateMany(tags, onlyTags) {
 	// validation
-	if (!Array.isArray(item)) throw "Field \"tags\" should be an array";
+	if (!Array.isArray(tags)) throw "Field \"tags\" should be an array";
 
-	return Promise.all(item.map(async item => updateTag(item)));
+	return Promise.all(tags.map(async item => updateTag(item, onlyTags)));
 }
 
 async function _delete(tagId) {

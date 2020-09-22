@@ -4,6 +4,13 @@ function openInNewTab(url) {
 	otherWindow.location = url;
 }
 
+function transformToArray(arr) {
+	if (!Array.isArray(arr)) {
+		arr = [arr];
+	}
+	return arr;
+}
+
 function escapeHTML(str) {
 	let tagsToReplace = {
 		"&": "&amp;",
@@ -16,11 +23,12 @@ function escapeHTML(str) {
 
 function searchForFileType(obj) {
 	let str = obj.name;
-	const pattern = /\.[0-9a-z]+$/i;
+	const pattern = /\.([0-9a-z]+)(?!\S)/gi;
 	const matched = str.match(pattern);
-	const dotIndex = matched ? matched.index : 0;
-	str = str.slice(dotIndex + 1);
-	return str || "non-type";
+
+	str = matched ? matched.pop() : matched;
+	str = str ? str.replace(".", "") : "non-type";
+	return str;
 }
 
 function isObjectEmpty(obj) {
@@ -118,5 +126,6 @@ export default {
 	setObjectProperty,
 	isNode,
 	isElement,
-	once
+	once,
+	transformToArray
 };

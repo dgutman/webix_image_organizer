@@ -1,4 +1,4 @@
-import "@fortawesome/fontawesome-free/css/all.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 import {JetApp, plugins} from "webix-jet";
 import "./styles/app.less";
 import state from "./models/state";
@@ -7,9 +7,14 @@ import helpers from "./services/helpers";
 import taggerView from "./views/taggerMain";
 import taggerAdminView from "./views/subviews/adminView";
 import taggerUserView from "./views/subviews/userView";
-import taggerDashboard from "./views/subviews/dashboardView";
+import taggerDashboard from "./views/subviews/dashboardView/dashboardView";
 import taggerNotifications from "./views/subviews/notificationsView";
+import taggerTaskTool from "./views/subviews/taskTool/taskTool";
 import auth from "./services/authentication";
+import "./views/components/editCombo";
+import "./views/components/multiCombo";
+import "./views/components/formTemplate";
+import "./views/components/editableList";
 
 import "./utils/polyfills";
 
@@ -23,11 +28,13 @@ webix.ready(() => {
 			admin: taggerAdminView,
 			user: taggerUserView,
 			dashboard: taggerDashboard,
-			notifications: taggerNotifications
+			notifications: taggerNotifications,
+			task_tool: taggerTaskTool
 		},
 		routes: {
 			"/admin": constants.APP_PATHS.TAGGER_ADMIN,
-			"/user": constants.APP_PATHS.TAGGER_USER
+			"/user": constants.APP_PATHS.TAGGER_USER,
+			"/task_tool": constants.APP_PATHS.TAGGER_TASK_TOOL
 		}
 	};
 

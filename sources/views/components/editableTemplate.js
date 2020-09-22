@@ -52,7 +52,9 @@ if (!webix.ui.editabletemplate) {
 		},
 		updateItem(id, value) {
 			const [objectKey, valueIndex] = id.split("-");
-			const previousValues = webix.copy(this.data);
+			const data = this.getValues();
+			const previousValues = webix.copy(data);
+			delete data.driver;
 			const projectFolderMetadataCollection = projectMetadata.getProjectFolderMetadata();
 			const projectSchemaFolder = projectFolderMetadataCollection.getItem(projectFolderMetadataCollection.getLastId());
 			const newMetadata = projectSchemaFolder.meta;
@@ -60,11 +62,11 @@ if (!webix.ui.editabletemplate) {
 			const mainView = webixViews.getMainView();
 
 			webix.extend(mainView, webix.ProgressBar);
-			this.data[objectKey][valueIndex] = value.value;
-			this.setValues(this.data, true);
+			data[objectKey][valueIndex] = value.value;
+			this.setValues(data, true);
 
 			mainView.showProgress();
-			ajaxActions.updateFolderMetadata(folderId, newMetadata)
+			ajaxActions.updateFolderMetadata(folderId, {metadata: newMetadata})
 				.then(() => {
 					webix.message("Project schema was successfully updated");
 					mainView.hideProgress();

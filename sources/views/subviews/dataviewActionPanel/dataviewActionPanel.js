@@ -44,7 +44,7 @@ export default class DataviewActionPanelClass extends JetView {
 
 		const pager = {
 			view: "pager",
-			width: 355,
+			width: 405,
 			size: 70,
 			template: (obj, common) => `${common.first()} ${common.prev()} <input type='text' class='pager-input' value='${common.page(obj)}'>
 							<span class='pager-amount'>of ${obj.limit} ${this.getItemsCount(obj)}</span> ${common.next()} ${common.last()}`
@@ -90,13 +90,13 @@ export default class DataviewActionPanelClass extends JetView {
 			name: "recognitionProgressTemplate",
 			template: (obj) => {
 				if (obj.value) {
-					const timeInfo = obj.value === constants.RECOGNITION_STATUSES.IN_PROGRESS.value ? "This process may take hours. " : "";
+					const timeInfo = obj.value === constants.LOADING_STATUSES.IN_PROGRESS.value ? "This process may take hours. " : "";
 					const progressCount = obj.count ? `(${obj.recognized || 0}/${obj.count})` : "";
 					const tooltip = "Show results";
 
 					return `<div class="recognition-status-template">
 								${timeInfo}Recognition status: ${obj.value} ${progressCount}
-								<span style="color: ${obj.iconColor}" class="${obj.icon}" webix_tooltip='${tooltip}'></span>
+								<span style="color: ${obj.iconColor}" class="${obj.icon}" title='${tooltip}'></span>
 								${obj.errorsCount || ""}
 							</div>`;
 				}

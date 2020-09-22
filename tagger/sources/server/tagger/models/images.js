@@ -1,14 +1,10 @@
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
-const daysToExpire = 10;
 
 const imagesSchema = new Schema({
 	name: {
 		type: String, required: true
-	},
-	expireDate: {
-		type: Date, default: new Date().addDays(daysToExpire)
 	},
 	meta: {
 		type: Schema.Types.Mixed,
@@ -39,7 +35,10 @@ const imagesSchema = new Schema({
 		type: Boolean, default: false
 	}
 }, {timestamps: {createdAt: "addedDate", updatedAt: "updatedDate"}});
+
 imagesSchema.set("toJSON", {virtuals: false});
+
+imagesSchema.index({taskId: 1, mainId: 1, userId: 1}, {unique: true});
 
 imagesSchema.statics.groupByCollectionIds = async function groupByCollectionIds(ids) {
 	const data = await this.aggregate([

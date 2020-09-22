@@ -136,7 +136,7 @@ export default class UniqueValuesWindow extends JetView {
 			view: "text",
 			labelPosition: "top",
 			tooltip: true,
-			label: `<span webix_tooltip='${this.columnId}'>Column: ${this.columnId}</span>`,
+			label: `<span title='${this.columnId}'>Column: ${this.columnId}</span>`,
 			validate: webix.rules.isNotEmpty,
 			css: "select-field ellipsis-text",
 			value: firstUniqueValue,

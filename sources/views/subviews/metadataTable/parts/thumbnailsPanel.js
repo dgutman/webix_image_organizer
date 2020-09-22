@@ -43,6 +43,7 @@ export default class TableRightPanelView extends JetView {
 								});
 						}
 					}
+
 					return `<div class='datatable-template'>
 							<span class='datatable-template-text'>Thumbnail image:</span>
 							<img class='datatable-template-image' imageType='thumbnail-image' src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">

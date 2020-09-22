@@ -7,13 +7,13 @@ const notFoundStatuts = 404;
 
 function getResourceImages(req, res, next) {
 	const type = req.body.type || "collection";
-	const resourceId = req.body.resourceId;
+	const collectionId = req.body.resourceId;
 	const hostApi = req.body.hostApi;
 	const token = req.headers["girder-token"];
 	const userId = req.user ? req.user.sub : null;
 
 
-	imagesService.getResourceImages(resourceId, hostApi, token, userId, type)
+	imagesService.getResourceImages({collectionId, hostApi, token, userId, type})
 		.then((data) => {
 			if (data) res.json({message: "Images received"});
 			else res.sendStatus(notFoundStatuts);
@@ -78,7 +78,7 @@ function getTaskImages(req, res, next) {
 	const filters = req.query.filters ? JSON.parse(req.query.filters) : null;
 
 	const params = {
-		folderIds: JSON.parse(req.query.ids),
+		ids: JSON.parse(req.query.ids),
 		offset,
 		limit,
 		userId,

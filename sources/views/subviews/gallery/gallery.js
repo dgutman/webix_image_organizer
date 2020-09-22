@@ -28,11 +28,10 @@ export default class GalleryViewClass extends JetView {
 
 		const itemsDataView = {
 			view: "activeDataview",
-			tooltip: obj => obj.name,
 			css: "gallery-images-dataview",
 			select: true,
 			datathrottle: 500,
-			minWidth: 860,
+			minWidth: 450,
 			onContext: {},
 			type: {
 				width: 150,

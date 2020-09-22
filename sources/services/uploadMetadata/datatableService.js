@@ -1,5 +1,6 @@
 import dot from "dot-object";
 import utils from "../../utils/utils";
+import viewMouseEvents from "../../utils/viewMouseEvents";
 import constants from "../../constants";
 import metaDatatableModel from "../../models/metadataTableModel";
 import ajaxActions from "../ajaxActions";
@@ -292,8 +293,8 @@ export default class MetaDatatableService {
 				header: (() => {
 					const name = field.charAt(0).toUpperCase() + field.slice(1);
 					return `<div class='upload-metadata-column-header'>
-						<span webix_tooltip='${name}' class='column-header-name ellipsis-text'>${name}</span>
-						<i webix_tooltip='Adjust column' class="adjust-icon fas fa-arrows-alt-h"></i>
+						<span title='${name}' class='column-header-name ellipsis-text'>${name}</span>
+						<i title='Adjust column' class="adjust-icon fas fa-arrows-alt-h"></i>
 					</div>`;
 				})(),
 				tooltip: obj => obj[field] || "",
@@ -307,10 +308,9 @@ export default class MetaDatatableService {
 		columnConfig.push({
 			id: "accept",
 			header: "Accept",
-			tooltip: "Accept metadata",
 			template: (obj) => {
 				const icon = obj._accepted ? "fa-minus-circle accept-button-delete" : "fa-plus-circle accept-button-add";
-				return `<div style='text-align: center'><i class='accept-button fas ${icon}'></i></div>`;
+				return `<div title='Accept metadata' style='text-align: center'><i class='accept-button fas ${icon}'></i></div>`;
 			},
 			width: 70
 		});
@@ -335,8 +335,7 @@ export default class MetaDatatableService {
 				body: {
 					data: this.suggestItems,
 					css: "ellipsis-text",
-					tooltip: "#name#",
-					template: obj => obj.name
+					template: obj => `<span title='${obj.name}'>${obj.name}</span>`
 				},
 				filter: (obj, value) => obj.name.toString().toLowerCase().includes(value.toLowerCase())
 			}
@@ -346,7 +345,7 @@ export default class MetaDatatableService {
 	setSettingsMouseEvents(values) {
 		const valueKeys = Object.keys(values);
 		valueKeys.forEach((key) => {
-			const event = utils.getMouseWebixEvent(key);
+			const event = viewMouseEvents.getMouseWebixEvent(key);
 			this.setSingleMouseEvent(values[key], event);
 		});
 	}

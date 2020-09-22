@@ -1,13 +1,8 @@
 import FileSaver from "file-saver";
-import dot from "dot-object";
 import authService from "../services/authentication";
 import projectMetadata from "../models/projectMetadata";
-import galleryDataviewFilterModel from "../models/galleryDataviewFilterModel";
-import webixViews from "../models/webixViews";
-import viewMouseEvents from "./viewMouseEvents";
 import constants from "../constants";
 
-const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
 
 const DEFAULT_WIDTH = 150;
@@ -84,6 +79,8 @@ function searchForFileType(obj) {
 	let str = obj.name;
 	const pattern = /\.([0-9a-z]+)(?!\S)/gi; // /\.[0-9a-z]+$/i;
 	const matched = str.match(pattern);
+	// const dotIndex = matched ? matched.index : 0;
+	// str = str.slice(dotIndex + 1);
 	str = matched ? matched.pop() : matched;
 	str = str ? str.replace(".", "") : "non-type";
 	return str;
@@ -96,27 +93,6 @@ function showAlert() {
 		type: "alert-warning"
 	});
 	return alert;
-}
-
-function findAndRemove(id, folder, array) {
-	const finderView = webixViews.getFinderView();
-	finderView.data.eachChild(id, (item) => {
-		array.push(item.id);
-	}, finderView, true);
-
-	finderView.remove(array);
-	folder.$count = -1; // typical for folders with webix_kids and no actual data
-	folder.hasOpened = false;
-
-	webix.dp(finderView).ignore(() => {
-		finderView.updateItem(folder.id, folder);
-	});
-
-	webixViews.getGalleryPager().hide();
-	const itemsModel = webixViews.getItemsModel();
-	itemsModel.getDataCollection().clearAll();
-	// webixViews.getMetadataTableView().clearAll();
-	// webixViews.getGalleryDataview().clearAll();
 }
 
 function isObjectEmpty(obj) {
@@ -138,92 +114,6 @@ function findItemInList(id, list) {
 
 function angleIconChange(obj) {
 	return obj.imageShown ? "fa-angle-down" : "fa-angle-right";
-}
-
-function findStarColorForItem(item) {
-	let hasFoundMissingKey = false;
-	let hasFoundIncorrectKey = false;
-	let starColor;
-
-	if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
-		const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
-		const projectSchema = projectSchemaItem.meta.projectSchema || projectSchemaItem.meta.ProjectSchema;
-
-		for (let key in projectSchema) {
-			const metadataValue = dot.pick(`meta.${key}`, item);
-
-			if (metadataValue !== undefined) {
-				const correctValue = projectSchema[key].find(correctValue => metadataValue === correctValue);
-				const wrongMetadataItem = wrongMetadataCollection.getItem(item._id);
-
-				if (!correctValue) {
-					if (wrongMetadataItem) {
-						wrongMetadataItem.incorrectKeys.push(key);
-					}
-					else {
-						wrongMetadataCollection.add({
-							id: item._id,
-							incorrectKeys: [key]
-						});
-					}
-
-					hasFoundIncorrectKey = true;
-				}
-			}
-			else {
-				hasFoundMissingKey = true;
-			}
-		}
-
-		if (!hasFoundIncorrectKey && !hasFoundMissingKey) {
-			starColor = "green";
-		}
-		else if (!hasFoundIncorrectKey && hasFoundMissingKey) {
-			starColor = "orange";
-		}
-		else if (hasFoundIncorrectKey && !hasFoundMissingKey) {
-			starColor = "yellow";
-		}
-		else {
-			starColor = "red";
-		}
-
-		return starColor;
-	}
-}
-
-function parseDataToViews(data, linearData) {
-	const itemsModel = webixViews.getItemsModel();
-	const dataCollection = itemsModel.getDataCollection();
-	const galleryDataview = webixViews.getGalleryDataview();
-	// const metadataTable = webixViews.getMetadataTableView();
-	const pager = webixViews.getGalleryPager();
-
-	if (!pager.isVisible() && galleryDataview.isVisible()) {
-		pager.show();
-	}
-	if (!linearData) {
-		dataCollection.clearAll();
-		// galleryDataview.clearAll();
-		// metadataTable.clearAll();
-	}
-
-	if (!Array.isArray(data)) {
-		data = [data];
-	}
-
-	data.forEach((item) => {
-		item.starColor = findStarColorForItem(item);
-	});
-
-	dataCollection.parse(data);
-	galleryDataview.refresh();
-	// metadataTable.parse(data);
-	let dataForFilter = data;
-	if (linearData) {
-		dataForFilter = dataCollection.data.serialize();
-	}
-	galleryDataviewFilterModel.prepareDataToFilter(dataForFilter);
 }
 
 function getMetadataColumnColor(obj, columnId) {
@@ -262,17 +152,6 @@ function getCssCollapsedClass(hiddenViews) {
 	return hiddenViews ? "hidden-views" : "showed-views";
 }
 
-
-function showOrHideImageSelectionTemplate(action, template) {
-	if (action === "show") {
-		template.show();
-		webixViews.getGalleryDataview().getNode().style.borderTop = "none";
-	}
-	else {
-		template.hide();
-		webixViews.getGalleryDataview().getNode().style.borderTop = "1px solid #DDDDDD";
-	}
-}
 
 function showOrHideTemplateCollapsedViews(className, element) {
 	const foundElements = document.getElementsByClassName(className);
@@ -317,36 +196,6 @@ function getDefaultMouseSettingsValues() {
 		[constants.MOUSE_LEFT_DOUBLE_CLICK]: "open"
 	};
 	return mouseSettingsValues;
-}
-
-function getMouseWebixEvent(key) {
-	let event;
-	switch (key) {
-		case constants.MOUSE_LEFT_SINGLE_CLICK: {
-			event = "onItemClick";
-			break;
-		}
-		case constants.MOUSE_RIGHT_SINGLE_CLICK: {
-			event = "onBeforeContextMenu";
-			break;
-		}
-		case constants.MOUSE_LEFT_DOUBLE_CLICK:
-		default: {
-			event = "onItemDblClick";
-			break;
-		}
-	}
-	return event;
-}
-
-function setMouseSettingsEvents(dataview, datatable, values) {
-	for (let key in values) {
-		const event = getMouseWebixEvent(key);
-		viewMouseEvents.setDataviewMouseEvents(dataview, values[key], event);
-		viewMouseEvents.setDatatableMouseEvents(datatable, values[key], event);
-	}
-
-	setLocalStorageSettingsValues(values);
 }
 
 function getSelectedDataviewImages(selectedImages) {
@@ -580,19 +429,15 @@ export default {
 	downloadBlob,
 	searchForFileType,
 	showAlert,
-	findAndRemove,
 	isObjectEmpty,
 	findItemInList,
 	angleIconChange,
-	parseDataToViews,
 	getMetadataColumnColor,
 	putHostsCollectionInLocalStorage,
 	getHostsCollectionFromLocalStorage,
 	collapseViews,
 	getCssCollapsedClass,
-	showOrHideImageSelectionTemplate,
 	showOrHideTemplateCollapsedViews,
-	setMouseSettingsEvents,
 	getDefaultMouseSettingsValues,
 	setLocalStorageSettingsValues,
 	getLocalStorageSettingsValues,
@@ -610,7 +455,6 @@ export default {
 	once,
 	compareURLStrings,
 	escapeURIChars,
-	getMouseWebixEvent,
 	isObject,
 	mergeDeep
 };

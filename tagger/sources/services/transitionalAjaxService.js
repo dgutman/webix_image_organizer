@@ -45,6 +45,18 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
+	getTagTemplates() {
+		return this._ajax().get(`${TRANSITIONAL_API}/tags`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getTagTemplatesWithValues() {
+		return this._ajax().get(`${TRANSITIONAL_API}/tags/template`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
 	createTags(tags, collectionIds) {
 		const params = {
 			tags,
@@ -55,9 +67,10 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	updateTags(tags) {
+	updateTags(tags, onlyTags) {
 		const params = {
-			tags
+			tags,
+			onlyTags
 		};
 		return this._ajax().put(`${TRANSITIONAL_API}/tags/many`, params)
 			.fail(this._parseError)
@@ -199,9 +212,10 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	updateValues(values) {
+	updateValues(values, onlyValues) {
 		const params = {
-			values
+			values,
+			onlyValues
 		};
 		return this._ajax().put(`${TRANSITIONAL_API}/values/many`, params)
 			.fail(this._parseError)
@@ -268,6 +282,18 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
+	createTask(taskData, imageIds) {
+		const params = {
+			task: taskData,
+			imageIds,
+			hostApi: this.getHostApiUrl()
+		};
+
+		return this._ajax().post(`${TRANSITIONAL_API}/tasks`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
 	checkTask(taskId) {
 		const hostApi = this.getHostApiUrl();
 		const params = {
@@ -279,14 +305,66 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	getTaskData(collectionId) {
+	getTaskData(collectionId, group) {
 		const hostApi = this.getHostApiUrl();
 		const params = {
 			collectionId: collectionId || constants.TAGGER_TASKS_COLLECTION_ID,
-			host: hostApi
+			group,
+			host: hostApi,
+			type: "default" // to filter girder tasks
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/tasks/data`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getTaskResults(taskId) {
+		return this._ajax().get(`${TRANSITIONAL_API}/tasks/results/${taskId}`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	deleteTask(id, force) {
+		const params = {
+			force: force || false
+		};
+
+		return this._ajax().del(`${TRANSITIONAL_API}/tasks/${id}`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getTaskJSON(id) {
+		const hostApi = this.getHostApiUrl();
+		const params = {
+			host: hostApi
+		};
+
+		return this._ajax().get(`${TRANSITIONAL_API}/tasks/json/${id}`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	groupTasks(ids, groupId) {
+		const params = {
+			ids: ids || [],
+			groupId
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/tasks/group`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	updateTask(id, task, imageIds) {
+		const host = this.getHostApiUrl();
+		const params = {
+			task,
+			imageIds
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/tasks/edit/${id}?host=${host}`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
@@ -297,9 +375,9 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	sendNotifications(text, taskIds) {
+	sendNotifications(text, userIds) {
 		const params = {
-			taskIds: taskIds || [],
+			userIds: userIds || [],
 			text: text || ""
 		};
 
@@ -320,6 +398,22 @@ class TransitionalAjaxService extends AjaxClass {
 
 	removeNotification(id) {
 		return this._ajax().del(`${TRANSITIONAL_API}/notifications/${id}`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	getGroups() {
+		return this._ajax().get(`${TRANSITIONAL_API}/groups`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	createGroup(name) {
+		const params = {
+			name
+		};
+
+		return this._ajax().post(`${TRANSITIONAL_API}/groups`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

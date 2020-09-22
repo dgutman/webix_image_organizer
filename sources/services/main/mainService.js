@@ -7,7 +7,7 @@ import FinderContextMenu from "../../views/components/finderContextMenu";
 import authService from "../authentication";
 import selectDataviewItems from "../../models/selectGalleryDataviewItems";
 import constants from "../../constants";
-import finderModel from "../../models/finderModel";
+import FinderModel from "../../models/finderModel";
 import metadataTableModel from "../../models/metadataTableModel";
 import nonImageUrls from "../../models/nonImageUrls";
 import downloadFiles from "../../models/downloadFiles";
@@ -22,6 +22,7 @@ import imagesTagsModel from "../../models/imagesTagsModel";
 import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
+import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
 import EmptyDataViewsService from "../views/emptyDataViews";
 import viewMouseEvents from "../../utils/viewMouseEvents";
 import recognizedItemsModel from "../../models/recognizedItems";
@@ -85,12 +86,16 @@ class MainService {
 		this._galleryFeaturesView = this._view.$scope.getSubGalleryFeaturesView().getRoot();
 		this._filterTableView = this._view.$scope.getSubDataviewActionPanelView().getFilterTableView();
 		this._recognitionStatusTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
-		this._itemsModel = new ItemsModel(this._finder);
+		if (ItemsModel.instance) ItemsModel.instance.destroy();
+		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
+		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
 		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
 		this._filterModel = new FilterModel(this._itemsDataCollection);
+
+		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
 		webixViews.setGalleryDataview(this._galleryDataview);
 		webixViews.setMetadataTable(this._metadataTable);
@@ -145,7 +150,7 @@ class MainService {
 
 		this._setInitSettingsMouseEvents();
 		this._view.$scope.on(this._view.$scope.app, "change-event-settings", (values) => {
-			utils.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, values);
+			viewMouseEvents.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, values);
 		});
 
 		// to hide select lists after scroll
@@ -242,7 +247,7 @@ class MainService {
 			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
 
 			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
-			return `<div class='unselectable-dataview-items'>
+			return `<div title='${obj.name}' class='unselectable-dataview-items'>
 						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
 									<div class="gallery-images-info">
 										<div class="gallery-images-header">
@@ -309,6 +314,11 @@ class MainService {
 
 		this._finder.attachEvent("onBeforeOpen", (id) => {
 			this._finder.select(id);
+			return false;
+		});
+
+		this._finder.attachEvent("putItemsToSubFolder", () => {
+			this._bigCountNotification.showWindow();
 		});
 
 		// after opening the tree branch we fire this event
@@ -337,17 +347,15 @@ class MainService {
 
 		this._finder.attachEvent("onAfterClose", (id) => {
 			this._finder.unselect(id);
-			let items = [];
 			const folder = this._finder.getItem(id);
 			if (folder.linear && !folder.hasOpened) {
 				folder.linear = false;
-				utils.findAndRemove(id, folder, items);
+				this._itemsModel.findAndRemove(id, folder);
+				this._itemsModel.selectedItem = null;
 			}
 			else if (!folder.linear && folder.hasOpened) {
-				if (!this._finder.getSelectedId(id)) {
-					this._galleryDataviewPager.hide();
-					this._itemsDataCollection.clearAll();
-				}
+				this._galleryDataviewPager.hide();
+				this._itemsDataCollection.clearAll();
 			}
 
 			if (lastSelectedFolderId) {
@@ -398,6 +406,10 @@ class MainService {
 						this._finderFolder = item;
 						break;
 					}
+					case constants.SUB_FOLDER_MODEL_TYPE: {
+						this._finderContextMenu.hide();
+						return false;
+					}
 					case "item":
 					default: {
 						const itemFolder = this._finder.getItem(item.$parent);
@@ -416,7 +428,6 @@ class MainService {
 			});
 
 			this._finderContextMenu.attachEvent("onItemClick", (id) => {
-				let items = [];
 				let itemId;
 				let folderId;
 				const item = this._finderContextMenu.getItem(id);
@@ -435,52 +446,27 @@ class MainService {
 					case constants.LINEAR_CONTEXT_MENU_ID: {
 						this._finder.detachEvent(scrollEventId);
 						const sourceParams = {
-							sort: "lowerName"
+							sort: "lowerName",
+							limit: constants.LINEAR_STRUCTURE_LIMIT
 						};
-						this._view.showProgress();
-						finderModel.closePreviousLinearFolder();
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
-							utils.findAndRemove(folderId, this._finderFolder, items);
+							this._finder.close(folderId);
+							this._itemsModel.findAndRemove(folderId, this._finderFolder);
 						}
 						this._finder.blockEvent();
 						this._finder.data.blockEvent();
 						this._setLastSelectedFolderId();
-						this._finder.select(folderId);
-						this._finder.open(folderId);
+						// this._finder.select(folderId);
+						// this._finder.open(folderId);
 						this._finder.data.unblockEvent();
 						this._finder.unblockEvent();
-						ajaxActions.getLinearStucture(this._finderFolder._id, sourceParams)
-							.then((data) => {
-								this._finderFolder.linear = true;
+						this._folderNav.setFoldersIntoUrl();
+						this._itemsModel.selectedItem = this._finderFolder;
 
-								if (data.length === 0) {
-									this._finder.parse({
-										name: "Nothing to display", parent: folderId
-									});
-								}
-								else {
-									this._itemsModel.parseItems(webix.copy(data), folderId);
-									finderModel.setRealScrollPosition(finderModel.defineSizesAndPositionForDynamicScroll(this._finderFolder));
+						this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
+						this._itemsModel.updateItems(this._finderFolder);
 
-									scrollEventId = this._finder.attachEvent("onAfterScroll", () => {
-										const positionX = this._view.$scope.getSubFinderView().getTreePositionX();
-										const scrollState = this._finder.getScrollState();
-										if (positionX !== scrollState.x) {
-											this._view.$scope.getSubFinderView().setTreePosition(scrollState.x);
-											return false;
-										}
-										finderModel.attachOnScrollEvent(scrollState, this._finderFolder, this._view, this._filterModel);
-									});
-
-									utils.parseDataToViews(webix.copy(data));
-									this._highlightLastSelectedFolder(this._finderFolder._id);
-								}
-								this._view.hideProgress();
-							})
-							.catch(() => {
-								this._finder.parse({name: "error"});
-								this._view.hideProgress();
-							});
+						this.linearStructureHandler(folderId, sourceParams);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -490,7 +476,7 @@ class MainService {
 					case constants.REFRESH_FOLDER_CONTEXT_MENU_ID: {
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
 							this._finder.close(folderId);
-							utils.findAndRemove(folderId, this._finderFolder, items);
+							this._itemsModel.findAndRemove(folderId, this._finderFolder);
 						}
 						this._finder.select(folderId);
 						break;
@@ -535,7 +521,7 @@ class MainService {
 					}
 					else {
 						if (!this._finderItem) {
-							this._finderItem = this._finder.find(finderItem => finderItem._id === item._id, true);
+							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
 							item = this._galleryDataview.find(galleryItem => galleryItem._id === this._finderItem._id, true);
@@ -543,8 +529,8 @@ class MainService {
 						const cartListItem = this._cartList.find(cartItem => cartItem._id === item._id, true);
 						ajaxActions.putNewItemName(this._finderItem._id, newValue)
 							.then((updatedItem) => {
-								this._finder.updateItem(this._finderItem.id, updatedItem);
-								this._galleryDataview.updateItem(item.id, updatedItem);
+								this._itemsModel.updateItems(updatedItem);
+
 								if (cartListItem) {
 									this._cartList.updateItem(cartListItem.id, updatedItem);
 									const cartData = this._cartList.serialize(true);
@@ -559,8 +545,7 @@ class MainService {
 							})
 							.catch(() => {
 								this._finderItem.name = values.old;
-								this._finder.updateItem(this._finderItem.id, this._finderItem);
-								this._galleryDataview.updateItem(item.id, item);
+								this._itemsModel.updateItems(this._finderItem);
 								this._view.hideProgress();
 							});
 					}
@@ -951,7 +936,7 @@ class MainService {
 		this._recognitionProgressTemplate.define("onClick", {
 			fas: () => {
 				const statusObj = this._recognitionProgressTemplate.getValues();
-				if (statusObj.value !== constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
+				if (statusObj.value !== constants.LOADING_STATUSES.IN_PROGRESS.value) {
 					webix.confirm({
 						text: "Are you sure you want to show results?",
 						type: "confirm-warning",
@@ -960,13 +945,13 @@ class MainService {
 						callback: (result) => {
 							if (result) {
 								switch (statusObj.value) {
-									case constants.RECOGNITION_STATUSES.WARNS.value:
-									case constants.RECOGNITION_STATUSES.DONE.value: {
+									case constants.LOADING_STATUSES.WARNS.value:
+									case constants.LOADING_STATUSES.DONE.value: {
 										isRecognitionResultMode = true;
 										this._changeRecognitionResultsMode();
 										break;
 									}
-									case constants.RECOGNITION_STATUSES.ERROR.value: {
+									case constants.LOADING_STATUSES.ERROR.value: {
 										webix.alert(statusObj.text);
 										break;
 									}
@@ -1071,7 +1056,7 @@ class MainService {
 
 	_setInitSettingsMouseEvents() {
 		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
-		utils.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
+		viewMouseEvents.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
 	}
 
 	_setLastSelectedFolderId() {
@@ -1162,14 +1147,30 @@ class MainService {
 	_selectFinderItem(id) {
 		const item = this._finder.getItem(id);
 		if (item._modelType === "item" || !item._modelType) {
-			utils.parseDataToViews(item);
+			this._itemsModel.selectedItem = item;
+			this._itemsModel.parseDataToViews(item, false, item.id);
 			this._highlightLastSelectedFolder();
 		}
 		else if (item._modelType === "folder") {
-			finderModel.loadBranch(id, this._view)
+			this._itemsModel.selectedItem = item;
+			this._finderModel.loadBranch(id, this._view)
 				.then(() => {
 					this._highlightLastSelectedFolder();
 					this._folderNav.openNextFolder(item);
+				});
+		}
+		else if (item._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+			webix.confirm({
+				text: "The folder consists of a large amount of data. Continue?",
+				type: "confirm-warning",
+				cancel: "No",
+				ok: "Yes"
+			})
+				.then(() => {
+					this._itemsModel.openSubFolder(id);
+				})
+				.catch(() => {
+					this._finder.select(item.$parent);
 				});
 		}
 	}
@@ -1313,6 +1314,37 @@ class MainService {
 			.catch(() => {
 				this.pendingCollectionChange = false;
 				this._view.hideProgress();
+			});
+	}
+
+	linearStructureHandler(folderId, sourceParams, addBatch) {
+		const folder = this._finder.getItem(folderId);
+		return ajaxActions.getLinearStucture(folder._id, sourceParams)
+			.then((data) => {
+				if (data.length === 0) {
+					this._finder.parse({
+						name: "Nothing to display", parent: folderId
+					});
+				}
+				else if (folder.linear) {
+					const copy = webix.copy(data);
+					this._itemsModel.parseItems(copy, folderId);
+					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
+					this._highlightLastSelectedFolder(folder._id);
+
+					if (data.length < sourceParams.limit) {
+						this._finder.updateItem(folderId, {linear: constants.LOADING_STATUSES.DONE});
+					}
+					else {
+						const newParams = {
+							sort: "lowerName",
+							limit: constants.LINEAR_STRUCTURE_LIMIT,
+							offset: this._itemsModel.getFolderCount(folder)
+						};
+
+						this.linearStructureHandler(folderId, newParams, true);
+					}
+				}
 			});
 	}
 }

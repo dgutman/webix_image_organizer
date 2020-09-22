@@ -43,18 +43,16 @@ async function getNotifications(userId, isAdmin) {
 	return Notifications.aggregate(aggregatePipeline);
 }
 
-async function sendNotifications(text, taskIds, isAdmin) {
-	const tasks = await Tasks.find({_id: {$in: taskIds.map(id => mongoose.Types.ObjectId(id))}});
+async function sendNotifications(text, ids, isAdmin) {
 
 	// validation
 	if (!isAdmin) throw {name: "UnauthorizedError"};
-	if (!taskIds || !Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
+	if (!ids) throw "Field \"taskIds\" should be specified";
 	if (!text || typeof text !== "string") throw "Field \"text\" should be a string";
-	if (!tasks) throw "Tasks not found";
 
 	const message = escapeHtml(text);
 
-	const notifications = tasks.map(task => ({text: message, userId: task.userId, taskId: task._id}));
+	const notifications = Object.entries(ids).map(([taskId, userIds]) => userIds.map(id => ({text: message, userId: id, taskId}))).flat();
 
 	return Notifications.insertMany(notifications);
 }

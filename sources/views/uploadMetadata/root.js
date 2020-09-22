@@ -25,8 +25,7 @@ export default class UploadMetadataView extends JetView {
 			width: 300,
 			options: {
 				body: {
-					template: obj => obj.name,
-					tooltip: obj => obj.name,
+					template: obj => `<span title='${obj.name}'>${obj.name}</span>`,
 					data: []
 				}
 			}

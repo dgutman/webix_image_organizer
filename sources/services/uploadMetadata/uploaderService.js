@@ -1,4 +1,5 @@
 import papaparse from "papaparse";
+import XLSX from "xlsx";
 import constants from "../../constants";
 
 
@@ -50,7 +51,7 @@ export default class UploaderService {
 
 				const fr = new FileReader();
 				fr.addEventListener("load", () => {
-					const text = fr.result;
+					const text = file.type === "csv" ? fr.result : this.parseExcel(fr.result);
 					const json = papaparse.parse(text, {header: true});
 					json.name = file.name;
 					resolve(json);
@@ -60,11 +61,27 @@ export default class UploaderService {
 					throw err;
 				}, false);
 
-				fr.readAsText(file.file);
+				if (file.type === "csv") {
+					fr.readAsText(file.file);
+				}
+				else {
+					fr.readAsBinaryString(file.file);
+				}
 			}
 			else {
 				throw message;
 			}
 		});
+	}
+
+	parseExcel(fileResult) {
+		const workbook = XLSX.read(fileResult, {
+			type: "binary"
+		});
+		return workbook.SheetNames.reduce((acc, val) => {
+			const separator = acc ? "\n" : "";
+			acc = `${acc}${separator}${XLSX.utils.sheet_to_csv(workbook.Sheets[val])}`;
+			return acc;
+		}, "");
 	}
 }
