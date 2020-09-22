@@ -1,0 +1,5 @@
+{
+  "verbose": false,
+  "ignore": ["upload/*", "public/*", "client/*"],
+  "ext": ".js"
+}

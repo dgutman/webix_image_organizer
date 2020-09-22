@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+public/vendor/**
+npm-debug.log*
+config.js
+.idea/*
+test_source/
+upload/
+tmp/
