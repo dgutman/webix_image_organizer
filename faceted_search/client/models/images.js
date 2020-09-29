@@ -115,7 +115,7 @@ define([
     app.attachEvent("images:FilterImagesView", function(data, skipId) {
         var arr = [];
         imagesCollection.filter(function(obj) {
-            const isOk = imagesCollection.filterSingleImage(obj, data);
+            const isOk = data ? imagesCollection.filterSingleImage(obj, data) : true;
             if(isOk) {
                 arr.push(obj.facets);
             }
