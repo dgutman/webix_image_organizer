@@ -203,24 +203,26 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	updateItemMetadata(itemId, metadataObject) {
+	updateItemMetadata(itemId, metadataObject, type) {
+		const modelType = type || "item";
 		const metadata = metadataObject ? {
 			metadata: metadataObject
 		} : {};
 		return this._ajax()
-			.put(`${this.getHostApiUrl()}/item/${itemId}/metadata`, metadata)
+			.put(`${this.getHostApiUrl()}/${modelType}/${itemId}/metadata`, metadata)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}
 
-	deleteItemMetadata(itemId, fields) {
+	deleteItemMetadata(itemId, fields, type) {
+		const modelType = type || "item";
 		fields = fields || [];
 		const params = {
 			fields
 		};
 
 		return this._ajax()
-			.del(`${this.getHostApiUrl()}/item/${itemId}/metadata`, params)
+			.del(`${this.getHostApiUrl()}/${modelType}/${itemId}/metadata`, params)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}

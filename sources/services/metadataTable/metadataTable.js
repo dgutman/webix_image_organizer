@@ -153,7 +153,7 @@ class MetadataTableService {
 					return true;
 				}
 				this._view.showProgress();
-				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta)
+				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta, itemToEdit._modelType)
 					.then(() => {
 						this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
 						this._view.hideProgress();

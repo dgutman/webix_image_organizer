@@ -57,7 +57,7 @@ export default class ImagesTagsWindow extends JetView {
 						item.meta = Object.assign(item.meta, tag);
 					});
 
-					updatePromises.push(ajaxActions.updateItemMetadata(item._id, item.meta));
+					updatePromises.push(ajaxActions.updateItemMetadata(item._id, item.meta, item._modelType));
 				});
 
 				this.view.showProgress();
