@@ -14,7 +14,6 @@ import downloadFiles from "../../models/downloadFiles";
 import modifiedObjects from "../../models/modifiedObjects";
 import webixViews from "../../models/webixViews";
 import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
-import galleryDataviewFilterModel from "../../models/galleryDataviewFilterModel";
 import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
@@ -93,7 +92,7 @@ class MainService {
 		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
 		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
-		this._filterModel = new FilterModel(this._itemsDataCollection);
+		this._filterModel = new FilterModel(this._itemsModel, this._galleryDataviewRichselectFilter, this._filterTableView);
 
 		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
@@ -122,11 +121,6 @@ class MainService {
 				obj.$height = this._metadataTable.config._rowHeight || constants.METADATA_TABLE_ROW_HEIGHT;
 			}
 		});
-
-		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
-		// galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
-		this._filterTableView.getList().sync(this._galleryDataviewRichselectFilter.getList());
-		this._filterTableView.bind(this._galleryDataviewRichselectFilter);
 
 		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
 
@@ -158,15 +152,15 @@ class MainService {
 			webix.callEvent("onClick", []);
 		});
 
-		this._galleryDataviewPager.attachEvent("onAfterRender", function () {
+		this._galleryDataviewPager.attachEvent("onAfterRender", function onAfterRender() {
 			const currentPager = this;
 			const node = this.getNode();
 			const inputNode = node.getElementsByClassName("pager-input")[0];
 
-			inputNode.addEventListener("focus", function () {
+			inputNode.addEventListener("focus", function focus() {
 				this.prev = this.value;
 			});
-			inputNode.addEventListener("keyup", function (e) {
+			inputNode.addEventListener("keyup", function keyup(e) {
 				if (e.keyCode === 13) { // enter
 					let value = parseInt(this.value);
 					if (value && value > 0 && value <= currentPager.data.limit) {
@@ -240,8 +234,8 @@ class MainService {
 			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
 
 			if (obj.imageWarning) {
-				galleryDataviewFilterModel.addFilterValue("warning");
-				galleryDataviewFilterModel.parseFilterToRichSelectList();
+				this._filterModel.addFilterValue("warning");
+				this._filterModel.parseFilterToRichSelectList();
 			}
 
 			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
@@ -364,6 +358,7 @@ class MainService {
 			}
 			lastSelectedFolderId = id;
 			this._highlightLastSelectedFolder();
+			this._filterModel.prepareDataToFilter([], true);
 		});
 
 		// parsing data to metadata template next to data view
@@ -867,6 +862,13 @@ class MainService {
 			switch (value) {
 				case "warning": {
 					this._filterModel.addFilter("imageWarning", value, "warning");
+					break;
+				}
+				case "folders": {
+					const selectedFolder = this._finder.getSelectedItem();
+					if (!selectedFolder || selectedFolder._modelType === "folder") {
+						this._filterModel.addFilter("modelType", "folder", "modelType");
+					}
 					break;
 				}
 				default: {

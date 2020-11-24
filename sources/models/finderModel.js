@@ -27,7 +27,7 @@ export default class FinderModel {
 								itemsArray.push(...items);
 							}
 							itemsModel.parseItems(array, item.id);
-							itemsModel.parseDataToViews(itemsArray, false, item.id);
+							itemsModel.parseDataToViews(itemsArray, false, item.id, results.length);
 							finderView.blockEvent();
 							finderView.open(id);
 							finderView.unblockEvent();
@@ -51,7 +51,15 @@ export default class FinderModel {
 				if (itemsArray.length === 1 && itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
 					itemsArray = this.finder.data.getBranch(itemsArray[0].id);
 				}
-				itemsModel.parseDataToViews(itemsArray.filter(obj => obj._modelType !== "folder"), false, item.id);
+				let isChildFolderExists = false;
+				const filteredItems = itemsArray.filter((obj) => {
+					if (obj._modelType !== "folder") {
+						return true;
+					}
+					isChildFolderExists = true;
+					return false;
+				});
+				itemsModel.parseDataToViews(filteredItems, false, item.id, isChildFolderExists);
 				resolve();
 			});
 		}

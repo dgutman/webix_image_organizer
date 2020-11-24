@@ -37,7 +37,12 @@ function setFaIconsForDatatable(obj) {
 			break;
 		}
 		default: {
-			icon = "fa-file";
+			if (obj._modelType === "folder") {
+				icon = "fa-folder";
+			}
+			else {
+				icon = "fa-file";
+			}
 			break;
 		}
 	}
