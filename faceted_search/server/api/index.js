@@ -28,7 +28,7 @@ function handleIndexRoutes(req, res, next){
                 skinsList: skinsList, 
                 userMode: false
             }
-            res.render('index.jade', {data: data});
+            res.render('index.pug', {data: data});
         } else {
             if(!currentSkin || !skinsList.includes(currentSkin)) req.session.user_skin = skinsList[0];
             let data = {
@@ -37,7 +37,7 @@ function handleIndexRoutes(req, res, next){
                 skinsList: skinsList, 
                 userMode: true
             }
-            res.render('index.jade', {data: data});
+            res.render('index.pug', {data: data});
         }
     })
     .catch(err => next(err));

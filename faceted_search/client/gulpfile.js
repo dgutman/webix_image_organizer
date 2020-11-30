@@ -8,9 +8,8 @@ var rjs = require('gulp-requirejs');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var babel = require('gulp-babel');
-var jade = require('gulp-jade');
+var pug = require('gulp-pug');
 
-var less = require('gulp-less');
 var rimraf = require('gulp-rimraf');
 var replace = require("gulp-replace");
 var jshint = require("gulp-jshint");
@@ -80,8 +79,8 @@ gulp.task('build', gulp.series("clean", function(done) {
 	gulp.src("./assets/imgs/**/*.*")
 		.pipe(gulp.dest("./deploy/assets/imgs/")),
 		//index
-	gulp.src("./index.jade")
-		.pipe(jade({locals: JADE_LOCALS, pretty: true}))
+	gulp.src("./index.pug")
+		.pipe(pug({locals: JADE_LOCALS, pretty: true}))
 		.pipe(replace('data-main="app" src="libs/requirejs/require.js"', 'src="app.js"'))
 		.pipe(replace('<script type="text/javascript" src="libs/less.min.js"></script>', ''))
 		.pipe(replace(/rel\=\"stylesheet\/less\" href=\"(.*?)\.less\"/g, 'rel="stylesheet" href="$1.css"'))

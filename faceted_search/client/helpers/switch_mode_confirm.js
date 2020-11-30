@@ -4,7 +4,7 @@ define([
 
     return function (callback){
         webix.confirm({
-            text: 'All changes will be lost. Are you sure you want to change the mode?',
+            text: 'All the changes will be lost. Do you want to proceed?',
             ok: 'Yes',
             cancel: 'No',
             callback: callback

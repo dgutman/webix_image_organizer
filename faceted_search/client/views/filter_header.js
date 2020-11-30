@@ -21,7 +21,9 @@ define([
             id: toggleSkinId,
             label:"Switch Skin",
             css: 'toggle-skin-button',
-            view: 'select',
+            view: 'richselect',
+            width: 250,
+	    	labelWidth: 100,
             options: app.config.skinsList,
             value: app.config.currentSkin,
             on: {
@@ -35,37 +37,43 @@ define([
             id: toolbarId,
             rows: [
                 {
-                    cols: [
+                    id: "a1",
+                    rows: [
                         {
-                            view: "label",
-                            height: 30,
-                            width: 250,
-                            template: "<p class='images-header-p'>Filter results</p>"
-                        },
-                        {},
-                        {
-                            view: "switch",
-                            css: "images-header-toogle",
-                            label: "Rows/columns",
-                            value: 0,
-                            id: toggleBtnId,
-                            width: 200,
-                            labelWidth: 110,
-                            value: Images.getImagesViewState(),
-                            on: {
-                                onChange: function (state) {
-                                    Images.changeImagesViewState(state)
-                                }
-                            }
-                        },
-                        {},
-                        toggleSkinButton,
-                        {},
-                        hostDropDown,
-                        {},
-                        modeToolbar,
-                        {},
-                        userPanel
+                            responsive:"a1",
+                            cols: [
+                                {
+                                    view: "label",
+                                    height: 30,
+                                    width: 200,
+                                    template: "<p class='images-header-p'>Filter results</p>"
+                                },
+                                {height: 5},
+                                {
+                                    view: "switch",
+                                    css: "images-header-toogle",
+                                    label: "Rows/columns",
+                                    value: 0,
+                                    id: toggleBtnId,
+                                    width: 200,
+                                    labelWidth: 110,
+                                    value: Images.getImagesViewState(),
+                                    on: {
+                                        onChange: function (state) {
+                                            Images.changeImagesViewState(state)
+                                        }
+                                    }
+                                },
+                                {height: 5},
+                                toggleSkinButton,
+                                {height: 5},
+                                hostDropDown,
+                                {height: 5},
+                                modeToolbar,
+                                {height: 5},
+                                userPanel
+                            ]
+                        }
                     ]
                 },
                 breadcrumbs

@@ -42,15 +42,30 @@ define([
         template: (data) => {
             let HTMLstring = "<div class='crumbs-scroll-cont'>";
             const crumbs = Object.keys(data) || [];
+
+            if (crumbs.length > 1) {
+                HTMLstring += `<div class="webix_view crumb-button clear-all-crumbs"><span class="crumb-text">Clear All</span></div>`
+            }
+
             crumbs.forEach((crumbKey) => {
-                HTMLstring += `<div class="webix_view crumb-button"><span>${data[crumbKey].name}</span><span id='${crumbKey}' class='delete-crumb webix_icon wxi-close'></span></div>`
+                HTMLstring += `<div class="webix_view crumb-button"><span class="crumb-text">${data[crumbKey].name}</span><span id='${crumbKey}' class='delete-crumb webix_icon wxi-close'></span></div>`
             });
-            HTMLstring += "<div></div>";
+            HTMLstring += "</div>";
             return HTMLstring;
         },
         onClick: {
             "delete-crumb": function (e, id, element) {
                 crumbClickHandler(crumbsArr[element.id], element.id);
+            },
+            "clear-all-crumbs": function (e, id, element) {
+                const entryArr = Object.entries(crumbsArr);
+                entryArr.forEach(([id, data]) => {
+                    crumbClickHandler(data, id, true);
+                });
+                filtersCollection.clearSelectedFiltersData();
+                crumbsArr = {};
+                setCrumbs(crumbsArr);
+                app.callEvent("images:FilterImagesView", []);
             }
         }
     }
@@ -77,7 +92,7 @@ define([
     }
 
     // remove crumb
-    var crumbClickHandler = function(data, key) {
+    var crumbClickHandler = function(data, key, blockEvent) {
         switch(data.view){
             case 'toggle':
             case 'checkbox':
@@ -86,19 +101,29 @@ define([
                     ids.push(key + keysDelimiter + crumbsArr[key].value[i]);
                 }
                 for(var i = 0; i<ids.length; i++){
+                    if (blockEvent) $$(ids[i]).blockEvent();
                     $$(ids[i]).toggle();
+                    $$(ids[i]).unblockEvent();
                 }
                 break;
             case 'combo':
             case 'radio':
+                if (blockEvent) $$(key).blockEvent();
                 $$(key).setValue('All');
+                $$(key).unblockEvent();
                 break;
             case 'multiSlider':
+                if (blockEvent) $$(`${key}${keysDelimiter}start`).blockEvent();
+                if (blockEvent) $$(`${key}${keysDelimiter}end`).blockEvent();
                 $$(key+ keysDelimiter + 'start').setValue(crumbsArr[key].min);
                 $$(key+ keysDelimiter + 'end').setValue(crumbsArr[key].max);
+                $$(`${key}${keysDelimiter}start`).unblockEvent();
+                $$(`${key}${keysDelimiter}end`).unblockEvent();
                 break;
             case 'slider':
+                if (blockEvent) $$(key).blockEvent();
                 $$(key).setValue(0);
+                $$(key).unblockEvent();
         }
         delete crumbsArr[key];
         setCrumbs(crumbsArr);

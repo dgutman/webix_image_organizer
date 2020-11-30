@@ -1,10 +1,12 @@
 .template-image-name {
-    margin: 5px 0px 0px 15px;
-    height: 0;
+    margin: 5px 0px 0px 5px;
+    height: 20px;
     position: absolute;
     color: #e5ee61;
     text-overflow: ellipsis;
     white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
 }
 
 .template-image-wrap {
@@ -22,7 +24,8 @@
 
 .template-image {
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: contain;
 }
 
 .image-header-toogle-txt {
@@ -170,10 +173,6 @@
 }
 
 /*Filter Header*/
-.toggle-skin-button {
-    padding-left: 10px;
-}
-
 .toggle-skin-label {
     font-weight: 500;
     font-size: 16px;
@@ -227,6 +226,9 @@
 }
 
 .crumbs-scroll-cont .crumb-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     box-sizing: border-box;
     height: 40%;
     margin: 2px;
@@ -234,16 +236,20 @@
     border-radius: 3px;
 }
 
-.crumbs-scroll-cont .crumb-button span {
+.crumbs-scroll-cont .clear-all-crumbs {
+    background-color: #dddddd;
+    cursor: pointer;
+}
+
+.crumbs-scroll-cont .crumb-button .crumb-text {
     display: inline-block;
     text-overflow: ellipsis;
     padding: 8px;
     border-width: 2px;
 }
 
-.crumbs-scroll-cont .crumb-button span.webix_icon {
+.crumbs-scroll-cont .crumb-button .webix_icon {
     position: relative;
-    top: 2px;
     cursor: pointer;
 }
 

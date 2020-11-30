@@ -1,7 +1,7 @@
 define(["app", "views/edit_form", "helpers/switch_mode_confirm", "helpers/authentication"], function (app, editFormView, switchModeConfirm, auth) {
     var ui = {
         view: "toolbar",
-        width: 300,
+        width: 250,
         borderless: true,
         cols: [
             {

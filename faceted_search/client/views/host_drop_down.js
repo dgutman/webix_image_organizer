@@ -11,7 +11,7 @@ define([
 		id: constants.HOST_BOX_ID,
 		css: "ellipsis-text",
 		label: "Hosts",
-		labelWidth: 70,
+		labelWidth: 100,
 		width: 250,
 		value: preselectedHost,
 		options: {

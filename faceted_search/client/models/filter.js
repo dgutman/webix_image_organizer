@@ -43,6 +43,10 @@ define([
         return filters;
     };
 
+    filtersCollection.clearSelectedFiltersData = function() {
+        filters = [];
+    };
+
     app.attachEvent("filtersChanged", function(data) {
         var i, j, foundIn = false, index, skipThisId = null;
         switch(data.view) {
