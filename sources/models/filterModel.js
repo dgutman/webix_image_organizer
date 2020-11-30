@@ -2,20 +2,99 @@ import dot from "dot-object";
 import utils from "../utils/utils";
 
 export default class FilterModel {
-	constructor(dataCollection) {
-		this.dataCollection = dataCollection;
+	constructor(itemsModel, richSelectDataviewFilter, richSelectTableFilter) {
+		this.dataCollection = itemsModel.getDataCollection();
+		this.finder = itemsModel.getFinderCollection();
+		this.itemsModel = itemsModel;
+		this.richSelectDataviewFilter = richSelectDataviewFilter;
+		this.richSelectTableFilter = richSelectTableFilter;
 		this.filters = {};
+		this.modelType = "item";
+		this.filtersArray = [];
 
 		this.dataCollection.attachEvent("clear-filters", () => {
 			this.clearFilters();
 		});
+
+		this.dataCollection.attachEvent("parseDataToCollection", (data, isFolderExists) => {
+			this.prepareDataToFilter(data, isFolderExists);
+		});
+
+		this.dataCollection.data.attachEvent("onDataUpdate", (id) => {
+			const item = this.dataCollection.getItem(id);
+			const starColor = this.itemsModel.findStarColorForItem(item);
+			if (starColor && starColor !== item.starColor) {
+				this.addFilterValue(`${starColor} star`);
+				this.parseFilterToRichSelectList();
+				item.starColor = starColor;
+				this.itemsModel.dataview.render(item.id, item, "update");
+			}
+		});
+
+		this.richSelectTableFilter.getList().sync(this.richSelectDataviewFilter.getList());
+		this.richSelectTableFilter.bind(this.richSelectDataviewFilter);
+	}
+
+	prepareDataToFilter(dataArray, isChildFolderExists) {
+		const oldValue = this.richSelectDataviewFilter.getValue("");
+		this.richSelectDataviewFilter.blockEvent();
+		this.richSelectDataviewFilter.setValue("");
+		this.richSelectDataviewFilter.unblockEvent();
+		this.clearFilterValues();
+
+		if (isChildFolderExists) {
+			this.addFilterValue("folders");
+		}
+
+		dataArray.forEach((item) => {
+			const itemType = utils.searchForFileType(item);
+			const itemStarColor = item.starColor;
+			const itemWarningStatus = item.imageWarning;
+			this.addFilterValue(itemType);
+			if (itemStarColor) this.addFilterValue(`${itemStarColor} star`);
+			if (itemWarningStatus) this.addFilterValue("warning");
+		});
+		this.clearFilterRichSelectList();
+		this.addNoFiltersSelection();
+		this.parseFilterToRichSelectList();
+		const valueToSet = this.richSelectDataviewFilter.getList().getItem(oldValue) ? oldValue : "all";
+		this.richSelectDataviewFilter.setValue(valueToSet);
+	}
+
+	parseFilterToRichSelectList() {
+		this.richSelectDataviewFilter.getList().parse(this.filtersArray);
+	}
+
+	addFilterValue(filterValue) {
+		if (!this.filtersArray.find(obj => obj === filterValue)) {
+			this.filtersArray.push(filterValue);
+		}
+	}
+
+	addNoFiltersSelection() {
+		this.richSelectDataviewFilter.getList().parse({
+			id: "all",
+			value: "all"
+		});
+	}
+
+	clearFilterValues() {
+		this.filtersArray = [];
+	}
+
+	clearFilterRichSelectList() {
+		this.richSelectDataviewFilter.getList().clearAll();
 	}
 
 	addFilter(name, value, type) {
-		if (type === "star" || type === "itemType" || type === "warning") { // Types from one filter control
+		if (type === "star" || type === "itemType" || type === "warning" || type === "modelType") { // Types from one filter control
 			delete this.filters.starColor;
 			delete this.filters.itemType;
 			delete this.filters.imageWarning;
+			if (this.filters.hasOwnProperty("modelType")) {
+				this.setItemsByModelType("item");
+				delete this.filters.modelType;
+			}
 		}
 
 		if (!value) {
@@ -29,12 +108,26 @@ export default class FilterModel {
 		return this.filters[name];
 	}
 
+	setItemsByModelType(type) {
+		if (this.modelType !== type) {
+			const parentFolderId = this.finder.getSelectedId();
+			const itemsArray = parentFolderId ? this.finder.data.getBranch(parentFolderId) : this.finder.data.serialize();
+			const nestedItems = itemsArray.filter(obj => obj._modelType === type);
+			this.dataCollection.clearAll();
+			this.dataCollection.parse(nestedItems);
+			this.modelType = type;
+		}
+	}
+
 	filterDataCollection() {
 		const filterNames = Object.keys(this.filters);
 		if (!filterNames.length) {
 			this.dataCollection.filter();
 		}
 		else {
+			if (this.filters.hasOwnProperty("modelType")) {
+				this.setItemsByModelType("folder");
+			}
 			this.dataCollection.filter((item) => {
 				const condition = filterNames.every((name) => {
 					let doesItFit = false;
@@ -67,6 +160,10 @@ export default class FilterModel {
 						}
 						case "star": {
 							doesItFit = itemFiledValue === value.substr(0, value.indexOf(" "));
+							break;
+						}
+						case "modelType": {
+							doesItFit = true;
 							break;
 						}
 						default: {

@@ -132,7 +132,7 @@ export default class MetadataPanelClass extends JetView {
 					const itemGalleryDataviewId = this.metadataTemplate.getValues().id;
 					const oldItem = galleryDataview.getItem(itemGalleryDataviewId);
 					const removedFields = this.getRemovedFields(webix.copy(oldItem.meta), updatedMetadata);
-					let promise = removedFields.length ? ajaxActions.deleteItemMetadata(itemId, removedFields) : ajaxActions.updateItemMetadata(itemId, updatedMetadata);
+					let promise = removedFields.length ? ajaxActions.deleteItemMetadata(itemId, removedFields, oldItem._modelType) : ajaxActions.updateItemMetadata(itemId, updatedMetadata, oldItem._modelType);
 
 					this.metadataTemplate.showProgress();
 					promise

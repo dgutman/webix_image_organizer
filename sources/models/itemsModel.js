@@ -1,5 +1,4 @@
 import dot from "dot-object";
-import galleryDataviewFilterModel from "./galleryDataviewFilterModel";
 import projectMetadata from "./projectMetadata";
 import constants from "../constants";
 
@@ -17,17 +16,6 @@ export default class ItemsModel {
 			this.dataview = dataview;
 			this.table = table;
 			this.selectedItem = null;
-
-			this.dataCollection.data.attachEvent("onDataUpdate", (id) => {
-				const item = this.dataCollection.getItem(id);
-				const starColor = this.findStarColorForItem(item);
-				if (starColor && starColor !== item.starColor) {
-					galleryDataviewFilterModel.addFilterValue(`${starColor} star`);
-					galleryDataviewFilterModel.parseFilterToRichSelectList();
-					item.starColor = starColor;
-					this.dataview.render(item.id, item, "update");
-				}
-			});
 
 			ItemsModel.instance = this;
 		}
@@ -155,7 +143,7 @@ export default class ItemsModel {
 		return this.dataCollection;
 	}
 
-	parseDataToViews(data, linearData, folderId) {
+	parseDataToViews(data, linearData, folderId, isChildFolderExists) {
 		if (this.selectedItem && folderId === this.selectedItem.id) {
 			const dataview = this.dataview;
 			const pager = dataview.getPager();
@@ -181,7 +169,8 @@ export default class ItemsModel {
 			if (linearData) {
 				dataForFilter = this.dataCollection.data.serialize();
 			}
-			galleryDataviewFilterModel.prepareDataToFilter(dataForFilter);
+
+			this.dataCollection.callEvent("parseDataToCollection", [dataForFilter, isChildFolderExists]);
 		}
 	}
 

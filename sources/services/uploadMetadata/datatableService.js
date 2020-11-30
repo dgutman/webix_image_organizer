@@ -226,7 +226,7 @@ export default class MetaDatatableService {
 			.reduce((acc, a) => ({...acc, [a]: metaItem._acceptedMeta.oldMeta[a]}), {});
 
 		if (item) {
-			const removeMetaPromise = fieldsToDelete.length ? ajaxActions.deleteItemMetadata(item._id, fieldsToDelete) : Promise.resolve(item);
+			const removeMetaPromise = fieldsToDelete.length ? ajaxActions.deleteItemMetadata(item._id, fieldsToDelete, item._modelType) : Promise.resolve(item);
 			this.view.showProgress();
 			return removeMetaPromise
 				.then(data => (fieldsToReturn.length ? ajaxActions.updateItemMetadata(item._id, metaToReturn) : data)) // return old metadata
