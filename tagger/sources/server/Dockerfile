@@ -11,6 +11,8 @@ COPY sources/server/tagger ./server/tagger
 
 COPY sources/utils ./utils
 
+COPY sources/validationSchemas ./validationSchemas
+
 RUN npm install pm2 -g
 
 COPY conf/pm2_backend/pm2.config.js ./
