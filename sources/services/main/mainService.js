@@ -3,6 +3,7 @@ import utils from "../../utils/utils";
 import galleryImageUrl from "../../models/galleryImageUrls";
 import ImageWindow from "../../views/subviews/gallery/windows/imageWindow";
 import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
+import CsvViewerWindow from "../../views/subviews/gallery/windows/csvViewerWindow";
 import FinderContextMenu from "../../views/components/finderContextMenu";
 import authService from "../authentication";
 import selectDataviewItems from "../../models/selectGalleryDataviewItems";
@@ -65,6 +66,7 @@ class MainService {
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
 		this._pdfViewerWindow = this._view.$scope.ui(PdfViewerWindow);
+		this._csvViewerWindow = this._view.$scope.ui(CsvViewerWindow);
 		// this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
 		this._finderCountTemplate = this._finder.$scope.getTreeCountTemplate();
 		this._finderContextMenu = this._view.$scope.ui(FinderContextMenu).getRoot();
@@ -103,6 +105,7 @@ class MainService {
 		webixViews.setMainView(this._view);
 		webixViews.setImageWindow(this._imageWindow);
 		webixViews.setPdfViewerWindow(this._pdfViewerWindow);
+		webixViews.setCsvViewerWindow(this._csvViewerWindow);
 		webixViews.setGalleryDataviewContextMenu(this._galleryDataviewContextMenu);
 		webixViews.setItemsModel(this._itemsModel);
 		webixViews.setRenamePopup(this._renamePopup);
@@ -203,7 +206,7 @@ class MainService {
 			else {
 				IMAGE_WIDTH = 150;
 			}
-			const checkedClass = obj.markCheckbox ? "is-checked" : "";
+			const checkedClass = selectDataviewItems.isSelected(obj._id) ? "is-checked" : "";
 
 			if (obj.largeImage && !getPreviewUrl(obj._id)) {
 				if (getPreviewUrl(obj._id) === false) {
@@ -245,7 +248,7 @@ class MainService {
 						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
 									<div class="gallery-images-info">
 										<div class="gallery-images-header">
-											<div class="gallery-images-checkbox"> ${common.markCheckbox(obj, common)}</div>
+											<div class="gallery-images-checkbox"> <i class="checkbox-icon ${common.markCheckbox(obj, common)}"></i></div>
 											<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
 										</div>
 									</div>
@@ -341,6 +344,8 @@ class MainService {
 
 		this._finder.attachEvent("onAfterClose", (id) => {
 			this._finder.unselect(id);
+			if (this._finder.getSelectedId()) return;
+
 			const folder = this._finder.getItem(id);
 			if (folder.linear && !folder.hasOpened) {
 				folder.linear = false;
@@ -552,28 +557,10 @@ class MainService {
 			if (!Array.isArray(items)) {
 				items = [items];
 			}
-			items.forEach((item) => {
-				this._galleryDataview.find((obj) => {
-					if (obj._id === item._id) {
-						item.id = obj.id;
-						webix.dp(this._finder).ignore(() => {
-							this._itemsDataCollection.updateItem(item.id, item);
-						});
-					}
-				});
-			});
 			if (utils.isObjectEmpty(this._cartList.data.pull) && value) {
 				this._cartViewButton.callEvent("onItemClick", ["checkboxClicked"]);
 			}
-			if (items.length === 1) {
-				if (items[0].markCheckbox) {
-					this._cartList.add(items[0]);
-				}
-				else if (!items[0].markCheckbox && utils.findItemInList(items[0]._id, this._cartList)) {
-					this._cartList.callEvent("onDeleteButtonClick", [items[0]]);
-				}
-			}
-			else if (items.length > 1) {
+			if (items.length) {
 				if (value) {
 					this._cartList.parse(items);
 				}
@@ -583,7 +570,8 @@ class MainService {
 					}
 					else {
 						items.forEach((item) => {
-							this._cartList.remove(item.id);
+							const cartItem = this._cartList.find(obj => obj._id === item._id, true);
+							if (cartItem) this._cartList.remove(cartItem.id);
 						});
 					}
 
@@ -595,6 +583,7 @@ class MainService {
 				}
 			}
 			selectDataviewItems.putSelectedImagesToLocalStorage();
+			this._galleryDataview.refresh();
 		});
 
 		this._cartViewButton.attachEvent("onItemClick", (clicked) => {
@@ -667,25 +656,8 @@ class MainService {
 		});
 
 		this._cartList.data.attachEvent("onAfterDeleteItem", (id) => {
-			const value = 0;
-			let item;
-			let dataviewItem = this._galleryDataview.getItem(id);
-			let listItem = this._cartList.getItem(id);
-			if (dataviewItem) {
-				item = dataviewItem;
-				item.markCheckbox = value;
-				this._galleryDataview.updateItem(id, item);
-			}
-			else {
-				item = listItem;
-				this._galleryDataview.find((obj) => {
-					if (obj._id === item._id) {
-						obj.markCheckbox = value;
-						this._galleryDataview.updateItem(obj.id, obj);
-					}
-				});
-			}
-			selectDataviewItems.remove(item._id);
+			let item = this._cartList.getItem(id);
+			selectDataviewItems.remove(item);
 			this._cartList.find((obj) => {
 				if (obj._id === item._id) {
 					this._cartList.remove(obj.id);
@@ -697,6 +669,7 @@ class MainService {
 				this._cartViewButton.hide();
 			}
 			selectDataviewItems.putSelectedImagesToLocalStorage();
+			this._galleryDataview.refresh();
 		});
 
 		this._cartList.attachEvent("onAfterRender", () => {
@@ -753,13 +726,9 @@ class MainService {
 				// }
 				case constants.EMPTY_CART_MENU_ID: {
 					const selectedItems = selectDataviewItems.getSelectedImages();
-					selectedItems.forEach((obj) => {
-						obj.markCheckbox = 0;
-					});
-
 					this._galleryDataview.callEvent("onCheckboxClicked", [selectedItems, 0, true]);
-					this._galleryDataview.refresh();
 					selectDataviewItems.clearAll();
+					this._galleryDataview.refresh();
 					selectDataviewItems.putSelectedImagesToLocalStorage();
 					this._view.$scope.app.callEvent("changedSelectedImagesCount");
 					break;
@@ -836,14 +805,6 @@ class MainService {
 			}
 
 			this._setFilesToLargeImage();
-
-			this._galleryDataview.data.each((obj) => {
-				if (selectDataviewItems.isSelected(obj._id) && !obj.markCheckbox) {
-					obj.markCheckbox = 1;
-					this._galleryDataview.updateItem(obj.id, obj);
-				}
-			});
-
 			metadataTableModel.refreshDatatableColumns();
 		});
 
@@ -988,7 +949,7 @@ class MainService {
 
 	_setGallerySelectedItemsFromLocalStorage() {
 		selectDataviewItems.clearAll();
-		const itemsArray = utils.getSelectedItemsFromLocalStorage();
+		const itemsArray = selectDataviewItems.getSelectedItemsFromLocalStorage();
 		itemsArray.forEach((item) => {
 			item.imageShown = false;
 		});
@@ -1085,7 +1046,7 @@ class MainService {
 
 	_toggleCartList(view) {
 		if (view === "gallery") {
-			const selectedItems = utils.getSelectedItemsFromLocalStorage();
+			const selectedItems = selectDataviewItems.getSelectedItemsFromLocalStorage();
 			if (selectedItems.length) {
 				this._cartViewButton.show();
 				const buttonLabel = this._cartViewButton.config.label;

@@ -54,6 +54,11 @@ function showMainPage() {
 	window.location = "/";
 }
 
+function getUserId() {
+	const userInfo = getUserInfo();
+	return userInfo && userInfo._id;
+}
+
 export default {
 	login,
 	logout,
@@ -61,6 +66,7 @@ export default {
 	showMainPage,
 	getUserInfo,
 	isLoggedIn,
-	getHostId
+	getHostId,
+	getUserId
 };
 

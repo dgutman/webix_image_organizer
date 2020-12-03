@@ -11,6 +11,7 @@ let itemsModel;
 let renamePopup;
 let metadataTemplate;
 let dataviewSearchInput;
+let csvViewerWindow;
 
 function setMainView(view) {
 	mainView = view;
@@ -84,6 +85,14 @@ function getPdfViewerWindow() {
 	return pdfViewerWindow;
 }
 
+function setCsvViewerWindow(csvWindow) {
+	csvViewerWindow = csvWindow;
+}
+
+function getCsvViewerWindow() {
+	return csvViewerWindow;
+}
+
 function setItemsModel(dataItemsModel) {
 	itemsModel = dataItemsModel;
 }
@@ -135,6 +144,8 @@ export default {
 	getMetadataTableThumbnailTemplate,
 	setPdfViewerWindow,
 	getPdfViewerWindow,
+	setCsvViewerWindow,
+	getCsvViewerWindow,
 	setItemsModel,
 	getItemsModel,
 	setRenamePopup,
