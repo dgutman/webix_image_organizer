@@ -120,5 +120,7 @@ export default {
 	SUB_FOLDER_MODEL_TYPE: "itemsSubFolder",
 	FOLDER_MAX_SHOWED_ITEMS: 5000,
 
-	METADATA_TABLE_ROW_HEIGHT: 34
+	METADATA_TABLE_ROW_HEIGHT: 34,
+
+	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"}
 };

@@ -97,6 +97,14 @@ export default class MainView extends JetView {
 		return this.getRoot().queryView({name: "galleryCell"}).$scope;
 	}
 
+	getSubZStackView() {
+		return this.getRoot().queryView({name: "zStackCell"}).$scope;
+	}
+
+	getSubScenesViewCell() {
+		return this.getRoot().queryView({name: "scenesViewCell"}).$scope;
+	}
+
 	getSubMetadataPanelView() {
 		return this.getRoot().queryView({name: "metadataPanelClass"}).$scope;
 	}

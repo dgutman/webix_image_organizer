@@ -202,7 +202,6 @@ export default class ItemsModel {
 								incorrectKeys: [key]
 							});
 						}
-	
 						hasFoundIncorrectKey = true;
 					}
 					else if (wrongMetadataItem) {
