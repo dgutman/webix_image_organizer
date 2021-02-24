@@ -1,9 +1,10 @@
 .idea/
 codebase/
 node_modules/
-package-lock.json
 *.log
 *.lock
 *.swp
 services/__pycache__/*
 services/.ipynb_checkpoints/
+.vscode
+.env

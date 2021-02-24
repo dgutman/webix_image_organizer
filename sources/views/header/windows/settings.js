@@ -1,5 +1,4 @@
 import {JetView} from "webix-jet";
-import webixViews from "../../../models/webixViews";
 import utils from "../../../utils/utils";
 import constants from "../../../constants";
 
@@ -28,7 +27,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button single click",
 					options: mouseOptions,
 					on: {
-						// onChange: this.onChangeMouseClicks
+						onChange: this.onChangeMouseClicks
 					}
 				},
 				{
@@ -43,7 +42,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse right button single click",
 					options: mouseOptions,
 					on: {
-						// onChange: this.onChangeMouseClicks
+						onChange: this.onChangeMouseClicks
 					}
 				},
 				{
@@ -58,7 +57,7 @@ export default class SettingsWindow extends JetView {
 					label: "Mouse left button double click",
 					options: mouseOptions,
 					on: {
-						// onChange: this.onChangeMouseClicks
+						onChange: this.onChangeMouseClicks
 					}
 				}
 			]
@@ -74,10 +73,8 @@ export default class SettingsWindow extends JetView {
 			click: () => {
 				if (this.settingsForm.validate()) {
 					const values = this.settingsForm.getValues();
-					const galleryDataview = webixViews.getGalleryDataview();
-					const metadataTable = webixViews.getMetadataTableView();
 
-					utils.setMouseSettingsEvents(galleryDataview, metadataTable, values);
+					this.app.callEvent("change-event-settings", [values]);
 					this.getRoot().hide();
 				}
 			}
@@ -168,12 +165,10 @@ export default class SettingsWindow extends JetView {
 	}
 
 	onChangeMouseClicks(value, oldValue) {
-		if (value !== oldValue) {
-			if (!this.validate()) {
-				this.blockEvent();
-				this.setValue("");
-				this.unblockEvent();
-			}
+		const form = this.getParentView();
+		const invalidSelectControl = form.queryView({view: "richselect"}, "all").find(view => view.config.invalid);
+		if (invalidSelectControl) {
+			form.validate();
 		}
 	}
 
@@ -194,10 +189,10 @@ export default class SettingsWindow extends JetView {
 				title: "Attention!",
 				text: "Are you sure you don't want to save your changes?",
 				type: "confirm-warning",
-				cancel: "Yes",
-				ok: "No",
+				ok: "Yes",
+				cancel: "No",
 				callback: (result) => {
-					if (!result) {
+					if (result) {
 						this.settingsForm.clearValidation();
 						this.getRoot().hide();
 					}

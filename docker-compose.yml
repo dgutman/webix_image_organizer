@@ -1,0 +1,59 @@
+version: "3"
+
+volumes:
+    mongodb_volume:
+
+services:
+    nginx:
+        image: nginx:1
+        container_name: production_nginx
+        volumes:
+            - ./conf/nginx/router.conf:/etc/nginx/conf.d/default.conf
+            - ./conf/nginx/snippets:/etc/nginx/snippets
+            - ./conf/nginx/logs/:/var/log/nginx/
+            - /etc/letsencrypt/:/etc/letsencrypt/
+        ports:
+            - 80:80
+            - 443:443
+        restart: always
+    tagger_client:
+        container_name: tagger_client
+        env_file: ./tagger/.env
+        build:
+            context: ./tagger/
+            dockerfile: ./Dockerfile
+        expose:
+            - "80"
+        ports:
+            - 2000:80
+    tagger_backend:
+        container_name: tagger_backend
+        env_file: ./tagger/.env
+        environment:
+            - MONGODB_HOST=mongodb
+        build:
+            context: ./tagger/
+            dockerfile: sources/server/Dockerfile
+        expose:
+            - "4000"
+        restart: always
+    images_organizer:
+        container_name: images_organizer
+        build: ./
+        expose:
+            - "80"
+        ports:
+            - 3000:80
+    recognition_service:
+        container_name: recognition_service
+        build:
+            context: ./services
+            dockerfile: Dockerfile
+        expose:
+            - "5000"
+        restart: always
+    mongodb:
+        image: mongo:4.2.6
+        volumes:
+            - mongodb_volume:/data/db
+        restart: always

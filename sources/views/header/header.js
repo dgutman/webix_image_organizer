@@ -1,4 +1,4 @@
-import {JetView} from "webix-jet";
+import {JetView, plugins} from "webix-jet";
 import authService from "../../services/authentication";
 import ajax from "../../services/ajaxActions";
 import HeaderService from "../../services/header/headerService";
@@ -16,7 +16,7 @@ export default class Header extends JetView {
 			template: "Image Organizer",
 			css: "main-header-logo",
 			borderless: true,
-			width: 165
+			width: 175
 		};
 
 		const loginMenu = {
@@ -62,10 +62,14 @@ export default class Header extends JetView {
 			css: "select-field ellipsis-text",
 			label: "Hosts",
 			labelWidth: 70,
-			width: 300,
+			width: 250,
 			options: {
 				template: "#value#",
-				data: serverListData
+				data: serverListData,
+				body: {
+					template: obj => `<span title='${obj.value}'>${obj.value}</span>`,
+					css: "ellipsis-text"
+				}
 			}
 		};
 
@@ -75,11 +79,12 @@ export default class Header extends JetView {
 			name: "collectionBoxName",
 			css: "select-field ellipsis-text",
 			label: "Collections",
-			width: 330,
+			width: 250,
 			labelWidth: 100,
 			options: {
 				body: {
-					template: obj => obj.name || ""
+					css: "ellipsis-text",
+					template: obj => `<span title='${obj.name}'>${obj.name}</span>` || "",
 				}
 			}
 		};
@@ -87,25 +92,24 @@ export default class Header extends JetView {
 		const skinSwitcher = {
 			name: "skin",
 			labelWidth: 70,
-			width: 300,
+			width: 200,
 			view: "richselect",
 			icon: utils.getSelectIcon(),
 			css: "select-field",
 			value: this.app.getService("theme").getTheme(),
 			label: "Theme",
-			options: [
-				{id: "flat", value: "flat"},
-				{id: "material", value: "material"},
-				{id: "mini", value: "mini"},
-				{id: "compact", value: "compact"},
-				{id: "contrast", value: "contrast"}
-				// {id: "glamour", value: "glamour"},
-				// {id: "light", value: "light"},
-				// {id: "metro", value: "metro"},
-				// {id: "terrace", value: "terrace"},
-				// {id: "touch", value: "touch"},
-				// {id: "web", value: "web"}
-			]
+			options: {
+				data: [
+					{id: "flat", value: "flat"},
+					{id: "material", value: "material"},
+					{id: "mini", value: "mini"},
+					{id: "compact", value: "compact"},
+					{id: "contrast", value: "contrast"}
+				],
+				body: {
+					css: "ellipsis-text"
+				}
+			}
 		};
 
 		const header = {
@@ -143,24 +147,34 @@ export default class Header extends JetView {
 		};
 
 		return {
-			css: "global-header",
-			name: "headerClass",
-			cols: [
-				{},
-				header,
-				{}
+			rows: [
+				{
+					css: "global-header",
+					name: "headerClass",
+					cols: [
+						{},
+						header,
+						{}
+					]
+				},
+				{$subview: true}
 			]
 		};
 	}
 
 	init(view) {
+		// URL-NAV enable URL params with /
+		this.use(plugins.UrlParam, ["host", "collection"]);
+
 		this.loginPanel = this.getRoot().queryView({name: LOGIN_PANEL_NAME});
 		this.logoutPanel = this.getRoot().queryView({name: LOGOUT_PANEL_NAME});
 		this.loginWindow = this.ui(LoginWindow);
 		this.headerService = new HeaderService(
 			view,
 			this.loginPanel,
-			this.logoutPanel
+			this.logoutPanel,
+			this.getHostBox(),
+			this.getCollectionBox()
 		);
 		if (authService.isLoggedIn()) {
 			this.headerService.showLogoutPanel();
@@ -168,13 +182,11 @@ export default class Header extends JetView {
 		}
 	}
 
-	loadCollectionData() {
-		return ajax.getCollection().then(collections => collections);
-	}
-
-	parseToList(collections) {
-		this.getCollectionBox().getList().clearAll();
-		this.getCollectionBox().getList().parse(collections);
+	// URL-NAV
+	urlChange(...args) {
+		if (this.headerService) {
+			this.headerService._urlChange(...args);
+		}
 	}
 
 	getHostBox() {
@@ -189,16 +201,9 @@ export default class Header extends JetView {
 		return this.getRoot().queryView({name: "skin"});
 	}
 
-	parseCollectionData() {
-		this.loadCollectionData()
-			.then((data) => {
-				this.parseToList({
-					data: webix.copy(data)
-				});
-				let collectionList = this.getCollectionBox().getList();
-				let firstId = collectionList.getFirstId();
-				collectionList.select(firstId);
-				this.getCollectionBox().setValue(firstId);
-			});
+	getCurrentCollection() {
+		const box = this.getCollectionBox();
+		const list = box.getList();
+		return list.getItem(box.getValue());
 	}
 }

@@ -23,7 +23,14 @@ export default class NewColumnsClass {
 				itemField: (value) => {
 					const regex = new RegExp(constants.PATTERN_ITEM_FIELDS, "g");
 					const result = value.match(regex);
-					return result && result[0] === value && !metadataTableModel.metadataDotObject.hasOwnProperty(value);
+
+					const currentFieldForm = $$(columnConfig.id);
+					const newFieldsForms = this.newColumnsForm.queryView({view: "form"}, "all");
+					const isNotUnique = newFieldsForms.find(form => form.getValues().itemField === value && form !== currentFieldForm);
+					const initialColumnIds = Object.values(constants.INITIAL_COLUMNS_IDS);
+					return result && result[0] === value &&
+						!metadataTableModel.metadataDotObject.hasOwnProperty(value) &&
+						!isNotUnique && !initialColumnIds.includes(value);
 				},
 				columnName: webix.rules.isNotEmpty
 			},
@@ -31,7 +38,7 @@ export default class NewColumnsClass {
 				{
 					view: "text",
 					name: "itemField",
-					placeholder: "Item meta field",
+					placeholder: "e.g. clinicalData.person.age",
 					css: "text-field",
 					columnConfig,
 					height: 27,
@@ -52,7 +59,7 @@ export default class NewColumnsClass {
 				{
 					view: "text",
 					name: "columnName",
-					placeholder: "read only",
+					placeholder: "e.g. age (read only)",
 					css: "text-field",
 					readonly: true,
 					height: 20
@@ -128,8 +135,11 @@ export default class NewColumnsClass {
 			return this.root.$scope.createFormElement({id: field, header}, buttonPlusIcon);
 		});
 
+		if (itemFieldsConfig.length && !$$("users-section")) {
+			this.mainForm.addView({type: "section", template: "USER'S COLUMNS", id: "users-section"}, 0);
+		}
 		itemFieldsConfig.forEach((config) => {
-			this.mainForm.addView(config, 0);
+			this.mainForm.addView(config, 1);
 		});
 	}
 

@@ -14,13 +14,12 @@ export default class MetadataTableCellClass extends JetView {
 
 		const itemsDataTable = {
 			view: "datatable",
-			drag: true,
 			select: true,
 			editaction: "custom",
-			css: "metadata-table",
 			editable: true,
 			dragColumn: false,
 			resizeColumn: false,
+			fixedRowHeight: false,
 			spans: true,
 			tooltip: true,
 			columns: [] // init in mainService.js
@@ -93,7 +92,7 @@ export default class MetadataTableCellClass extends JetView {
 		);
 
 		if (authService.isLoggedIn()) {
-			return this.getEditColumnsPanel().show();
+			this.getEditColumnsPanel().show();
 		}
 	}
 

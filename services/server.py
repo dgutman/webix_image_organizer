@@ -1,12 +1,8 @@
 import importlib
 import cv2
-import json
 import marker_search
 import sticker_search
 import ocr
-
-with open('config.json') as config_data:
-    config = json.load(config_data)
 
 importlib.import_module('colors')
 
@@ -66,15 +62,14 @@ def login(private=True):
     gc : girder_client.GirderClient
         Girder client connected to a girder API.
     """
-    gc = girder_client.GirderClient(apiUrl=config['apiUrl'])
+    gc = girder_client.GirderClient(apiUrl=request.args.get('apiUrl'))
     if private:
-        gc.authenticate(username=config['USER'], password=config['PASSWORD'])
+        gc.setToken(request.headers.get('girder-token'))
     return gc
-
-gc = login(config['apiUrl'])
 
 @app.route("/label")
 def label_ocr():
+    gc = login()
     ids = request.args.get('ids')
     override = request.args.get('override')
     print("override was set to",override)
@@ -97,6 +92,7 @@ def label_ocr():
 
 @app.route("/sticker")
 def get_stickers():
+    gc = login()
     ids = request.args.get('ids')
     ids = ids.split(',')
 
@@ -104,7 +100,7 @@ def get_stickers():
     for id in ids:
         try:
             item = gc.getItem(id)
-            image = get_image(gc, [], item['_id'])
+            image = get_image(gc, item['_id'])
 
             results = sticker_search.get_image_sticker_colors(image)
 
@@ -118,6 +114,7 @@ def get_stickers():
 
 @app.route("/marker")
 def get_marker():
+    gc = login()
     ids = request.args.get('ids')
     ids = ids.split(',')
     status = []
@@ -125,7 +122,7 @@ def get_marker():
 
         try:
             item = gc.getItem(id)
-            image = get_image(gc, [], item['_id'])
+            image = get_image(gc, item['_id'])
             results = marker_search.haveImageMarker(image)
             gc.addMetadataToItem(item['_id'], {'marker': results})  # uncomment to have this push metadata
             status.append({'status': 'ok', 'id': id, 'results': results})

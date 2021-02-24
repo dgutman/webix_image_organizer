@@ -87,8 +87,10 @@ export default class ProjectMetadataWindow extends JetView {
 		this.projectMetadataTemplate = this.getProjectMetadataTemplate();
 		const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 		const projectMetadataFolder = projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
-		if (projectMetadataFolder instanceof Object && projectMetadataFolder.hasOwnProperty("meta") && projectMetadataFolder.meta("schema")) {
-			const projectSchema = projectMetadataFolder.meta.schema;
+
+		const fieldName = this.getProjectMetadataSchemaField(projectMetadataFolder);
+		if (projectMetadataFolder instanceof Object && fieldName) {
+			const projectSchema = projectMetadataFolder.meta[fieldName];
 			projectKeys = Object.keys(projectSchema);
 			this.projectMetadataTemplate.parse(projectSchema);
 			this.projectMetadataTemplate.attachEvent("onAfterRender", () => {
@@ -106,6 +108,11 @@ export default class ProjectMetadataWindow extends JetView {
 				text: "There is no metadata validation rules in .ProjectMetadata folder!"
 			});
 		}
+	}
+
+	getProjectMetadataSchemaField(projectMetadataFolder) {
+		const names = ["schema", "ProjectSchema", "projectSchema"];
+		return projectMetadataFolder.meta && names.find(name => projectMetadataFolder.meta.hasOwnProperty(name));
 	}
 
 	getProjectMetadataTemplate() {

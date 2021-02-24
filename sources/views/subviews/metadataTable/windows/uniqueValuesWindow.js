@@ -10,8 +10,7 @@ export default class UniqueValuesWindow extends JetView {
 			view: "form",
 			name: "formOfUniqueValuesName",
 			borderless: true,
-			elements: [
-			]
+			elements: []
 		};
 
 		const saveButton = {
@@ -136,9 +135,10 @@ export default class UniqueValuesWindow extends JetView {
 			name: "firstUniqueValue",
 			view: "text",
 			labelPosition: "top",
-			label: `Column: ${this.columnId}`,
+			tooltip: true,
+			label: `<span title='${this.columnId}'>Column: ${this.columnId}</span>`,
 			validate: webix.rules.isNotEmpty,
-			css: "select-field",
+			css: "select-field ellipsis-text",
 			value: firstUniqueValue,
 			invalidMessage: "Value field should not be empty"
 		};
@@ -150,6 +150,7 @@ export default class UniqueValuesWindow extends JetView {
 					name: `uniqueValue-${index}`,
 					view: "text",
 					validate: webix.rules.isNotEmpty,
+					tooltip: true,
 					css: "select-field",
 					value: uniqueValue,
 					invalidMessage: "Value field should not be empty"

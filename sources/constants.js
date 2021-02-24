@@ -1,13 +1,21 @@
 const location = window.location;
 
+const APP_URL_PATH = "app";
+
 export default {
 
 	KEY_TOKEN: "girderToken",
 
+	APP_PATHS: {
+		APP: APP_URL_PATH,
+		MAIN: `${APP_URL_PATH}///main`,
+		UPLOAD_METADATA: `${APP_URL_PATH}///upload-metadata`
+	},
+
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
-	PATTERN_ITEM_FIELDS: "^[A-Za-z0-9._]+",
+	PATTERN_ITEM_FIELDS: "^[a-zA-Z0-9_](?:\\.?[a-zA-Z0-9_]+)*$",
 
 	SCROLL_VIEW_METADATA_ID: "scroll-view-metadata-id",
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
@@ -18,6 +26,8 @@ export default {
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 	RUN_RECOGNITION_SERVICE: "Recognition service",
+	UPLOAD_METADATA_MENU_ID: "Upload metadata",
+
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 
@@ -25,6 +35,7 @@ export default {
 	IMAGES_AND_METADATA_MENU_ID: "Download selected items and metadata",
 	COPY_TO_CLIPBOARD_MENU_ID: "Copy selected items",
 	ADD_TAG_TO_IMAGES_MENU_ID: "Add tag to images",
+	EMPTY_CART_MENU_ID: "Empty cart",
 
 	EDIT_COLUMN_MODE_ADD: "addColumn",
 	EDIT_COLUMN_MODE_DELETE: "deleteColumn",
@@ -48,8 +59,8 @@ export default {
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
 
-	LINEAR_STRUCTURE_LIMIT: 150,
-	FOLDERS_LIMIT: 500,
+	LINEAR_STRUCTURE_LIMIT: 2000,
+	FOLDERS_LIMIT: 0,
 
 	MAX_COUNT_IMAGES_SELECTION: 100,
 
@@ -78,14 +89,36 @@ export default {
 		LABEL: "Find labels"
 	},
 
-	RECOGNITION_STATUSES: {
+	LOADING_STATUSES: {
 		DONE: {icon: "fas fa-check", iconColor: "#4caf50", value: "Done"},
 		IN_PROGRESS: {icon: "fas fa-sync fa-spin", iconColor: "#ffb300", value: "In progress"},
 		ERROR: {icon: "fas fa-times", iconColor: "#b71c1c", value: "Error"},
 		WARNS: {icon: "fas fa-exclamation-triangle", iconColor: "#FD7E14", value: "Done with errors"}
 	},
 
-	RECOGNIZE_SERVICE_PATH: location.hostname === "localhost" ? `http://${location.hostname}:5000` : "http://192.168.1.223:5000",
+	RECOGNIZE_SERVICE_PATH: process.env.RECOGNITION_SERVICE_API,
 
-	EDIT_ACCESS_LEVEL: 1
+	EDIT_ACCESS_LEVEL: 1,
+
+	ALLOWED_FILE_EXTENSIONS: ["csv", "xls", "xlsx"],
+	ITEM_NAME_COLUMN: "filename",
+
+	ACCEPT_METADATA_LIMIT: 100,
+	ESTIMATED_LOADING_TIME: 5000, // milliseconds for 100 items
+
+	METADATA_TABLE_IMAGES_SIZES: ["32", "48", "64"],
+	METADATA_TABLE_IMAGES_TYPES: ["thumbnail", "label", "macro"],
+
+	METADATA_TABLE_IMAGE_COLUMN_CONFIG: {
+		imageSize: "32",
+		imageType: "thumbnail",
+		columnType: "image",
+		header: "Preview",
+		id: "-image"
+	},
+
+	SUB_FOLDER_MODEL_TYPE: "itemsSubFolder",
+	FOLDER_MAX_SHOWED_ITEMS: 5000,
+
+	METADATA_TABLE_ROW_HEIGHT: 34
 };

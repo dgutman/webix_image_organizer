@@ -66,10 +66,13 @@ export default class GalleryFeatures extends JetView {
 				body: {
 					template: (obj) => {
 						if (obj.value) {
+							if (obj.value === "folders") {
+								return `Show ${obj.value.toUpperCase()}`;
+							}
 							return `Show ${obj.value.toUpperCase()} files`;
 						}
 					},
-					data: [{id: "all", value: "all"}]
+					data: [{id: "all", value: "all"}, {id: "folders", value: "folders"}]
 				}
 			}
 		};
@@ -102,6 +105,7 @@ export default class GalleryFeatures extends JetView {
 
 		return {
 			name: "galleryFeaturesClass",
+			padding: 5,
 			rows: [
 				{
 					cols: [

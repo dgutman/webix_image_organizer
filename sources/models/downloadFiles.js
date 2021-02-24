@@ -6,6 +6,7 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 	const itemType = utils.searchForFileType(item);
 	if (item.label) {
 		imageWindow.showWindow(item, "standard");
+		item.label = false; // To prevent openning label image 2nd time
 		return true;
 	}
 	switch (itemType) {

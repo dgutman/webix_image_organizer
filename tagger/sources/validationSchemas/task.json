@@ -1,0 +1,99 @@
+{
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "task": {
+            "type": "object",
+            "properties": {
+                "checked_out": {
+                    "type": "boolean",
+                    "const": false
+                },
+                "deadline": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        {
+                            "type": "string",
+                            "format": "time"
+                        },
+                        {
+                            "type": "string",
+                            "format": "custom-date-time"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "tags": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "help": {
+                                "type": "string"
+                            },
+                            "icontype": {
+                                "type": "string",
+                                "enum": [
+                                    "pervalue",
+                                    "badge",
+                                    "badgecolor"
+                                ]
+                            },
+                            "selection": {
+                                "type": "string",
+                                "enum": [
+                                    "multiple",
+                                    "single"
+                                ]
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "multiple_with_default",
+                                    "multiple"
+                                ]
+                            },
+                            "values": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "minProperties": 2
+                            }
+                        },
+                        "required": [
+                            "values",
+                            "type",
+                            "selection"
+                        ]
+                    }
+                },
+                "user": {
+                    "$ref": "json.defs#/definitions/user"
+                },
+                "creator": {
+                    "$ref": "json.defs#/definitions/user"
+                }
+            },
+            "required": [
+                "name",
+                "tags",
+                "user"
+            ]
+        }
+    },
+    "required": [
+        "task"
+    ]
+}

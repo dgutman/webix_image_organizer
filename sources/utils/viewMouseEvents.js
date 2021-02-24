@@ -28,8 +28,9 @@ function setDefaultGalleryContextMenu(dataview) {
 			item = dataview.getItem(id);
 			const itemType = utils.searchForFileType(item);
 			itemId = item._id;
-			if (editableFoldersModel.getFolderAccessLvl(item.folderId) > -1) {
-				const isFolderEditable = editableFoldersModel.isFolderEditable(item.folderId);
+			const folderId = item._modelType === "folder" ? item._id : item.folderId;
+			if (editableFoldersModel.getFolderAccessLvl(folderId) > -1) {
+				const isFolderEditable = editableFoldersModel.isFolderEditable(folderId);
 				if (item && isFolderEditable) {
 					galleryDataviewItem = item;
 					galleryDataviewContextMenu.clearAll();
@@ -130,11 +131,12 @@ function setDatatableMouseEvents(datatable, action, event) {
 			datatable.attachEvent(event, (object) => {
 				const item = datatable.getItem(object.row);
 				const columnConfig = datatable.getColumnConfig(object.column);
+				const folderId = item._modelType === "folder" ? item._id : item.folderId;
 				if (!columnConfig.editor) {
 					return false;
 				}
 				else if (editableFoldersModel.getFolderAccessLvl(item.folderId) > -1) {
-					const isFolderEditable = editableFoldersModel.isFolderEditable(item.folderId);
+					const isFolderEditable = editableFoldersModel.isFolderEditable(folderId);
 					if (isFolderEditable) {
 						datatable.edit({
 							column: object.column,
@@ -146,7 +148,7 @@ function setDatatableMouseEvents(datatable, action, event) {
 					}
 				}
 				else {
-					editableFoldersModel.getFolderFromServer(item.folderId)
+					editableFoldersModel.getFolderFromServer(folderId)
 						.then((isFolderEditable) => {
 							if (isFolderEditable) {
 								datatable.edit({
@@ -176,9 +178,42 @@ function setDatatableMouseEvents(datatable, action, event) {
 	}
 }
 
+function getMouseWebixEvent(key) {
+	let event;
+	switch (key) {
+		case constants.MOUSE_LEFT_SINGLE_CLICK: {
+			event = "onItemClick";
+			break;
+		}
+		case constants.MOUSE_RIGHT_SINGLE_CLICK: {
+			event = "onBeforeContextMenu";
+			break;
+		}
+		case constants.MOUSE_LEFT_DOUBLE_CLICK:
+		default: {
+			event = "onItemDblClick";
+			break;
+		}
+	}
+	return event;
+}
+
+function setMouseSettingsEvents(dataview, datatable, values) {
+	const keys = Object.keys(values);
+	keys.forEach((key) => {
+		const event = getMouseWebixEvent(key);
+		setDataviewMouseEvents(dataview, values[key], event);
+		setDatatableMouseEvents(datatable, values[key], event);
+	});
+
+	utils.setLocalStorageSettingsValues(values);
+}
+
 export default {
 	setDataviewMouseEvents,
 	setDatatableMouseEvents,
 	setFilesToLargeImage,
-	setMakeLargeImageButton
+	setMakeLargeImageButton,
+	setMouseSettingsEvents,
+	getMouseWebixEvent
 };

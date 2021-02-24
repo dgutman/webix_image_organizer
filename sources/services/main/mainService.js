@@ -7,14 +7,13 @@ import FinderContextMenu from "../../views/components/finderContextMenu";
 import authService from "../authentication";
 import selectDataviewItems from "../../models/selectGalleryDataviewItems";
 import constants from "../../constants";
-import finderModel from "../../models/finderModel";
+import FinderModel from "../../models/finderModel";
 import metadataTableModel from "../../models/metadataTableModel";
 import nonImageUrls from "../../models/nonImageUrls";
 import downloadFiles from "../../models/downloadFiles";
 import modifiedObjects from "../../models/modifiedObjects";
 import webixViews from "../../models/webixViews";
 import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
-import galleryDataviewFilterModel from "../../models/galleryDataviewFilterModel";
 import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
@@ -22,11 +21,13 @@ import imagesTagsModel from "../../models/imagesTagsModel";
 import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
+import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
 import EmptyDataViewsService from "../views/emptyDataViews";
 import viewMouseEvents from "../../utils/viewMouseEvents";
 import recognizedItemsModel from "../../models/recognizedItems";
 import FilterModel from "../../models/filterModel";
 import editableFoldersModel from "../../models/editableFoldersModel";
+import FolderNav from "../folderNav";
 
 let contextToFolder;
 let scrollEventId;
@@ -57,7 +58,6 @@ class MainService {
 		const scrollPosition = this._finder.getScrollState();
 		webix.extend(this._view, webix.ProgressBar);
 		this._metadataPanelScrollView.hide();
-		this._setValueAndParseData();
 
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
@@ -85,12 +85,16 @@ class MainService {
 		this._galleryFeaturesView = this._view.$scope.getSubGalleryFeaturesView().getRoot();
 		this._filterTableView = this._view.$scope.getSubDataviewActionPanelView().getFilterTableView();
 		this._recognitionStatusTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
-		this._itemsModel = new ItemsModel(this._finder);
+		if (ItemsModel.instance) ItemsModel.instance.destroy();
+		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
+		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
 		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
-		this._filterModel = new FilterModel(this._itemsDataCollection);
+		this._filterModel = new FilterModel(this._itemsModel, this._galleryDataviewRichselectFilter, this._filterTableView);
+
+		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
 		webixViews.setGalleryDataview(this._galleryDataview);
 		webixViews.setMetadataTable(this._metadataTable);
@@ -105,15 +109,18 @@ class MainService {
 		webixViews.setMetadataTemplate(this._metadataTemplate);
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
 
+		this._folderNav = new FolderNav(this._view.$scope, this._finder);
+
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
 
-		galleryDataviewFilterModel.setRichselectDataviewFilter(this._galleryDataviewRichselectFilter);
-		// galleryDataviewFilterModel.setNameDataviewFilter(this._galleryDataviewSearch);
-		this._filterTableView.getList().sync(this._galleryDataviewRichselectFilter.getList());
-		this._filterTableView.bind(this._galleryDataviewRichselectFilter);
+		this._itemsDataCollection.define("scheme", {
+			$init: (obj) => {
+				obj.$height = this._metadataTable.config._rowHeight || constants.METADATA_TABLE_ROW_HEIGHT;
+			}
+		});
 
 		this._view.$scope.getSubFinderView().setTreePosition(scrollPosition.x);
 
@@ -136,21 +143,24 @@ class MainService {
 		});
 
 		this._setInitSettingsMouseEvents();
+		this._view.$scope.on(this._view.$scope.app, "change-event-settings", (values) => {
+			viewMouseEvents.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, values);
+		});
 
 		// to hide select lists after scroll
 		document.body.addEventListener("scroll", () => {
 			webix.callEvent("onClick", []);
 		});
 
-		this._galleryDataviewPager.attachEvent("onAfterRender", function () {
+		this._galleryDataviewPager.attachEvent("onAfterRender", function onAfterRender() {
 			const currentPager = this;
 			const node = this.getNode();
 			const inputNode = node.getElementsByClassName("pager-input")[0];
 
-			inputNode.addEventListener("focus", function () {
+			inputNode.addEventListener("focus", function focus() {
 				this.prev = this.value;
 			});
-			inputNode.addEventListener("keyup", function (e) {
+			inputNode.addEventListener("keyup", function keyup(e) {
 				if (e.keyCode === 13) { // enter
 					let value = parseInt(this.value);
 					if (value && value > 0 && value <= currentPager.data.limit) {
@@ -224,14 +234,14 @@ class MainService {
 			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
 
 			if (obj.imageWarning) {
-				galleryDataviewFilterModel.addFilterValue("warning");
-				galleryDataviewFilterModel.parseFilterToRichSelectList();
+				this._filterModel.addFilterValue("warning");
+				this._filterModel.parseFilterToRichSelectList();
 			}
 
 			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
 
 			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
-			return `<div class='unselectable-dataview-items'>
+			return `<div title='${obj.name}' class='unselectable-dataview-items'>
 						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
 									<div class="gallery-images-info">
 										<div class="gallery-images-header">
@@ -242,77 +252,27 @@ class MainService {
 							<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 								${starHtml}
 								${warning}
-								<img style="${bgIcon}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+								<img style="${bgIcon}" height="${this._checkForImageHeight(IMAGE_HEIGHT)}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
 							</div>
 						</div>
 						<div class="thumbnails-name">${obj.name}</div>
 					</div>`;
 		});
 
-		// setting onChange event for hosts
-		this._hostBox.attachEvent("onChange", (newId, oldId) => {
-			if (newId !== oldId) {
-				webix.confirm({
-					title: "Attention!",
-					type: "confirm-warning",
-					text: "Are you sure you want to change host? All data will be cleared.",
-					cancel: "Yes",
-					ok: "No",
-					callback: (result) => {
-						if (!result) {
-							selectDataviewItems.clearAll();
-							this._putValuesAfterHostChange(newId);
-							this._view.$scope.app.refresh();
-						}
-						else {
-							this._hostBox.blockEvent();
-							this._hostBox.setValue(oldId);
-							this._hostBox.unblockEvent();
-						}
-					}
-				});
-			}
+		// // setting onChange event for hosts
+		this._view.$scope.on(this._view.$scope.app, "hostChange", () => {
+			selectDataviewItems.clearAll();
 		});
 
 		// setting onChange event for collection
-		this._collectionBox.attachEvent("onChange", (id) => {
-			this._filterModel.clearFilters();
-			isRecognitionResultMode = false;
-			this._changeRecognitionResultsMode();
-			this.collectionItem = this._collectionBox.getList().getItem(id);
-			this._itemsModel.clearAll();
-			// this._finder.clearAll();
-			this._itemsDataCollection.clearAll();
-			this._metadataTemplate.setValues({});
-			this._collapser.config.setClosedState();
-			// this._galleryDataview.clearAll();
-			// this._metadataTable.clearAll();
-			this._view.showProgress();
-			this._view.$scope.getSubFinderView()
-				.loadTreeFolders("collection", this.collectionItem._id)
-				.then((data) => {
-					const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
-					projectMetadataCollection.clearAll();
-					projectMetadata.clearWrongMetadata();
-					if (projectMetadataFolder) {
-						projectMetadataCollection.add(projectMetadataFolder);
-						this._projectFolderWindowButton.show();
-					}
-					else {
-						this._projectFolderWindowButton.hide();
-					}
-					utils.putHostsCollectionInLocalStorage(this.collectionItem);
-					// define datatable columns
-					const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-					this._metadataTable.refreshColumns(datatableColumns);
-					this._itemsModel.parseItems(data);
-					// this._finder.parse(data);
-					this._view.hideProgress();
-				})
-				.catch(() => {
-					this._view.hideProgress();
-				});
+		this._view.$scope.on(this._view.$scope.app, "collectionChange", (id, collectionItem) => {
+			if (!this.pendingCollectionChange) this._collectionChangeHandler(collectionItem);
 		});
+		if (!this._finder.count() && !this.pendingCollectionChange) {
+			const collectionId = this._collectionBox.getValue();
+			const collection = this._collectionBox.getList().getItem(collectionId);
+			if (collection) this._collectionChangeHandler(collection);
+		}
 
 		// switching between data table and data view
 		this._multiviewSwitcher.attachEvent("onChange", (value) => {
@@ -348,6 +308,11 @@ class MainService {
 
 		this._finder.attachEvent("onBeforeOpen", (id) => {
 			this._finder.select(id);
+			return false;
+		});
+
+		this._finder.attachEvent("putItemsToSubFolder", () => {
+			this._bigCountNotification.showWindow();
 		});
 
 		// after opening the tree branch we fire this event
@@ -376,17 +341,15 @@ class MainService {
 
 		this._finder.attachEvent("onAfterClose", (id) => {
 			this._finder.unselect(id);
-			let items = [];
 			const folder = this._finder.getItem(id);
 			if (folder.linear && !folder.hasOpened) {
 				folder.linear = false;
-				utils.findAndRemove(id, folder, items);
+				this._itemsModel.findAndRemove(id, folder);
+				this._itemsModel.selectedItem = null;
 			}
 			else if (!folder.linear && folder.hasOpened) {
-				if (!this._finder.getSelectedId(id)) {
-					this._galleryDataviewPager.hide();
-					this._itemsDataCollection.clearAll();
-				}
+				this._galleryDataviewPager.hide();
+				this._itemsDataCollection.clearAll();
 			}
 
 			if (lastSelectedFolderId) {
@@ -395,6 +358,7 @@ class MainService {
 			}
 			lastSelectedFolderId = id;
 			this._highlightLastSelectedFolder();
+			this._filterModel.prepareDataToFilter([], true);
 		});
 
 		// parsing data to metadata template next to data view
@@ -422,7 +386,9 @@ class MainService {
 						if (editableFoldersModel.isFolderEditable(item._id)) {
 							this._finderContextMenu.parse([
 								{$template: "Separator"},
-								constants.RENAME_CONTEXT_MENU_ID
+								constants.RENAME_CONTEXT_MENU_ID,
+								{$template: "Separator"},
+								constants.UPLOAD_METADATA_MENU_ID
 							]);
 						}
 						if (authService.getUserInfo() && authService.getUserInfo().admin) {
@@ -434,6 +400,10 @@ class MainService {
 						contextToFolder = true;
 						this._finderFolder = item;
 						break;
+					}
+					case constants.SUB_FOLDER_MODEL_TYPE: {
+						this._finderContextMenu.hide();
+						return false;
 					}
 					case "item":
 					default: {
@@ -453,7 +423,6 @@ class MainService {
 			});
 
 			this._finderContextMenu.attachEvent("onItemClick", (id) => {
-				let items = [];
 				let itemId;
 				let folderId;
 				const item = this._finderContextMenu.getItem(id);
@@ -472,52 +441,27 @@ class MainService {
 					case constants.LINEAR_CONTEXT_MENU_ID: {
 						this._finder.detachEvent(scrollEventId);
 						const sourceParams = {
-							sort: "lowerName"
+							sort: "lowerName",
+							limit: constants.LINEAR_STRUCTURE_LIMIT
 						};
-						this._view.showProgress();
-						finderModel.closePreviousLinearFolder();
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
-							utils.findAndRemove(folderId, this._finderFolder, items);
+							this._finder.close(folderId);
+							this._itemsModel.findAndRemove(folderId, this._finderFolder);
 						}
 						this._finder.blockEvent();
 						this._finder.data.blockEvent();
 						this._setLastSelectedFolderId();
-						this._finder.select(folderId);
-						this._finder.open(folderId);
+						// this._finder.select(folderId);
+						// this._finder.open(folderId);
 						this._finder.data.unblockEvent();
 						this._finder.unblockEvent();
-						ajaxActions.getLinearStucture(this._finderFolder._id, sourceParams)
-							.then((data) => {
-								this._finderFolder.linear = true;
+						this._folderNav.setFoldersIntoUrl();
+						this._itemsModel.selectedItem = this._finderFolder;
 
-								if (data.length === 0) {
-									this._finder.parse({
-										name: "Nothing to display", parent: folderId
-									});
-								}
-								else {
-									this._itemsModel.parseItems(webix.copy(data), folderId);
-									finderModel.setRealScrollPosition(finderModel.defineSizesAndPositionForDynamicScroll(this._finderFolder));
+						this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
+						this._itemsModel.updateItems(this._finderFolder);
 
-									scrollEventId = this._finder.attachEvent("onAfterScroll", () => {
-										const positionX = this._view.$scope.getSubFinderView().getTreePositionX();
-										const scrollState = this._finder.getScrollState();
-										if (positionX !== scrollState.x) {
-											this._view.$scope.getSubFinderView().setTreePosition(scrollState.x);
-											return false;
-										}
-										finderModel.attachOnScrollEvent(scrollState, this._finderFolder, this._view, this._filterModel);
-									});
-
-									utils.parseDataToViews(webix.copy(data));
-									this._highlightLastSelectedFolder(this._finderFolder._id);
-								}
-								this._view.hideProgress();
-							})
-							.catch(() => {
-								this._finder.parse({name: "error"});
-								this._view.hideProgress();
-							});
+						this.linearStructureHandler(folderId, sourceParams);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -527,7 +471,7 @@ class MainService {
 					case constants.REFRESH_FOLDER_CONTEXT_MENU_ID: {
 						if (this._finderFolder.hasOpened || this._finderFolder.open) {
 							this._finder.close(folderId);
-							utils.findAndRemove(folderId, this._finderFolder, items);
+							this._itemsModel.findAndRemove(folderId, this._finderFolder);
 						}
 						this._finder.select(folderId);
 						break;
@@ -538,6 +482,13 @@ class MainService {
 							.filter(item => item.largeImage && (item.folderId === this._finderFolder._id || !item._modelType));
 						this._recognitionOptionsWindow.setItemsToRecognize(dataviewItems);
 						this._recognitionOptionsWindow.showWindow(this._finder, this._finderFolder, this._galleryDataview, this._recognitionStatusTemplate);
+						break;
+					}
+					case constants.UPLOAD_METADATA_MENU_ID: {
+						this._finder.select(folderId);
+						webix.delay(() => {
+							this._view.$scope.app.show(`${constants.APP_PATHS.UPLOAD_METADATA}/${this._view.$scope.getParam("folders") || ""}`);
+						}, 100);
 						break;
 					}
 					default: {
@@ -565,7 +516,7 @@ class MainService {
 					}
 					else {
 						if (!this._finderItem) {
-							this._finderItem = this._finder.find(finderItem => finderItem._id === item._id, true);
+							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
 							item = this._galleryDataview.find(galleryItem => galleryItem._id === this._finderItem._id, true);
@@ -573,8 +524,8 @@ class MainService {
 						const cartListItem = this._cartList.find(cartItem => cartItem._id === item._id, true);
 						ajaxActions.putNewItemName(this._finderItem._id, newValue)
 							.then((updatedItem) => {
-								this._finder.updateItem(this._finderItem.id, updatedItem);
-								this._galleryDataview.updateItem(item.id, updatedItem);
+								this._itemsModel.updateItems(updatedItem);
+
 								if (cartListItem) {
 									this._cartList.updateItem(cartListItem.id, updatedItem);
 									const cartData = this._cartList.serialize(true);
@@ -589,8 +540,7 @@ class MainService {
 							})
 							.catch(() => {
 								this._finderItem.name = values.old;
-								this._finder.updateItem(this._finderItem.id, this._finderItem);
-								this._galleryDataview.updateItem(item.id, item);
+								this._itemsModel.updateItems(this._finderItem);
 								this._view.hideProgress();
 							});
 					}
@@ -607,7 +557,7 @@ class MainService {
 					if (obj._id === item._id) {
 						item.id = obj.id;
 						webix.dp(this._finder).ignore(() => {
-							this._galleryDataview.updateItem(item.id, item);
+							this._itemsDataCollection.updateItem(item.id, item);
 						});
 					}
 				});
@@ -664,12 +614,38 @@ class MainService {
 			}
 		});
 
-		this._cartList.define("template", (obj, common) => `<div>
+		this._cartList.define("template", (obj, common) => {
+			if (obj.largeImage && !galleryImageUrl.getPreviewImageUrl(obj._id)) {
+				if (galleryImageUrl.getPreviewImageUrl(obj._id) === false) {
+					if (this._cartList.exists(obj.id) && !obj.imageWarning) {
+						obj.imageWarning = true;
+						this._cartList.render(obj.id, obj, "update");
+					}
+				}
+				else {
+					ajaxActions.getImage(obj._id, "thumbnail")
+						.then((url) => {
+							galleryImageUrl.setPreviewImageUrl(obj._id, url);
+							if (this._cartList.exists(obj.id)) {
+								this._cartList.render(obj.id, obj, "update");
+							}
+						})
+						.catch(() => {
+							if (this._cartList.exists(obj.id) && !obj.imageWarning) {
+								obj.imageWarning = true;
+								this._cartList.render(obj.id, obj, "update");
+							}
+							galleryImageUrl.setPreviewImageUrl(obj._id, false);
+						});
+				}
+			}
+			return `<div>
 						<span class='webix_icon fas ${utils.angleIconChange(obj)}' style="color: #6E7480;"></span>
 						<div style='float: right'>${common.deleteButton(obj, common)}</div>
  						<div class='card-list-name'>${obj.name}</div>
  						<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
-					</div>`);
+					</div>`;
+		});
 
 		this._cartList.attachEvent("onDeleteButtonClick", (params) => {
 			let item;
@@ -775,6 +751,22 @@ class MainService {
 				// 	const windowAction = "set";
 				// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
 				// }
+				case constants.EMPTY_CART_MENU_ID: {
+					const selectedItems = selectDataviewItems.getSelectedImages();
+					selectedItems.forEach((obj) => {
+						obj.markCheckbox = 0;
+					});
+
+					this._galleryDataview.callEvent("onCheckboxClicked", [selectedItems, 0, true]);
+					this._galleryDataview.refresh();
+					selectDataviewItems.clearAll();
+					selectDataviewItems.putSelectedImagesToLocalStorage();
+					this._view.$scope.app.callEvent("changedSelectedImagesCount");
+					break;
+				}
+				default: {
+					break;
+				}
 			}
 		});
 
@@ -852,8 +844,7 @@ class MainService {
 				}
 			});
 
-			const datatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-			this._metadataTable.refreshColumns(datatableColumns);
+			metadataTableModel.refreshDatatableColumns();
 		});
 
 		this._makeLargeImageWindow.getRoot().attachEvent("onHide", () => {
@@ -871,6 +862,13 @@ class MainService {
 			switch (value) {
 				case "warning": {
 					this._filterModel.addFilter("imageWarning", value, "warning");
+					break;
+				}
+				case "folders": {
+					const selectedFolder = this._finder.getSelectedItem();
+					if (!selectedFolder || selectedFolder._modelType === "folder") {
+						this._filterModel.addFilter("modelType", "folder", "modelType");
+					}
 					break;
 				}
 				default: {
@@ -940,22 +938,22 @@ class MainService {
 		this._recognitionProgressTemplate.define("onClick", {
 			fas: () => {
 				const statusObj = this._recognitionProgressTemplate.getValues();
-				if (statusObj.value !== constants.RECOGNITION_STATUSES.IN_PROGRESS.value) {
+				if (statusObj.value !== constants.LOADING_STATUSES.IN_PROGRESS.value) {
 					webix.confirm({
 						text: "Are you sure you want to show results?",
 						type: "confirm-warning",
-						cancel: "Yes",
-						ok: "No",
+						ok: "Yes",
+						cancel: "No",
 						callback: (result) => {
-							if (!result) {
+							if (result) {
 								switch (statusObj.value) {
-									case constants.RECOGNITION_STATUSES.WARNS.value:
-									case constants.RECOGNITION_STATUSES.DONE.value: {
+									case constants.LOADING_STATUSES.WARNS.value:
+									case constants.LOADING_STATUSES.DONE.value: {
 										isRecognitionResultMode = true;
 										this._changeRecognitionResultsMode();
 										break;
 									}
-									case constants.RECOGNITION_STATUSES.ERROR.value: {
+									case constants.LOADING_STATUSES.ERROR.value: {
 										webix.alert(statusObj.text);
 										break;
 									}
@@ -983,29 +981,21 @@ class MainService {
 		this._setGallerySelectedItemsFromLocalStorage();
 	}
 
+	// URL-NAV get folders and open it
+	_urlChange(view, url) {
+		this._folderNav.openFirstFolder();
+	}
+
 	_setGallerySelectedItemsFromLocalStorage() {
 		selectDataviewItems.clearAll();
-		selectDataviewItems.add(utils.getSelectedItemsFromLocalStorage());
+		const itemsArray = utils.getSelectedItemsFromLocalStorage();
+		itemsArray.forEach((item) => {
+			item.imageShown = false;
+		});
+		selectDataviewItems.add(itemsArray);
 		if (selectDataviewItems.count()) {
 			this._galleryDataview.callEvent("onCheckboxClicked", [selectDataviewItems.getSelectedImages(), true]);
 		}
-	}
-
-	_putValuesAfterHostChange(hostId) {
-		const hostBoxItem = this._hostBox.getList().getItem(hostId);
-		const hostAPI = hostBoxItem.hostAPI;
-		webix.storage.local.put("hostId", hostId);
-		webix.storage.local.put("hostAPI", hostAPI);
-	}
-
-	// setting hosts value and parsing data to collection and tree
-	_setValueAndParseData() {
-		const localStorageHostId = webix.storage.local.get("hostId");
-		const firstHostItemId = process.env.SERVER_LIST[0].id;
-		const hostId = localStorageHostId || firstHostItemId;
-		this._putValuesAfterHostChange(hostId);
-		this._hostBox.setValue(hostId);
-		this._view.$scope.getSubHeaderView().parseCollectionData();
 	}
 
 	_setDataviewColumns(width, height) {
@@ -1068,7 +1058,7 @@ class MainService {
 
 	_setInitSettingsMouseEvents() {
 		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
-		utils.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
+		viewMouseEvents.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
 	}
 
 	_setLastSelectedFolderId() {
@@ -1159,12 +1149,31 @@ class MainService {
 	_selectFinderItem(id) {
 		const item = this._finder.getItem(id);
 		if (item._modelType === "item" || !item._modelType) {
-			utils.parseDataToViews(item);
+			this._itemsModel.selectedItem = item;
+			this._itemsModel.parseDataToViews(item, false, item.id);
 			this._highlightLastSelectedFolder();
 		}
 		else if (item._modelType === "folder") {
-			finderModel.loadBranch(id, this._view)
-				.then(() => this._highlightLastSelectedFolder());
+			this._itemsModel.selectedItem = item;
+			this._finderModel.loadBranch(id, this._view)
+				.then(() => {
+					this._highlightLastSelectedFolder();
+					this._folderNav.openNextFolder(item);
+				});
+		}
+		else if (item._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+			webix.confirm({
+				text: "The folder consists of a large amount of data. Continue?",
+				type: "confirm-warning",
+				cancel: "No",
+				ok: "Yes"
+			})
+				.then(() => {
+					this._itemsModel.openSubFolder(id);
+				})
+				.catch(() => {
+					this._finder.select(item.$parent);
+				});
 		}
 	}
 
@@ -1270,6 +1279,75 @@ class MainService {
 			}
 		}
 		return {imageType, getPreviewUrl, setPreviewUrl};
+	}
+
+	_collectionChangeHandler(collectionItem) {
+		this.pendingCollectionChange = true;
+		this._filterModel.clearFilters();
+		isRecognitionResultMode = false;
+		this._changeRecognitionResultsMode();
+		this._itemsModel.clearAll();
+
+		this._itemsDataCollection.clearAll();
+		this._metadataTemplate.setValues({});
+		this._collapser.config.setClosedState();
+		this._view.showProgress();
+		this._view.$scope.getSubFinderView()
+			.loadTreeFolders("collection", collectionItem._id)
+			.then((data) => {
+				this._folderNav.openFirstFolder();
+				const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
+				projectMetadataCollection.clearAll();
+				projectMetadata.clearWrongMetadata();
+				if (projectMetadataFolder) {
+					projectMetadataCollection.add(projectMetadataFolder);
+					this._projectFolderWindowButton.show();
+				}
+				else {
+					this._projectFolderWindowButton.hide();
+				}
+				utils.putHostsCollectionInLocalStorage(collectionItem);
+				// define datatable columns
+				metadataTableModel.refreshDatatableColumns();
+				this._itemsModel.parseItems(data);
+				this.pendingCollectionChange = false;
+				this._view.hideProgress();
+			})
+			.catch(() => {
+				this.pendingCollectionChange = false;
+				this._view.hideProgress();
+			});
+	}
+
+	linearStructureHandler(folderId, sourceParams, addBatch) {
+		const folder = this._finder.getItem(folderId);
+		return ajaxActions.getLinearStucture(folder._id, sourceParams)
+			.then((data) => {
+				if (data.length === 0) {
+					this._finder.parse({
+						name: "Nothing to display", parent: folderId
+					});
+				}
+				else if (folder.linear) {
+					const copy = webix.copy(data);
+					this._itemsModel.parseItems(copy, folderId);
+					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
+					this._highlightLastSelectedFolder(folder._id);
+
+					if (data.length < sourceParams.limit) {
+						this._finder.updateItem(folderId, {linear: constants.LOADING_STATUSES.DONE});
+					}
+					else {
+						const newParams = {
+							sort: "lowerName",
+							limit: constants.LINEAR_STRUCTURE_LIMIT,
+							offset: this._itemsModel.getFolderCount(folder)
+						};
+
+						this.linearStructureHandler(folderId, newParams, true);
+					}
+				}
+			});
 	}
 }
 

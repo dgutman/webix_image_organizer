@@ -5,6 +5,7 @@ const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
 
@@ -18,7 +19,7 @@ module.exports = (env) => {
 		entry: "./sources/app.js",
 		output: {
 			path: path.join(__dirname, "codebase"),
-			publicPath: "/",
+			publicPath: "",
 			filename: "app.js"
 		},
 		mode: "development",
@@ -77,7 +78,7 @@ module.exports = (env) => {
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
 			inline: true,
-                        disableHostCheck: true
+			disableHostCheck: true
 		},
 		plugins: [
 			new ExtractTextPlugin("./app.css"),
@@ -89,18 +90,34 @@ module.exports = (env) => {
 				APPNAME: `"${pack.name}"`,
 				PRODUCTION: production
 			}),
-			new CopyWebpackPlugin([
-				{from: path.join(__dirname, "sources/images/"), to: "sources/images"}
-			]),
+			new CopyWebpackPlugin({
+				patterns: [
+					{from: path.join(__dirname, "sources/images/"), to: "sources/images"},
+					{from: path.join(__dirname, "node_modules/webix/"), to: "webix"}
+				]
+			}),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
+<<<<<<< HEAD
 					{id: "2", value: "ISIC Archive", hostAPI: "http://isic-archive.com/girder/api/v1"},
 					{id: "3", value: "Computable Brain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
 					{id: "4", value: "Transplant", hostAPI: "http://170.140.232.21:8080/api/v1"},
 					{id: "5", value: "STYX", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"},
 					{id: "6", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"} 
+=======
+					{id: "2", value: "ISIC Archive", hostAPI: "https://isic-archive.com/girder/api/v1"},
+					{id: "3", value: "Computablebrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
+
+//					{id: "4", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"}
+//					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
+//					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
+//					{id: "5", value: "Candygram", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
+>>>>>>> 97e1c1fd7335e2aef9f141ae6444cb4f1c3c743e
 				]
+			}),
+			new Dotenv({
+				path: path.resolve(__dirname, ".env") // Path to .env file
 			})
 		]
 	};

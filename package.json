@@ -20,8 +20,9 @@
     "@babel/register": "^7.8.6",
     "@babel/runtime": "^7.8.7",
     "babel-loader": "^8.0.5",
-    "copy-webpack-plugin": "^5.1.1",
+    "copy-webpack-plugin": "^6.0.3",
     "css-loader": "^3.4.2",
+    "dotenv-webpack": "^1.7.0",
     "eslint": "5.14.1",
     "eslint-config-import": "0.13.0",
     "eslint-config-xbsoftware": "git+https://bitbucket.org/xbsltd/eslint.git",
@@ -38,18 +39,20 @@
     "url-loader": "^1.1.2",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "file-saver": "^2.0.0",
     "PubSub": "^3.4.0",
     "codemirror": "^5.39.2",
     "dot-object": "^1.7.1",
+    "file-saver": "^2.0.0",
     "json-formatter-js": "^2.2.0",
     "jsoneditor": "^6.1.0",
     "openseadragon": "^2.3.1",
+    "papaparse": "^5.2.0",
     "path": "^0.12.7",
     "webix": "6.2.0",
-    "webix-jet": "^1.5.3"
+    "webix-jet": "^2.0.0",
+    "xlsx": "^0.16.6"
   }
 }

@@ -1,0 +1,20 @@
+html
+  head
+    link(rel="shortcut icon" href="assets/imgs/favicon.ico" type="image/x-icon")
+  body(class=data.skin + "-skin")
+    script.
+        window.data = !{JSON.stringify(data).replace(/<\//g, "<\\/")};
+    //- Material icons
+    link(type="text/css" rel="stylesheet" href="https://cdn.materialdesignicons.com/3.4.93/css/materialdesignicons.css" charset="utf-8")
+    //- Styles
+    link(type="text/css" rel="stylesheet" href="libs/webix/skins/" + data.skin + ".css")
+    if data.skinExtension
+        link(type="text/css" rel="stylesheet" href="libs/webix/skins/" + data.skin + ".css")
+    link(type="text/css" rel="stylesheet" href="assets/app.css")
+    //- Webix Library
+    script(type="text/javascript" src="libs/webix/webix.min.js")
+    script(type="text/javascript" src="libs/socket.io-stream/socket.io-stream.js")
+    //- Development only
+    script(type="text/javascript" src="libs/less/dist/less.min.js")
+    //- The app's logic
+    script(type="text/javascript" data-main="app" src="libs/requirejs/require.js")

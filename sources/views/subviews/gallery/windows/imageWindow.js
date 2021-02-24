@@ -115,7 +115,6 @@ export default class ImageWindowView extends JetView {
 	}
 
 	showWindow(obj, viewer) {
-		galleryImageUrl.setPreviewLabelImageUrl(obj._id, undefined);
 		// define when to init Seadragon
 		this.getHeaderTemplateView().parse(obj);
 		if (viewer === "standard") {
