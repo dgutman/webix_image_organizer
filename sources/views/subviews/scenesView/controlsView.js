@@ -1,9 +1,12 @@
 import {JetView} from "webix-jet";
 import Slider from "../../components/slider";
+import ColorPalette from "../../components/colorPalette";
 import BaseSliderTitle from "../../../utils/templates/slider/baseSliderTitle";
 import FloatingNumberSliderTitle from "../../../utils/templates/slider/floatingNumberSliderTitle";
+import MathCalculations from "../../../utils/mathCalculations";
 
 const CONTROL_FORM_ID = "control-form-id";
+const PALETTE_COLORS_COUNT = 12;
 
 export default class ControlsView extends JetView {
 	get _sliderCss() {
@@ -14,11 +17,13 @@ export default class ControlsView extends JetView {
 		super(app, config);
 
 		this._cnf = config;
+		this._opacitySlider = this._createOpacitySlider();
 		this._colorizeSlider = this._createColorizeSlider();
 		this._hueSlider = this._createHueSlider();
 		this._brightnessSlider = this._createBrightnessSlider();
 		this._contrastSlider = this._createContrastSlider();
 		this._rotationSlider = this._createRotationSlider();
+		this._colorPalette = this._createColorPalette(PALETTE_COLORS_COUNT);
 	}
 
 	config() {
@@ -27,15 +32,28 @@ export default class ControlsView extends JetView {
 			view: "form",
 			localId: CONTROL_FORM_ID,
 			type: "clean",
+			padding: 5,
 			elements: [
+				this._opacitySlider,
 				this._colorizeSlider,
 				this._hueSlider,
 				this._brightnessSlider,
 				this._contrastSlider,
 				this._rotationSlider,
+				{height: 10},
+				this._colorPalette,
 				{}
 			]
 		};
+	}
+
+	_createOpacitySlider() {
+		return new Slider(this.app, {
+			...this._getFloatingNumberSliderBaseConfig("Opacity:"),
+			name: "opacity",
+			hidden: true,
+			value: 0
+		});
 	}
 
 	_createColorizeSlider() {
@@ -98,6 +116,33 @@ export default class ControlsView extends JetView {
 		});
 	}
 
+	_createColorPalette(colorsCount) {
+		const data = this._getColorValuesByCount(colorsCount);
+		return new ColorPalette(this.app, {
+			name: "colorItem",
+			borderless: true,
+			autoheight: true,
+			scroll: false,
+			data
+		});
+	}
+
+	_getColorValuesByCount(count) {
+		const colors = [];
+		for (let i = 0; i < count; i++) {
+			const hue = this._getHueFromPaletteIndex(i, count);
+			colors.push({
+				hue,
+				color: `hsl(${hue}, 100%, 50%)`
+			});
+		}
+		return colors;
+	}
+
+	_getHueFromPaletteIndex(index, colorPaletteLength) {
+		return Math.round(MathCalculations.mapLinear(index, 0, colorPaletteLength, 0, 360, true));
+	}
+
 	_getFloatingNumberSliderBaseConfig(titleText) {
 		return {
 			css: this._sliderCss,
@@ -109,6 +154,9 @@ export default class ControlsView extends JetView {
 		};
 	}
 
+	$opacitySlider() {
+		return this._opacitySlider.$slider();
+	}
 
 	$colorizeSlider() {
 		return this._colorizeSlider.$slider();
@@ -128,6 +176,10 @@ export default class ControlsView extends JetView {
 
 	$rotationSlider() {
 		return this._rotationSlider.$slider();
+	}
+
+	$colorPalette() {
+		return this._colorPalette.$palette();
 	}
 
 	$controlForm() {

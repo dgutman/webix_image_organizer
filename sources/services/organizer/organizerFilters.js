@@ -1,29 +1,22 @@
 import OpenSeadragon from "openseadragon";
-
+import MathCalculations from "../../utils/mathCalculations";
 
 export default class OrganizerFilters {
-	mapLinear(x, a1, a2, b1, b2, clamp) {
-		const output = b1 + (x - a1) * (b2 - b1) / (a2 - a1);
-		if (clamp) {
-			const min = Math.min(b1, b2);
-			const max = Math.max(b1, b2);
-			return Math.max(min, Math.min(max, output));
-		}
-
-		return output;
+	_mapLinear(...args) {
+		return MathCalculations.mapLinear(...args);
 	}
 
 	getFilterProcessors(layer) {
 		let processors = [];
 		if (layer.brightness) {
-			let brightness = this.mapLinear(layer.brightness, -1, 1, -255, 255, true);
+			let brightness = this._mapLinear(layer.brightness, -1, 1, -255, 255, true);
 			processors.push(OpenSeadragon.Filters.BRIGHTNESS(brightness));
 		}
 
 		if (layer.contrast) {
 			let contrast = layer.contrast < 0 ?
-				this.mapLinear(layer.contrast, -1, 0, 0, 1, true) :
-				this.mapLinear(layer.contrast, 0, 1, 1, 5, true);
+				this._mapLinear(layer.contrast, -1, 0, 0, 1, true) :
+				this._mapLinear(layer.contrast, 0, 1, 1, 5, true);
 
 			processors.push(OpenSeadragon.Filters.CONTRAST(contrast));
 		}
@@ -36,7 +29,7 @@ export default class OrganizerFilters {
 			let precomputedLevels = [];
 			for (let i = 0; i < 256; i++) {
 				precomputedLevels[i] = Math.round(
-					this.mapLinear(i, layer.blackLevel, layer.whiteLevel, 0, 255, true)
+					this._mapLinear(i, layer.blackLevel, layer.whiteLevel, 0, 255, true)
 				);
 			}
 

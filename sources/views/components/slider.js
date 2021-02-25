@@ -20,17 +20,24 @@ export default class Slider extends JetView {
 			...this._cnf,
 			on: {
 				...events,
-				onSliderDrag() {
-					const value = this.getValue();
-					if (this._currentValue !== value) {
-						this._currentValue = value;
-						this.callEvent("onSliderDragging", [value]);
-					}
+				onSliderDrag: () => {
+					const value = this.$slider().getValue();
+					this._callCustomDragEvent(value);
+				},
+				onChange: (value) => {
+					this._callCustomDragEvent(value);
 				}
 			},
 			view: "slider",
 			localId: this._sliderViewId
 		};
+	}
+
+	_callCustomDragEvent(value) {
+		if (this._currentValue !== value) {
+			this._currentValue = value;
+			this.$slider().callEvent("onSliderDragging", [value]);
+		}
 	}
 
 	$slider() {
