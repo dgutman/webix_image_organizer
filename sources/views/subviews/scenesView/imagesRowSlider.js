@@ -155,7 +155,7 @@ export default class ImagesRowSlider extends JetView {
 			const nextId = dataview.getNextId(selectedId) || selectedId;
 
 			dataview.select(nextId);
-			dataview.showItem(nextId);
+			webix.UIManager.setFocus(dataview);
 		});
 
 		this.on(prevBtn, "onItemClick", () => {
@@ -163,7 +163,7 @@ export default class ImagesRowSlider extends JetView {
 			const prevId = dataview.getPrevId(selectedId) || selectedId;
 
 			dataview.select(prevId);
-			dataview.showItem(prevId);
+			webix.UIManager.setFocus(dataview);
 		});
 	}
 

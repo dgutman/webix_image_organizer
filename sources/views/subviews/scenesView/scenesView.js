@@ -7,7 +7,7 @@ export default class ScenesView extends JetView {
 		super(app, config);
 
 		this._imagesSlider = new ImagesRowSlider(app, {height: 160});
-		this._scenesViewer = new ScenesViewer(app, {});
+		this._scenesViewer = new ScenesViewer(app);
 	}
 
 	config() {
@@ -27,6 +27,7 @@ export default class ScenesView extends JetView {
 			const images = dataviewSlider.data.serialize();
 			this._scenesViewer.setLayers(images);
 			if (images.length) {
+				webix.UIManager.setFocus(dataviewSlider);
 				dataviewSlider.select(images[0].id);
 			}
 		});

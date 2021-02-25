@@ -999,7 +999,9 @@ class MainService {
 	}
 
 	_highlightLastSelectedFolder() {
-		if (lastSelectedFolderId) {
+		const currentFolderId = this._finder.getSelectedId();
+		// eslint-disable-next-line eqeqeq
+		if (lastSelectedFolderId && lastSelectedFolderId != currentFolderId) {
 			const lastItemNode = this._finder.getItemNode(lastSelectedFolderId);
 			if (lastItemNode) webix.html.addCss(lastItemNode, "last-selected-folder");
 		}
@@ -1070,13 +1072,13 @@ class MainService {
 
 	_selectFinderItem(id) {
 		const item = this._finder.getItem(id);
+		this._scenesViewOptionToggle(item);
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
 			this._highlightLastSelectedFolder();
 		}
 		else if (item._modelType === "folder") {
-			this._scenesViewOptionToggle(item);
 			this._itemsModel.selectedItem = item;
 			this._finderModel.loadBranch(id, this._view)
 				.then(() => {
@@ -1257,7 +1259,7 @@ class MainService {
 					const copy = webix.copy(data);
 					this._itemsModel.parseItems(copy, folderId);
 					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
-					this._highlightLastSelectedFolder(folder._id);
+					this._highlightLastSelectedFolder();
 
 					if (data.length < sourceParams.limit) {
 						this._finder.updateItem(folderId, {linear: constants.LOADING_STATUSES.DONE});
@@ -1275,14 +1277,15 @@ class MainService {
 			});
 	}
 
-	_scenesViewOptionToggle(folder) {
+	_scenesViewOptionToggle(item) {
+		const folder = item._modelType === "folder" ? item : this._finder.getItem(item.$parent);
 		const switcherList = this._multiviewSwitcher.getList();
-		if (folder.meta.dsaDefaultView === "XBSViewOne") {
-			const scenesViewValue = switcherList.exists("scenesView") ?
-				"scenesView" : switcherList.add(constants.SCENES_VIEW_OPTION);
+		const isScenesOptionExists = switcherList.exists("scenesView");
+		if (folder.meta.dsaDefaultView === "XBSViewOne" && !isScenesOptionExists) {
+			const scenesViewValue = switcherList.add(constants.SCENES_VIEW_OPTION);
 			this._multiviewSwitcher.setValue(scenesViewValue);
 		}
-		else if (switcherList.exists("scenesView")) {
+		else if (folder.meta.dsaDefaultView !== "XBSViewOne" && isScenesOptionExists) {
 			switcherList.remove("scenesView");
 			this._multiviewSwitcher.setValue("thumbnailView");
 		}
