@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 import OpenSeadragon from "openseadragon";
 import "openseadragon-filtering";
-
+import "../../libs/openseadragon-svg-overlay/openseadragon-svg-overlay";
 
 export default class OpenSeadragonViewer extends JetView {
 	constructor(app, config = {}) {
@@ -18,6 +18,10 @@ export default class OpenSeadragonViewer extends JetView {
 		};
 	}
 
+	init(view) {
+		webix.extend(view, webix.OverlayBox);
+	}
+
 	createViewer(options) {
 		this._openseaDragonViewer = new OpenSeadragon.Viewer({
 			...Object.assign({}, this._options, options),
@@ -25,14 +29,20 @@ export default class OpenSeadragonViewer extends JetView {
 			prefixUrl: "sources/images/images/"
 		});
 
+		const viewer = this._openseaDragonViewer;
+
 		return new Promise((resolve, reject) => {
-			this._openseaDragonViewer.addOnceHandler("open", () => {
+			viewer.addOnceHandler("open", () => {
 				resolve();
 			});
-			this._openseaDragonViewer.addOnceHandler("open-failed", () => {
+			viewer.addOnceHandler("open-failed", () => {
 				reject();
 			});
 		});
+	}
+
+	svgOverlay() {
+		return this.$viewer().svgOverlay();
 	}
 
 	$viewer() {
@@ -41,6 +51,18 @@ export default class OpenSeadragonViewer extends JetView {
 
 	getItemByIndex(index) {
 		return this.$viewer().world.getItemAt(index);
+	}
+
+	showOverlay(text) {
+		this.getRoot().showOverlay(
+			`<div class='data-subview-overlay'>
+				<div class='overlay-text'>${text || "Loading..."}</div>
+			</div>`
+		);
+	}
+
+	hideOverlay() {
+		this.getRoot().hideOverlay();
 	}
 
 	destroy() {

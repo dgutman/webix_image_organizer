@@ -3,7 +3,6 @@ import JSONEditor from "jsoneditor";
 import "jsoneditor/dist/jsoneditor.min.css";
 import constants from "../../constants";
 import format from "../../utils/formats";
-import utils from "../../utils/utils";
 import projectMetadata from "../../models/projectMetadata";
 
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -55,10 +54,10 @@ export default class MetadataPanelClass extends JetView {
 			onClick: {
 				"collapssible-accordion": (e, id, element) => {
 					if (element.className.indexOf(mainPropertiesClassName) !== -1) {
-						utils.showOrHideTemplateCollapsedViews(mainPropertiesClassName, element);
+						this._showOrHideTemplateCollapsedViews(mainPropertiesClassName, element);
 					}
 					else if (element.className.indexOf(metadataPropertiesClassName) !== -1) {
-						utils.showOrHideTemplateCollapsedViews(metadataPropertiesClassName, element);
+						this._showOrHideTemplateCollapsedViews(metadataPropertiesClassName, element);
 					}
 				}
 			}
@@ -77,7 +76,8 @@ export default class MetadataPanelClass extends JetView {
 		};
 	}
 
-	ready() {
+	ready(view) {
+		webix.extend(view, webix.OverlayBox);
 		const metadataTemplate = this.$templateView();
 		webix.extend(metadataTemplate, webix.ProgressBar);
 
@@ -107,6 +107,31 @@ export default class MetadataPanelClass extends JetView {
 	}
 
 	setItem(item) {
+		const root = this.getRoot();
+		if (!item) {
+			root.showOverlay("<div class='data-subview-overlay'><div class='overlay-text'>Metadata...</div></div>");
+			return;
+		}
+		root.hideOverlay();
 		this.$templateView().setValues(item);
+	}
+
+	_showOrHideTemplateCollapsedViews(className, element) {
+		const metadataTemplateNode = this.$templateView().getNode();
+		const foundElements = metadataTemplateNode.getElementsByClassName(className);
+		const propertiesElement = foundElements[1] ? foundElements[1] : foundElements[0];
+
+		if (propertiesElement.offsetParent === null) {
+			// show properties template
+			webix.html.removeCss(element, "hidden-views");
+			webix.html.addCss(element, "showed-views");
+			propertiesElement.style.display = "block";
+		}
+		else {
+			// hide properties template
+			webix.html.removeCss(element, "showed-views");
+			webix.html.addCss(element, "hidden-views");
+			propertiesElement.style.display = "none";
+		}
 	}
 }

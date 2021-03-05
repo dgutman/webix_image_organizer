@@ -122,5 +122,8 @@ export default {
 
 	METADATA_TABLE_ROW_HEIGHT: 34,
 
-	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"}
+	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"},
+
+	SCENES_VIEW_CHANGE_MODE_EVENT_NAME: "scenesViewerModeChange",
+	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange"
 };
