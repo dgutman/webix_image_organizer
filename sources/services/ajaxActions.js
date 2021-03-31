@@ -155,7 +155,39 @@ class AjaxActions {
 	}
 
 	getImageTileUrl(itemId, z, x, y) {
-		return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?edge=crop${this.setTokenIntoUrl(authService.getToken(), "&")}`;
+		const urlSearchParams = new URLSearchParams();
+		urlSearchParams.append("edge", "crop");
+		urlSearchParams.append("token", authService.getToken());
+		return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+	}
+
+	getImageFrameTileUrl(itemId, frame, z, x, y) {
+		const urlSearchParams = new URLSearchParams();
+		urlSearchParams.append("edge", "crop");
+		urlSearchParams.append("token", authService.getToken());
+		return `${this.getHostApiUrl()}/item/${itemId}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+	}
+
+	getImageColoredFrameTileUrl(itemId, frame, coords, colorSettings) {
+		const {x, y, z} = coords;
+		const {
+			palette1 = "rgb(0,0,0)",
+			palette2 = "rgb(204,240,0)",
+			min = 100,
+			max = 65000
+		} = colorSettings;
+		const style = {
+			min,
+			max,
+			palette: [palette1, palette2]
+		};
+		const urlSearchParams = new URLSearchParams();
+		urlSearchParams.append("edge", "crop");
+		urlSearchParams.append("frame", frame);
+		urlSearchParams.append("token", authService.getToken());
+		urlSearchParams.append("style", JSON.stringify(style));
+
+		return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 	}
 
 	getOpenFileUrl(itemId) {

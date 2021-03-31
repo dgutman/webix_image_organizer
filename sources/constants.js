@@ -123,12 +123,14 @@ export default {
 
 	METADATA_TABLE_ROW_HEIGHT: 34,
 
-	VIEW_OPTION_IDS: {
-		SCENES_VIEW: "scenesView",
-		Z_STACK_VIEW: "zstackView",
-		THUMBNAIL_VIEW: "thumbnailView",
-		METADATA_TABLE_VIEW: "metadataView"
-	},
+
+	MAIN_MULTIVIEW_OPTIONS: [
+		{id: "thumbnailView", value: "Images thumbnail view"},
+		{id: "metadataView", value: "Metadata table view"},
+		{id: "zstackView", value: "Zstack"}
+	],
+	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"},
+	MULTICHANNEL_VIEW_OPTION: {id: "multichannelView", value: "Multichannel view"},
 
 	SCENES_VIEW_CHANGE_MODE_EVENT_NAME: "scenesViewerModeChange",
 	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange",

@@ -2,10 +2,10 @@ import {JetView} from "webix-jet";
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
 import utils from "../../../utils/utils";
+import ItemsModel from "../../../models/itemsModel";
 
 const SPACER_FOR_PAGER_ID = "spacer-for-pager";
-
-const {THUMBNAIL_VIEW, METADATA_TABLE_VIEW, Z_STACK_VIEW} = constants.VIEW_OPTION_IDS;
+const [thumbnailOption] = constants.MAIN_MULTIVIEW_OPTIONS;
 
 export default class DataviewActionPanelClass extends JetView {
 	get viewSwitcherId() {
@@ -125,13 +125,9 @@ export default class DataviewActionPanelClass extends JetView {
 							icon: utils.getSelectIcon(),
 							css: "select-field ellipsis-text",
 							width: 200,
-							value: THUMBNAIL_VIEW,
+							value: thumbnailOption.id,
 							options: {
-								data: [
-									{id: THUMBNAIL_VIEW, value: "Images thumbnail view"},
-									{id: METADATA_TABLE_VIEW, value: "Metadata table view"},
-									{id: Z_STACK_VIEW, value: "Zstack"}
-								],
+								data: constants.MAIN_MULTIVIEW_OPTIONS,
 								body: {
 									css: "ellipsis-text"
 								}
@@ -154,6 +150,8 @@ export default class DataviewActionPanelClass extends JetView {
 		this.projectMetadataWindow = this.ui(ProjectMetadataWindow);
 		const recognitionProgressTemplate = this.getRecognitionProgressTemplate();
 		webix.TooltipControl.addTooltip(recognitionProgressTemplate.$view);
+
+		this._switcherView = this.getSwitcherView();
 	}
 
 	getItemsCount(pagerObj) {
@@ -200,5 +198,55 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getSpacerForPager() {
 		return this.$$(SPACER_FOR_PAGER_ID);
+	}
+
+	scenesViewOptionToggle(item) {
+		const imagesCollection = ItemsModel.getInstanceModel();
+		const scenesViewOption = constants.SCENES_VIEW_OPTION;
+		if (!item) {
+			this.removeViewOption(scenesViewOption);
+			return;
+		}
+
+		const folder = item._modelType === "folder" ? item : imagesCollection.findItem(item.$parent);
+		if (folder.meta.dsaDefaultView === "XBSViewOne") {
+			this.setNewViewOption(scenesViewOption);
+		}
+		else if (folder.meta.dsaDefaultView !== "XBSViewOne") {
+			this.removeViewOption(scenesViewOption);
+		}
+	}
+
+	multichannelViewOptionToggle(item) {
+		const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
+		if (!item) {
+			this.removeViewOption(multichannelViewOption);
+			return;
+		}
+
+		if (item.meta && item.meta.omeSceneDescription && item.meta.omeSceneDescription.length) {
+			this.setNewViewOption(multichannelViewOption);
+		}
+		else if (!item.meta || !item.meta.omeSceneDescription || !item.meta.omeSceneDescription.length) {
+			this.removeViewOption(multichannelViewOption);
+		}
+	}
+
+	removeViewOption(viewOption) {
+		const switcherList = this._switcherView.getList();
+		const isOptionExists = switcherList.exists(viewOption.id);
+		if (isOptionExists) {
+			switcherList.remove(viewOption.id);
+			this._switcherView.setValue(thumbnailOption.id);
+		}
+	}
+
+	setNewViewOption(viewOption) {
+		const switcherList = this._switcherView.getList();
+		const isOptionExists = switcherList.exists(viewOption.id);
+		if (!isOptionExists) {
+			const ViewOptionId = switcherList.add(viewOption);
+			this._switcherView.setValue(ViewOptionId);
+		}
 	}
 }

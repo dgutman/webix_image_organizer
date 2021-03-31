@@ -1,19 +1,30 @@
 import {JetView} from "webix-jet";
-import metadataTableCell from "../metadataTable/metadataTable";
-import galleryCell from "../gallery/gallery";
-import zstack from "../zstackView/zstackView";
-import scenesView from "../scenesView/scenesView";
+import MetadataTableCell from "../metadataTable/metadataTable";
+import GalleryCell from "../gallery/gallery";
+import Zstack from "../zstackView/zstackView";
+import ScenesView from "../scenesView/scenesView";
+import MultiChannelView from "../multichannelView/multichannelView";
 
 export default class MultiDataviewClass extends JetView {
+	constructor(app) {
+		super(app);
+		this._galleryCell = new GalleryCell(app);
+		this._metadataTableCell = new MetadataTableCell(app);
+		this._zStackViewCell = new Zstack(app);
+		this._scenesViewCell = new ScenesView(app);
+		this._multiChannelView = new MultiChannelView(app);
+	}
+
 	config() {
 		const multiDataView = {
 			view: "multiview",
 			animate: false,
 			cells: [
-				galleryCell,
-				metadataTableCell,
-				zstack,
-				scenesView
+				this._galleryCell,
+				this._metadataTableCell,
+				this._zStackViewCell,
+				this._scenesViewCell,
+				this._multiChannelView
 			]
 		};
 
@@ -23,5 +34,25 @@ export default class MultiDataviewClass extends JetView {
 				multiDataView
 			]
 		};
+	}
+
+	getThumbnalisView() {
+		return this._galleryCell;
+	}
+
+	getMetadataTableView() {
+		return this._metadataTableCell;
+	}
+
+	getZStackView() {
+		return this._zStackViewCell;
+	}
+
+	getScenesView() {
+		return this._scenesViewCell;
+	}
+
+	getMultichannelView() {
+		return this._multiChannelView;
 	}
 }
