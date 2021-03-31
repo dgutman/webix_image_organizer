@@ -10,18 +10,22 @@ export default class TimedOutBehavior {
 			fn: fn.bind(context, ...funcArgs)
 		};
 		this.fn = fn;
+		this.cancel();
 		this.refreshTimer();
 	}
 
 	refreshTimer() {
-		if (this.timeOutId) {
-			clearTimeout(this.timeOutId);
-			this.timeOutId = null;
-		}
 		this.timeOutId = setTimeout(() => {
 			if (this.job) {
 				this.job.fn();
 			}
 		}, this.timeout);
+	}
+
+	cancel() {
+		if (this.timeOutId) {
+			clearTimeout(this.timeOutId);
+			this.timeOutId = null;
+		}
 	}
 }
