@@ -792,9 +792,11 @@
 }
 
 body.focused {
-    .tagger-app .user-dataview .dataview-item:hover {
-        .dataview-image {
-            transform: scale(0.85);
+    .tagger-app .user-dataview {
+        .dataview-item.selected {
+            .dataview-image {
+                transform: scale(0.85);
+            }
         }
     }
 }
