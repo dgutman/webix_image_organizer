@@ -229,11 +229,21 @@
     .gallery-images-checkbox {
       float: right;
       padding-right: 12px;
+      padding-top: 4px;
+      overflow: hidden;
+      .checkbox-icon {
+        font-size: 17px;
+        color: @icon-color;
+        &.checked {
+          color: @btn;
+        }
+        &:hover {
+          color: @btn-hover;
+        }
+      }
     }
   }
   .gallery-images-checkbox {
-    overflow: hidden;
-
     .checkbox-ctrl {
       .webix_el_group {
         padding-bottom: 2px;
@@ -262,7 +272,7 @@
   }
 
   .webix_selected {
-    background: @selected-bg !important;
+    background: @selected-bg;
   }
 
 }

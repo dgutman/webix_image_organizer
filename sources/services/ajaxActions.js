@@ -266,6 +266,12 @@ class AjaxActions {
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}
+
+	getBlobFile(id) {
+		return this._ajax()
+			.get(this.getOpenFileUrl(id))
+			.catch(parseError);
+	}
 }
 
 const instance = new AjaxActions();

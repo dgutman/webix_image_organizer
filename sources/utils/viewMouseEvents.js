@@ -105,7 +105,8 @@ function setDataviewMouseEvents(dataview, action, event) {
 				let item = dataview.getItem(id);
 				const imageWindow = webixViews.getImageWindow();
 				const pdfViewerWindow = webixViews.getPdfViewerWindow();
-				downloadFiles.openOrDownloadFiles(item, imageWindow, pdfViewerWindow);
+				const csvViewerWindow = webixViews.getCsvViewerWindow();
+				downloadFiles.openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow);
 				return false;
 			});
 			break;
@@ -123,7 +124,8 @@ function setDatatableMouseEvents(datatable, action, event) {
 				const item = datatable.getItem(object.row);
 				const imageWindow = webixViews.getImageWindow();
 				const pdfViewerWindow = webixViews.getPdfViewerWindow();
-				downloadFiles.openOrDownloadFiles(item, imageWindow, pdfViewerWindow);
+				const csvViewerWindow = webixViews.getCsvViewerWindow();
+				downloadFiles.openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow);
 			});
 			break;
 		}

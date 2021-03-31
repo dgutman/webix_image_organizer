@@ -193,15 +193,16 @@ class MetadataTableService {
 		this._metadataTableThumbnailsTemplate.define("onClick", {
 			"datatable-template-image": (e, id) => {
 				const imageType = e.srcElement.getAttribute("imageType");
-				const selectedObj = this._metadataTable.getSelectedItem();
+				const selectedObj = this._metadataTableThumbnailsTemplate.getValues();
 				const imageWindow = webixViews.getImageWindow();
 				const pdfViewerWindow = webixViews.getPdfViewerWindow();
+				const csvViewerWindow = webixViews.getCsvViewerWindow();
 
 				selectedObj.label = null;
 				if (imageType === "label-image") {
 					selectedObj.label = true;
 				}
-				downloadFiles.openOrDownloadFiles(selectedObj, imageWindow, pdfViewerWindow);
+				downloadFiles.openOrDownloadFiles(selectedObj, imageWindow, pdfViewerWindow, csvViewerWindow);
 			}
 		});
 	}

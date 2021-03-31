@@ -198,89 +198,6 @@ function getDefaultMouseSettingsValues() {
 	return mouseSettingsValues;
 }
 
-function getSelectedDataviewImages(selectedImages) {
-	let	selectedDataviewImages = selectedImages.getSelectedImages();
-	let	selectedImagesLength = selectedImages.count();
-	return [selectedDataviewImages, selectedImagesLength];
-}
-
-function getImagesToSelectByShift(item, selectedImages, dataview, value) {
-	let isNeedShowAlert = true;
-	let imagesArrayToReturn = [];
-	const [selectedDataviewImages, selectedImagesLength] = getSelectedDataviewImages(selectedImages);
-	const deletedItemsDataCollection = selectedImages.getDeletedItemsDataCollection();
-
-	if (selectedImagesLength) {
-		let indexOfLastActionItem;
-		let lastActionItem;
-		let indexOfLastItemToAction;
-		if (deletedItemsDataCollection.count() && !value) {
-			const lastItemId = deletedItemsDataCollection.getLastId();
-			lastActionItem = deletedItemsDataCollection.getItem(lastItemId);
-			indexOfLastItemToAction = dataview.getIndexById(item.id);
-		}
-		else {
-			lastActionItem = selectedDataviewImages[selectedImagesLength - 1];
-			indexOfLastItemToAction = dataview.getIndexById(item.id);
-		}
-		dataview.data.each((image, index) => {
-			if (image._id === lastActionItem._id) {
-				indexOfLastActionItem = index;
-			}
-		}, true);
-
-		let startIndex;
-		let finishIndex;
-		if (indexOfLastActionItem > indexOfLastItemToAction) {
-			startIndex = indexOfLastItemToAction;
-			finishIndex = indexOfLastActionItem;
-		}
-		else {
-			startIndex = indexOfLastActionItem;
-			finishIndex = indexOfLastItemToAction;
-		}
-		for (;startIndex <= finishIndex; startIndex++) {
-			const imagesArrayToReturnLength = imagesArrayToReturn.length;
-			if (!value || imagesArrayToReturnLength + selectedImagesLength <= constants.MAX_COUNT_IMAGES_SELECTION - 2) {
-				let dataviewItemId = dataview.getIdByIndex(startIndex);
-				let dataviewItem = dataview.getItem(dataviewItemId);
-				if (dataviewItem && dataviewItem.markCheckbox !== value) {
-					dataviewItem.markCheckbox = value;
-					imagesArrayToReturn.push(dataviewItem);
-				}
-			}
-			else if (isNeedShowAlert) {
-				isNeedShowAlert = false;
-				webix.alert({
-					text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
-				});
-			}
-		}
-		imagesArrayToReturn.push(item);
-		deletedItemsDataCollection.clearAll();
-		return imagesArrayToReturn;
-	}
-	return [item];
-}
-
-function putSelectedItemsToLocalStorage(array) {
-	const hostId = authService.getHostId();
-	const userId = getUserId() || "unregistered";
-	webix.storage.local.put(`selectedGalleryItems-${userId}-${hostId}`, array);
-}
-
-function getSelectedItemsFromLocalStorage() {
-	const hostId = authService.getHostId();
-	const userId = getUserId() || "unregistered";
-	return webix.storage.local.get(`selectedGalleryItems-${userId}-${hostId}`) || [];
-}
-
-function removeSelectedItemsFromLocalStorage() {
-	const hostId = authService.getHostId();
-	const userId = getUserId() || "unregistered";
-	webix.storage.local.remove(`selectedGalleryItems-${userId}-${hostId}`);
-}
-
 /**
  * Set the value for the given object for the given path
  * where the path can be a nested key represented with dot notation
@@ -392,7 +309,7 @@ function compareURLStrings(str1, str2) {
 }
 
 function isObject(item) {
-	return (item && typeof item === "object" && !Array.isArray(item));
+	return item && typeof item === "object" && !Array.isArray(item);
 }
 
 function mergeDeep(target, source) {
@@ -441,11 +358,7 @@ export default {
 	getDefaultMouseSettingsValues,
 	setLocalStorageSettingsValues,
 	getLocalStorageSettingsValues,
-	getImagesToSelectByShift,
 	setObjectProperty,
-	getSelectedItemsFromLocalStorage,
-	putSelectedItemsToLocalStorage,
-	removeSelectedItemsFromLocalStorage,
 	createElementFromHTML,
 	isNode,
 	isElement,

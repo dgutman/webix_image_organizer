@@ -66,7 +66,9 @@ export default class UserViewService {
 			this._dataviewStore,
 			this._tagSelect,
 			this._valueSelect,
-			this._updatedImagesService
+			this._updatedImagesService,
+			this._dataviewService,
+			this._nextButton
 		);
 
 		this._attachViewEvents();
