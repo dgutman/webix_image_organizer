@@ -5,7 +5,6 @@ import constants from "../../../constants";
 import selectedDataviewItems from "../../../models/selectGalleryDataviewItems";
 import webixViews from "../../../models/webixViews";
 import state from "../../../models/state";
-import utils from "../../../utils/utils";
 
 export default class GalleryViewClass extends JetView {
 	config() {
@@ -35,56 +34,26 @@ export default class GalleryViewClass extends JetView {
 			onContext: {},
 			type: {
 				width: 150,
-				height: 135
+				height: 135,
+				markCheckbox: obj => (selectedDataviewItems.isSelected(obj._id) ? "checked fas fa-check-square" : "unchecked far fa-square enabled")
 			},
-			activeContent: {
-				markCheckbox: {
-					view: "checkbox",
-					css: "checkbox-ctrl",
-					width: 20,
-					height: 30,
-					on: {
-						onChange(value, oldValue) {
-							if (value !== oldValue) {
-								let imagesArray = [];
-								const dataview = webixViews.getGalleryDataview();
-								const item = dataview.getItem(this.config.$masterId);
-								if (value && selectedDataviewItems.count() >= constants.MAX_COUNT_IMAGES_SELECTION) {
-									dataview.updateItem(item.id, {markCheckbox: oldValue});
-									webix.alert({
-										text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
-									});
-									return;
-								}
-								item.markCheckbox = value;
-								if (value) {
-									if (state.toSelectByShift) {
-										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
-									}
-									else {
-										imagesArray = [item];
-									}
-									selectedDataviewItems.add(imagesArray);
-								}
-								else {
-									const deletedItemsDataCollection = selectedDataviewItems.getDeletedItemsDataCollection();
-									if (state.toSelectByShift) {
-										imagesArray = utils.getImagesToSelectByShift(item, selectedDataviewItems, dataview, value);
-									}
-									else {
-										deletedItemsDataCollection.clearAll();
-										deletedItemsDataCollection.add(item);
-										imagesArray = [item];
-									}
-									imagesArray.forEach((item) => {
-										selectedDataviewItems.remove(item._id);
-									});
-								}
-								dataview.callEvent("onCheckboxClicked", [imagesArray, value]);
-								state.app.callEvent("changedSelectedImagesCount");
-							}
-						}
+			onClick: {
+				"checkbox-icon": (ev, id) => {
+					let imagesArray = [];
+					const dataview = webixViews.getGalleryDataview();
+					const item = dataview.getItem(id);
+					const value = !selectedDataviewItems.isSelected(item._id);
+
+					if (value && selectedDataviewItems.count() >= constants.MAX_COUNT_IMAGES_SELECTION) {
+						webix.alert({
+							text: `You can select maximum ${constants.MAX_COUNT_IMAGES_SELECTION} images`
+						});
+						return;
 					}
+
+					imagesArray = selectedDataviewItems.onItemSelect(ev.shiftKey, item, dataview);
+					dataview.callEvent("onCheckboxClicked", [imagesArray, value]);
+					state.app.callEvent("changedSelectedImagesCount");
 				}
 			}
 		};

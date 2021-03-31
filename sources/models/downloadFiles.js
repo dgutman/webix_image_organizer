@@ -2,7 +2,7 @@ import authService from "../services/authentication";
 import utils from "../utils/utils";
 import ajaxActions from "../services/ajaxActions";
 
-function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
+function openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow) {
 	const itemType = utils.searchForFileType(item);
 	if (item.label) {
 		imageWindow.showWindow(item, "standard");
@@ -15,14 +15,18 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 		case "jpg":
 		case "tiff":
 		case "bmp": {
-			if (item.largeImage) {
-				imageWindow.showWindow(item, "standard");
-			} else utils.showAlert();
+			if (item.largeImage) imageWindow.showWindow(item, "standard");
+			else utils.showAlert();
 			break;
 		}
 		case "csv": {
-			let url = ajaxActions.downloadItem(item._id);
-			utils.downloadByLink(url, item.name);
+			if (csvViewerWindow) {
+				csvViewerWindow.showWindow(item);
+			}
+			else {
+				let url = ajaxActions.downloadItem(item._id);
+				utils.downloadByLink(url, item.name);
+			}
 			break;
 		}
 		case "svs":
@@ -49,7 +53,7 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow) {
 	}
 }
 
-function downloadZip(sourceParam, ajaxActions, utils) {
+function downloadZip(sourceParam) {
 	let url = `${ajaxActions.getHostApiUrl()}
 						/resource/download/
 							?resources={"item":${sourceParam.resources}}

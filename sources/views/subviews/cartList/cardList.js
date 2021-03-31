@@ -36,6 +36,9 @@ export default class CartView extends JetView {
 			view: "activeList",
 			css: "cart-list-view",
 			width: 200,
+			type: {
+				height: 29
+			},
 			activeContent: {
 				deleteButton: {
 					view: "button",
@@ -54,14 +57,14 @@ export default class CartView extends JetView {
 					const itemNode = this.getItemNode(id);
 					const listTextNode = itemNode.firstChild.children[2];
 					if (!item.imageShown) {
-						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
+						itemNode.setAttribute("style", "height: 140px; color: #0288D1;");
 						listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
 						node.setAttribute("class", "webix_icon fas fa-angle-down");
 						item.imageShown = true;
 						modifiedObjects.add(item);
 					}
 					else {
-						itemNode.setAttribute("style", "height: 30px !important; color: rgba(0, 0, 0, 0.8);");
+						itemNode.setAttribute("style", "height: 29px; color: #6E7480;");
 						listTextNode.setAttribute("style", "margin-left: 12px; width: 115px !important;");
 						node.setAttribute("class", "webix_icon fas fa-angle-right");
 						item.imageShown = false;
