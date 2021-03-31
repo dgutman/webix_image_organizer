@@ -17,6 +17,7 @@ export default {
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
 	PATTERN_ITEM_FIELDS: "^[a-zA-Z0-9_](?:\\.?[a-zA-Z0-9_]+)*$",
 
+	FINDER_VIEW_ID: "finder-view-id",
 	SCROLL_VIEW_METADATA_ID: "scroll-view-metadata-id",
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
 	ID_DATATABLE_IMAGES_TEMPLATE: "datatable-images-template-id",
@@ -122,8 +123,17 @@ export default {
 
 	METADATA_TABLE_ROW_HEIGHT: 34,
 
-	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"},
+	VIEW_OPTION_IDS: {
+		SCENES_VIEW: "scenesView",
+		Z_STACK_VIEW: "zstackView",
+		THUMBNAIL_VIEW: "thumbnailView",
+		METADATA_TABLE_VIEW: "metadataView"
+	},
 
 	SCENES_VIEW_CHANGE_MODE_EVENT_NAME: "scenesViewerModeChange",
-	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange"
+	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange",
+
+	DEFAULT_VIEW_SIGNS: {
+		SCENES_VIEW: "XBSViewOne"
+	}
 };

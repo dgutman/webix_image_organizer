@@ -4,8 +4,8 @@ import ControlsView from "./controlsView";
 import OpenSeadragonViewer from "../../components/openSeadragonViewer";
 import MakerLayer from "../../../services/organizer/makerLayer";
 import ajax from "../../../services/ajaxActions";
-import authService from "../../../services/authentication";
 import OrganizerFilters from "../../../services/organizer/organizerFilters";
+import TimedOutBehavior from "../../../utils/timedOutBehavior";
 
 
 export default class ZstackView extends JetView {
@@ -25,6 +25,8 @@ export default class ZstackView extends JetView {
 		this._layers = [];
 		this._activeTiledImage = null;
 		this._activeLayerIndex = 0;
+
+		this._timedOutBehavior = new TimedOutBehavior();
 	}
 
 	config() {
@@ -44,32 +46,12 @@ export default class ZstackView extends JetView {
 	}
 
 	init() {
-		this._collection.data.attachEvent("onSyncApply", async () => {
-			this._collectionArray = this._collection.serialize();
-
-			this._layers = await this.makeLayers(this._collectionArray);
-
-			if (this._layers.length) {
-				this._openSeadragonViewer.destroy();
-				this._openSeadragonViewer.createViewer({
-					tileSources: this._layers.reverse(),
-					crossOriginPolicy: "Anonymous",
-					loadTilesWithAjax: true
-				});
-
-				this._$viewer().addHandler("open", () => {
-					this._layers.forEach((layer, i) => {
-						layer.tiledImage = this._openSeadragonViewer.getItemByIndex(i);
-					});
-
-					const lastIndex = this._layers.length - 1;
-					this._activeLayerIndex = lastIndex;
-					this._activeTiledImage = this.getTiledImageByIndex(lastIndex);
-					this._changeImagesSliderTitleByIndex(lastIndex);
-					this._setImagesSliderMax(lastIndex);
-					this._$imagesSlider().setValue(0);
-					this.refreshControls();
-				});
+		this.on(this.getRoot(), "onViewShow", () => {
+			this._timedOutBehavior.execute(this._updateViewer, this);
+		});
+		this._collection.data.attachEvent("onSyncApply", () => {
+			if (this.getRoot().isVisible()) {
+				this._timedOutBehavior.execute(this._updateViewer, this);
 			}
 		});
 	}
@@ -82,6 +64,32 @@ export default class ZstackView extends JetView {
 		this._setShimXControlEvents();
 		this._setShimYControlEvents();
 		this._setErosionControlEvents();
+	}
+
+	async _updateViewer() {
+		this._collectionArray = this._collection.serialize();
+		this._layers = await this.makeLayers(this._collectionArray);
+
+		if (this._layers.length) {
+			this._openSeadragonViewer.destroy();
+			this._openSeadragonViewer.createViewer({
+				tileSources: this._layers.reverse(),
+				crossOriginPolicy: "Anonymous",
+				loadTilesWithAjax: true
+			}).then(() => {
+				this._layers.forEach((layer, i) => {
+					layer.tiledImage = this._openSeadragonViewer.getItemByIndex(i);
+				});
+
+				const lastIndex = this._layers.length - 1;
+				this._activeLayerIndex = lastIndex;
+				this._activeTiledImage = this.getTiledImageByIndex(lastIndex);
+				this._changeImagesSliderTitleByIndex(lastIndex);
+				this._setImagesSliderMax(lastIndex);
+				this._$imagesSlider().setValue(0);
+				this.refreshControls();
+			});
+		}
 	}
 
 	_createImagesSlider() {
@@ -98,22 +106,12 @@ export default class ZstackView extends JetView {
 			"onSliderDragging",
 			value => this._onImagesControlHandler(value)
 		);
-		this.on(
-			this._imagesSlider.$slider(),
-			"onChange",
-			value => this._onImagesControlHandler(value)
-		);
 	}
 
 	_setOpacityControlEvents() {
 		this.on(
 			this._controlsView.$opacitySlider(),
 			"onSliderDragging",
-			value => this._onOpacityControlHandler(value)
-		);
-		this.on(
-			this._controlsView.$opacitySlider(),
-			"onChange",
 			value => this._onOpacityControlHandler(value)
 		);
 	}
@@ -124,22 +122,12 @@ export default class ZstackView extends JetView {
 			"onSliderDragging",
 			value => this._onColorizeControlHandler(value)
 		);
-		this.on(
-			this._controlsView.$colorizeSlider(),
-			"onChange",
-			value => this._onColorizeControlHandler(value)
-		);
 	}
 
 	_setHueControlEvents() {
 		this.on(
 			this._controlsView.$hueSlider(),
 			"onSliderDragging",
-			value => this._onHueControlHandler(value)
-		);
-		this.on(
-			this._controlsView.$hueSlider(),
-			"onChange",
 			value => this._onHueControlHandler(value)
 		);
 	}
@@ -150,22 +138,12 @@ export default class ZstackView extends JetView {
 			"onSliderDragging",
 			value => this._onShimXControlHandler(value)
 		);
-		this.on(
-			this._controlsView.$shimXSlider(),
-			"onChange",
-			value => this._onShimXControlHandler(value)
-		);
 	}
 
 	_setShimYControlEvents() {
 		this.on(
 			this._controlsView.$shimYSlider(),
 			"onSliderDragging",
-			value => this._onShimYControlHandler(value)
-		);
-		this.on(
-			this._controlsView.$shimYSlider(),
-			"onChange",
 			value => this._onShimYControlHandler(value)
 		);
 	}
@@ -178,29 +156,35 @@ export default class ZstackView extends JetView {
 		);
 	}
 
-	_onImagesControlHandler(index) {
-		const currentLayerIndex = this._layers.length - 1 - index;
+	_onImagesControlHandler(slideIndex) {
+		const currentLayerIndex = this._layers.length - 1 - slideIndex;
 		const currentTiledImage = this.getTiledImageByIndex(currentLayerIndex);
 
 		this._changeImagesSliderTitleByIndex(currentLayerIndex);
 
 		if (this._activeLayerIndex < currentLayerIndex) {
-			for (let i = this._activeLayerIndex; i <= currentLayerIndex; i++) {
-				const layer = this._layers[i];
+			this._loopLayers(this._activeLayerIndex, currentLayerIndex, (index) => {
+				const layer = this._layers[index];
 				layer.shown = true;
-				this.getTiledImageByIndex(i).setOpacity(layer.opacity);
-			}
+				this.getTiledImageByIndex(index).setOpacity(layer.opacity);
+			});
 		}
 		else if (this._activeLayerIndex > currentLayerIndex) {
-			for (let i = currentLayerIndex; i <= this._activeLayerIndex; i++) {
-				this._layers[i].shown = false;
-				this.getTiledImageByIndex(i).setOpacity(0);
-			}
+			this._loopLayers(currentLayerIndex, this._activeLayerIndex, (index) => {
+				this._layers[index].shown = false;
+				this.getTiledImageByIndex(index).setOpacity(0);
+			});
 		}
 
 		this._activeLayerIndex = currentLayerIndex;
 		this._activeTiledImage = currentTiledImage;
 		this.refreshControls();
+	}
+
+	_loopLayers(from, to, handler) {
+		for (let i = from + 1; i <= to; i++) {
+			handler(i);
+		}
 	}
 
 	_onOpacityControlHandler(value) {
@@ -210,24 +194,34 @@ export default class ZstackView extends JetView {
 
 	_onColorizeControlHandler(value) {
 		this.getActiveLayer().colorize = value;
-		this.viewerFilter.updateFilters(this._layers, this._$viewer());
+		this._updateFilters();
 	}
 
 	_onHueControlHandler(value) {
 		this.getActiveLayer().hue = value;
-		this.viewerFilter.updateFilters(this._layers, this._$viewer());
+		this._updateFilters();
 	}
 
 	_onShimXControlHandler(value) {
-		console.log("Shim X:", value);
+		this.getActiveLayer().shimX = value;
+		this._updateShim();
 	}
 
 	_onShimYControlHandler(value) {
-		console.log("Shim Y:", value);
+		this.getActiveLayer().shimY = value;
+		this._updateShim();
 	}
 
 	_onErosionControlHandler(value) {
 		this.getActiveLayer().erosionKernel = value;
+		this._updateFilters();
+	}
+
+	_updateShim() {
+		this.viewerFilter.setLayerPixelOffset(this.getActiveLayer());
+	}
+
+	_updateFilters() {
 		this.viewerFilter.updateFilters(this._layers, this._$viewer());
 	}
 

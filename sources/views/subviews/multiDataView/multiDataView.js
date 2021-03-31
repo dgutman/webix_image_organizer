@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 import metadataTableCell from "../metadataTable/metadataTable";
 import galleryCell from "../gallery/gallery";
-// import zstack from "../zstackView/zstackView";
+import zstack from "../zstackView/zstackView";
 import scenesView from "../scenesView/scenesView";
 
 export default class MultiDataviewClass extends JetView {
@@ -12,7 +12,7 @@ export default class MultiDataviewClass extends JetView {
 			cells: [
 				galleryCell,
 				metadataTableCell,
-				// zstack,
+				zstack,
 				scenesView
 			]
 		};

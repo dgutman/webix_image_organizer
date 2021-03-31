@@ -5,6 +5,8 @@ import utils from "../../../utils/utils";
 
 const SPACER_FOR_PAGER_ID = "spacer-for-pager";
 
+const {THUMBNAIL_VIEW, METADATA_TABLE_VIEW, Z_STACK_VIEW} = constants.VIEW_OPTION_IDS;
+
 export default class DataviewActionPanelClass extends JetView {
 	get viewSwitcherId() {
 		return "viewSwitcherId";
@@ -123,12 +125,12 @@ export default class DataviewActionPanelClass extends JetView {
 							icon: utils.getSelectIcon(),
 							css: "select-field ellipsis-text",
 							width: 200,
-							value: "thumbnailView",
+							value: THUMBNAIL_VIEW,
 							options: {
 								data: [
-									{id: "thumbnailView", value: "Images thumbnail view"},
-									{id: "metadataView", value: "Metadata table view"}
-									// {id: "zstackView", value: "Zstack"}
+									{id: THUMBNAIL_VIEW, value: "Images thumbnail view"},
+									{id: METADATA_TABLE_VIEW, value: "Metadata table view"},
+									{id: Z_STACK_VIEW, value: "Zstack"}
 								],
 								body: {
 									css: "ellipsis-text"

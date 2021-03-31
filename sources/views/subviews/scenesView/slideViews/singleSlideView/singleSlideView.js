@@ -60,6 +60,8 @@ export default class SingleSlideView extends BaseSlideView {
 
 	async onImageSelect(images, layers) {
 		const image = images[0];
+		this.toggleViewState(image);
+		if (!image) return;
 
 		const rootView = this.getRoot();
 		if (rootView.isVisible()) {
@@ -83,6 +85,19 @@ export default class SingleSlideView extends BaseSlideView {
 				this.onImageSelect(images, layers);
 				rootView.detachEvent(eventId);
 			});
+		}
+	}
+
+	toggleViewState(enable) {
+		if (enable) {
+			this._controlsView.getRoot().enable();
+			this._osdViewer.getRoot().enable();
+		}
+		else {
+			this._controlsView.getRoot().disable();
+			this._osdViewer.destroy();
+			this._osdViewer.getRoot().disable();
+			this._metadataPanel.setItem();
 		}
 	}
 }

@@ -73,7 +73,7 @@ class MainService {
 
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
-		// const zstackCell = this._view.$scope.getSubZStackView();
+		const zstackCell = this._view.$scope.getSubZStackView();
 		const scenesViewCell = this._view.$scope.getSubScenesViewCell();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
@@ -144,7 +144,7 @@ class MainService {
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
-		// zstackCell.setCollection(this._itemsDataCollection);
+		zstackCell.setCollection(this._itemsDataCollection);
 		scenesViewCell.syncSlider(this._itemsDataCollection);
 
 		this._itemsDataCollection.define("scheme", {
@@ -299,10 +299,14 @@ class MainService {
 					this._metadataTable.scrollTo(0, 0);
 					this._selectTableItemByDataview();
 					break;
-				// case "zstackView":
-				// 	zstackCell.getRoot().show();
-				// 	this._collapser.hide();
-				// 	break;
+				case "zstackView":
+					this._toggleCartList();
+					spacerForPager.show();
+					zstackCell.getRoot().show();
+					this._collapser.config.setClosedState();
+					this._collapser.hide();
+					this._galleryFeaturesView.hide();
+					break;
 				case "scenesView":
 					this._toggleCartList();
 					spacerForPager.show();
@@ -1209,9 +1213,9 @@ class MainService {
 
 	_collectionChangeHandler(collectionItem) {
 		this.pendingCollectionChange = true;
-		this._filterModel.clearFilters();
 		isRecognitionResultMode = false;
 		this._changeRecognitionResultsMode();
+		this._scenesViewOptionToggle();
 		this._itemsModel.clearAll();
 
 		this._itemsDataCollection.clearAll();
@@ -1278,16 +1282,23 @@ class MainService {
 	}
 
 	_scenesViewOptionToggle(item) {
-		const folder = item._modelType === "folder" ? item : this._finder.getItem(item.$parent);
+		const {THUMBNAIL_VIEW, SCENES_VIEW} = constants.VIEW_OPTION_IDS;
 		const switcherList = this._multiviewSwitcher.getList();
-		const isScenesOptionExists = switcherList.exists("scenesView");
-		if (folder.meta.dsaDefaultView === "XBSViewOne" && !isScenesOptionExists) {
-			const scenesViewValue = switcherList.add(constants.SCENES_VIEW_OPTION);
+		const isScenesOptionExists = switcherList.exists(SCENES_VIEW);
+
+		const folder = item && (item._modelType === "folder" ? item : this._finder.getItem(item.$parent));
+
+		const isScenesViewDefault = folder &&
+			folder.meta.dsaDefaultView === constants.DEFAULT_VIEW_SIGNS.SCENES_VIEW;
+
+		if (isScenesViewDefault && !isScenesOptionExists) {
+			const scenesViewOption = {id: SCENES_VIEW, value: "Scenes view"};
+			const scenesViewValue = switcherList.add(scenesViewOption);
 			this._multiviewSwitcher.setValue(scenesViewValue);
 		}
-		else if (folder.meta.dsaDefaultView !== "XBSViewOne" && isScenesOptionExists) {
-			switcherList.remove("scenesView");
-			this._multiviewSwitcher.setValue("thumbnailView");
+		else if (!isScenesViewDefault && isScenesOptionExists) {
+			switcherList.remove(SCENES_VIEW);
+			this._multiviewSwitcher.setValue(THUMBNAIL_VIEW);
 		}
 	}
 }

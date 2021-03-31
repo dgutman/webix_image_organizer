@@ -29,7 +29,6 @@ export default class ImagesRowSlider extends JetView {
 		return {
 			...this._cnf,
 			name: "imagesRowSlider",
-			hidden: true,
 			cols: [
 				{
 					selector: "spacer",
@@ -140,15 +139,8 @@ export default class ImagesRowSlider extends JetView {
 
 	_attachOnLoadEvent() {
 		const list = this.$sliderList();
-		const sliderView = this.getRoot();
 		this.on(list.data, "onSyncApply", () => {
 			const count = list.count();
-			if (count) {
-				sliderView.show();
-			}
-			else {
-				sliderView.hide();
-			}
 			this._resizeListWithContainerByCount(count);
 		});
 	}

@@ -117,4 +117,16 @@ export default class OrganizerFilters {
 			filters
 		});
 	}
+
+	setLayerPixelOffset(layer, immediately) {
+		const {tiledImage, shimX, shimY} = layer;
+		const bounds = tiledImage.getBounds();
+		const pixelSize = bounds.width / tiledImage.source.width;
+		tiledImage.setPosition(
+			new OpenSeadragon.Point(shimX * pixelSize, shimY * pixelSize),
+			immediately
+		);
+		layer.offset.x = shimX;
+		layer.offset.y = shimY;
+	}
 }

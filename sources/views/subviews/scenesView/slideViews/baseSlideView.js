@@ -31,7 +31,7 @@ export default class BaseSlideView extends JetView {
 	}
 
 	createMetadataPanel() {
-		return new MetadataPanel(this.app, {minWidth: 300}, {mode: "view"});
+		return new MetadataPanel(this.app, {minWidth: 300, css: "scenes-view__slide-metadata"}, {mode: "view"});
 	}
 
 	createControlsView() {
