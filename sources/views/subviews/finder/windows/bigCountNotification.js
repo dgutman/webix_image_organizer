@@ -55,7 +55,7 @@ export default class BigCountNotificationWindow extends JetView {
 											const form = this.getRoot().queryView({name: "bigCountNotificationWindowForm"});
 											const values = form.getValues();
 											const userInfo = auth.getUserInfo();
-											if (values.show) {
+											if (values.checkbox) {
 												webix.storage.local.put(`dont-show-notification-about-amount-${userInfo ? userInfo._id : "unregistered"}`, true);
 											}
 											this.closeWindow();

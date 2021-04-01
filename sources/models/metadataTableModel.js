@@ -7,7 +7,7 @@ import editableFoldersModel from "./editableFoldersModel";
 import galleryImageUrl from "./galleryImageUrls";
 import nonImageUrls from "./nonImageUrls";
 import webixViews from "./webixViews";
-import ImageThumbnailLoader from "../services/gallery/imageThumbnailLoader";
+import ajaxActions from "../services/ajaxActions";
 
 let metadataDotObject = {};
 
@@ -252,8 +252,32 @@ function getCurrentItemPreviewType(type) {
 function getImageColumnTemplate(columnConfig, size) {
 	return (obj) => {
 		const metadataTable = webixViews.getMetadataTableView();
-		const {imageType, getPreviewUrl} = getCurrentItemPreviewType(columnConfig.imageType);
-		ImageThumbnailLoader.loadImagePreview(obj, imageType, metadataTable);
+		const {imageType, getPreviewUrl, setPreviewUrl} = getCurrentItemPreviewType(columnConfig.imageType);
+
+		if (obj.largeImage && !getPreviewUrl(obj._id)) {
+			if (getPreviewUrl(obj._id) === false) {
+				if (metadataTable.exists(obj.id) && !obj.imageWarning) {
+					obj.imageWarning = true;
+					metadataTable.render(obj.id, obj, "update");
+				}
+			}
+			else {
+				ajaxActions.getImage(obj._id, imageType)
+					.then((url) => {
+						setPreviewUrl(obj._id, url);
+						if (metadataTable.exists(obj.id)) {
+							metadataTable.render(obj.id, obj, "update");
+						}
+					})
+					.catch(() => {
+						if (metadataTable.exists(obj.id) && !obj.imageWarning) {
+							obj.imageWarning = true;
+							metadataTable.render(obj.id, obj, "update");
+						}
+						setPreviewUrl(obj._id, false);
+					});
+			}
+		}
 
 		return `<div class='datatable-image-column'>
 					<img

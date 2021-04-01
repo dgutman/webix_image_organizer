@@ -18,6 +18,8 @@ import GalleryDataviewContextMenu from "../../views/components/galleryDataviewCo
 import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
+import imagesTagsModel from "../../models/imagesTagsModel";
+import ImagesTagsWindow from "../../views/subviews/cartList/windows/imagesTagsWindow/ImagesTagsWindow";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
@@ -27,30 +29,17 @@ import recognizedItemsModel from "../../models/recognizedItems";
 import FilterModel from "../../models/filterModel";
 import editableFoldersModel from "../../models/editableFoldersModel";
 import FolderNav from "../folderNav";
-import ImageThumbnailLoader from "../gallery/imageThumbnailLoader";
 
 let contextToFolder;
 let scrollEventId;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
+const imagesTagsCollection = imagesTagsModel.getImagesTagsCollection();
 let filesToLargeImage = [];
 let isRecognitionResultMode;
 
 class MainService {
-	constructor(
-		view,
-		hostBox,
-		collectionBox,
-		multiviewSwitcher,
-		galleryDataviewPager,
-		galleryDataview,
-		metadataTable,
-		finder,
-		metadataTemplate,
-		collapser,
-		metadataPanelScrollView,
-		cartList
-	) {
+	constructor(view, hostBox, collectionBox, multiviewSwitcher, galleryDataviewPager, galleryDataview, metadataTable, finder, metadataTemplate, collapser, metadataPanelScrollView, cartList) {
 		this._view = view;
 		this._hostBox = hostBox;
 		this._collectionBox = collectionBox;
@@ -73,53 +62,39 @@ class MainService {
 
 		const metadataTableCell = this._view.$scope.getSubMetadataTableView().getRoot();
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
-		const zstackCell = this._view.$scope.getSubZStackView();
-		const scenesViewCell = this._view.$scope.getSubScenesViewCell();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
 		this._pdfViewerWindow = this._view.$scope.ui(PdfViewerWindow);
 		this._csvViewerWindow = this._view.$scope.ui(CsvViewerWindow);
+		// this._setImagesTagsWindow = this._view.$scope.ui(ImagesTagsWindow);
 		this._finderCountTemplate = this._finder.$scope.getTreeCountTemplate();
 		this._finderContextMenu = this._view.$scope.ui(FinderContextMenu).getRoot();
 		this._cartViewButton = this._view.$scope.getSubDataviewActionPanelView().getCartButton();
 		this._downloadingMenu = this._view.$scope.getSubCartListView().getDownloadingMenu();
-		this._galleryDataviewYCountSelection = this._view.$scope
-			.getSubGalleryFeaturesView().getDataviewYCountSelection();
+		this._galleryDataviewYCountSelection = this._view.$scope.getSubGalleryFeaturesView().getDataviewYCountSelection();
 		this._galleryDataviewContextMenu = this._view.$scope.ui(GalleryDataviewContextMenu).getRoot();
-		this._galleryDataviewRichselectFilter = this._view.$scope
-			.getSubGalleryFeaturesView().getFilterBySelectionView();
-		this._showMetadataWindowButton = this._view.$scope
-			.getSubMetadataPanelView().getShowAddMetadataWindowButton();
-		this._galleryDataviewSearch = this._view.$scope
-			.getSubGalleryFeaturesView().getFilterByNameView();
+		this._galleryDataviewRichselectFilter = this._view.$scope.getSubGalleryFeaturesView().getFilterBySelectionView();
+		this._showMetadataWindowButton = this._view.$scope.getSubMetadataPanelView().getShowAddMetadataWindowButton();
+		this._galleryDataviewSearch = this._view.$scope.getSubGalleryFeaturesView().getFilterByNameView();
 		this._makeLargeImageWindow = this._view.$scope.ui(MakeLargeImageWindow);
-		this._makeLargeImageButton = this._view.$scope
-			.getSubGalleryFeaturesView().getMakeLargeImageButton();
+		this._makeLargeImageButton = this._view.$scope.getSubGalleryFeaturesView().getMakeLargeImageButton();
 		this._renamePopup = this._view.$scope.ui(RenamePopup);
 		this._tableTemplateCollapser = this._metadataTable.$scope.getTableTemplateCollapser();
-		this._galleryDataviewImageViewer = this._view.$scope
-			.getSubGalleryFeaturesView().getGalleryImageViewer();
-		this._projectFolderWindowButton = this._view.$scope
-			.getSubDataviewActionPanelView().getProjectFolderWindowButton();
+		this._galleryDataviewImageViewer = this._view.$scope.getSubGalleryFeaturesView().getGalleryImageViewer();
+		this._projectFolderWindowButton = this._view.$scope.getSubDataviewActionPanelView().getProjectFolderWindowButton();
+		// this._createNewTagButton = this._view.$scope.getSubCartListView().getCreateNewTagButton();
 		this._galleryFeaturesView = this._view.$scope.getSubGalleryFeaturesView().getRoot();
 		this._filterTableView = this._view.$scope.getSubDataviewActionPanelView().getFilterTableView();
-		this._recognitionStatusTemplate = this._view.$scope
-			.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
+		this._recognitionStatusTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
 		if (ItemsModel.instance) ItemsModel.instance.destroy();
 		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
 		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
-		this._recognitionProgressTemplate = this._view.$scope
-			.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
-		this._recognitionResultsDropDown = this._view.$scope
-			.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
-		this._filterModel = new FilterModel(
-			this._itemsModel,
-			this._galleryDataviewRichselectFilter,
-			this._filterTableView
-		);
+		this._recognitionProgressTemplate = this._view.$scope.getSubDataviewActionPanelView().getRecognitionProgressTemplate();
+		this._recognitionResultsDropDown = this._view.$scope.getSubDataviewActionPanelView().getRecognitionOptionDropDown();
+		this._filterModel = new FilterModel(this._itemsModel, this._galleryDataviewRichselectFilter, this._filterTableView);
 
 		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
@@ -138,14 +113,11 @@ class MainService {
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
 
 		this._folderNav = new FolderNav(this._view.$scope, this._finder);
-		this._imageTumbnailLoader = new ImageThumbnailLoader(this._galleryDataview);
 
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
 		this._metadataTable.sync(this._itemsDataCollection);
-		zstackCell.setCollection(this._itemsDataCollection);
-		scenesViewCell.syncSlider(this._itemsDataCollection);
 
 		this._itemsDataCollection.define("scheme", {
 			$init: (obj) => {
@@ -217,8 +189,10 @@ class MainService {
 
 		this._galleryDataview.define("template", (obj, common) => {
 			let dataviewNewImageHeight = utils.getNewImageHeight();
+			let dataviewNewItemWidth = utils.getDataviewItemWidth();
 			let IMAGE_HEIGHT;
-			const {getPreviewUrl, imageType} = this._getCurrentItemPreviewType();
+			let IMAGE_WIDTH;
+			const {getPreviewUrl, setPreviewUrl, imageType} = this._getCurrentItemPreviewType();
 
 			if (dataviewNewImageHeight) {
 				IMAGE_HEIGHT = dataviewNewImageHeight - 10;
@@ -226,10 +200,38 @@ class MainService {
 			else {
 				IMAGE_HEIGHT = 100;
 			}
-
+			if (dataviewNewItemWidth) {
+				IMAGE_WIDTH = dataviewNewItemWidth;
+			}
+			else {
+				IMAGE_WIDTH = 150;
+			}
 			const checkedClass = selectDataviewItems.isSelected(obj._id) ? "is-checked" : "";
 
-			this._imageTumbnailLoader.loadImagePreview(obj, imageType);
+			if (obj.largeImage && !getPreviewUrl(obj._id)) {
+				if (getPreviewUrl(obj._id) === false) {
+					if (this._galleryDataview.exists(obj.id) && !obj.imageWarning) {
+						obj.imageWarning = true;
+						this._galleryDataview.render(obj.id, obj, "update");
+					}
+				}
+				else {
+					ajaxActions.getImage(obj._id, imageType)
+						.then((url) => {
+							setPreviewUrl(obj._id, url);
+							if (this._galleryDataview.exists(obj.id)) {
+								this._galleryDataview.render(obj.id, obj, "update");
+							}
+						})
+						.catch(() => {
+							if (this._galleryDataview.exists(obj.id) && !obj.imageWarning) {
+								obj.imageWarning = true;
+								this._galleryDataview.render(obj.id, obj, "update");
+							}
+							setPreviewUrl(obj._id, false);
+						});
+				}
+			}
 
 			const warning = obj.imageWarning ? `<span class='webix_icon fas fa-exclamation-triangle warning-icon' style='${this._getPositionFloat(obj)}'></span>` : "";
 			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
@@ -241,22 +243,23 @@ class MainService {
 
 			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
 
+			// const imageTagDiv = obj.tag ? this._getImagesTagDiv(obj, IMAGE_HEIGHT) : "<div></div>";
 			return `<div title='${obj.name}' class='unselectable-dataview-items'>
-				<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
-					<div class="gallery-images-info">
-						<div class="gallery-images-header">
-							<div class="gallery-images-checkbox"> <i class="checkbox-icon ${common.markCheckbox(obj, common)}"></i></div>
-							<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
+						<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
+									<div class="gallery-images-info">
+										<div class="gallery-images-header">
+											<div class="gallery-images-checkbox"> <i class="checkbox-icon ${common.markCheckbox(obj, common)}"></i></div>
+											<div class="download-icon"><span class="webix_icon fa fa-download"></span></div>
+										</div>
+									</div>
+							<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
+								${starHtml}
+								${warning}
+								<img style="${bgIcon}" height="${this._checkForImageHeight(IMAGE_HEIGHT)}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+							</div>
 						</div>
-					</div>
-					<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
-						${starHtml}
-						${warning}
-						<img style="${bgIcon}" height="${this._checkForImageHeight(IMAGE_HEIGHT)}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
-					</div>
-				</div>
-				<div class="thumbnails-name">${obj.name}</div>
-			</div>`;
+						<div class="thumbnails-name">${obj.name}</div>
+					</div>`;
 		});
 
 		// // setting onChange event for hosts
@@ -276,47 +279,29 @@ class MainService {
 
 		// switching between data table and data view
 		this._multiviewSwitcher.attachEvent("onChange", (value) => {
-			const spacerForPager = this._view.$scope.getSubDataviewActionPanelView().getSpacerForPager();
-			switch (value) {
-				case "thumbnailView":
-					galleryDataviewCell.show();
-					this._collapser.show();
-					this._tableTemplateCollapser.hide();
-					this._galleryDataviewPager.show();
-					this._galleryFeaturesView.show();
-					this._toggleCartList("gallery");
-					this._selectDataviewItemByTable();
-					break;
-				case "metadataView":
-					metadataTableCell.show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._tableTemplateCollapser.show();
-					this._filterTableView.show();
-					this._galleryFeaturesView.hide();
-					this._toggleCartList("metadataTable");
-					// to fix bug with displaying data
-					this._metadataTable.scrollTo(0, 0);
-					this._selectTableItemByDataview();
-					break;
-				case "zstackView":
-					this._toggleCartList();
-					spacerForPager.show();
-					zstackCell.getRoot().show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._galleryFeaturesView.hide();
-					break;
-				case "scenesView":
-					this._toggleCartList();
-					spacerForPager.show();
-					scenesViewCell.getRoot().show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._galleryFeaturesView.hide();
-					break;
-				default:
-					break;
+			let viewToShow;
+			if (value) {
+				viewToShow = "metadataTable";
+				metadataTableCell.show();
+				this._collapser.config.setClosedState();
+				this._collapser.hide();
+				this._tableTemplateCollapser.show();
+				this._filterTableView.show();
+				this._galleryFeaturesView.hide();
+				this._toggleCartList(viewToShow);
+				// to fix bug with displaying data
+				this._metadataTable.scrollTo(0, 0);
+				this._selectTableItemByDataview();
+			}
+			else {
+				viewToShow = "gallery";
+				galleryDataviewCell.show();
+				this._collapser.show();
+				this._tableTemplateCollapser.hide();
+				this._galleryDataviewPager.show();
+				this._galleryFeaturesView.show();
+				this._toggleCartList(viewToShow);
+				this._selectDataviewItemByTable();
 			}
 		});
 
@@ -378,7 +363,6 @@ class MainService {
 			}
 			lastSelectedFolderId = id;
 			this._highlightLastSelectedFolder();
-
 			this._filterModel.prepareDataToFilter([], true);
 		});
 
@@ -472,6 +456,8 @@ class MainService {
 						this._finder.blockEvent();
 						this._finder.data.blockEvent();
 						this._setLastSelectedFolderId();
+						// this._finder.select(folderId);
+						// this._finder.open(folderId);
 						this._finder.data.unblockEvent();
 						this._finder.unblockEvent();
 						this._folderNav.setFoldersIntoUrl();
@@ -498,15 +484,9 @@ class MainService {
 					case constants.RUN_RECOGNITION_SERVICE: {
 						const dataviewItems = this._galleryDataview
 							.serialize()
-							.filter(dataviewItem => dataviewItem.largeImage &&
-								(dataviewItem.folderId === this._finderFolder._id || !dataviewItem._modelType));
+							.filter(item => item.largeImage && (item.folderId === this._finderFolder._id || !item._modelType));
 						this._recognitionOptionsWindow.setItemsToRecognize(dataviewItems);
-						this._recognitionOptionsWindow.showWindow(
-							this._finder,
-							this._finderFolder,
-							this._galleryDataview,
-							this._recognitionStatusTemplate
-						);
+						this._recognitionOptionsWindow.showWindow(this._finder, this._finderFolder, this._galleryDataview, this._recognitionStatusTemplate);
 						break;
 					}
 					case constants.UPLOAD_METADATA_MENU_ID: {
@@ -544,8 +524,7 @@ class MainService {
 							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
-							item = this._galleryDataview
-								.find(galleryItem => galleryItem._id === this._finderItem._id, true);
+							item = this._galleryDataview.find(galleryItem => galleryItem._id === this._finderItem._id, true);
 						}
 						const cartListItem = this._cartList.find(cartItem => cartItem._id === item._id, true);
 						ajaxActions.putNewItemName(this._finderItem._id, newValue)
@@ -625,14 +604,36 @@ class MainService {
 		});
 
 		this._cartList.define("template", (obj, common) => {
-			this._imageTumbnailLoader.loadImagePreview(obj, "thumbnail", this._cartList);
-
+			if (obj.largeImage && !galleryImageUrl.getPreviewImageUrl(obj._id)) {
+				if (galleryImageUrl.getPreviewImageUrl(obj._id) === false) {
+					if (this._cartList.exists(obj.id) && !obj.imageWarning) {
+						obj.imageWarning = true;
+						this._cartList.render(obj.id, obj, "update");
+					}
+				}
+				else {
+					ajaxActions.getImage(obj._id, "thumbnail")
+						.then((url) => {
+							galleryImageUrl.setPreviewImageUrl(obj._id, url);
+							if (this._cartList.exists(obj.id)) {
+								this._cartList.render(obj.id, obj, "update");
+							}
+						})
+						.catch(() => {
+							if (this._cartList.exists(obj.id) && !obj.imageWarning) {
+								obj.imageWarning = true;
+								this._cartList.render(obj.id, obj, "update");
+							}
+							galleryImageUrl.setPreviewImageUrl(obj._id, false);
+						});
+				}
+			}
 			return `<div>
-				<span class='webix_icon fas ${utils.angleIconChange(obj)}' style="color: #6E7480;"></span>
-				<div style='float: right'>${common.deleteButton(obj, common)}</div>
-				<div class='card-list-name'>${obj.name}</div>
-				<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
-			</div>`;
+						<span class='webix_icon fas ${utils.angleIconChange(obj)}' style="color: #6E7480;"></span>
+						<div style='float: right'>${common.deleteButton(obj, common)}</div>
+ 						<div class='card-list-name'>${obj.name}</div>
+ 						<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
+					</div>`;
 		});
 
 		this._cartList.attachEvent("onDeleteButtonClick", (params) => {
@@ -716,14 +717,13 @@ class MainService {
 						.serialize()
 						.filter(item => item.largeImage);
 					this._recognitionOptionsWindow.setItemsToRecognize(selectedImages);
-					this._recognitionOptionsWindow.showWindow(
-						this._finder,
-						null,
-						this._galleryDataview,
-						this._recognitionStatusTemplate
-					);
+					this._recognitionOptionsWindow.showWindow(this._finder, null, this._galleryDataview, this._recognitionStatusTemplate);
 					break;
 				}
+				// case constants.ADD_TAG_TO_IMAGES_MENU_ID: {
+				// 	const windowAction = "set";
+				// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection, this._cartList);
+				// }
 				case constants.EMPTY_CART_MENU_ID: {
 					const selectedItems = selectDataviewItems.getSelectedImages();
 					this._galleryDataview.callEvent("onCheckboxClicked", [selectedItems, 0, true]);
@@ -745,8 +745,7 @@ class MainService {
 			this._minCurrentTargenInnerWidth = dataviewMinWidth + treeWidth;
 		});
 
-		const dataviewSelectionId = utils
-			.getDataviewSelectionId() || constants.DEFAULT_DATAVIEW_COLUMNS;
+		const dataviewSelectionId = utils.getDataviewSelectionId() || constants.DEFAULT_DATAVIEW_COLUMNS;
 		this._galleryDataviewYCountSelection.blockEvent();
 		this._galleryDataviewYCountSelection.setValue(dataviewSelectionId);
 		this._galleryDataviewYCountSelection.unblockEvent();
@@ -780,8 +779,6 @@ class MainService {
 					newItemHeight = 135;
 					break;
 				}
-				default:
-					break;
 			}
 			if (id !== constants.DEFAULT_DATAVIEW_COLUMNS) {
 				newItemHeight = Math.round(newitemWidth * multiplier);
@@ -798,13 +795,13 @@ class MainService {
 		});
 
 		this._itemsDataCollection.attachEvent("onAfterLoad", () => {
-			const selectionId = utils.getDataviewSelectionId();
+			const dataviewSelectionId = utils.getDataviewSelectionId();
 			const datatableState = this._metadataTable.getState();
 			if (datatableState.sort) {
 				this._itemsDataCollection.sort(datatableState.sort.id, datatableState.sort.dir);
 			}
-			if (selectionId && selectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-				this._galleryDataviewYCountSelection.callEvent("onChange", [selectionId]);
+			if (dataviewSelectionId && dataviewSelectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
+				this._galleryDataviewYCountSelection.callEvent("onChange", [dataviewSelectionId]);
 			}
 
 			this._setFilesToLargeImage();
@@ -862,11 +859,7 @@ class MainService {
 				}
 				case "textFilter":
 				default: {
-					if (
-						this._metadataTable
-							.getColumnConfig(config.columnId)
-							.filterTypeValue === constants.FILTER_TYPE_DATE
-					) {
+					if (this._metadataTable.getColumnConfig(config.columnId).filterTypeValue === constants.FILTER_TYPE_DATE) {
 						type = "date";
 						break;
 					}
@@ -897,6 +890,11 @@ class MainService {
 				this._galleryDataview.refresh();
 			}
 		});
+
+		// this._createNewTagButton.attachEvent("onItemClick", () => {
+		// 	const windowAction = "create";
+		// 	this._setImagesTagsWindow.showWindow(windowAction, imagesTagsCollection);
+		// });
 
 		this._recognitionProgressTemplate.define("onClick", {
 			fas: () => {
@@ -945,7 +943,7 @@ class MainService {
 	}
 
 	// URL-NAV get folders and open it
-	_urlChange() {
+	_urlChange(view, url) {
 		this._folderNav.openFirstFolder();
 	}
 
@@ -980,11 +978,48 @@ class MainService {
 		return imageHeight;
 	}
 
+	// _getImagesTagDiv(obj, imageHeight) {
+	// 	let iconsDivLeft = "";
+	// 	let iconsDivRight = "";
+	//
+	// 	const itemContainerHeight = 20;
+	// 	const tagKeys = Object.keys(obj.tag);
+	// 	const tagsImageId = imagesTagsCollection.getLastId();
+	// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+	// 	const maxTagsOnSide = Math.round(imageHeight/itemContainerHeight - 2);
+	// 	const maxTagsOnItem = maxTagsOnSide * 2;
+	//
+	// 	tagKeys.forEach((tagKey, tagIndex) => {
+	// 		for (let tagsImageKey in tagsImage) {
+	// 			if (tagsImageKey === tagKey) {
+	// 				if (Array.isArray(tagsImage[tagsImageKey]) && tagIndex < maxTagsOnItem) {
+	// 					let foundObjectIcon = tagsImage[tagsImageKey].find(obj => obj.tagIcon);
+	// 					if (tagIndex < maxTagsOnSide) {
+	// 						iconsDivLeft+= `<div style="height: ${itemContainerHeight}px;">
+	// 										<span class="webix_icon fa fa-${foundObjectIcon.tagIcon} tag-align-left"></span>
+	// 									</div>`;
+	// 					} else {
+	// 						if (obj.starColor && obj.starColor.length > 0 && (tagIndex >= maxTagsOnSide - 1)) {
+	// 							break;
+	// 						}
+	// 						iconsDivRight+= `<div style="height: ${itemContainerHeight}px;">
+	// 										<span class="webix_icon fa fa-${foundObjectIcon.tagIcon} tag-align-right"></span>
+	// 									</div>`;
+	// 					}
+	// 				} else {
+	// 					break;
+	// 				}
+	// 			}
+	// 		}
+	// 	});
+	//
+	// 	return `<div style='float: left'>${iconsDivLeft}</div>
+	// 	        <div style='float: right'>${iconsDivRight}</div>`;
+	// }
+
 	_setInitSettingsMouseEvents() {
-		const settingsValues = utils
-			.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
-		viewMouseEvents
-			.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
+		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
+		viewMouseEvents.setMouseSettingsEvents(this._galleryDataview, this._metadataTable, settingsValues);
 	}
 
 	_setLastSelectedFolderId() {
@@ -1003,9 +1038,7 @@ class MainService {
 	}
 
 	_highlightLastSelectedFolder() {
-		const currentFolderId = this._finder.getSelectedId();
-		// eslint-disable-next-line eqeqeq
-		if (lastSelectedFolderId && lastSelectedFolderId != currentFolderId) {
+		if (lastSelectedFolderId) {
 			const lastItemNode = this._finder.getItemNode(lastSelectedFolderId);
 			if (lastItemNode) webix.html.addCss(lastItemNode, "last-selected-folder");
 		}
@@ -1024,7 +1057,7 @@ class MainService {
 				this._cartViewButton.hide();
 			}
 		}
-		else {
+		else if (view === "metadataTable") {
 			this._view.$scope.getSubCartListView().hideList();
 			this._cartViewButton.hide();
 		}
@@ -1076,7 +1109,6 @@ class MainService {
 
 	_selectFinderItem(id) {
 		const item = this._finder.getItem(id);
-		this._scenesViewOptionToggle(item);
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
@@ -1147,8 +1179,7 @@ class MainService {
 		const range = this._getVisibleRange();
 		const pager = this._galleryDataviewPager;
 		const pData = pager.data;
-		// we can't use DOM method for not-rendered-yet items, so fallback to pure math
-		let realIndex = this._galleryDataview.getIndexById(id);
+		let realIndex = this._galleryDataview.getIndexById(id); // we can't use DOM method for not-rendered-yet items, so fallback to pure math
 		pager.select(parseInt(realIndex / pData.size));
 		let ind;
 		if (pData.page) {
@@ -1213,9 +1244,9 @@ class MainService {
 
 	_collectionChangeHandler(collectionItem) {
 		this.pendingCollectionChange = true;
+		this._filterModel.clearFilters();
 		isRecognitionResultMode = false;
 		this._changeRecognitionResultsMode();
-		this._scenesViewOptionToggle();
 		this._itemsModel.clearAll();
 
 		this._itemsDataCollection.clearAll();
@@ -1226,8 +1257,7 @@ class MainService {
 			.loadTreeFolders("collection", collectionItem._id)
 			.then((data) => {
 				this._folderNav.openFirstFolder();
-				const projectMetadataFolder = data
-					.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
+				const projectMetadataFolder = data.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
 				projectMetadataCollection.clearAll();
 				projectMetadata.clearWrongMetadata();
 				if (projectMetadataFolder) {
@@ -1263,7 +1293,7 @@ class MainService {
 					const copy = webix.copy(data);
 					this._itemsModel.parseItems(copy, folderId);
 					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
-					this._highlightLastSelectedFolder();
+					this._highlightLastSelectedFolder(folder._id);
 
 					if (data.length < sourceParams.limit) {
 						this._finder.updateItem(folderId, {linear: constants.LOADING_STATUSES.DONE});
@@ -1279,27 +1309,6 @@ class MainService {
 					}
 				}
 			});
-	}
-
-	_scenesViewOptionToggle(item) {
-		const {THUMBNAIL_VIEW, SCENES_VIEW} = constants.VIEW_OPTION_IDS;
-		const switcherList = this._multiviewSwitcher.getList();
-		const isScenesOptionExists = switcherList.exists(SCENES_VIEW);
-
-		const folder = item && (item._modelType === "folder" ? item : this._finder.getItem(item.$parent));
-
-		const isScenesViewDefault = folder &&
-			folder.meta.dsaDefaultView === constants.DEFAULT_VIEW_SIGNS.SCENES_VIEW;
-
-		if (isScenesViewDefault && !isScenesOptionExists) {
-			const scenesViewOption = {id: SCENES_VIEW, value: "Scenes view"};
-			const scenesViewValue = switcherList.add(scenesViewOption);
-			this._multiviewSwitcher.setValue(scenesViewValue);
-		}
-		else if (!isScenesViewDefault && isScenesOptionExists) {
-			switcherList.remove(SCENES_VIEW);
-			this._multiviewSwitcher.setValue(THUMBNAIL_VIEW);
-		}
 	}
 }
 

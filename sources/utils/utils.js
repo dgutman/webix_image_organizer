@@ -309,7 +309,7 @@ function compareURLStrings(str1, str2) {
 }
 
 function isObject(item) {
-	return item && typeof item === "object" && !Array.isArray(item);
+	return (item && typeof item === "object" && !Array.isArray(item));
 }
 
 function mergeDeep(target, source) {
