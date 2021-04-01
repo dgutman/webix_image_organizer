@@ -22,6 +22,10 @@ export default class ItemsModel {
 		return ItemsModel.instance;
 	}
 
+	static getInstanceModel() {
+		return ItemsModel.instance;
+	}
+
 	parseItems(dataArray, parentId) {
 		const finderDataPull = {};
 		dataArray.forEach((item) => {
