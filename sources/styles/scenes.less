@@ -1,0 +1,139 @@
+/* scenes-view */
+.mainStylesScenesView() {
+	.scenes-view {
+		.images-row-slider {
+			overflow-y: hidden !important;
+			overflow-x: auto !important;
+			.webix_list_item {
+				border: none;
+				cursor: default;
+				padding: 0;
+			}
+			.webix_selected {
+				background: @tab-bg-active;
+				.thumbnails-name {
+				color: @select-color;
+				}
+			}
+			.thumbnails-name {
+				color: @main-color;
+				font-weight: 500;
+				line-height: 20px;
+				padding: 5px 0 0 15px;
+				margin-right: 10px;
+				text-align: center;
+				overflow: hidden;
+				  white-space: nowrap;
+				  text-overflow: ellipsis;
+			}
+		}
+	
+		.active-item {
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.1);
+			.slider-images-container {
+				background-color: unset;
+			}
+		}
+	
+		.slider-images-container {
+			position: relative;
+			cursor: pointer;
+			height: 100px;
+			.border-radius(3px);
+			text-align: center;
+		
+			.slider-image-wrap {
+				box-sizing: border-box;
+				width: 94%;
+				margin: 0 auto;
+				background: @main-bg;
+			}
+		
+			.slider-image {
+				display: inline-block;
+				vertical-align: bottom;
+				height: 100%;
+			}
+	
+			.slider-images-info {
+				background: rgba(255,255,255, .6);
+				position: absolute;
+				top: 0;
+				left: 6px;
+				z-index: 10;
+				width: 94%;
+				height: 100%;
+				display: none;
+			}
+	
+			&:hover {
+				.slider-images-info {
+					display: block;
+				}
+			}
+		  
+			&.is-checked {
+				.slider-images-info {
+					  display: block;
+				}
+				.slider-images-header {
+					.webix_icon {
+						visibility: visible;
+						color: @tab-bg-active;
+					}
+				}
+			}
+		}
+	
+		.slider-images-header {
+			padding-bottom: 5px;
+		
+			.download-icon {
+				color: rgba(0,0,0,0.8);
+				line-height: 20px;
+				margin-right: 35px;
+				padding: 5px 0 0 15px;
+				text-align: left;
+			}
+			.webix_icon {
+				visibility: hidden;
+				margin-top: 3px;
+			}
+			.slider-images-checkbox {
+				float: right;
+				padding-right: 12px;
+				padding-top: 4px;
+				overflow: hidden;
+				.checkbox-icon {
+						font-size: 17px;
+						color: @icon-color;
+					&.checked {
+						color: @btn;
+					}
+					&:hover {
+						color: @btn-hover;
+					}
+				}
+			}
+		}
+	
+		.slider-images-checkbox {
+			.checkbox-ctrl {
+				.webix_el_group {
+					padding-bottom: 2px;
+					.box-sizing(border-box);
+				}
+			}
+		}
+
+		.scenes-view__slide-metadata, .io-openseadragon-viewer {
+			.webix_overlay {
+			  padding: 1px;
+			  z-index: 9;
+			}
+		}
+	}
+}
+
+  

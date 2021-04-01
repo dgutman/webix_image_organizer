@@ -43,6 +43,7 @@ export default class FinderViewClass extends JetView {
 
 		return {
 			name: "finderClass",
+			id: constants.FINDER_VIEW_ID,
 			rows: [
 				treeView,
 				finderCounter

@@ -22,6 +22,10 @@ export default class ItemsModel {
 		return ItemsModel.instance;
 	}
 
+	static getInstanceModel() {
+		return ItemsModel.instance;
+	}
+
 	parseItems(dataArray, parentId) {
 		const finderDataPull = {};
 		dataArray.forEach((item) => {
@@ -202,7 +206,7 @@ export default class ItemsModel {
 								incorrectKeys: [key]
 							});
 						}
-	
+
 						hasFoundIncorrectKey = true;
 					}
 					else if (wrongMetadataItem) {

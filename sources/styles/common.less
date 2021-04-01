@@ -208,6 +208,11 @@ strong, b {
     }
   }
 
+  .webix_selected, .webix_selected:focus {
+    background: @selected-bg;
+    color: @select-color;
+  }
+
   .webix_img_btn .webix_icon_btn {
     font-size: @icon-size;
   }
@@ -512,5 +517,11 @@ strong, b {
   }
   .webix_window {
     .box-shadow2(0 3px 10px 0 rgba(0, 0, 0, 0.1), 0 1px 7px 0 rgba(0, 0, 0, 0.1)) !important;
+  }
+}
+
+.io-openseadragon-viewer {
+  .webix_template {
+    display: none;
   }
 }

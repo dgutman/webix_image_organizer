@@ -1,6 +1,6 @@
 import {JetView, plugins} from "webix-jet";
 import finderView from "../subviews/finder/finderView";
-import multiview from "../subviews/multiDataView/multiDataView";
+import Multiview from "../subviews/multiDataView/multiDataView";
 import dataviewActionPanel from "../subviews/dataviewActionPanel/dataviewActionPanel";
 import metadataTemplateView from "../subviews/metadataPanel/metadataTemplateView";
 import collapser from "../components/collapser";
@@ -10,10 +10,18 @@ import cartList from "../subviews/cartList/cardList";
 import galleryFeatures from "../subviews/galleryFeatures/galleryFeatures";
 
 const collapserName = "metadataCollapser";
+const finderCollapserName = "finderCollapserName";
 
 export default class MainView extends JetView {
+	constructor(app) {
+		super(app);
+
+		this._multiview = new Multiview(app);
+	}
+
 	config() {
 		const rightCollapser = collapser.getConfig(constants.SCROLL_VIEW_METADATA_ID, {type: "right", closed: true}, collapserName);
+		const finderCollapser = collapser.getConfig(constants.FINDER_VIEW_ID, {type: "left", closed: false}, finderCollapserName);
 
 		return {
 			rows: [
@@ -22,7 +30,8 @@ export default class MainView extends JetView {
 				{
 					cols: [
 						finderView,
-						multiview,
+						finderCollapser,
+						this._multiview,
 						rightCollapser,
 						metadataTemplateView,
 						cartList
@@ -85,16 +94,28 @@ export default class MainView extends JetView {
 		return this.getRoot().queryView({name: "finderClass"}).$scope;
 	}
 
-	getSubMetadataTableView() {
-		return this.getRoot().queryView({name: "metadataTableCell"}).$scope;
+	getSubMultiDataView() {
+		return this._multiview;
 	}
 
-	getSubMultiDataView() {
-		return this.getRoot().queryView({name: "multiDataViewClass"}).$scope;
+	getSubMetadataTableView() {
+		return this._multiview.getMetadataTableView();
 	}
 
 	getSubGalleryView() {
-		return this.getRoot().queryView({name: "galleryCell"}).$scope;
+		return this._multiview.getThumbnalisView();
+	}
+
+	getSubZStackView() {
+		return this._multiview.getZStackView();
+	}
+
+	getSubScenesViewCell() {
+		return this._multiview.getScenesView();
+	}
+
+	getSubMultichannelViewCell() {
+		return this._multiview.getMultichannelView();
 	}
 
 	getSubMetadataPanelView() {

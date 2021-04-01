@@ -1,11 +1,17 @@
 import {JetView} from "webix-jet";
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
-import galleryCell from "jet-views/subviews/gallery/gallery";
-import metadataTableCell from "jet-views/subviews/metadataTable/metadataTable";
 import utils from "../../../utils/utils";
+import ItemsModel from "../../../models/itemsModel";
+
+const SPACER_FOR_PAGER_ID = "spacer-for-pager";
+const [thumbnailOption] = constants.MAIN_MULTIVIEW_OPTIONS;
 
 export default class DataviewActionPanelClass extends JetView {
+	get viewSwitcherId() {
+		return "viewSwitcherId";
+	}
+
 	config() {
 		const projectFolderWindowButton = {
 			view: "button",
@@ -17,17 +23,6 @@ export default class DataviewActionPanelClass extends JetView {
 			click: () => {
 				this.projectMetadataWindow.showWindow();
 			}
-		};
-
-		const switchButton = {
-			view: "switch",
-			value: 0,
-			labelAlign: "right",
-			width: 570,
-			labelWidth: 200,
-			labelRight: "Metadata table view",
-			label: "Images thumbnail view",
-			multiview: true
 		};
 
 		const recognitionOptionDropDown = {
@@ -61,13 +56,14 @@ export default class DataviewActionPanelClass extends JetView {
 			placeholder: "Select file type",
 			options: {
 				body: {
-					template: (obj) => {
-						if (obj.value) {
-							if (obj.value === "folders") {
-								return `Show ${obj.value.toUpperCase()}`;
+					template: ({value}) => {
+						if (value) {
+							if (value === "folders") {
+								return `Show ${value.toUpperCase()}`;
 							}
-							return `Show ${obj.value.toUpperCase()} files`;
+							return `Show ${value.toUpperCase()} files`;
 						}
+						return "";
 					}
 				}
 			}
@@ -75,9 +71,13 @@ export default class DataviewActionPanelClass extends JetView {
 
 		const multiview = {
 			view: "multiview",
+			animate: false,
 			cells: [
 				pager,
-				filterBySelection
+				filterBySelection,
+				{
+					localId: SPACER_FOR_PAGER_ID
+				}
 			]
 		};
 
@@ -110,7 +110,7 @@ export default class DataviewActionPanelClass extends JetView {
 			hidden: true
 		};
 
-		const ui = {
+		return {
 			padding: 7,
 			rows: [
 				{
@@ -119,7 +119,20 @@ export default class DataviewActionPanelClass extends JetView {
 						{width: 75},
 						projectFolderWindowButton,
 						{},
-						switchButton,
+						{
+							view: "richselect",
+							localId: this.viewSwitcherId,
+							icon: utils.getSelectIcon(),
+							css: "select-field ellipsis-text",
+							width: 200,
+							value: thumbnailOption.id,
+							options: {
+								data: constants.MAIN_MULTIVIEW_OPTIONS,
+								body: {
+									css: "ellipsis-text"
+								}
+							}
+						},
 						recognitionOptionDropDown,
 						{},
 						multiview,
@@ -131,14 +144,14 @@ export default class DataviewActionPanelClass extends JetView {
 				recognitionProgressTemplate
 			]
 		};
-
-		return ui;
 	}
 
 	ready() {
 		this.projectMetadataWindow = this.ui(ProjectMetadataWindow);
 		const recognitionProgressTemplate = this.getRecognitionProgressTemplate();
 		webix.TooltipControl.addTooltip(recognitionProgressTemplate.$view);
+
+		this._switcherView = this.getSwitcherView();
 	}
 
 	getItemsCount(pagerObj) {
@@ -156,7 +169,7 @@ export default class DataviewActionPanelClass extends JetView {
 	}
 
 	getSwitcherView() {
-		return this.getRoot().queryView({view: "switch"});
+		return this.$$(this.viewSwitcherId);
 	}
 
 	getPagerView() {
@@ -181,5 +194,59 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getRecognitionOptionDropDown() {
 		return this.getRoot().queryView({name: "recognitionOptionDropDown"});
+	}
+
+	getSpacerForPager() {
+		return this.$$(SPACER_FOR_PAGER_ID);
+	}
+
+	scenesViewOptionToggle(item) {
+		const imagesCollection = ItemsModel.getInstanceModel();
+		const scenesViewOption = constants.SCENES_VIEW_OPTION;
+		if (!item) {
+			this.removeViewOption(scenesViewOption);
+			return;
+		}
+
+		const folder = item._modelType === "folder" ? item : imagesCollection.findItem(item.$parent);
+		if (folder.meta.dsaDefaultView === "XBSViewOne") {
+			this.setNewViewOption(scenesViewOption);
+		}
+		else if (folder.meta.dsaDefaultView !== "XBSViewOne") {
+			this.removeViewOption(scenesViewOption);
+		}
+	}
+
+	multichannelViewOptionToggle(item) {
+		const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
+		if (!item) {
+			this.removeViewOption(multichannelViewOption);
+			return;
+		}
+
+		if (item.meta && item.meta.omeSceneDescription && item.meta.omeSceneDescription.length) {
+			this.setNewViewOption(multichannelViewOption);
+		}
+		else if (!item.meta || !item.meta.omeSceneDescription || !item.meta.omeSceneDescription.length) {
+			this.removeViewOption(multichannelViewOption);
+		}
+	}
+
+	removeViewOption(viewOption) {
+		const switcherList = this._switcherView.getList();
+		const isOptionExists = switcherList.exists(viewOption.id);
+		if (isOptionExists) {
+			switcherList.remove(viewOption.id);
+			this._switcherView.setValue(thumbnailOption.id);
+		}
+	}
+
+	setNewViewOption(viewOption) {
+		const switcherList = this._switcherView.getList();
+		const isOptionExists = switcherList.exists(viewOption.id);
+		if (!isOptionExists) {
+			const ViewOptionId = switcherList.add(viewOption);
+			this._switcherView.setValue(ViewOptionId);
+		}
 	}
 }
