@@ -1,11 +1,17 @@
 import {JetView} from "webix-jet";
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
-import galleryCell from "jet-views/subviews/gallery/gallery";
-import metadataTableCell from "jet-views/subviews/metadataTable/metadataTable";
 import utils from "../../../utils/utils";
 
+const SPACER_FOR_PAGER_ID = "spacer-for-pager";
+
+const {THUMBNAIL_VIEW, METADATA_TABLE_VIEW, Z_STACK_VIEW} = constants.VIEW_OPTION_IDS;
+
 export default class DataviewActionPanelClass extends JetView {
+	get viewSwitcherId() {
+		return "viewSwitcherId";
+	}
+
 	config() {
 		const projectFolderWindowButton = {
 			view: "button",
@@ -17,17 +23,6 @@ export default class DataviewActionPanelClass extends JetView {
 			click: () => {
 				this.projectMetadataWindow.showWindow();
 			}
-		};
-
-		const switchButton = {
-			view: "switch",
-			value: 0,
-			labelAlign: "right",
-			width: 570,
-			labelWidth: 200,
-			labelRight: "Metadata table view",
-			label: "Images thumbnail view",
-			multiview: true
 		};
 
 		const recognitionOptionDropDown = {
@@ -61,13 +56,14 @@ export default class DataviewActionPanelClass extends JetView {
 			placeholder: "Select file type",
 			options: {
 				body: {
-					template: (obj) => {
-						if (obj.value) {
-							if (obj.value === "folders") {
-								return `Show ${obj.value.toUpperCase()}`;
+					template: ({value}) => {
+						if (value) {
+							if (value === "folders") {
+								return `Show ${value.toUpperCase()}`;
 							}
-							return `Show ${obj.value.toUpperCase()} files`;
+							return `Show ${value.toUpperCase()} files`;
 						}
+						return "";
 					}
 				}
 			}
@@ -75,9 +71,13 @@ export default class DataviewActionPanelClass extends JetView {
 
 		const multiview = {
 			view: "multiview",
+			animate: false,
 			cells: [
 				pager,
-				filterBySelection
+				filterBySelection,
+				{
+					localId: SPACER_FOR_PAGER_ID
+				}
 			]
 		};
 
@@ -110,7 +110,7 @@ export default class DataviewActionPanelClass extends JetView {
 			hidden: true
 		};
 
-		const ui = {
+		return {
 			padding: 7,
 			rows: [
 				{
@@ -119,7 +119,24 @@ export default class DataviewActionPanelClass extends JetView {
 						{width: 75},
 						projectFolderWindowButton,
 						{},
-						switchButton,
+						{
+							view: "richselect",
+							localId: this.viewSwitcherId,
+							icon: utils.getSelectIcon(),
+							css: "select-field ellipsis-text",
+							width: 200,
+							value: THUMBNAIL_VIEW,
+							options: {
+								data: [
+									{id: THUMBNAIL_VIEW, value: "Images thumbnail view"},
+									{id: METADATA_TABLE_VIEW, value: "Metadata table view"},
+									{id: Z_STACK_VIEW, value: "Zstack"}
+								],
+								body: {
+									css: "ellipsis-text"
+								}
+							}
+						},
 						recognitionOptionDropDown,
 						{},
 						multiview,
@@ -131,8 +148,6 @@ export default class DataviewActionPanelClass extends JetView {
 				recognitionProgressTemplate
 			]
 		};
-
-		return ui;
 	}
 
 	ready() {
@@ -156,7 +171,7 @@ export default class DataviewActionPanelClass extends JetView {
 	}
 
 	getSwitcherView() {
-		return this.getRoot().queryView({view: "switch"});
+		return this.$$(this.viewSwitcherId);
 	}
 
 	getPagerView() {
@@ -181,5 +196,9 @@ export default class DataviewActionPanelClass extends JetView {
 
 	getRecognitionOptionDropDown() {
 		return this.getRoot().queryView({name: "recognitionOptionDropDown"});
+	}
+
+	getSpacerForPager() {
+		return this.$$(SPACER_FOR_PAGER_ID);
 	}
 }

@@ -65,7 +65,7 @@ class HeaderService {
 			this._view.$scope.app.callEvent("collectionChange", [id, collectionItem, oldId]);
 		});
 	}
-	
+
 	// URL-NAV get host and collection from URL params and select it
 	_urlChange(view, url) {
 		this.urlChangeHost(view);
