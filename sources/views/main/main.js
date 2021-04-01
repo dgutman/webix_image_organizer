@@ -10,12 +10,10 @@ import cartList from "../subviews/cartList/cardList";
 import galleryFeatures from "../subviews/galleryFeatures/galleryFeatures";
 
 const collapserName = "metadataCollapser";
-const finderCollapserName = "finderCollapserName";
 
 export default class MainView extends JetView {
 	config() {
 		const rightCollapser = collapser.getConfig(constants.SCROLL_VIEW_METADATA_ID, {type: "right", closed: true}, collapserName);
-		const finderCollapser = collapser.getConfig(constants.FINDER_VIEW_ID, {type: "left", closed: false}, finderCollapserName);
 
 		return {
 			rows: [
@@ -24,7 +22,6 @@ export default class MainView extends JetView {
 				{
 					cols: [
 						finderView,
-						finderCollapser,
 						multiview,
 						rightCollapser,
 						metadataTemplateView,
@@ -98,14 +95,6 @@ export default class MainView extends JetView {
 
 	getSubGalleryView() {
 		return this.getRoot().queryView({name: "galleryCell"}).$scope;
-	}
-
-	getSubZStackView() {
-		return this.getRoot().queryView({name: "zStackCell"}).$scope;
-	}
-
-	getSubScenesViewCell() {
-		return this.getRoot().queryView({name: "scenesViewCell"}).$scope;
 	}
 
 	getSubMetadataPanelView() {

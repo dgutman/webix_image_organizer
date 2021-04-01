@@ -15,12 +15,8 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow
 		case "jpg":
 		case "tiff":
 		case "bmp": {
-			if (item.largeImage) {
-				imageWindow.showWindow(item, "seadragon");
-			}
-			else {
-				utils.showAlert();
-			}
+			if (item.largeImage) imageWindow.showWindow(item, "standard");
+			else utils.showAlert();
 			break;
 		}
 		case "csv": {
@@ -50,11 +46,8 @@ function openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow
 		}
 		default: {
 			if (item.largeImage) {
-				imageWindow.showWindow(item, "seadragon");
-			}
-			else {
-				utils.showAlert();
-			}
+				imageWindow.showWindow(item, "standard");
+			} else utils.showAlert();
 			break;
 		}
 	}

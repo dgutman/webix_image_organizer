@@ -1,3 +1,5 @@
+import utils from "../../utils/utils";
+
 const overlayNode = `<div class='data-subview-overlay'>
 						<span class='overlay-text'>There are no items</span>
 					</div>`;

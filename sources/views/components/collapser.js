@@ -34,7 +34,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 				id: BTN_OPENED_STATE_ID,
 				hidden: config && config.closed,
 				onClick: {
-					"collapser-btn": function handleCollapse() {
+					"collapser-btn": function () {
 						const collapsedView = $$(collapsedViewId);
 						collapsedView.hide();
 						this.hide();
@@ -53,7 +53,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 				id: BTN_CLOSED_STATE_ID,
 				hidden: !(config && config.closed),
 				onClick: {
-					"collapser-btn": function handleExpand() {
+					"collapser-btn": function () {
 						const collapsedView = $$(collapsedViewId);
 						collapsedView.show();
 						this.hide();
