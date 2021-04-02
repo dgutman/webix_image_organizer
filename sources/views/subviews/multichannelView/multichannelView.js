@@ -2,8 +2,9 @@ import {JetView} from "webix-jet";
 import MultichannelOSDViewer from "./osdViewer";
 import ChannelList from "./channelList";
 import GroupsPanel from "./groupsPanel";
-import AddGroupWindow from "./windows/addGroup";
+// import AddGroupWindow from "./windows/addGroup";
 import TilesService from "../../../services/multichannelView/tilesService";
+import DragAndDropMediator from "../../../services/multichannelView/dragAndDropMediator";
 import TimedOutBehavior from "../../../utils/timedOutBehavior";
 
 export default class MultichannelView extends JetView {
@@ -34,7 +35,7 @@ export default class MultichannelView extends JetView {
 	}
 
 	init() {
-		this._addGroupWindow = this.ui(new AddGroupWindow(this.app));
+		// this._addGroupWindow = this.ui(new AddGroupWindow(this.app));
 		this._tileService = new TilesService();
 	}
 
@@ -43,14 +44,21 @@ export default class MultichannelView extends JetView {
 		webix.extend(view, webix.ProgressBar);
 		const groupsList = this._groupsPanel.getGroupsList();
 		const channelList = this._channelList.getList();
+		// const groupChannelList = this._groupsPanel.getGroupsChannelsList();
 
 		channelList.sync(this._channelsCollection);
 		groupsList.sync(this._groupsCollection);
 
+		this._dragAndDropMediator = new DragAndDropMediator({
+			main: this,
+			groupsPanel: this._groupsPanel,
+			channelsList: this._channelList
+		});
+
 		this._attachChannelsListEvents();
 		this._attachOSDViewEvents();
 		this._attachGroupsPanelEvents();
-		this._attachGroupWindowEvents();
+		// this._attachGroupWindowEvents();
 	}
 
 	show(item) {
@@ -109,7 +117,7 @@ export default class MultichannelView extends JetView {
 	_addGroupHandler({name}) {
 		const existedGroup = this._groupsCollection.find(group => group.name === name, true);
 		if (existedGroup) {
-			this._addGroupWindow.markInvalidNameInput("Group with the same name already exists");
+			// this._addGroupWindow.markInvalidNameInput("Group with the same name already exists");
 			return;
 		}
 
@@ -129,14 +137,16 @@ export default class MultichannelView extends JetView {
 			channels: coloredChannels
 		};
 
-		this._groupsCollection.add(group);
+		const groupId = this._groupsCollection.add(group);
 		this._groupsPanel.getRoot().show();
-		this._addGroupWindow.closeWindow();
+		this._groupsPanel.getGroupsList().select(groupId);
+		this._channelList.unselectAllChannels();
+		// this._addGroupWindow.closeWindow();
 	}
 
 	async _selectGroupHandler(group) {
-		this._channelList.unselectAllChannels();
 		const channelList = this._channelList.getList();
+		this._channelList.setSelectedGroupToButton(group);
 		channelList.unselectAll();
 
 		this._osdViewer.removeAllTiles();
@@ -194,6 +204,17 @@ export default class MultichannelView extends JetView {
 			this._osdViewer.removeAllTiles();
 			this._osdViewer.addNewTile(channelTileSource);
 		});
+
+		this.on(channelList, "customSelectionChanged", (channels) => {
+			const selectedGroups = groupsList.getSelectedItem(true);
+			this._channelList.changeButtonVisibility(channels.length && selectedGroups.length);
+		});
+
+		this.on(channelList, "addToSelectedGroup", (channels) => {
+			const selectedGroup = groupsList.getSelectedItem();
+			this._groupsPanel.addChannelsToGroup(channels, selectedGroup);
+			this._groupsPanel.updateSelectedGroupTiles();
+		});
 	}
 
 	_attachOSDViewEvents() {
@@ -204,15 +225,19 @@ export default class MultichannelView extends JetView {
 		});
 
 		this.on(osdViewerRoot, "addGroupBtnClick", () => {
-			this._addGroupWindow.showWindow();
+			const selectedChannels = this._channelList.getSelectedChannels();
+			const name = this._getGroupName(selectedChannels);
+			if (name) {
+				this._addGroupHandler({name});
+			}
 		});
 	}
 
-	_attachGroupWindowEvents() {
-		this.on(this._addGroupWindow.getRoot(), "addGroup", (group) => {
-			this._addGroupHandler(group);
-		});
-	}
+	// _attachGroupWindowEvents() {
+	// 	this.on(this._addGroupWindow.getRoot(), "addGroup", (group) => {
+	// 		this._addGroupHandler(group);
+	// 	});
+	// }
 
 	_attachGroupsPanelEvents() {
 		const groupsPanel = this._groupsPanel.getRoot();
@@ -258,9 +283,8 @@ export default class MultichannelView extends JetView {
 			debounce.cancel();
 			groupChannelList.detachEvent(dataUpdateEventId);
 			groupsPanel.detachEvent(hideWindowEventId);
-			const groupsList = this._groupsPanel.getGroupsList();
 			// show group frames (channels)
-			groupsList.callEvent("onSelectChange", [groupsList.getSelectedItem(true)]);
+			this._groupsPanel.updateSelectedGroupTiles();
 		});
 	}
 
@@ -313,5 +337,11 @@ export default class MultichannelView extends JetView {
 			this._groupsPanel.getRoot().hide();
 			this.setDefaultOSDImage();
 		}
+	}
+
+	_getGroupName(channels) {
+		// eslint-disable-next-line camelcase
+		return channels.map(({channel_name}) => channel_name)
+			.join("_");
 	}
 }

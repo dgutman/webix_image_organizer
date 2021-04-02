@@ -73,8 +73,8 @@ module.exports = (env) => {
 			}
 		},
 		devServer: {
-			host: process.env.DEV_HOST || "0.0.0.0",
-			port: process.env.DEV_PORT || 5000,
+			host: process.env.DEV_HOST || "localhost",
+			port: process.env.DEV_PORT || 8080,
 			// Path to all other files (e.g. index.html and webix):
 			contentBase: ["./codebase", "./node_modules"],
 			inline: true,
@@ -101,6 +101,7 @@ module.exports = (env) => {
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
 					{id: "2", value: "ISIC Archive", hostAPI: "https://isic-archive.com/girder/api/v1"},
 					{id: "3", value: "Computablebrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
+					{id: "4", value: "HTAN", hostAPI: "https://imaging.htan.dev/girder/api/v1"}
 
 //					{id: "4", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"}
 //					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},

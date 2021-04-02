@@ -25,6 +25,7 @@ export default class AddGroupWindow extends JetView {
 						view: "button",
 						type: "icon",
 						icon: "fas fa-times",
+						hotkey: "esc",
 						width: 30,
 						height: 30,
 						borderless: true,

@@ -62,7 +62,7 @@ export default class ImagesRowSlider extends JetView {
 						const activeState = !this._isSingle && this._highlightedId === obj.id ? "active-item" : "";
 
 						return `<div title='${obj.name}' class='unselectable-dataview-items ${activeState}'>
-									<div class="thumbnails-name ellipsis-overflow">${dsaStainTag || obj.name}</div>
+									<div class="thumbnails-name ellipsis-text">${dsaStainTag || obj.name}</div>
 									<div class="slider-images-container ${checkedClass}">
 										<div class="slider-images-info">
 											<div class="slider-images-header">
