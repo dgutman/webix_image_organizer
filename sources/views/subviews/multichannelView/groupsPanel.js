@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
 import {JetView} from "webix-jet";
-import formats from "../../../utils/formats";
+import MathCalculations from "../../../utils/mathCalculations";
 import ColorPickerWindow from "./windows/colorPopup";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
-
 const GROUP_CHANNELS_LAYOUT_ID = "group-channels-layout";
+const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
+
 
 export default class GroupsPanel extends JetView {
 	constructor(app, config = {}) {
@@ -25,12 +26,33 @@ export default class GroupsPanel extends JetView {
 					height: 30
 				},
 				{
+					view: "text",
+					css: "text-field",
+					placeholder: "Search...",
+					localId: GROUPS_TEXT_SEARCH_ID,
+					on: {
+						onTimedKeyPress: () => {
+							const value = this.getGroupsSearch().getValue();
+							this.getGroupsList().filter(({name}) => {
+								if (!value) {
+									return true;
+								}
+
+								return name.toLowerCase().includes(value.toLowerCase());
+							});
+						}
+					}
+				},
+				{
 					view: "list",
 					localId: GROUPS_LIST_ID,
 					css: "groups-list",
+					drag: "target",
+					scroll: "auto",
 					navigation: false,
 					select: true,
-					template: ({name}) => `<span class="group-item__name name">${name}</span>
+					tooltip: ({name}) => name,
+					template: ({name}) => `<span class="group-item__name name ellipsis-text">${name}</span>
 						<div class="icons">
 							<span class="icon delete fas fa-minus-circle"></span>
 						</div>`,
@@ -52,7 +74,8 @@ export default class GroupsPanel extends JetView {
 							view: "list",
 							localId: GROUP_CHANNELS_LIST_ID,
 							css: "groups-channels-list",
-							drag: "order",
+							drag: true,
+							scroll: "auto",
 							navigation: false,
 							select: false,
 							template: ({channel_name, color, opacity}) => {
@@ -89,15 +112,7 @@ export default class GroupsPanel extends JetView {
 		const channelsList = this.getGroupsChannelsList();
 
 		this.on(groupsList, "onSelectChange", () => {
-			const group = groupsList.getSelectedItem();
-			channelsList.clearAll();
-			this._group = group;
-			if (!group) {
-				return;
-			}
-
-			channelsList.parse(group.channels);
-			this.getRoot().callEvent("afterGroupSelect", [group]);
+			this.updateSelectedGroupTiles();
 		});
 
 		this.on(channelsList.data, "onStoreUpdated", () => {
@@ -110,23 +125,42 @@ export default class GroupsPanel extends JetView {
 				channelsLayout.hide();
 			}
 		});
-
-		this.on(channelsList, "onAfterDrop", (context) => {
-			const [channelId] = context.source;
-			const channels = channelsList.data.serialize();
-			const index = channelsList.getIndexById(channelId);
-			const oldIndex = this._group.channels
-				.findIndex(channel => channel.id === parseInt(channelId));
-
-			if (index !== oldIndex) {
-				groupsList.updateItem(this._group.id, {channels});
-				this.getRoot().callEvent("channelOrderChange", [index, oldIndex]);
-			}
-		});
 	}
 
 	ready() {
 		this._colorWindow = this.ui(new ColorPickerWindow(this.app));
+	}
+
+	updateSelectedGroupTiles() {
+		const groupsList = this.getGroupsList();
+		const channelsList = this.getGroupsChannelsList();
+
+		const group = groupsList.getSelectedItem();
+		channelsList.clearAll();
+		this._group = group;
+		if (!group) {
+			return;
+		}
+
+		channelsList.parse(group.channels);
+		this.getRoot().callEvent("afterGroupSelect", [group]);
+	}
+
+	addChannelsToGroup(channels, group) {
+		const count = group.channels.length;
+		let newChannels = channels
+			.filter(({index}) => !group.channels.find(channel => channel.index === index))
+			.map((channel, i, arr) => {
+				const color = this.createColorByIndex(count + i, arr.length + count);
+				const defaultChannelSettings = {
+					opacity: 1,
+					min: 500,
+					max: 30000
+				};
+				return Object.assign(defaultChannelSettings, channel, {color});
+			});
+		group.channels.push(...newChannels);
+		return newChannels;
 	}
 
 	removeGroup(id) {
@@ -194,11 +228,10 @@ export default class GroupsPanel extends JetView {
 	}
 
 	createColorByIndex(index, count = 1) {
-		let colorStep = Math.floor(360 / count); // 360 is HSL max hue
+		const hue = Math.round(MathCalculations.mapLinear(index, 0, count, 0, 360, true));
 		let saturation = 100;
 		let lightness = 50;
-		let frameColorRgb = formats.HSLToRGB(index * colorStep, saturation, lightness);
-		return frameColorRgb; // formats.RGBtoHEX(frameColorRgb);
+		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 	}
 
 	getGroupsList() {
@@ -211,5 +244,9 @@ export default class GroupsPanel extends JetView {
 
 	getChannelsLayout() {
 		return this.$$(GROUP_CHANNELS_LAYOUT_ID);
+	}
+
+	getGroupsSearch() {
+		return this.$$(GROUPS_TEXT_SEARCH_ID);
 	}
 }

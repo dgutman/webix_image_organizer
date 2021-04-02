@@ -8,6 +8,10 @@
 			.channel-item__name {
 			  cursor: pointer;
 			}
+			.channel-item__index {
+				position: absolute;
+				right: 5px;
+			}
 			.checkbox {
 			  cursor: pointer;
 			  font-size: 1.07em;
@@ -47,6 +51,14 @@
 			.icon:hover {
 				color: @btn-hover;
 				cursor: pointer;
+			}
+		}
+
+		.sort-icon-template {
+			font-size: 20px;
+			.active, .icon:hover {
+				cursor: pointer;
+				color: @btn-hover;
 			}
 		}
 	}
