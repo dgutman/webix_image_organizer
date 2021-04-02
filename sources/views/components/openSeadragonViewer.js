@@ -4,10 +4,10 @@ import "openseadragon-filtering";
 import "../../libs/openseadragon-svg-overlay/openseadragon-svg-overlay";
 
 export default class OpenSeadragonViewer extends JetView {
-	constructor(app, config = {}) {
-		super(app, config);
+	constructor(app, options = {}) {
+		super(app, options);
 
-		this._options = config;
+		this._options = options;
 		this._openseaDragonViewer = null;
 	}
 
@@ -22,10 +22,10 @@ export default class OpenSeadragonViewer extends JetView {
 		webix.extend(view, webix.OverlayBox);
 	}
 
-	createViewer(options) {
+	createViewer(options, node = this.getRoot().getNode()) {
 		this._openseaDragonViewer = new OpenSeadragon.Viewer({
 			...Object.assign({}, this._options, options),
-			element: this.getRoot().getNode(),
+			element: node,
 			prefixUrl: "sources/images/images/"
 		});
 

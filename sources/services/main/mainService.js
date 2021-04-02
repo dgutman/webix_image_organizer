@@ -1,7 +1,7 @@
 import ajaxActions from "../ajaxActions";
 import utils from "../../utils/utils";
 import galleryImageUrl from "../../models/galleryImageUrls";
-import ImageWindow from "../../views/subviews/gallery/windows/imageWindow";
+import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
 import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
 import CsvViewerWindow from "../../views/subviews/gallery/windows/csvViewerWindow";
 import FinderContextMenu from "../../views/components/finderContextMenu";
@@ -75,6 +75,7 @@ class MainService {
 		const galleryDataviewCell = this._view.$scope.getSubGalleryView().getRoot();
 		const zstackCell = this._view.$scope.getSubZStackView();
 		const scenesViewCell = this._view.$scope.getSubScenesViewCell();
+		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
@@ -97,7 +98,6 @@ class MainService {
 		this._makeLargeImageButton = this._view.$scope
 			.getSubGalleryFeaturesView().getMakeLargeImageButton();
 		this._renamePopup = this._view.$scope.ui(RenamePopup);
-		this._tableTemplateCollapser = this._metadataTable.$scope.getTableTemplateCollapser();
 		this._galleryDataviewImageViewer = this._view.$scope
 			.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope
@@ -276,44 +276,44 @@ class MainService {
 
 		// switching between data table and data view
 		this._multiviewSwitcher.attachEvent("onChange", (value) => {
-			const spacerForPager = this._view.$scope.getSubDataviewActionPanelView().getSpacerForPager();
+			const [
+				thumbnailOption,
+				metadataViewOption,
+				zStackViewOption
+			] = constants.MAIN_MULTIVIEW_OPTIONS;
+			const scenesOption = constants.SCENES_VIEW_OPTION;
+			const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
+
+			const selectedItem = this._finder.getSelectedItem();
+
 			switch (value) {
-				case "thumbnailView":
+				case thumbnailOption.id:
 					galleryDataviewCell.show();
 					this._collapser.show();
-					this._tableTemplateCollapser.hide();
 					this._galleryDataviewPager.show();
 					this._galleryFeaturesView.show();
 					this._toggleCartList("gallery");
 					this._selectDataviewItemByTable();
 					break;
-				case "metadataView":
+				case metadataViewOption.id:
+					this._closeThumbnailViewPanels();
 					metadataTableCell.show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._tableTemplateCollapser.show();
 					this._filterTableView.show();
-					this._galleryFeaturesView.hide();
-					this._toggleCartList("metadataTable");
 					// to fix bug with displaying data
 					this._metadataTable.scrollTo(0, 0);
 					this._selectTableItemByDataview();
 					break;
-				case "zstackView":
-					this._toggleCartList();
-					spacerForPager.show();
+				case zStackViewOption.id:
+					this._closeThumbnailViewPanels();
 					zstackCell.getRoot().show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._galleryFeaturesView.hide();
 					break;
-				case "scenesView":
-					this._toggleCartList();
-					spacerForPager.show();
+				case scenesOption.id:
+					this._closeThumbnailViewPanels();
 					scenesViewCell.getRoot().show();
-					this._collapser.config.setClosedState();
-					this._collapser.hide();
-					this._galleryFeaturesView.hide();
+					break;
+				case multichannelViewOption.id:
+					this._closeThumbnailViewPanels();
+					multichannelViewCell.show(selectedItem);
 					break;
 				default:
 					break;
@@ -1076,7 +1076,10 @@ class MainService {
 
 	_selectFinderItem(id) {
 		const item = this._finder.getItem(id);
-		this._scenesViewOptionToggle(item);
+		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
+		actionPanel.scenesViewOptionToggle(item);
+		actionPanel.multichannelViewOptionToggle(item);
+
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
@@ -1215,7 +1218,9 @@ class MainService {
 		this.pendingCollectionChange = true;
 		isRecognitionResultMode = false;
 		this._changeRecognitionResultsMode();
-		this._scenesViewOptionToggle();
+		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
+		actionPanel.scenesViewOptionToggle();
+		actionPanel.multichannelViewOptionToggle();
 		this._itemsModel.clearAll();
 
 		this._itemsDataCollection.clearAll();
@@ -1281,25 +1286,13 @@ class MainService {
 			});
 	}
 
-	_scenesViewOptionToggle(item) {
-		const {THUMBNAIL_VIEW, SCENES_VIEW} = constants.VIEW_OPTION_IDS;
-		const switcherList = this._multiviewSwitcher.getList();
-		const isScenesOptionExists = switcherList.exists(SCENES_VIEW);
-
-		const folder = item && (item._modelType === "folder" ? item : this._finder.getItem(item.$parent));
-
-		const isScenesViewDefault = folder &&
-			folder.meta.dsaDefaultView === constants.DEFAULT_VIEW_SIGNS.SCENES_VIEW;
-
-		if (isScenesViewDefault && !isScenesOptionExists) {
-			const scenesViewOption = {id: SCENES_VIEW, value: "Scenes view"};
-			const scenesViewValue = switcherList.add(scenesViewOption);
-			this._multiviewSwitcher.setValue(scenesViewValue);
-		}
-		else if (!isScenesViewDefault && isScenesOptionExists) {
-			switcherList.remove(SCENES_VIEW);
-			this._multiviewSwitcher.setValue(THUMBNAIL_VIEW);
-		}
+	_closeThumbnailViewPanels() {
+		const spacerForPager = this._view.$scope.getSubDataviewActionPanelView().getSpacerForPager();
+		this._toggleCartList();
+		spacerForPager.show();
+		this._collapser.config.setClosedState();
+		this._collapser.hide();
+		this._galleryFeaturesView.hide();
 	}
 }
 
