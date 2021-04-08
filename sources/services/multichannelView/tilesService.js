@@ -1,4 +1,5 @@
 import ajaxActions from "../ajaxActions";
+import tilesCollection from "../../models/imageTilesCollection";
 
 export default class TilesSourcesService {
 	constructor() {
@@ -6,17 +7,14 @@ export default class TilesSourcesService {
 		this._imageTileSources = null;
 	}
 
-	setImage(image) {
-		this._image = image;
-		return this.getTileSources(image);
-	}
-
 	async getTileSources(image) {
 		if (this._imageTileSources && image === this._image) {
 			return Promise.resolve(this._imageTileSources);
 		}
 
-		const tileSourceOptions = await ajaxActions.getImageTiles(image._id);
+		this._image = image;
+
+		const tileSourceOptions = await tilesCollection.getImageTileInfo(image);
 
 		const tileSources = {
 			crossOriginPolicy: "Anonymous",

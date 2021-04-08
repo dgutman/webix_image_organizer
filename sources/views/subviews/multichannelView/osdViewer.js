@@ -11,11 +11,12 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 			...this._cnf,
 			view: "template",
 			template: () => `<div class="icons">
-				<span class="icon home fas fa-home"></span>
-				<span class="icon zoomin fas fa-search-plus"></span>
-				<span class="icon zoomout fas fa-search-minus"></span>
-				<span class="icon addgroup fas fa-plus-circle"></span>
-				<span class="icon reset fas fa-redo"></span>
+				<span webix_tooltip="home" class="icon home fas fa-home"></span>
+				<span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
+				<span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
+				<span webix_tooltip="make a group with selected channels" class="icon addgroup fas fa-plus-circle"></span>
+				<span webix_tooltip="reset main slide" class="icon reset fas fa-redo"></span>
+				<span webix_tooltip="upload groups" class="icon upload fas fa-upload"></span>
 			</div>
 			<div class="osd-container"></div>`,
 			css: "multichannel-openseadragon-viewer",
@@ -34,15 +35,22 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 				},
 				addgroup: () => {
 					this.addGroup();
+				},
+				upload: () => {
+					this.uploadGroups();
 				}
 			}
 		};
 	}
 
+	ready(view) {
+		webix.TooltipControl.addTooltip(view.$view);
+	}
+
 	createViewer(options) {
 		const osdTemplateNode = this.getRoot().getNode();
 		const osdContainer = osdTemplateNode.querySelector(".osd-container");
-		super.createViewer(options, osdContainer);
+		return super.createViewer(options, osdContainer);
 	}
 
 	zoomHome() {
@@ -85,6 +93,10 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		this.getRoot().callEvent("addGroupBtnClick");
 	}
 
+	uploadGroups() {
+		this.getRoot().callEvent("uploadGroupBtnClick");
+	}
+
 	replaceTile(tileSource, index = 0) {
 		const viewer = this.$viewer();
 		const tileToReplace = viewer.world.getItemAt(index);
@@ -108,10 +120,20 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		});
 	}
 
-	flipSlides(firstIndex, secondIndex) {
+	flipTiles(firstIndex, secondIndex) {
+		const tileIndexes = [firstIndex, secondIndex];
 		const viewer = this.$viewer();
-		const firstItem = viewer.world.getItemAt(firstIndex);
-		const secondItem = viewer.world.getItemAt(secondIndex);
+		const [firstItem, secondItem] = tileIndexes.map((tileIndex) => {
+			const tile = viewer.world.getItemAt(tileIndex);
+			if (tileIndex === 0) {
+				const anotherTileIndex = tileIndexes.find(index => index !== tileIndex);
+				const anotherTile = viewer.world.getItemAt(anotherTileIndex);
+
+				tile.setCompositeOperation("difference");
+				anotherTile.setCompositeOperation();
+			}
+			return tile;
+		});
 
 		viewer.world.setItemIndex(firstItem, secondIndex);
 		viewer.world.setItemIndex(secondItem, firstIndex);
@@ -119,7 +141,9 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 
 	removeAllTiles() {
 		const viewer = this.$viewer();
-		viewer.world.removeAll();
+		if (viewer) {
+			viewer.world.removeAll();
+		}
 	}
 
 	setTileOpacity(index, opacity = 1) {
