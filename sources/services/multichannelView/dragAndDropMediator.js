@@ -10,6 +10,7 @@ export default class DragAndDropMediator {
 
 		this.attachGroupChannelsListEvents();
 		this.attachGroupListEvents();
+		this.attachChannelsListEvents();
 	}
 
 	attachGroupChannelsListEvents() {
@@ -35,6 +36,19 @@ export default class DragAndDropMediator {
 
 			this.handleGroupsDrop(context.target, context.source);
 			return false;
+		});
+	}
+
+	attachChannelsListEvents() {
+		const channelsList = this.$channelsList;
+
+		this._main.on(channelsList, "onBeforeDrag", (context) => {
+			const isSelected = this._channelsList.isSelected(context.start);
+			let items = context.source.map(id => channelsList.getItem(id));
+			if (isSelected) {
+				items = this._channelsList.getSelectedChannels();
+			}
+			context.source = items;
 		});
 	}
 

@@ -164,6 +164,13 @@ class MainService {
 		);
 		emptyDataViewsService.attachDataCollectionEvent();
 
+		this._view.attachEvent(constants.OPEN_MULTICHANNEL_VIEW_EVENT, async (image) => {
+			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
+			await actionPanel.multichannelViewOptionToggle(image);
+			multichannelViewCell.show();
+			multichannelViewCell.setImage(image);
+		});
+
 		// disable context menu for webix elements
 		this._metadataTable.getNode().addEventListener("contextmenu", (e) => {
 			e.preventDefault();
@@ -313,7 +320,7 @@ class MainService {
 					break;
 				case multichannelViewOption.id:
 					this._closeThumbnailViewPanels();
-					multichannelViewCell.show(selectedItem);
+					multichannelViewCell.show();
 					break;
 				default:
 					break;
@@ -1074,16 +1081,20 @@ class MainService {
 		}
 	}
 
-	_selectFinderItem(id) {
+	async _selectFinderItem(id) {
 		const item = this._finder.getItem(id);
 		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
+		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
 		actionPanel.scenesViewOptionToggle(item);
-		actionPanel.multichannelViewOptionToggle(item);
+		await actionPanel.multichannelViewOptionToggle(item);
 
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
 			this._highlightLastSelectedFolder();
+			if (this._multiviewSwitcher.getList().exists(constants.MULTICHANNEL_VIEW_OPTION.id)) {
+				multichannelViewCell.setImage(item);
+			}
 		}
 		else if (item._modelType === "folder") {
 			this._itemsModel.selectedItem = item;

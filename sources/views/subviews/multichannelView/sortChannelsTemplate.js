@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import {JetView} from "webix-jet";
 
 const SORT_TEMPLATE_ALPHA = "alpha-sort";
@@ -27,7 +26,7 @@ export default class ChannelList extends JetView {
 					id: SORT_TEMPLATE_ALPHA,
 					type: "aplha",
 					icon: "fa-sort-alpha",
-					sortField: "channel_name",
+					sortField: "name",
 					initOrder: DESC
 				}),
 				this._getSortTemplateConfig({

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import {JetView} from "webix-jet";
 import MathCalculations from "../../../utils/mathCalculations";
 import ColorPickerWindow from "./windows/colorPopup";
@@ -7,6 +6,8 @@ const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
 const GROUP_CHANNELS_LAYOUT_ID = "group-channels-layout";
 const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
+const UPLOADER_API_ID = "uploader-api";
+const GROUPS_TITLE_TEMPLATE = "groups-title";
 
 
 export default class GroupsPanel extends JetView {
@@ -22,8 +23,21 @@ export default class GroupsPanel extends JetView {
 			...this._cnf,
 			rows: [
 				{
-					template: "Groups:",
-					height: 30
+					css: "groups-panel__groups-header groups-header",
+					localId: GROUPS_TITLE_TEMPLATE,
+					template: () => `Groups: <div>
+							<span class="export icon fas fa-download" webix_tooltip="download groups"></span>
+							<span class="import icon fas fa-upload" webix_tooltip="import groups from file"></span>
+						</div>`,
+					height: 30,
+					onClick: {
+						export: () => {
+							this.exportGroups();
+						},
+						import: () => {
+							this.importGroups();
+						}
+					}
 				},
 				{
 					view: "text",
@@ -78,9 +92,9 @@ export default class GroupsPanel extends JetView {
 							scroll: "auto",
 							navigation: false,
 							select: false,
-							template: ({channel_name, color, opacity}) => {
+							template: ({name, color, opacity}) => {
 								const showIcon = opacity ? "fas fa-eye" : "fas fa-eye-slash";
-								return `<span class="channel-item__name name">${channel_name}</span>
+								return `<span class="channel-item__name name">${name}</span>
 								<div class="icons">
 									<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
 									<span class="icon show ${showIcon}"></span>
@@ -100,6 +114,14 @@ export default class GroupsPanel extends JetView {
 							}
 						}
 					]
+				},
+				{
+					view: "uploader",
+					localId: UPLOADER_API_ID,
+					apiOnly: true,
+					height: 1,
+					autosend: false,
+					multiple: false
 				}
 			]
 		};
@@ -129,6 +151,7 @@ export default class GroupsPanel extends JetView {
 
 	ready() {
 		this._colorWindow = this.ui(new ColorPickerWindow(this.app));
+		webix.TooltipControl.addTooltip(this.$$(GROUPS_TITLE_TEMPLATE).$view);
 	}
 
 	updateSelectedGroupTiles() {
@@ -138,15 +161,18 @@ export default class GroupsPanel extends JetView {
 		const group = groupsList.getSelectedItem();
 		channelsList.clearAll();
 		this._group = group;
-		if (!group) {
-			return;
+
+		if (group) {
+			channelsList.parse(group.channels);
 		}
 
-		channelsList.parse(group.channels);
-		this.getRoot().callEvent("afterGroupSelect", [group]);
+		this.getRoot().callEvent("groupSelectChange", [group]);
 	}
 
 	addChannelsToGroup(channels, group) {
+		if (!group) {
+			return null;
+		}
 		const count = group.channels.length;
 		let newChannels = channels
 			.filter(({index}) => !group.channels.find(channel => channel.index === index))
@@ -222,6 +248,9 @@ export default class GroupsPanel extends JetView {
 
 	getColoredChannels(channels) {
 		return channels.map((channel, i) => {
+			if (channel.color) {
+				return channel;
+			}
 			const rgbColor = this.createColorByIndex(i, channels.length);
 			return Object.assign({}, channel, {color: rgbColor});
 		});
@@ -232,6 +261,28 @@ export default class GroupsPanel extends JetView {
 		let saturation = 100;
 		let lightness = 50;
 		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+	}
+
+	exportGroups() {
+		const groups = this.getGroupsList().data.serialize();
+		if (!groups.length) {
+			return;
+		}
+
+		this.getRoot().callEvent("exportGroups", [groups]);
+	}
+
+	importGroups() {
+		const uploader = this.$$(UPLOADER_API_ID);
+
+		const beforeFileAddHandler = ({file}) => {
+			this.getRoot().callEvent("importGroups", [file]);
+			uploader.files.clearAll();
+			uploader.detachEvent("onBeforeFileAdd", beforeFileAddHandler);
+			return false;
+		};
+		uploader.attachEvent("onBeforeFileAdd", beforeFileAddHandler);
+		uploader.fileDialog();
 	}
 
 	getGroupsList() {
