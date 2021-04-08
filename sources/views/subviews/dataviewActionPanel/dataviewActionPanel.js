@@ -3,6 +3,7 @@ import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
 import utils from "../../../utils/utils";
 import ItemsModel from "../../../models/itemsModel";
+import tilesCollection from "../../../models/imageTilesCollection";
 
 const SPACER_FOR_PAGER_ID = "spacer-for-pager";
 const [thumbnailOption] = constants.MAIN_MULTIVIEW_OPTIONS;
@@ -209,25 +210,26 @@ export default class DataviewActionPanelClass extends JetView {
 		}
 
 		const folder = item._modelType === "folder" ? item : imagesCollection.findItem(item.$parent);
-		if (folder.meta.dsaDefaultView === "XBSViewOne") {
+		if (folder.meta && folder.meta.dsaDefaultView === "XBSViewOne") {
 			this.setNewViewOption(scenesViewOption);
 		}
-		else if (folder.meta.dsaDefaultView !== "XBSViewOne") {
+		else {
 			this.removeViewOption(scenesViewOption);
 		}
 	}
 
-	multichannelViewOptionToggle(item) {
+	async multichannelViewOptionToggle(item) {
 		const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
-		if (!item) {
+		if (!item || item._modelType !== "item") {
 			this.removeViewOption(multichannelViewOption);
 			return;
 		}
 
-		if (item.meta && item.meta.omeSceneDescription && item.meta.omeSceneDescription.length) {
+		const channelsInfo = await tilesCollection.getImageChannels(item);
+		if (channelsInfo && channelsInfo.length) {
 			this.setNewViewOption(multichannelViewOption);
 		}
-		else if (!item.meta || !item.meta.omeSceneDescription || !item.meta.omeSceneDescription.length) {
+		else {
 			this.removeViewOption(multichannelViewOption);
 		}
 	}
@@ -245,8 +247,8 @@ export default class DataviewActionPanelClass extends JetView {
 		const switcherList = this._switcherView.getList();
 		const isOptionExists = switcherList.exists(viewOption.id);
 		if (!isOptionExists) {
-			const ViewOptionId = switcherList.add(viewOption);
-			this._switcherView.setValue(ViewOptionId);
+			switcherList.add(viewOption);
 		}
+		this._switcherView.setValue(viewOption.id);
 	}
 }

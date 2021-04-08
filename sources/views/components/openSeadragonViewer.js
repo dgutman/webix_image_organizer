@@ -22,7 +22,7 @@ export default class OpenSeadragonViewer extends JetView {
 		webix.extend(view, webix.OverlayBox);
 	}
 
-	createViewer(options, node = this.getRoot().getNode()) {
+	createViewer(options = {}, node = this.getRoot().getNode()) {
 		this._openseaDragonViewer = new OpenSeadragon.Viewer({
 			...Object.assign({}, this._options, options),
 			element: node,
@@ -67,6 +67,7 @@ export default class OpenSeadragonViewer extends JetView {
 
 	destroy() {
 		if (this.$viewer()) {
+			this.$viewer().world.removeAll();
 			this.$viewer().destroy();
 		}
 	}

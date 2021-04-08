@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import {JetView} from "webix-jet";
 import ajaxActions from "../../../services/ajaxActions";
 import SelectedItems from "../../../models/selectedItems";
@@ -33,12 +32,12 @@ export default class ChannelList extends JetView {
 					on: {
 						onTimedKeyPress: () => {
 							const value = this.getListSearch().getValue();
-							this.getList().filter(({channel_name}) => {
+							this.getList().filter(({name}) => {
 								if (!value) {
 									return true;
 								}
 
-								return channel_name.toLowerCase().includes(value.toLowerCase());
+								return name.toLowerCase().includes(value.toLowerCase());
 							});
 						}
 					}
@@ -52,8 +51,8 @@ export default class ChannelList extends JetView {
 					navigation: false,
 					select: false,
 					drag: "source",
-					template: ({channel_name, id, index}, common) => `${common.checkboxState(id)}
-					<span class="channel-item__name name">${channel_name}</span>
+					template: ({name, id, index}, common) => `${common.checkboxState(id)}
+					<span class="channel-item__name name">${name}</span>
 					<span class="channel-item__index index">(${index})</span>`,
 					type: {
 						checkboxState: (id) => {
@@ -74,7 +73,7 @@ export default class ChannelList extends JetView {
 					css: "btn ellipsis-text",
 					height: 35,
 					hidden: true,
-					value: "",
+					value: "Add to selected group",
 					click: () => {
 						this.getList().callEvent("addToSelectedGroup", [this.getSelectedChannels()]);
 					}
@@ -100,15 +99,6 @@ export default class ChannelList extends JetView {
 
 		this.on(list, "onItemClick", (id) => {
 			list.select(id);
-		});
-
-		this.on(list, "onBeforeDrag", (context) => {
-			const isSelected = this._selectedChannelsModel.isSelected(context.start);
-			let items = context.source.map(id => list.getItem(id));
-			if (isSelected) {
-				items = this._selectedChannelsModel.getSelectedItems(context.start);
-			}
-			context.source = items;
 		});
 	}
 
@@ -143,20 +133,19 @@ export default class ChannelList extends JetView {
 		return tileSources;
 	}
 
+	isSelected(id) {
+		return this._selectedChannelsModel.isSelected(id);
+	}
+
 	getSelectedChannels() {
 		return this._selectedChannelsModel.getSelectedItems();
 	}
 
 	unselectAllChannels() {
+		const list = this.getList();
 		this._selectedChannelsModel.unselectAll();
-		this.getList().refresh();
-	}
-
-	setSelectedGroupToButton(group) {
-		const button = this.getAddToGroupButton();
-		// button.setValue(`Add to ${group.name} group`);
-		button.setValue("Add to selected group");
-		button.refresh();
+		list.refresh();
+		list.callEvent("customSelectionChanged", [this._selectedChannelsModel.getSelectedItems()]);
 	}
 
 	changeButtonVisibility(show) {

@@ -5,6 +5,7 @@ import utils from "./utils";
 import ajaxActions from "../services/ajaxActions";
 import authService from "../services/authentication";
 import editableFoldersModel from "../models/editableFoldersModel";
+import tilesCollection from "../models/imageTilesCollection";
 
 let largeImageFiles;
 let makeLargeImageButton;
@@ -48,7 +49,7 @@ function setDefaultGalleryContextMenu(dataview) {
 			else {
 				editableFoldersModel.getFolderFromServer(item.folderId)
 					.then(() => {
-						dataview.callEven("onBeforeContextMenu", [id]);
+						dataview.callEvent("onBeforeContextMenu", [id]);
 					});
 				return false;
 			}
@@ -101,8 +102,15 @@ function setDataviewMouseEvents(dataview, action, event) {
 	}
 	switch (action) {
 		case "open": {
-			dataview.attachEvent(event, (id) => {
-				let item = dataview.getItem(id);
+			dataview.attachEvent(event, async (id) => {
+				const item = dataview.getItem(id);
+				const mainView = webixViews.getMainView();
+				const imageChannels = await tilesCollection.getImageChannels(item);
+				if (imageChannels) {
+					mainView.callEvent(constants.OPEN_MULTICHANNEL_VIEW_EVENT, [item]);
+					return false;
+				}
+
 				const imageWindow = webixViews.getImageWindow();
 				const pdfViewerWindow = webixViews.getPdfViewerWindow();
 				const csvViewerWindow = webixViews.getCsvViewerWindow();
@@ -114,6 +122,7 @@ function setDataviewMouseEvents(dataview, action, event) {
 		default:
 			break;
 	}
+	return true;
 }
 
 function setDatatableMouseEvents(datatable, action, event) {

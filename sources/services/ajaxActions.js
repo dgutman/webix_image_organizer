@@ -235,13 +235,12 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	updateItemMetadata(itemId, metadataObject, type) {
-		const modelType = type || "item";
+	updateItemMetadata(itemId, metadataObject, type = "item") {
 		const metadata = metadataObject ? {
 			metadata: metadataObject
 		} : {};
 		return this._ajax()
-			.put(`${this.getHostApiUrl()}/${modelType}/${itemId}/metadata`, metadata)
+			.put(`${this.getHostApiUrl()}/${type}/${itemId}/metadata`, metadata)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}

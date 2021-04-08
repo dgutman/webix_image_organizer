@@ -30,7 +30,7 @@
 				flex-direction: column;
 				justify-content: space-between;
 				align-items: flex-start;
-				height: 200px;
+				height: 240px;
 				font-size: 26px;
 				.icon {
 					cursor: pointer;
@@ -59,6 +59,19 @@
 			.active, .icon:hover {
 				cursor: pointer;
 				color: @btn-hover;
+			}
+		}
+
+		.groups-panel__groups-header .webix_template {
+			display: flex;
+			justify-content: space-between;
+			width: 100%;
+			.icon {
+				padding-left: 10px;
+				&:hover {
+					cursor: pointer;
+					color: @btn-hover;
+				}
 			}
 		}
 	}
