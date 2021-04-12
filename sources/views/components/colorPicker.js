@@ -37,7 +37,6 @@ export default class ColorPicker extends JetView {
 			borderless: true,
 			css: "color-picker",
 			height: 315,
-			width: 255,
 			template: ""
 		};
 	}
