@@ -1,5 +1,7 @@
 import OpenSeadragonViewer from "../../components/openSeadragonViewer";
 
+const OSD_VIEWER_TEMPLATE = "osd-template";
+
 export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 	constructor(app, options = {}, config = {}) {
 		super(app, options);
@@ -10,6 +12,7 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		return {
 			...this._cnf,
 			view: "template",
+			localId: OSD_VIEWER_TEMPLATE,
 			template: () => `<div class="icons">
 				<span webix_tooltip="home" class="icon home fas fa-home"></span>
 				<span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
@@ -43,8 +46,8 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		};
 	}
 
-	ready(view) {
-		webix.TooltipControl.addTooltip(view.$view);
+	ready() {
+		webix.TooltipControl.addTooltip(this.getViewerTemplate().$view);
 	}
 
 	createViewer(options) {
@@ -149,5 +152,9 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 	setTileOpacity(index, opacity = 1) {
 		const viewer = this.$viewer();
 		viewer.world.getItemAt(index).setOpacity(opacity);
+	}
+
+	getViewerTemplate() {
+		return this.$$(OSD_VIEWER_TEMPLATE);
 	}
 }

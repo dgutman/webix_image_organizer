@@ -45,7 +45,7 @@ export default class ChannelList extends JetView {
 				this._sortTemplate,
 				{
 					view: "list",
-					css: "multichannel-view__channel-list",
+					css: "multichannel-view__channel-list ellipsis-text",
 					localId: LIST_ID,
 					scroll: "auto",
 					navigation: false,

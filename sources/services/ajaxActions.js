@@ -154,6 +154,27 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
+	getImageTilesHistogram(itemId, frame, binsSettings) {
+		const settings = {
+			width: 2048,
+			height: 2048,
+			bins: window.test || 256,
+			...binsSettings
+		};
+		const urlSearchParams = new URLSearchParams();
+		urlSearchParams.append("frame", frame);
+		Object.keys(settings).forEach((paramKey) => {
+			if (settings[paramKey] != null) {
+				urlSearchParams.append(paramKey, settings[paramKey]);
+			}
+		});
+		const query = urlSearchParams.toString();
+		return this._ajax()
+			.get(`${this.getHostApiUrl()}/item/${itemId}/tiles/histogram?${query}`)
+			.catch(parseError)
+			.then(result => this._parseData(result));
+	}
+
 	getImageTileUrl(itemId, z, x, y) {
 		const urlSearchParams = new URLSearchParams();
 		urlSearchParams.append("edge", "crop");
