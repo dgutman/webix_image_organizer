@@ -25,7 +25,7 @@ export default class RangeSlider extends JetView {
 					localId: MAX_SLIDER_ID,
 					title: () => `Max: ${this._maxSlider.getValue()}`,
 					value: this._range.max,
-					min: this._range.min,
+					min: this._range.min + 1,
 					max: this._range.max
 				},
 				{
@@ -35,7 +35,7 @@ export default class RangeSlider extends JetView {
 					title: () => `Min: ${this._minSlider.getValue()}`,
 					value: this._range.min,
 					min: this._range.min,
-					max: this._range.max
+					max: this._range.max - 1
 				}
 			]
 		};
@@ -48,15 +48,35 @@ export default class RangeSlider extends JetView {
 		this.on(this._minSlider, "onChange", (val) => {
 			const maxValue = this._maxSlider.getValue();
 			if (maxValue < val) {
-				this._maxSlider.setValue(val);
+				this._maxSlider.setValue(val + 1);
 			}
 		});
 
 		this.on(this._maxSlider, "onChange", (val) => {
 			const minValue = this._minSlider.getValue();
 			if (minValue > val) {
-				this._minSlider.setValue(val);
+				this._minSlider.setValue(val - 1);
 			}
 		});
+	}
+
+	setEdges(min, max) {
+		this._range = {min, max};
+		const maxValue = this._maxSlider.getValue();
+		const minValue = this._minSlider.getValue();
+
+		this._maxSlider.define("max", max);
+		this._maxSlider.define("min", min + 1);
+		this._minSlider.define("max", max - 1);
+		this._minSlider.define("min", min);
+
+		if (minValue > max || minValue < min) {
+			this._minSlider.setValue(min);
+		}
+		if (maxValue > max || maxValue < min) {
+			this._maxSlider.setValue(max);
+		}
+		this._maxSlider.refresh();
+		this._minSlider.refresh();
 	}
 }

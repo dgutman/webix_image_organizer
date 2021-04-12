@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
 import MathCalculations from "../../../utils/mathCalculations";
 import ColorPickerWindow from "./windows/colorPopup";
+import stateStore from "../../../models/multichannelView/stateStore";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -15,7 +16,6 @@ export default class GroupsPanel extends JetView {
 		super(app);
 
 		this._cnf = config;
-		this._group = null;
 	}
 
 	config() {
@@ -222,6 +222,7 @@ export default class GroupsPanel extends JetView {
 		const channelNode = channelList.getItemNode(id);
 		const {color, max, min} = channel;
 
+		stateStore.adjustedChannel = channel;
 		this._colorWindow.showWindow({color, max, min}, channelNode, "left");
 		this.getRoot().callEvent("channelColorAdjustStart", [channel]);
 		this._waitForChangesFromPaletteWindow(channel);
@@ -299,5 +300,17 @@ export default class GroupsPanel extends JetView {
 
 	getGroupsSearch() {
 		return this.$$(GROUPS_TEXT_SEARCH_ID);
+	}
+
+	getColorWindow() {
+		return this._colorWindow;
+	}
+
+	get _group() {
+		return stateStore.group;
+	}
+
+	set _group(group) {
+		stateStore.group = group;
 	}
 }

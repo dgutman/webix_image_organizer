@@ -8,6 +8,7 @@ import TimedOutBehavior from "../../../utils/timedOutBehavior";
 import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../../../services/multichannelView/groupsLoader";
 import tilesCollection from "../../../models/imageTilesCollection";
 import ItemsModel from "../../../models/itemsModel";
+import stateStore from "../../../models/multichannelView/stateStore";
 
 export default class MultichannelView extends JetView {
 	constructor(app) {
@@ -17,8 +18,6 @@ export default class MultichannelView extends JetView {
 		this._channelList = new ChannelList(app, {gravity: 0.2, minWidth: 200});
 		this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200});
 
-		this._image = null;
-		this._tileSources = null;
 		this._channelsCollection = new webix.DataCollection();
 		this._groupsCollection = new webix.DataCollection();
 	}
@@ -90,6 +89,7 @@ export default class MultichannelView extends JetView {
 			return;
 		}
 		this._channelsCollection.clearAll();
+		this._channelList.unselectAllChannels();
 		this._osdViewer.destroy();
 		groupsList.unselectAll();
 		this._groupsCollection.clearAll();
@@ -255,7 +255,6 @@ export default class MultichannelView extends JetView {
 					webix.message("Groups are successfully saved");
 					this._image = image;
 					ItemsModel.getInstanceModel().updateItems(image);
-
 				})
 				.finally(() => {
 					this.getRoot().hideProgress();
@@ -350,6 +349,7 @@ export default class MultichannelView extends JetView {
 			min: channel.min || 500, // default value
 			max: channel.max || 30000 // default value
 		};
+
 		const tileSource = await this._tileService.getColoredChannelTileSource(
 			this._image,
 			channel.index,
@@ -392,5 +392,13 @@ export default class MultichannelView extends JetView {
 		// eslint-disable-next-line camelcase
 		return channels.map(({name}) => name)
 			.join("_");
+	}
+
+	get _image() {
+		return stateStore.image;
+	}
+
+	set _image(image) {
+		stateStore.image = image;
 	}
 }

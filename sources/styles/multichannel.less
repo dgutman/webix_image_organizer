@@ -3,7 +3,9 @@
 	.multichannel-view {
 		.multichannel-view__channel-list {
 			.webix_list_item {
+			  padding-right: 30px;
 			  cursor: default;
+			  position: relative;
 			}
 			.channel-item__name {
 			  cursor: pointer;
@@ -42,6 +44,24 @@
 			.osd-container {
 				width: 100%;
 				height: 100%;
+			}
+		}
+
+		.histogram-template {
+			position: relative;
+			.histogram {
+				position: absolute;
+				right: 10px;
+				top: 10px;
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+				width: 400px;
+				height: 200px;
+				.histogram-item {
+					flex-basis: 2px;
+					background-color: red;
+				}
 			}
 		}
 
