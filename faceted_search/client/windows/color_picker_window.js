@@ -144,7 +144,9 @@ define([
 		}
 	
 		setMinAndMaxValuesByHistogram({min, max}) {
-			this._rangeSlider.setEdges(min, max);
+			if (max > 255) { max = 65536; }
+			else { max = 256 }
+			this._rangeSlider.setEdges(0, max);
 		}
 	
 		async _getHistogramInfo() {

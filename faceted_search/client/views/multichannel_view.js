@@ -11,7 +11,8 @@ define([
 	"helpers/multichannel_view/drag_and_drop_mediator",
 	"helpers/multichannel_view/groups_loader",
 	"helpers/ajax",
-	"helpers/router"
+	"helpers/router",
+	"constants"
 ], function(
 	app,
 	MultichannelOSDViewer,
@@ -25,7 +26,8 @@ define([
 	DragAndDropMediator,
 	groupsLoader,
 	ajaxActions,
-	router
+	router,
+	constants
 ) {
 	'use strict';
 	const {routes, navigate} = router;
@@ -200,13 +202,7 @@ define([
 			const selectedChannels = this._channelList.getSelectedChannels();
 			const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 				.map((channel) => {
-					const defaultChannelSettings = {
-						opacity: 1,
-						min: 500,
-						max: 30000
-					};
-
-					return {...defaultChannelSettings, ...channel};
+					return {...constants.DEFAULT_CHANNEL_SETTINGS, ...channel};
 				});
 
 			const groupId = this._addNewGroup(name, coloredChannels);
@@ -412,12 +408,12 @@ define([
 			if (parseInt(id) !== channel.id) {
 				return;
 			}
+			const {max, min} = constants.DEFAULT_CHANNEL_SETTINGS;
 			const colorSettings = {
 				palette2: channel.color,
-				min: channel.min || 500, // default value
-				max: channel.max || 30000 // default value
-			};
-
+				min: channel.min || min,
+				max: channel.max || max
+			}
 
 			const tileSource = await this._tileService.getColoredChannelTileSource(
 				this._image,

@@ -1,7 +1,8 @@
 define([
 	"helpers/ajax",
-	"models/multichannel_view/tiles_collection"
-], function(ajaxActions, tilesCollection) {
+	"models/multichannel_view/tiles_collection",
+	"constants"
+], function(ajaxActions, tilesCollection, constants) {
 	'use strict';
 	return class TilesSourcesService {
 		constructor() {
@@ -67,10 +68,11 @@ define([
 	
 		async getColoredTileSources(channels) {
 			return Promise.all(channels.map((channel) => {
+				const {max, min} = constants.DEFAULT_CHANNEL_SETTINGS;
 				const colorSettings = {
 					palette2: channel.color,
-					min: channel.min || 500, // default value
-					max: channel.max || 30000 // default value
+					min: channel.min || min,
+					max: channel.max || max
 				};
 				return this.getColoredChannelTileSource(this._image, channel.index, colorSettings);
 			}));

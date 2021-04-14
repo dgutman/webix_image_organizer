@@ -2,8 +2,9 @@ define([
 	"helpers/base_jet_view",
 	"helpers/math_calculations",
 	"models/multichannel_view/state_store",
-	"windows/color_picker_window"
-], function(BaseJetView, MathCalculations, stateStore, ColorPickerWindow) {
+	"windows/color_picker_window",
+	"constants"
+], function(BaseJetView, MathCalculations, stateStore, ColorPickerWindow, constants) {
 	'use strict';
 	const GROUPS_LIST_ID = "groups-list";
 	const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -179,12 +180,7 @@ define([
 				.filter(({index}) => !group.channels.find(channel => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
-					const defaultChannelSettings = {
-						opacity: 1,
-						min: 500,
-						max: 30000
-					};
-					return Object.assign(defaultChannelSettings, channel, {color});
+					return Object.assign(constants.DEFAULT_CHANNEL_SETTINGS, channel, {color});
 				});
 			group.channels.push(...newChannels);
 			return newChannels;
