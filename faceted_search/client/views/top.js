@@ -1,6 +1,4 @@
-define([
-	"app"
-], function (app) {
+define([], function () {
 	var ui = {
 		rows: [
 			{

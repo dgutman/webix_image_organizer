@@ -3,8 +3,9 @@ define([
     "templates/image",
     "views/filter_header",
     "views/image_window",
+    "views/multichannel_view",
     "helpers/authentication"
-], function (Images, imageTemplate, filterHeaderView, imageWindow, auth) {
+], function (Images, imageTemplate, filterHeaderView, imageWindow, multichannelView, auth) {
     var dataviewId = "images-dataview", ui = {
         id: "dataview-layout",
         rows: [
@@ -18,8 +19,23 @@ define([
                 select: true,
                 data: null,
                 on: {
-                    onItemClick: function (id) {
-                        imageWindow.showWindow(this.getItem(id));
+                    onItemClick: async function (id) {
+                        const item = this.getItem(id);
+                        imageWindow.showWindow(item);
+                    }
+                },
+                onClick: {
+                    multichannel: (ev, id) => {
+                        const item = $$(dataviewId).getItem(id);
+                        multichannelView.validateImage(item.data)
+                            .then((isValid) => {
+                                if (!isValid) {
+                                    webix.message("Image can't be opened in the multichannel mode")
+                                    return;
+                                }
+                                multichannelView.show(item.data._id);
+                            });
+                        return false;
                     }
                 },
                 template: function(data){

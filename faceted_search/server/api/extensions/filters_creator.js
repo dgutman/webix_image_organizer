@@ -76,9 +76,12 @@ function agregateFilters(filters) {
 
     filters.forEach((item) => {
         if (!map.hasOwnProperty(item.parent)) {
+            const path = item.id.split("|").slice(0, -1);
+
             map[item.parent] = result.length;
             result.push({
                 "label": item.parent,
+                "path": path,
                 "data": []
             });
         }

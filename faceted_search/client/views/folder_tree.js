@@ -82,22 +82,20 @@ define([
 
 			uploadButton.attachEvent("onItemClick", () => {
 				const folder = tree.getSelectedItem();
+				const token = auth.getToken();
+
 				tree.showProgress();
 				uploadButton.disable();
-				ajax.getResourceItems(folder._id, folder._modelType)
-					.then((data) => {
-						const file = new File([data], `${folder.name}.json`, {type: data.type});
-						Upload.uploadJSONFile({
-							file,
-							name: file.name,
-							size: file.size
-						});
-						app.callEvent("editForm:loadDataForFilters", []);
-					})
-					.finally(() => {
-						tree.hideProgress();
-						uploadButton.enable();
-					});
+				Upload.getImagesFromGirder(app.config.host, folder._id, folder.name, token);
+			});
+
+			app.attachEvent("editForm:finishLoading", function(data) {
+				const tree = $$(constants.FOLDER_TREE_ID);
+				const uploadButton = $$(uploadButtonId);
+				tree.hideProgress();
+				uploadButton.enable();
+
+				$$(statusTempateId).setValues(data || {title: "Done!"});
 			});
 
 			app.attachEvent("uploaderList:loadingActions", function(data) {

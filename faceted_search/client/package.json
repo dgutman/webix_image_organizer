@@ -14,7 +14,7 @@
     "@babel/preset-env": "^7.10.2",
     "event-stream": "^3.3.1",
     "glob": "^5.0.13",
-    "gulp": "^4.x.x",
+    "gulp": "4.0.2",
     "gulp-babel": "^8.0.0",
     "gulp-concat": "^2.6.0",
     "gulp-if": "^3.0.0",
@@ -25,7 +25,14 @@
     "gulp-rimraf": "^1.0.0",
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^3.0.2",
+    "jshint": "^2.12.0",
     "merge-stream": "^2.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "ajv": "^8.1.0",
+    "file-saver": "^2.0.5",
+    "openseadragon": "^2.4.2",
+    "openseadragon-filtering": "^1.0.0",
+    "vanilla-picker": "^2.11.2"
+  }
 }

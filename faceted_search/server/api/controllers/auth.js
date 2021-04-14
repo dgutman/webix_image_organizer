@@ -18,7 +18,7 @@ async function login(hostApi, authHeader) {
 			const user = data.user;
 			const expireDate = new Date(data.authToken.expires);
 			const expiresIn = expireDate.getTime() - Date.now();
-			const token = jwt.sign({sub: user._id, prms: user.admin, exp: expiresIn}, process.env.SECRET_KEY || "my-test-secret");
+			const token = jwt.sign({sub: user._id, prms: user.admin, exp: expiresIn, girder: data.authToken.token}, process.env.SECRET_KEY || "my-test-secret");
 			data.localJWT = token;
 			return data;
 		})

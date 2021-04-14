@@ -16,7 +16,12 @@ const facetImagesSchema = new mongoose.Schema({
     },
     data: {
         type: Object,
-        required: true
+        required: true,
+        _id: {
+            type: String,
+            required: true,
+            unique: true
+        }
     },
     facets: {
         type: Array,
@@ -31,13 +36,14 @@ const facetImagesModel = mongoose.model('facet_images', facetImagesSchema);
 
 class FacetImages {
     insertImage(obj, cb) {
-        const model = new facetImagesModel(obj);
-
-        model.save(function (err) {
-            if (err) console.error(obj.filename + ': ', err);
-
-            cb();
-        });
+        facetImagesModel.updateOne({"data._id": obj.data._id}, obj, {upsert: true, setDefaultsOnInsert: true})
+            .then(() => {
+                cb();
+            })
+            .catch((err) => {
+                console.error(obj.filename + ': ', err);
+                cb();
+            });
     }
 
     getAll() {

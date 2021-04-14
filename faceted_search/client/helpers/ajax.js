@@ -6,7 +6,12 @@ function getHostId() {
 	return hostId;
 }
 
-define(["constants"], function (constants) {
+function getToken() {
+	const tokenObj = webix.storage.local.get(`authToken-${getHostId()}`);
+	return tokenObj ? tokenObj.token : null;
+}
+
+define(["app", "constants"], function (app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
 
 	class AjaxActions {
@@ -25,7 +30,7 @@ define(["constants"], function (constants) {
 		}
 	
 		getHostApiUrl() {
-			return webix.storage.local.get("hostAPI") || constants.HOSTS_LIST[0].hostAPI;
+			return webix.storage.local.get("hostAPI") || app.config.hostsList[0].hostAPI;
 		}
 	
 		_ajax() {
@@ -185,6 +190,81 @@ define(["constants"], function (constants) {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/user?limit=0&sort=lastName&sortdir=1`)
 				.fail(this._parseError)
+				.then(result => this._parseData(result));
+		}
+
+		// FOR MULTICHANNEL VIEWER
+		getImageTilesHistogram(itemId, frame, binsSettings) {
+			const settings = {
+				width: 2048,
+				height: 2048,
+				bins: window.test || 256,
+				...binsSettings
+			};
+			const urlSearchParams = new URLSearchParams();
+			urlSearchParams.append("frame", frame);
+			Object.keys(settings).forEach((paramKey) => {
+				if (settings[paramKey] != null) {
+					urlSearchParams.append(paramKey, settings[paramKey]);
+				}
+			});
+			const query = urlSearchParams.toString();
+			return this._ajax()
+				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles/histogram?${query}`)
+				.catch(this._parseError)
+				.then(result => this._parseData(result));
+		}
+
+		getImageTiles(itemId) {
+			return this._ajax()
+				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
+				.catch(this._parseError)
+				.then(result => this._parseData(result));
+		}
+
+		getImageTileUrl(itemId, z, x, y) {
+			const urlSearchParams = new URLSearchParams();
+			urlSearchParams.append("edge", "crop");
+			urlSearchParams.append("token", getToken());
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+		}
+	
+		getImageFrameTileUrl(itemId, frame, z, x, y) {
+			const urlSearchParams = new URLSearchParams();
+			urlSearchParams.append("edge", "crop");
+			urlSearchParams.append("token", getToken());
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+		}
+	
+		getImageColoredFrameTileUrl(itemId, frame, coords, colorSettings) {
+			const {x, y, z} = coords;
+			const {
+				palette1 = "rgb(0,0,0)",
+				palette2 = "rgb(204,240,0)",
+				min = 100,
+				max = 65000
+			} = colorSettings;
+			const style = {
+				min,
+				max,
+				palette: [palette1, palette2]
+			};
+			const urlSearchParams = new URLSearchParams();
+			urlSearchParams.append("edge", "crop");
+			urlSearchParams.append("frame", frame);
+			urlSearchParams.append("token", getToken());
+			urlSearchParams.append("style", JSON.stringify(style));
+	
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+		}
+
+		updateItemMetadata(itemId, metadataObject, type = "item") {
+			const metadata = metadataObject ? {
+				metadata: metadataObject
+			} : {};
+			return this._ajax()
+				.put(`${this.getHostApiUrl()}/${type}/${itemId}/metadata`, metadata)
+				.catch(this._parseError)
 				.then(result => this._parseData(result));
 		}
 	}

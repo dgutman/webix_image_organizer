@@ -15,7 +15,8 @@ function jwt() {
 			{url: "/admin/"},
 			{url: /\/api\/images\/[^\>]+/},
 			{url: /\/api\/skin\/user\/[a-zA-Z]+/},
-			{url: "/"}
+			{url: "/"},
+			{url: /\/api\/host\/\d+/}
 		]
 	});
 
