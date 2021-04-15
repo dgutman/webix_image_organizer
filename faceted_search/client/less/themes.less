@@ -1,0 +1,47 @@
+body.flat-skin {
+	.flat-theme();
+	.mainStylesMultichannelView();
+}
+  
+body.material-skin {
+	.material-theme();
+	.mainStylesMultichannelView();
+}
+
+body.mini-skin {
+	.mini-theme();
+	.mainStylesMultichannelView();
+
+	.webix_pager .pager-input {
+		position: relative;
+		top: 2px;
+	}
+}
+
+body.compact-skin {
+	.compact-theme();
+	.transparent-button .webixtype_base {
+		height: 26px;
+	}
+	.mainStylesMultichannelView();
+	.webix_pager .pager-input {
+		position: relative;
+		top: 3px;
+	}
+}
+
+body.contrast-skin {
+	.contrast-theme();
+	.btn-contour .webixtype_base {
+		color: @main-color-light;
+	}
+	.webix_layout_line {
+		background-color: @main-bg;
+	}
+	.mainStylesMultichannelView();
+	.global-header {
+		&.webix_layout_line, .webix_layout_line {
+		background-color: @dark-main-bg;
+		}
+	}
+}

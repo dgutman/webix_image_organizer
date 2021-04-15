@@ -87,7 +87,21 @@ define([
         blobStream.pipe(uploadStream);
     };
 
+    var getImagesFromGirder = function (host, folderId, folderName, token) {
+        socketConnect.on('message', function (data) {
+            app.callEvent("uploaderList:loadingActions", [{title: data}]);
+        });
+
+        socketConnect.on('finishLoading', function () {
+            app.callEvent("editForm:finishLoading", []);
+            app.callEvent("editForm:loadDataForFilters", []);
+        });
+
+        socketStream(socketConnect).emit('loadGirderFolder', {host, id: folderId, name: folderName, token});
+    };
+
     socketStream(socketConnect).on("error", (err) => {
+        app.callEvent("editForm:finishLoading", [{title: "Error!"}]);
         webix.message({
             type: "message",
             text: "File was not uploaded"
@@ -97,6 +111,7 @@ define([
     return {
         getFileStatus: getFileStatus,
         uploadFile: uploadFile,
-        uploadJSONFile: uploadJSONFile
+        uploadJSONFile: uploadJSONFile,
+        getImagesFromGirder: getImagesFromGirder
     }
 });

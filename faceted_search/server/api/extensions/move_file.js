@@ -1,19 +1,19 @@
 const crypto = require('crypto');
 const mv = require('mv');
 const fs = require('fs');
-const archive_upload_path = require('../../../config').archive_upload_path;
+const json_upload_path = require('../../../config').archive_upload_path;
 const path = require('path');
 
 function moveToPath(filename) {
   const hash = crypto.createHash('sha256');
   hash.update(filename + new Date() + Math.random());
-  const archive_path = path.join(archive_upload_path, 'json');
-  if (!fs.existsSync(archive_path)) {
-    fs.mkdirSync(archive_path); 
+  const json_path = path.join(json_upload_path, 'json');
+  if (!fs.existsSync(json_path)) {
+    fs.mkdirSync(json_path); 
   }
-  const archive_name = hash.digest('hex').slice(0, 10) + filename;
+  const json_name = hash.digest('hex').slice(0, 10) + filename;
 
-  return path.join(archive_path, archive_name);
+  return path.join(json_path, json_name);
 };
 
 const moveTo = (from, filename) => {

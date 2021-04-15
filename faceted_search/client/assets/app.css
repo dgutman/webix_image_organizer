@@ -10,6 +10,7 @@
 }
 
 .template-image-wrap {
+    position: relative;
     height: 100%;
     display: flex;
     align-items: center;
@@ -26,6 +27,22 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.template-image-icons {
+    width: 100%;
+    position: absolute;
+    bottom: 5px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.template-image-icons .icon {
+    font-size: 1.3em;
+}
+
+.template-image-icons .icon:hover {
+    color: #3498db;
 }
 
 .image-header-toogle-txt {
