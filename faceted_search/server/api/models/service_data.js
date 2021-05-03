@@ -5,6 +5,7 @@ const DATA_TYPES = {
     SKINS: 'skins',
     SKINS_EXTENSIONS: 'skins extensions',
     IMG_HASH: 'images_hash',
+    HOSTS: 'hosts'
 }
 
 const ServiceDataSchema = new Schema({
@@ -74,6 +75,27 @@ ServiceDataSchema.statics.updateImagesHash = function(hash){
             return doc.save();
         }
     })
+}
+
+// hosts
+ServiceDataSchema.statics.getHostsList = function() {
+    return this.findOne({type: DATA_TYPES.HOSTS}).lean();
+}
+
+ServiceDataSchema.statics.addHosts = function(hosts) {
+    return this.getHostsList()
+    .then((result) => {
+        if(result){
+            return this.update({type: DATA_TYPES.HOSTS}, {data: hosts});
+        } else {
+            let doc = new this({
+                name: 'Hosts',
+                type: DATA_TYPES.HOSTS,
+                data: hosts
+            })
+            return doc.save();
+        }
+    });
 }
 
 mongoose.model('ServiceData', ServiceDataSchema);

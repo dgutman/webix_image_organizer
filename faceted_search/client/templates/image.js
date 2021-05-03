@@ -5,7 +5,7 @@ define(["helpers/ajax", "helpers/authentication"], function(ajax, auth) {
 
             let src = `${ajax.getHostApiUrl()}/item/${data.data._id}/tiles/thumbnail?token=${auth.getToken()}`;
             if (data.filename || data.filesrc) {
-                src = data.filename ? "/api/images/" + data.filename : data.filesrc;
+                src = data.filename ? `/api/images/${data.filename}` : data.filesrc;
             }
             img = `<img src="${src}" class="template-image">`
 
@@ -15,6 +15,9 @@ define(["helpers/ajax", "helpers/authentication"], function(ajax, auth) {
                                 <div class='template-image-flexible-element'>
                                     <p class="template-image-name">${name}</p>
                                     ${img}
+                                </div>
+                                <div class="template-image-icons">
+                                    <span class="icon multichannel mdi mdi-checkbox-multiple-blank-outline">
                                 </div>
                             </div>`
             return template;

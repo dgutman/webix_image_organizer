@@ -32,7 +32,7 @@ function build_css(){
 		.pipe(gulp.dest('./deploy/assets'));
 }
 
-gulp.task('js', function(){
+gulp.task('js', function(done) {
 	return build_js();
 });
 
@@ -45,24 +45,28 @@ function build_js(){
 		return value.replace(".js", "");
 	});
 
-	return rjs({
-		baseUrl: './',
-		out: 'app.js',
-		insertRequire:["app"],
-		paths:{
-			"locale" : "empty:",
-			"text": 'libs/text'
-		}, 
-		deps:["app"],
-		include: ["libs/almond/almond.js"].concat(views).concat(locales)
-	})
-	.pipe(babel({
-		presets: ['@babel/env']
-	}))
-	.pipe( _if(debug_export, sourcemaps.init()) )
-	.pipe(uglify())
-	.pipe( _if(debug_export, sourcemaps.write("./")) )
-	.pipe(gulp.dest('./deploy/'));
+	return gulp.src("./app.js")
+		.pipe(rjs({
+			baseUrl: './',
+			out: 'app.js',
+			insertRequire:["app"],
+			optimize: "none",
+			paths:{
+				"locale" : "empty:",
+				"text": 'libs/text'
+			}, 
+			deps:["app"],
+			include: ["libs/almond/almond.js"].concat(views).concat(locales)
+		}))
+		.pipe(babel({
+			presets: [
+				["@babel/preset-env"]
+			]
+		}))
+		.pipe( _if(debug_export, sourcemaps.init()) )
+		.pipe(uglify())
+		.pipe( _if(debug_export, sourcemaps.write("./")) )
+		.pipe(gulp.dest('./deploy/'));
 }
 
 gulp.task("clean", function(){
@@ -71,13 +75,17 @@ gulp.task("clean", function(){
 
 gulp.task('build', gulp.series("clean", function(done) {
 	var build = (new Date())*1;
+	const mergeStream = require('merge-stream');
 
-	return require('merge-stream')(
+	return mergeStream(
 	build_js(),
 	build_css(),
 		//assets
 	gulp.src("./assets/imgs/**/*.*")
 		.pipe(gulp.dest("./deploy/assets/imgs/")),
+		//copy libs
+	gulp.src(['./libs/**/*'])
+		.pipe(gulp.dest('./deploy/libs')),
 		//index
 	gulp.src("./index.pug")
 		.pipe(pug({locals: JADE_LOCALS, pretty: true}))
@@ -97,6 +105,19 @@ gulp.task('build', gulp.series("clean", function(done) {
 	);
 }))
 
+gulp.task('copy_modules', function() {
+	const mergeStream = require('merge-stream');
+	return mergeStream(
+		gulp.src("./node_modules/openseadragon/build/openseadragon/**/*.*")
+			.pipe(gulp.dest("./libs/openseadragon/")),
+		gulp.src("./node_modules/openseadragon-filtering/openseadragon-filtering.js")
+			.pipe(gulp.dest("./libs/openseadragon-filtering/")),
+		gulp.src("./node_modules/vanilla-picker/dist/**/*.js")
+			.pipe(gulp.dest("./libs/vanilla-picker/")),
+		gulp.src("./node_modules/file-saver/dist/**/*.js")
+			.pipe(gulp.dest("./libs/file-saver/"))
+	);
+});
 
 gulp.task('lint', function() {
   return gulp.src(['./views/**/*.js', './helpers/**/*.js', './models/**/*.js', './*.js', "!./jshint.conf.js"])

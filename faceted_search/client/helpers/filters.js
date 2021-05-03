@@ -6,7 +6,8 @@ define([
         var key, i, elems = [], t;
         for (key in data) {
             if (data.hasOwnProperty(key)) {
-                elems.push(filtersViewHelper.getLabelUI(data[key].label));
+                const dataItem = data[key];
+                elems.push(filtersViewHelper.getLabelUI(dataItem.label, dataItem.path));
                 for (i = 0; i < data[key].data.length; i++) {
                     t = null;
                     switch (data[key].data[i].type) {

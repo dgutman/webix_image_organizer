@@ -1,20 +1,22 @@
 define([
     "libs/webix-mvc-core/core",
     "libs/webix-mvc-core/plugins/menu",
+    "libs/openseadragon/openseadragon",
     "constants"
-], function (core, menu, constants) {
-
+], function (core, menu, osd, constants) {
     //configuration
     var app = core.create({
         id: "app",
         name: "",
         version: "0.1.0",
-        debug: false,
+        debug: true,
         start: "/top/user_mode",
         defaultAPIPath: `${constants.LOCAL_API}`,
         userMode: window.data.userMode,
         skinsList: window.data.skinsList,
-        currentSkin: window.data.skin
+        currentSkin: window.data.skin,
+        hostsList: window.data.hostsList,
+        host: window.data.host
     });
 
     delete window.userMode;

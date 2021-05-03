@@ -17,6 +17,7 @@ const jwt = require("./etc/jwt");
 const errorHandler = require("./etc/errorHandler");
 const Backend = require('./api/extensions/socket_backend').Backend;
 const serveSkins = require('./api/extensions/serve_skins.js')();
+const serveHosts = require('./api/extensions/serve_hosts.js')();
 
 const app = express();
 app.server = http.createServer(app);

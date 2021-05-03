@@ -4,10 +4,12 @@ define([
 ], function (app, auth) {
     var value = "All";
 
-    var getLabelUI = function (label) {
+    var getLabelUI = function (filterLabel, fullPath) {
+        const label = fullPath[1] === "parentMeta" ? `${filterLabel.toUpperCase()} (parent's)` : filterLabel.toUpperCase();
         return {
             view: "label",
-            label: label.toUpperCase(),
+            label: label,
+            tooltip: fullPath.join(".") || "",
             css: "main-label",
             align: "left"
         };
