@@ -180,7 +180,7 @@ define([
 				.filter(({index}) => !group.channels.find(channel => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
-					return Object.assign(constants.DEFAULT_CHANNEL_SETTINGS, channel, {color});
+					return {...constants.DEFAULT_CHANNEL_SETTINGS, ...channel, color};
 				});
 			group.channels.push(...newChannels);
 			return newChannels;

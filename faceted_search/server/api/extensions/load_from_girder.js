@@ -3,7 +3,7 @@ const serviceData = require('../models/service_data');
 
 async function getFoldersByIds({host, ids, token}) {
 	const query = `{"_id":{"$in":${JSON.stringify(ids.map(id => ({$oid: id})))}}}`;
-	const url = `${host.hostAPI}/folder/query?query=${query}&limit=0&sort=_id&sortdir=1`;
+	const url = `${host}/folder/query?query=${query}&limit=0&sort=_id&sortdir=1`;
 
 	const options = {
 		headers: {
@@ -15,7 +15,7 @@ async function getFoldersByIds({host, ids, token}) {
 }
 
 async function loadImagesFileFromGirder({host, id, token}) {
-	const url = `${host.hostAPI}/resource/${id}/items?type=folder&limit=0&sort=_id&sortdir=1`;
+	const url = `${host}/resource/${id}/items?type=folder&limit=0&sort=_id&sortdir=1`;
 
 	const options = {
 		headers: {

@@ -60,7 +60,7 @@ define([], function() {
 			const selectedGroup = groupsList.getSelectedItem();
 			this._groupsPanel.addChannelsToGroup(channels, group);
 			if (group === selectedGroup) {
-				groupsList.callEvent("onSelectChange", [selectedGroup]);
+				this._groupsPanel.updateSelectedGroupTiles();
 			}
 		}
 	

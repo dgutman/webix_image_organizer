@@ -46,6 +46,8 @@ define([
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
 
+			this._waitForViewerCreation = webix.promise.defer();
+
 			this.$oninit = () => {
 				const view = this.getRoot();
 				const wrapper = this.getMultichannelWrap();
@@ -84,15 +86,22 @@ define([
 
 			this.$ondestroy = () => {
 				this._image = null;
+				this._waitForViewerCreation = webix.promise.defer();
 			}
 
 			this.$onurlchange = async (params) => {
-				const {id} = params;
+				const {id, group: groupIndex} = params;
 				try {
 					await this.handleIdChange(id)
 				}
 				catch (err) {
 					navigate(routes.userMode);
+				}
+
+				if (groupIndex != null) {
+					this._waitForViewerCreation.then(() => {
+						this._changeGroupByURLParam(groupIndex);
+					});
 				}
 			}
 		}
@@ -168,28 +177,28 @@ define([
 
 			rootView.hideOverlay("Empty Overlay");
 
-			const channels = await tilesCollection.getImageChannels(image);
-			this._parseChannels(channels);
-
-			const groups = await getSavedGroups(image);
-			groups.forEach((group) => {
-				this._addNewGroup(group.name, group.channels);
-			});
-
 			this.getRoot().showProgress();
-			const tileSources = await this._tileService.getTileSources(image);
-			this.getRoot().hideProgress();
+			const [channels, savedGroups, tileSources] = await Promise.all([
+				tilesCollection.getImageChannels(image),
+				getSavedGroups(image),
+				this._tileService.getTileSources(image)
+			]);
 
-			this._osdViewer.createViewer({tileSources});
+			this.getRoot().hideProgress();
+			this._parseChannels(channels);
+			this._groupsCollection.parse(savedGroups.map(({name, channels}) => ({name, channels})));
+
+			await this._osdViewer.createViewer({tileSources});
+			this._waitForViewerCreation.resolve();
 		}
 
 		_parseChannels(channels) {
 			this._channelsCollection.parse(channels);
 		}
 
-		validateImage(image) {
+		async validateImage(image) {
 			return image &&
-			image.meta &&
+			// image.meta &&
 			tilesCollection.getImageChannels(image);
 		}
 
@@ -328,6 +337,7 @@ define([
 			const groupsPanel = this._groupsPanel.getRoot();
 
 			groupsPanel.attachEvent("groupSelectChange", (group) => {
+				this._changeURLGroupIndex(group);
 				this._selectGroupHandler(group);
 
 				const channels = this._channelList.getSelectedChannels();
@@ -456,6 +466,26 @@ define([
 		_getGroupNameByChannels(channels) {
 			return channels.map(({name}) => name)
 				.join("_");
+		}
+
+		_changeGroupByURLParam(index) {
+			const groupsList = this._groupsPanel.getGroupsList();
+			const groups = this._groupsCollection.data.serialize();
+			if (groups[index]) {
+				groupsList.select(groups[index].id);
+			}
+		}
+
+		_changeURLGroupIndex(group) {
+			const urlParams = router.getParams();
+			if (group == null) {
+				delete urlParams.group;
+			}
+			else {
+				const groupIndex = this._groupsCollection.getIndexById(group.id);
+				urlParams.group = groupIndex;
+			}
+			router.setParams(urlParams);
 		}
 
 		getMultichannelWrap() {
