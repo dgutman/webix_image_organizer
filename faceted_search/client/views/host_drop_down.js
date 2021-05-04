@@ -34,7 +34,16 @@ define([
 	};
 	
 	return {
-        $ui: hostDropDownBox
+        $ui: hostDropDownBox,
+		$oninit() {
+			const hostBox = webix.$$(constants.HOST_BOX_ID);
+			hostBox.getList().waitData.then(() => {
+				const dataCount = hostBox.getList().count();
+				if (dataCount <= 1) {
+					hostBox.hide();
+				}
+			});
+		}
     };
 });
 

@@ -2,24 +2,21 @@ define([
     "app",
     "views/toolbar",
     "views/edit_form",
-    "views/uploader",
-    "views/uploader_list",
-    "views/facets_form",
     "views/host_drop_down",
     "views/user_panel",
     "views/folder_tree",
+    "views/components/header_label",
     "helpers/authentication",
     "constants"
-], function (app, toolbar, editFormView, uploaderView, uploaderListView, facetsFormView, hostDropDown, userPanel, folderTree, auth, constants) {
+], function (app, toolbar, editFormView, hostDropDown, userPanel, folderTree, HeaderLabel, auth, constants) {
     const editViewId = "editView";
-    const uploaderViewId = "uploaderView";
-    const tabbarId = "tabbar";
     const ui = {
         rows: [
             {
                 view: "toolbar",
                 borderless: true,
                 cols: [
+                    new HeaderLabel(),
                     {},
                     hostDropDown,
                     {width: 50},
