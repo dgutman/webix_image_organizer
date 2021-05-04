@@ -3,8 +3,12 @@ define([
 	"app",
 	"constants",
 	"windows/login_window",
-	"helpers/authentication"
-], function (app, constants, loginWindow, auth) {
+	"helpers/authentication",
+	"helpers/switch_skins_confirm"
+], function (app, constants, loginWindow, auth, switchSkinConfirm) {
+
+	// use object with callback functions instead with switch
+	let callbacks = {};
 
 	function calcUserMenuWidth(str) {
 		return str && str.length ? str.length * 14 : 1;
@@ -23,6 +27,25 @@ define([
 		}
 	}
 
+	function pseudoSwitch(id) {
+		if (callbacks[id]) {
+			callbacks[id].forEach(function(fn) {
+				fn(id);
+			});
+		}
+	}
+
+	function addSwitch(_case, fn) {
+		callbacks[_case] = callbacks[_case] || [];
+		callbacks[_case].push(fn);
+	}
+
+	const skins = app.config.skinsList.map((skin) => {
+		let obj = {id: skin, value: skin};
+		addSwitch(skin, switchSkinConfirm);
+		return obj;		
+	})
+
 	const loginMenu = {
 		name: "loginMenu",
 		template: "<span class='menu-login login-menu-item'>Login</span>",
@@ -34,7 +57,7 @@ define([
 			}
 		}
 	};
-	
+
 	const logoutMenu = {
 		view: "menu",
 		name: "logoutMenu",
@@ -45,6 +68,12 @@ define([
 			{
 				id: "name",
 				submenu: [
+					{
+						id: "toggle_skin_id",
+						value: "skin",
+						subMenuPos: "left",
+						submenu: skins
+						},
 					{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
 				]
 			}
@@ -60,6 +89,7 @@ define([
 						break;
 					}
 					default: {
+						pseudoSwitch(id);
 						break;
 					}
 				}
@@ -77,9 +107,7 @@ define([
 	const logoutPanel = {
 		id: constants.LOGOUT_PANEL_ID,
 		rows: [
-			{},
 			logoutMenu,
-			{}
 		]
 	};
 	

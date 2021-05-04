@@ -6,33 +6,40 @@ define([
     "views/user_panel",
     "app",
     "helpers/authentication",
-    "views/host_drop_down"
-], function (Images, breadcrumbs, switchSkinConfirm, modeToolbar, userPanel, app, auth, hostDropDown) {
-
+    "views/host_drop_down",
+    "views/filter_form",
+    "views/filter_button"
+], function(Images, breadcrumbs, switchSkinConfirm, modeToolbar, userPanel, app, auth, hostDropDown, filterFormView, filterButtonView) {
     window.img = Images;
-    var toolbarId = "filter_toolbar",
-        toggleBtnId = "toggle_btn_id",
-        toggleSkinId = 'toggle_skin_id',
-        toggleSkinSelect = 300,
-        toggleSkinSelectLabel = 100,
-        toggleSkinButton = {
-            width:toggleSkinSelect,
-            labelWidth: toggleSkinSelectLabel,
-            id: toggleSkinId,
-            label:"Switch Skin",
-            css: 'toggle-skin-button',
-            view: 'richselect',
-            width: 250,
-	    	labelWidth: 100,
-            options: app.config.skinsList,
-            value: app.config.currentSkin,
-            on: {
-                onChange: function(skin){
-                    switchSkinConfirm(this, skin);
-                }
+    const toolbarId = "filter_toolbar";
+    const toggleFilterId = 'toggle_filter_id';
+    const filterCellPopupId = 'filter_form_popup_id';
+    const filterCellId = "filter_cell";
+    const rowViewButtonId = 'row_view_button_id';
+    const colViewButtonId = 'col_view_button_id';
+        const toggleFilterIcon = {
+            view: 'icon',
+            id: toggleFilterId,
+            icon: 'mdi mdi-filter',
+            click: function() {
+                $$(filterCellPopupId).show(this.getNode());
             }
-        },
-        ui = {
+        };
+        const filterCellPopup = {
+            view: 'popup',
+            id: filterCellPopupId,
+            body: {
+                minWidth: 200,
+                id: filterCellId,
+                maxWidth: 400,
+                hidden: !auth.isLoggedIn(),
+                rows: [
+                    filterFormView,
+                    filterButtonView
+                ]
+            }
+        };
+        const ui = {
             view: "toolbar",
             id: toolbarId,
             rows: [
@@ -40,37 +47,44 @@ define([
                     id: "a1",
                     rows: [
                         {
-                            responsive:"a1",
+                            responsive: "a1",
                             cols: [
                                 {
                                     view: "label",
                                     height: 30,
-                                    width: 200,
-                                    template: "<p class='images-header-p'>Filter results</p>"
+                                    width: 300,
+                                    template: "<p class='images-header-p'>HTAN Image Explorer</p>"
                                 },
-                                {height: 5},
+                                {gravity: 10, height: 1},
                                 {
-                                    view: "switch",
-                                    css: "images-header-toogle",
-                                    label: "Rows/columns",
-                                    value: 0,
-                                    id: toggleBtnId,
-                                    width: 200,
-                                    labelWidth: 110,
-                                    value: Images.getImagesViewState(),
-                                    on: {
-                                        onChange: function (state) {
-                                            Images.changeImagesViewState(state)
-                                        }
+                                    view: "label",
+                                    id: "view_label",
+                                    label: "View",
+                                    align: "left",
+                                    width: 50
+                                },
+                                {
+                                    view: "icon",
+                                    id: rowViewButtonId,
+                                    icon: "mdi mdi-table",
+                                    click: function() {
+                                        Images.changeImagesViewState(false);
+                                        this.disable();
+                                        $$(colViewButtonId).enable();
                                     }
                                 },
-                                {height: 5},
-                                toggleSkinButton,
-                                {height: 5},
-                                hostDropDown,
-                                {height: 5},
+                                {
+                                    view: "icon",
+                                    id: colViewButtonId,
+                                    icon: "mdi mdi-table-column",
+                                    click: function() {
+                                        Images.changeImagesViewState(true);
+                                        this.disable();
+                                        $$(rowViewButtonId).enable();
+                                    }
+                                },
                                 modeToolbar,
-                                {height: 5},
+                                toggleFilterIcon,
                                 userPanel
                             ]
                         }
@@ -80,11 +94,21 @@ define([
             ]
         };
 
+    app.ui(filterCellPopup);
+
     return {
         $ui: ui,
         $oninit: function() {
-            $$(toggleBtnId).define("value", Images.getImagesViewState());
-            $$(toggleBtnId).render();
+            let state = Images.getImagesViewState();
+            if(state) {
+                $$(rowViewButtonId).enable();
+                $$(colViewButtonId).disable();
+            }else{
+                $$(rowViewButtonId).disable();
+                $$(colViewButtonId).enable();
+            }
+            $$(rowViewButtonId).render();
+            $$(colViewButtonId).render();
         }
-    }
+    };
 });

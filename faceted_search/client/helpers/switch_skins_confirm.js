@@ -3,7 +3,7 @@ define([
     "constants"
     ], function(app, constants){
 
-    return function (selectView, skin){
+    return function (skin){
 
         var toggleSkinUrlUser = '/skin/user/';
         var toggleSkinUrlAdmin = '/skin/admin/';
@@ -15,11 +15,7 @@ define([
                 webix.ajax(`${LOCAL_API}${url}${skin}`, function(){
                     window.location.reload();
                 });
-            } else {
-                selectView.blockEvent(); //another one confirm window will pop up because of onchange event 
-                selectView.setValue(app.config.currentSkin);
-                selectView.unblockEvent();
-            }
+            } 
         }
 
         webix.confirm({

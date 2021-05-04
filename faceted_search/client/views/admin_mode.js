@@ -8,8 +8,9 @@ define([
     "views/host_drop_down",
     "views/user_panel",
     "views/folder_tree",
-    "helpers/authentication"
-], function (app, toolbar, editFormView, uploaderView, uploaderListView, facetsFormView, hostDropDown, userPanel, folderTree, auth) {
+    "helpers/authentication",
+    "constants"
+], function (app, toolbar, editFormView, uploaderView, uploaderListView, facetsFormView, hostDropDown, userPanel, folderTree, auth, constants) {
     const editViewId = "editView";
     const uploaderViewId = "uploaderView";
     const tabbarId = "tabbar";
@@ -78,7 +79,7 @@ define([
         },
         $onurlchange: (_arg1, _arg2, scope) => {
             const switchViews = scope.root.queryView({name: "switchViews"});
-            switchViews.setValue(window.location.hash.indexOf("user_mode") > -1 ? "user_mode" : "admin_mode");
+            switchViews.setValue(window.location.hash.indexOf("user_mode") > -1 ? constants.USER_MODE : constants.ADMIN_MODE);
         }
     };
 });

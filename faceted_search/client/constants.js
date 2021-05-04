@@ -1,4 +1,4 @@
-define([], function () {
+define([], function() {
 	return {
 		LOGOUT_PANEL_ID: "logout-panel",
 		LOGIN_PANEL_ID: "login-panel",
@@ -9,6 +9,9 @@ define([], function () {
 			opacity: 1,
 			min: 0,
 			max: 15000
-		}
-	}
-})
+		},
+		USER_MODE: 1,
+		ADMIN_MODE: 0,
+		WHITELIST_POPUP_ID: "edit_whitelist_popup_id"
+	};
+});

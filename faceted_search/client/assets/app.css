@@ -60,7 +60,7 @@
 
 .images-header-p {
     margin: 0;
-    font-size: 28px;
+    font-size: 24px;
 }
 
 .filters-header-p {
@@ -206,6 +206,10 @@
     max-width: 100%;
 }
 
+.openseadragon-template-image .webix_template {
+    display: none;
+}
+
 
 /*Collapsible Fitlers*/
 
@@ -331,3 +335,14 @@ body.compact-skin .webix_slider_box .webix_slider_handle {
     font-size: 25px;
     font-weight: bold;
 }
+
+/*Whitelist_popup*/
+
+.metadata-grouplist__group-value{
+    width: 60%;
+}
+
+.metadata-grouplist__item-value{
+    width: 60%;
+}
+

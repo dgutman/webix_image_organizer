@@ -38,7 +38,7 @@ define([
         id: "crumbsTemplate",
         css: "crumbs-template",
         hidden: !auth.isLoggedIn(),
-        height: 100,
+        height: 50,
         template: (data) => {
             let HTMLstring = "<div class='crumbs-scroll-cont'>";
             const crumbs = Object.keys(data) || [];

@@ -1,7 +1,7 @@
 define([
     "libs/webix-mvc-core/core",
     "libs/webix-mvc-core/plugins/menu",
-    "libs/openseadragon/openseadragon",
+    "libs/openseadragon/openseadragon.min.js",
     "constants"
 ], function (core, menu, osd, constants) {
     //configuration
@@ -9,7 +9,7 @@ define([
         id: "app",
         name: "",
         version: "0.1.0",
-        debug: true,
+        debug: false,
         start: "/top/user_mode",
         defaultAPIPath: `${constants.LOCAL_API}`,
         userMode: window.data.userMode,

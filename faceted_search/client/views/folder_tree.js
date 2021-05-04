@@ -86,7 +86,7 @@ define([
 
 				tree.showProgress();
 				uploadButton.disable();
-				Upload.getImagesFromGirder(app.config.host, folder._id, folder.name, token);
+				Upload.getImagesFromGirder(ajax.getHostApiUrl(), folder._id, folder.name, token);
 			});
 
 			app.attachEvent("editForm:finishLoading", function(data) {

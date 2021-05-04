@@ -94,7 +94,14 @@ define([
 	}
 
 	async function saveGroups(imageId, groups) {
-		groups = groups.map(({name, channels}) => ({name, channels}));
+		groups = groups.map(({name, channels}) => {
+			channels = channels.map((channel) => {
+				const channelToSave = {...channel};
+				delete channelToSave.id;
+				return channelToSave;
+			});
+			return {name, channels};
+		});
 		const metadata = {
 			[GROUPS_METADATA_FIELD]: groups
 		};
