@@ -69,6 +69,11 @@
     font-size: 28px;
 }
 
+.app-logo {
+    width: auto;
+    height: 100%;
+}
+
 .found-button {
     position: relative;
     background: #3498db;

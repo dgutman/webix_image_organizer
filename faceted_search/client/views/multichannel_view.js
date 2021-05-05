@@ -3,6 +3,7 @@ define([
 	"views/multichannel_viewer/osd_viewer",
 	"views/multichannel_viewer/groups_panel",
 	"views/multichannel_viewer/channels_list",
+	"views/components/header_label",
 	"helpers/base_jet_view",
 	"helpers/multichannel_view/tiles_service",
 	"helpers/debouncer",
@@ -18,6 +19,7 @@ define([
 	MultichannelOSDViewer,
 	GroupsPanel,
 	ChannelList,
+	HeaderLabel,
 	BaseJetView,
 	TilesService,
 	Debouncer,
@@ -113,6 +115,7 @@ define([
 				id: this._rootId,
 				rows: [
 					{
+						view: "toolbar",
 						cols: [
 							{
 								view: "button",
@@ -125,6 +128,7 @@ define([
 									this.app.show("/top/user_mode");
 								}
 							},
+							new HeaderLabel(),
 							{}
 						]
 					},
