@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 const ProcessImagesRequest = require('../extensions/process_images_request');
 const updateLocalCache = require('../extensions/updateLocalCache');
 const ProcessWhitelistRequest = require('../extensions/process_whitelist_request');
@@ -41,16 +40,46 @@ exports.getImagesData = (req, res, next) => {
 };
 
 const filterImageData = function(image, whitelist) {
+    image.facets = filterFacets(image.facets, whitelist);
+    image.data = filterData(image.data, whitelist);
+    return image;
+};
+
+const filterFacets = function(facets, whitelist) {
     whitelist.forEach((filter) => {
         if(filter.checked === false) {
-            delete(image.facets[filter.id]);
-            delete(image.data[filter.value]);
+            delete(facets[filter.id]);
         }
         if(filter.data.length !== 0) {
-            image = filterImageData(image, filter.data);
+            facets = filterFacets(facets, filter.data);
         }
     });
-    return image;
+    return facets;
+};
+
+const filterData = function(data, whitelist) {
+    whitelist.forEach((filter) => {
+        if(filter.checked === false) {
+            let dataForChecking;
+            if(data.hasOwnProperty(filter.value)) {
+                dataForChecking = data[filter.value];
+            }
+            if(Array.isArray(dataForChecking)) {
+                delete(data[filter.value]);
+            } else if(dataForChecking && typeof(dataForChecking) === "object") {
+                if(filter.data.length > 0) {
+                    dataForChecking = filterData(data[filter.value], filter.data);
+                }
+                let checkingDataLength = Object.keys(dataForChecking).length ? Object.keys(dataForChecking).length : 0;
+                if(checkingDataLength === 0) {
+                    delete(data[filter.value]);
+                }
+            } else {
+                delete(data[filter.value]);
+            }
+        }
+    });
+    return data;
 };
 
 exports.updateCache = (req, res, next) => {
