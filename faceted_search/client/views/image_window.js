@@ -1,33 +1,30 @@
 define([
     "helpers/ajax",
     "libs/is/is.min",
-    "templates/image",
     "libs/openseadragon/openseadragon.min.js"
-], function(ajax, is, imageTemplate, openseadragon) {
-    const windowWidthRatio = 0.7;
-    const windowWidthAdditionalRatio = 0.8;
-    const imageWidthRation = 0.4;
-    const windowHeightRatio = 0.28;
-    const propertyListWidthRatio = 0.42;
-
+], function(ajax, is, openseadragon) {
     const windowId = webix.uid();
     const openseadragonTemplateId = `openseadragon-template-${windowId}`;
 
     function showWindow(data) {
-        const hasLargeImage = !!data.data.largeImage;
-
         webix.ui({
             view: "window",
             id: windowId,
             position: "center",
-            width: window.innerWidth * windowWidthRatio * windowWidthAdditionalRatio,
-            height: window.innerWidth * windowHeightRatio,
-            move: true,
+            width: 1100,
+            height: 500,
+            minWidth: 720,
+            minHeight: 400,
             modal: true,
-            scroll: 'x',
+            resize: true,
             head: {
                 view: "toolbar",
                 cols: [
+                    {
+						view: "label",
+						width: 140,
+						template: "<img class='app-logo' src='assets/imgs/logo.png'>"
+					},
                     {
                         view: "label",
                         label: data.data.name
@@ -44,108 +41,116 @@ define([
                 ]
             },
             body: {
-                view: 'scrollview',
-                scroll: 'x',
-                body: {
-                    cols: [
-                        {
-                            rows: [
-                                getImageTemplate(hasLargeImage, data)
-                            ]
-                        },
-                        getPropertyList(data.data)
-                    ]
-                }
+                cols: [
+                    {
+                        view: "template",
+                        css: "openseadragon-template-image",
+                        minWidth: 400,
+                        id: openseadragonTemplateId
+                    },
+                    {
+                        view: 'scrollview',
+                        maxWidth: 400,
+                        minWidth: 300,
+                        body: getPropertyAccordionList(data.data)
+                    }
+                ]
             },
             on: {
                 onShow() {
-                    if (hasLargeImage) {
-                        const imageId = data.data._id;
+                    const imageId = data.data._id;
+                    const container = $$(openseadragonTemplateId).getNode();
+
+                    if (data.data.largeImage) {
                         ajax.getImageTiles(imageId)
-                          .then((tiles) => initOpenseadragon(imageId, tiles));
+                          .then((tiles) => {
+                              initLargeImageOpenseadragon(imageId, tiles, container);
+                          });
+                    } else {
+                        initSimpleImageOpenseadragon(imageId, container);
                     }
                 }
             }
         }).show();
     }
 
-    function getPropertyList(data) {
+    function getPropertyAccordionList(data) {
         return {
-            view: "property",
-            editable: false,
-            scroll: true,
-            nameWidth: 180,
-            width: window.innerWidth * propertyListWidthRatio,
-            elements: buildProperties([], data, '')
+            view: "accordion",
+            multi: true,
+            collapsed: true,
+            margin: 0,
+            rows: buildProperties([], data, '')
+        };
+    }
+
+    function getPropertyAccordionItem(prefix, data) {
+        return {
+            view: "accordionitem",
+            header: (prefix === '') ? "Main" : prefix,
+            body: {
+                view: "datatable",
+                header: false,
+                scroll: "x",
+                autoheight: true,
+                columns: [
+                    {
+                        id: "propertyName",
+                        minWidth: 170,
+                        adjust: "data"
+                    },
+                    {
+                        id: "propertyValue",
+                        minWidth: 230,
+                        adjust: "data"
+                    }
+                ],
+                data
+            }
         };
     }
 
     function buildProperties(array, data, prefix) {
-        array.push({
-            label: (prefix === '') ? "Main" : prefix,
-            type: "label"
-        });
+        const keys = Object.keys(data);
+        const length = keys.length;
+
+        // for string values
+        const arrayData = [];
+        for (let i = 0; i < length; i++) {
+            const key = keys[i];
+
+            if (is.not.object(data[key])) {
+                arrayData.push({
+                    propertyName: key,
+                    propertyValue: data[key]
+                });
+            }
+        }
+
+        array.push(getPropertyAccordionItem(prefix, arrayData));
 
         if (prefix !== '') {
             prefix += '/';
         }
 
-        const keys = Object.keys(data);
-        const length = keys.length;
-
-        // for string values
-        for (let i = 0; i < length; i++) {
-            const key = keys[i];
-
-            if (is.not.object(data[key])) {
-                array.push(
-                    {
-                        label: key,
-                        value: data[key],
-                        type: 'text'
-                    }
-                );
-            }
-        }
-
         // for object values
         for (let i = 0; i < length; i++) {
             const key = keys[i];
+            const value = data[key];
 
-            if (is.object(data[key])) {
-                array = buildProperties(array, data[key], prefix + key);
+            if (is.object(value) && is.not.empty(value) && !areAllPropertiesObjets(value)) {
+                array = buildProperties(array, value, prefix + key);
             }
         }
 
         return array;
     }
 
-    function getImageTemplate(isLargeImage, data) {
-        let generalTemplateConfig = {
-            css: 'popup-img',
-            template: () => imageTemplate.getTemplate(data)
-        };
-
-        if (isLargeImage) {
-            generalTemplateConfig = {
-                css: "openseadragon-template-image",
-                id: openseadragonTemplateId
-            };
-        }
-
-        return {
-            view: "template",
-            width: window.innerWidth * windowWidthRatio * imageWidthRation,
-            ...generalTemplateConfig
-        };
-    }
-
-    function initOpenseadragon(imageId, tiles) {
-        const openseadragonTemplate = $$(openseadragonTemplateId);
+    function initLargeImageOpenseadragon(imageId, tiles, container) {
         openseadragon({
-            element: openseadragonTemplate.getNode(),
-            crossOriginPolicy: "Anonymous",
+            element: container,
             prefixUrl: "libs/openseadragon/images/",
+            crossOriginPolicy: "Anonymous",
             loadTilesWithAjax: true,
             imageLoaderLimit: 1,
             tileSources: {
@@ -160,6 +165,23 @@ define([
                 }
             }
         });
+    }
+
+    function initSimpleImageOpenseadragon(imageId, container) {
+        openseadragon({
+            element: container,
+            prefixUrl: "libs/openseadragon/images/",
+            maxZoomPixelRatio: 6,
+            tileSources: {
+                type: 'image',
+                url: ajax.getImageUrl(imageId)
+            }
+        });
+    }
+
+    function areAllPropertiesObjets(obj) {
+        const values = Object.values(obj);
+        return values.every((item) => is.object(item));
     }
 
     return {
