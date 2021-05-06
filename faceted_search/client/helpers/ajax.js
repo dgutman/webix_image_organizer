@@ -196,6 +196,17 @@ define(["app", "constants"], function(app, constants) {
 			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 		}
 
+		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
+			params.token = getToken();
+			const paramsArray = Object.entries(params);
+			const searchParams = new URLSearchParams("");
+			paramsArray.forEach((item) => {
+				searchParams.append(...item);
+			});
+			const queryString = searchParams.toString() || "";
+			return `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}?${queryString}`;
+		}
+
 		getUsers() {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/user?limit=0&sort=lastName&sortdir=1`)
@@ -208,11 +219,13 @@ define(["app", "constants"], function(app, constants) {
 			const settings = {
 				width: 2048,
 				height: 2048,
-				bins: window.test || 256,
+				bins: 256,
 				...binsSettings
 			};
 			const urlSearchParams = new URLSearchParams();
-			urlSearchParams.append("frame", frame);
+			if(frame) {
+				urlSearchParams.append("frame", frame);
+			}
 			Object.keys(settings).forEach((paramKey) => {
 				if (settings[paramKey] != null) {
 					urlSearchParams.append(paramKey, settings[paramKey]);
@@ -223,20 +236,6 @@ define(["app", "constants"], function(app, constants) {
 				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles/histogram?${query}`)
 				.catch(this._parseError)
 				.then((result) => this._parseData(result));
-		}
-
-		getImageTiles(itemId) {
-			return this._ajax()
-				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
-				.catch(this._parseError)
-				.then((result) => this._parseData(result));
-		}
-
-		getImageTileUrl(itemId, z, x, y) {
-			const urlSearchParams = new URLSearchParams();
-			urlSearchParams.append("edge", "crop");
-			urlSearchParams.append("token", getToken());
-			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 		}
 
 		getImageFrameTileUrl(itemId, frame, z, x, y) {

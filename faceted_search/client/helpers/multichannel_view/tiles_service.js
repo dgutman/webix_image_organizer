@@ -68,7 +68,7 @@ define([
 	
 		async getColoredTileSources(channels) {
 			return Promise.all(channels.map((channel) => {
-				const {max, min} = constants.DEFAULT_CHANNEL_SETTINGS;
+				const {max, min} = constants.DEFAULT_16_BIT_CHANNEL_SETTINGS;
 				const colorSettings = {
 					palette2: channel.color,
 					min: channel.min || min,

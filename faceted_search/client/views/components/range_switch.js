@@ -1,0 +1,61 @@
+define([
+    "helpers/base_jet_view",
+    "constants"
+], function(BaseJetView, constants) {
+    'use strict';
+
+    const maxEdgeFor8BitId = 1;
+    const maxEdgeFor16BitId = 2;
+    return class RangeSwitch extends BaseJetView {
+        constructor(app, config = {}, maxRange, rangeSlider) {
+            super(app, config);
+
+            this._cnf = config;
+            this._maxRange = maxRange;
+            this._rangeSlider = rangeSlider;
+            this.$oninit = () => {
+                this._maxRangeRadio = this.$$("max-range-radio-id");
+                if(this._maxRange > constants.MAX_EDGE_FOR_8_BIT) {
+                    this._maxRangeRadio.setValue(maxEdgeFor16BitId);
+                } else {
+                    this._maxRangeRadio.setValue(maxEdgeFor8BitId);
+                }
+                this._maxRangeRadio.attachEvent("onChange", (id) => {
+                    this._rangeSlider.setEdges(0, this._maxRangeRadio.getOption(id).value);
+                });
+            };
+        }
+
+        get $ui() {
+            return {
+                ...this._cnf,
+				id: this._rootId,
+				rows: [
+					{
+						view: "radio",
+                        localId: "max-range-radio-id",
+                        label: "Max range",
+                        vertical: false,
+                        options: [
+                            {
+                                id: maxEdgeFor8BitId,
+                                value: constants.MAX_EDGE_FOR_8_BIT
+                            },
+                            {
+                                id: maxEdgeFor16BitId,
+                                value: constants.MAX_EDGE_FOR_16_BIT
+                            }
+                        ]
+					}
+				]
+            };
+        }
+        setMaxRange(maxRange) {
+            if(maxRange > constants.MAX_EDGE_FOR_8_BIT) {
+                this._maxRangeRadio.setValue(maxEdgeFor16BitId);
+            } else {
+                this._maxRangeRadio.setValue(maxEdgeFor8BitId);
+            } 
+        }
+    };
+});

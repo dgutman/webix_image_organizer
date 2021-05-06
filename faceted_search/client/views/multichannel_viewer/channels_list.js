@@ -119,25 +119,6 @@ define([
 			list.refresh(id); // rerender item
 		}
 	
-		async _getTileSources(image) {
-			const tileSourceOptions = await ajaxActions.getImageTiles(image._id);
-			const tileSources = {
-				crossOriginPolicy: "Anonymous",
-				loadTilesWithAjax: true,
-				width: tileSourceOptions.sizeX,
-				height: tileSourceOptions.sizeY,
-				tileWidth: tileSourceOptions.tileWidth,
-				tileHeight: tileSourceOptions.tileHeight,
-				minLevel: 0,
-				maxLevel: tileSourceOptions.levels - 1,
-				getTileUrl(level, x, y) {
-					return ajaxActions.getImageTileUrl(image._id, level, x, y);
-				}
-			};
-	
-			return tileSources;
-		}
-	
 		isSelected(id) {
 			return this._selectedChannelsModel.isSelected(id);
 		}

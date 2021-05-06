@@ -2,9 +2,8 @@ define([
 	"helpers/base_jet_view",
 	"helpers/math_calculations",
 	"models/multichannel_view/state_store",
-	"windows/color_picker_window",
 	"constants"
-], function(BaseJetView, MathCalculations, stateStore, ColorPickerWindow, constants) {
+], function(BaseJetView, MathCalculations, stateStore, constants) {
 	'use strict';
 	const GROUPS_LIST_ID = "groups-list";
 	const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -14,7 +13,7 @@ define([
 	const GROUPS_TITLE_TEMPLATE = "groups-title";
 
 	return class GroupsPanel extends BaseJetView {
-		constructor(app, config = {}) {
+		constructor(app, config = {}, colorWindow) {
 			super(app);
 
 			this._cnf = config;
@@ -24,7 +23,7 @@ define([
 				webix.extend(view, webix.OverlayBox);
 				webix.TooltipControl.addTooltip(this.$$(GROUPS_TITLE_TEMPLATE).$view);
 
-				this._colorWindow = this.ui(new ColorPickerWindow(this.app));
+				this._colorWindow = colorWindow;
 		
 				const groupsList = this.getGroupsList();
 				const channelsList = this.getGroupsChannelsList();
@@ -43,7 +42,7 @@ define([
 						channelsLayout.hide();
 					}
 				});
-			}
+			};
 		}
 
 		get $ui() {
@@ -54,17 +53,14 @@ define([
 					{
 						css: "groups-panel__groups-header groups-header",
 						localId: GROUPS_TITLE_TEMPLATE,
+						borderless: true,
 						template: () => `Groups: <div>
-								<span class="export icon mdi mdi-download" title="download groups"></span>
-								<span class="import icon mdi mdi-upload" title="import groups from file"></span>
+								<span class="upload icon mdi mdi-upload" title="upload groups"></span>
 							</div>`,
 						height: 30,
 						onClick: {
-							export: () => {
-								this.exportGroups();
-							},
-							import: () => {
-								this.importGroups();
+							upload: () => {
+								this.uploadGroups();
 							}
 						}
 					},
@@ -180,7 +176,11 @@ define([
 				.filter(({index}) => !group.channels.find(channel => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
-					return {...constants.DEFAULT_CHANNEL_SETTINGS, ...channel, color};
+					if(stateStore.bit = constants.SIXTEEN_BIT) {
+						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel, color};
+					} else {
+						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel, color};
+					}
 				});
 			group.channels.push(...newChannels);
 			return newChannels;
@@ -261,26 +261,8 @@ define([
 			return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 		}
 	
-		exportGroups() {
-			const groups = this.getGroupsList().data.serialize();
-			if (!groups.length) {
-				return;
-			}
-	
-			this.getRoot().callEvent("exportGroups", [groups]);
-		}
-	
-		importGroups() {
-			const uploader = this.$$(UPLOADER_API_ID);
-	
-			const beforeFileAddHandler = ({file}) => {
-				this.getRoot().callEvent("importGroups", [file]);
-				uploader.files.clearAll();
-				uploader.detachEvent("onBeforeFileAdd", beforeFileAddHandler);
-				return false;
-			};
-			uploader.attachEvent("onBeforeFileAdd", beforeFileAddHandler);
-			uploader.fileDialog();
+		uploadGroups() {
+			this.getRoot().callEvent("uploadGroups");
 		}
 	
 		getGroupsList() {
@@ -310,5 +292,5 @@ define([
 		set _group(group) {
 			stateStore.group = group;
 		}
-	}
+	};
 });
