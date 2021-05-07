@@ -1,10 +1,26 @@
 define([
     "views/images_dataview",
+    "views/filter_form",
+    "views/filter_button",
+    "helpers/authentication",
     "constants"
-], function (imagesView, constants) {
+], function (imagesView, filterFormView, filterButtonView, auth, constants) {
     const dataViewCellId = "dataview_cell";
+    const filterCellId = "filter_cell";
+    const filterFormLabel = {
+        type: "header",
+        template: "<p class='filters-header-p'>Filters</p>"
+    }
     const ui = {
         cols: [
+            {
+                minWidth: 200, id: filterCellId, maxWidth: 400,
+                rows: [
+                    filterFormLabel,
+                    filterFormView,
+                    filterButtonView
+                ]
+            },
             {body: imagesView, minWidth: 500, id: dataViewCellId}
         ]
     };

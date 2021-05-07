@@ -3,6 +3,7 @@ define([
 	"views/multichannel_viewer/osd_viewer",
 	"views/multichannel_viewer/groups_panel",
 	"views/multichannel_viewer/channels_list",
+	"views/components/horizontal_collapser",
 	"views/components/header_label",
 	"helpers/base_jet_view",
 	"helpers/multichannel_view/tiles_service",
@@ -20,6 +21,7 @@ define([
 	MultichannelOSDViewer,
 	GroupsPanel,
 	ChannelList,
+	HorizontalCollapser,
 	HeaderLabel,
 	BaseJetView,
 	TilesService,
@@ -35,7 +37,7 @@ define([
 ) {
 	'use strict';
 	const {routes, navigate} = router;
-	const {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} = groupsLoader;
+	const {saveGroups, getSavedGroups} = groupsLoader;
 
 	const MULTICHANNEL_WRAP_ID = "multichannel-wrap";
 
@@ -46,7 +48,9 @@ define([
 			this._colorWindow = this.ui(new ColorPickerWindow(this.app));
 			this._osdViewer = new MultichannelOSDViewer(app, {showNavigationControl: false});
 			this._channelList = new ChannelList(app, {gravity: 0.2, minWidth: 200});
-			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200}, this._colorWindow);
+			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200, hidden: true}, this._colorWindow);
+			this._channlesListCollapser = new HorizontalCollapser(app, {direction: "left"});
+			this._groupsPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
 
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
@@ -78,12 +82,11 @@ define([
 				this._attachGroupsPanelEvents();
 	
 				this._groupsCollection.data.attachEvent("onStoreUpdated", () => {
-					const groupsPanelRoot = this._groupsPanel.getRoot();
 					const count = this._groupsCollection.count();
 					if (count) {
-						groupsPanelRoot.show();
+						this._groupsPanelCollapser.expand();
 					} else {
-						groupsPanelRoot.hide();
+						this._groupsPanelCollapser.collapse();
 					}
 				});
 			};
@@ -91,14 +94,13 @@ define([
 			this.$ondestroy = () => {
 				this._image = null;
 				this._waitForViewerCreation = webix.promise.defer();
-			}
+			};
 
 			this.$onurlchange = async (params) => {
 				const {id, group: groupIndex} = params;
 				try {
 					await this.handleIdChange(id);
-				}
-				catch (err) {
+				} catch (err) {
 					navigate(routes.userMode);
 				}
 
@@ -130,7 +132,7 @@ define([
 									this.app.show("/top/user_mode");
 								}
 							},
-							new HeaderLabel(),
+							new HeaderLabel(app),
 							{}
 						]
 					},
@@ -140,7 +142,9 @@ define([
 						localId: MULTICHANNEL_WRAP_ID,
 						cols: [
 							this._channelList,
+							this._channlesListCollapser,
 							this._osdViewer,
+							this._groupsPanelCollapser,
 							this._groupsPanel
 						]
 					}
@@ -209,7 +213,7 @@ define([
 		}
 
 		_addGroupHandler({name}) {
-			const existedGroup = this._groupsCollection.find(group => group.name === name, true);
+			const existedGroup = this._groupsCollection.find((group) => group.name === name, true);
 			if (existedGroup) {
 				return;
 			}
@@ -288,8 +292,7 @@ define([
 					let topFrame = viewer.world.getItemAt(bottomFrameIndex + 1);
 					topFrame.setCompositeOperation(compositeType);
 				}
-			}
-			else {
+			} else {
 				viewer.viewport.goHome();
 			}
 		}
@@ -475,8 +478,7 @@ define([
 			const urlParams = router.getParams();
 			if (group == null) {
 				delete urlParams.group;
-			}
-			else {
+			} else {
 				const groupIndex = this._groupsCollection.getIndexById(group.id);
 				urlParams.group = groupIndex;
 			}

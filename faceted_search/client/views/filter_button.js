@@ -1,11 +1,11 @@
 define([
     "models/images",
     "helpers/authentication"
-], function (Images, auth) {
-    var buttonId = "filterButton",
-        templateId = "button_template",
-        visible = true,
-        ui = {
+], function(Images, auth) {
+    let buttonId = "filterButton";
+    let templateId = "button_template";
+    let visible = true;
+    let ui = {
         id: buttonId,
         cols: [
             {
@@ -46,12 +46,10 @@ define([
         $ui: ui,
         $oninit: function() {
             webix.extend($$(templateId), webix.ProgressBar);
-            if (auth.isLoggedIn()) {
-                $$(templateId).showProgress({
-                    type:"icon"
-                });
-            }
+            $$(templateId).showProgress({
+                type: "icon"
+            });
             visible = true;
         }
-    }
+    };
 });

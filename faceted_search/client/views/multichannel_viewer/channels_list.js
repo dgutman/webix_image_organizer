@@ -30,7 +30,7 @@ define([
 				this._sortTemplate.addListById(list.config.id);
 	
 				this.attachListEvents();
-			}
+			};
 		}
 	
 		get $ui() {
@@ -70,7 +70,8 @@ define([
 						<span class="channel-item__index index">(${index})</span>`,
 						type: {
 							checkboxState: (id) => {
-								const icon = this._selectedChannelsModel.isSelected(id) ? "checked mdi mdi-checkbox-marked" : "unchecked mdi mdi-checkbox-blank-outline";
+								const icon = this._selectedChannelsModel.isSelected(id)
+									? "checked mdi mdi-checkbox-marked" : "unchecked mdi mdi-checkbox-blank-outline";
 								return `<span class='checkbox ${icon}'></span>`;
 							}
 						},
@@ -110,8 +111,7 @@ define([
 		handleCustomSelect(id) {
 			if (this._selectedChannelsModel.isSelected(id)) {
 				this._selectedChannelsModel.unselect(id);
-			}
-			else {
+			} else {
 				this._selectedChannelsModel.select(id);
 			}
 			const list = this.getList();
@@ -138,8 +138,7 @@ define([
 			const button = this.getAddToGroupButton();
 			if (show) {
 				button.show();
-			}
-			else {
+			} else {
 				button.hide();
 			}
 		}
@@ -155,5 +154,5 @@ define([
 		getAddToGroupButton() {
 			return this.$$(ADD_TO_GROUP_BUTTON_ID);
 		}
-	}	
+	};
 });

@@ -24,7 +24,7 @@ app.server = http.createServer(app);
 
 app.set('views', path.join(__dirname, '../client'));
 
-//session
+// session
 app.use(session({
     secret: config.session_secret,
     resave: false,

@@ -16,7 +16,7 @@ define([
                 view: "toolbar",
                 borderless: true,
                 cols: [
-                    new HeaderLabel(),
+                    new HeaderLabel(app),
                     {},
                     hostDropDown,
                     {width: 50},

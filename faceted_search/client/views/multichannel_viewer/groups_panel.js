@@ -2,8 +2,9 @@ define([
 	"helpers/base_jet_view",
 	"helpers/math_calculations",
 	"models/multichannel_view/state_store",
+	"windows/color_picker_window",
 	"constants"
-], function(BaseJetView, MathCalculations, stateStore, constants) {
+], function(BaseJetView, MathCalculations, stateStore, ColorPickerWindow, constants) {
 	'use strict';
 	const GROUPS_LIST_ID = "groups-list";
 	const GROUP_CHANNELS_LIST_ID = "groups-channels-list";

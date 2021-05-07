@@ -29,10 +29,10 @@ define([
         get $ui() {
             return {
                 ...this._cnf,
-				id: this._rootId,
-				rows: [
-					{
-						view: "radio",
+                id: this._rootId,
+                rows: [
+                    {
+                        view: "radio",
                         localId: "max-range-radio-id",
                         label: "Max range",
                         vertical: false,
@@ -46,8 +46,8 @@ define([
                                 value: constants.MAX_EDGE_FOR_16_BIT
                             }
                         ]
-					}
-				]
+                    }
+                ]
             };
         }
         setMaxRange(maxRange) {

@@ -1,45 +1,24 @@
 define([
+    "app",
     "models/images",
     "views/filter_breadcrumbs",
     "views/toolbar",
     "views/user_panel",
-    "app",
-    "helpers/authentication",
-    "views/filter_form",
-    "views/filter_button",
     "views/components/header_label"
-], function(Images, breadcrumbs, modeToolbar, userPanel, app, auth, filterFormView, filterButtonView, HeaderLabel) {
+], function(
+    app,
+    Images,
+    breadcrumbs,
+    modeToolbar,
+    userPanel,
+    HeaderLabel
+) {
     window.img = Images;
     const toolbarId = "filter_toolbar";
-    const toggleFilterId = 'toggle_filter_id';
-    const filterCellPopupId = 'filter_form_popup_id';
-    const filterCellId = "filter_cell";
     const rowViewButtonId = 'row_view_button_id';
     const colViewButtonId = 'col_view_button_id';
-    const toggleFilterIcon = {
-        view: 'icon',
-        id: toggleFilterId,
-        icon: 'mdi mdi-filter',
-        click: function() {
-            $$(filterCellPopupId).show(this.getNode());
-        }
-    };
-    const filterCellPopup = {
-        view: 'popup',
-        id: filterCellPopupId,
-        body: {
-            minWidth: 200,
-            id: filterCellId,
-            maxWidth: 400,
-            hidden: !auth.isLoggedIn(),
-            rows: [
-                filterFormView,
-                filterButtonView
-            ]
-        }
-    };
 
-    const headerLabel = new HeaderLabel()
+    const headerLabel = new HeaderLabel(app);
 
     const ui = {
         view: "toolbar",
@@ -81,7 +60,6 @@ define([
                                 }
                             },
                             modeToolbar,
-                            toggleFilterIcon,
                             userPanel
                         ]
                     }
@@ -90,8 +68,6 @@ define([
             breadcrumbs
         ]
     };
-
-    app.ui(filterCellPopup);
 
     return {
         $ui: ui,
