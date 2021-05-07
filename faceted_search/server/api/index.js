@@ -3,16 +3,14 @@
 
 const express = require('express');
 const fs = require('fs');
-const path = require('path');
 
 const ServiceData = require('./models/service_data');
 
-const SKINS = require('../constants').SKINS;
-
-function handleIndexRoutes(req, res, next){
+function handleIndexRoutes(req, res, next) {
     let adminMode = false;
     if(req.url === '/admin') adminMode = true;
     const currentSkin = adminMode ? req.session.admin_skin : req.session.user_skin;
+   
     Promise.all([
             ServiceData.getSkinsList(),
             ServiceData.getSkinExtensionsList(),
@@ -21,11 +19,12 @@ function handleIndexRoutes(req, res, next){
     .then(([skins, extensions, hosts]) => {
         let skinsList = skins.data;
         let skinsExtensionsList = extensions.data;
+        const defaultSkin = skinsList.includes("flat") ? "flat" : skinsList[0];
 
         const currentHost = req.session.host || hosts.data[0];
         let data = {hostsList: hosts.data};
-        if(adminMode){
-            if(!currentSkin || !skinsList.includes(currentSkin)) req.session.admin_skin = skinsList[0];
+        if(adminMode) {
+            if(!currentSkin || !skinsList.includes(currentSkin)) req.session.admin_skin = defaultSkin;
             Object.assign(data, {
                 skin: req.session.admin_skin, 
                 skinExtension: skinsExtensionsList.includes(req.session.admin_skin) || false, 
@@ -33,7 +32,7 @@ function handleIndexRoutes(req, res, next){
                 userMode: false
             });
         } else {
-            if(!currentSkin || !skinsList.includes(currentSkin)) req.session.user_skin = skinsList[0];
+            if(!currentSkin || !skinsList.includes(currentSkin)) req.session.user_skin = defaultSkin;
             Object.assign(data, {
                 skin: req.session.user_skin,
                 skinExtension: skinsExtensionsList.includes(req.session.user_skin) || false, 
@@ -41,11 +40,11 @@ function handleIndexRoutes(req, res, next){
                 userMode: true
             });
         }
-        req.session.host = hosts.data.find(host => host.id === currentHost.id) || hosts.data[0];
+        req.session.host = hosts.data.find((host) => host.id === currentHost.id) || hosts.data[0];
         data.host = req.session.host;
         res.render('index.pug', {data: data});
     })
-    .catch(err => next(err));
+    .catch((err) => next(err));
 }
 
 
