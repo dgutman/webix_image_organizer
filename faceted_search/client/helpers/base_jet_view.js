@@ -16,12 +16,12 @@ define([
 			if (root.config.localId === id) {
 				return root;
 			}
-			return webix.$$(id) || root.queryView({localId: id});
+			return root.queryView({localId: id}) || webix.$$(id);
 		}
 
 		ui(view) {
 			this.app.ui(view);
 			return view;
 		}
-	}
+	};
 });

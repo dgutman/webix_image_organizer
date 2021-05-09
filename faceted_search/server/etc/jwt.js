@@ -7,19 +7,18 @@ function jwt() {
 		secret,
 		algorithms: ['HS256'],
 		isRevoked: jwtBlacklist.isRevoked,
-		getToken: req => req.headers["local-jwt"]
+		getToken: (req) => req.headers["local-jwt"]
 	}).unless({
 		path: [
 			// public routes that don't require authentication
 			{url: "/api/auth", methods: ['GET']},
-			{url: "/admin/"},
 			{url: /\/api\/images\/[^\>]+/},
 			{url: /\/api\/skin\/user\/[a-zA-Z]+/},
 			{url: "/"},
-			{url: /\/api\/host\/\d+/}
+			{url: /\/api\/host\/\d+/},
+			{url: /\/api\/facets\/images[^\>]*/}
 		]
 	});
-
 }
 
 module.exports = jwt;

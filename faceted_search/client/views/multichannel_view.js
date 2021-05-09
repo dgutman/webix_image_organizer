@@ -3,6 +3,7 @@ define([
 	"views/multichannel_viewer/osd_viewer",
 	"views/multichannel_viewer/groups_panel",
 	"views/multichannel_viewer/channels_list",
+	"views/components/horizontal_collapser",
 	"views/components/header_label",
 	"helpers/base_jet_view",
 	"helpers/multichannel_view/tiles_service",
@@ -13,12 +14,14 @@ define([
 	"helpers/multichannel_view/groups_loader",
 	"helpers/ajax",
 	"helpers/router",
+	"windows/color_picker_window",
 	"constants"
 ], function(
 	app,
 	MultichannelOSDViewer,
 	GroupsPanel,
 	ChannelList,
+	HorizontalCollapser,
 	HeaderLabel,
 	BaseJetView,
 	TilesService,
@@ -29,11 +32,12 @@ define([
 	groupsLoader,
 	ajaxActions,
 	router,
+	ColorPickerWindow,
 	constants
 ) {
 	'use strict';
 	const {routes, navigate} = router;
-	const {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} = groupsLoader;
+	const {saveGroups, getSavedGroups} = groupsLoader;
 
 	const MULTICHANNEL_WRAP_ID = "multichannel-wrap";
 
@@ -41,9 +45,12 @@ define([
 		constructor(app) {
 			super(app);
 
+			this._colorWindow = this.ui(new ColorPickerWindow(this.app));
 			this._osdViewer = new MultichannelOSDViewer(app, {showNavigationControl: false});
 			this._channelList = new ChannelList(app, {gravity: 0.2, minWidth: 200});
-			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200});
+			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200, hidden: true}, this._colorWindow);
+			this._channlesListCollapser = new HorizontalCollapser(app, {direction: "left"});
+			this._groupsPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
 
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
@@ -75,13 +82,11 @@ define([
 				this._attachGroupsPanelEvents();
 	
 				this._groupsCollection.data.attachEvent("onStoreUpdated", () => {
-					const groupsPanelRoot = this._groupsPanel.getRoot();
 					const count = this._groupsCollection.count();
 					if (count) {
-						groupsPanelRoot.show();
-					}
-					else {
-						groupsPanelRoot.hide();
+						this._groupsPanelCollapser.expand();
+					} else {
+						this._groupsPanelCollapser.collapse();
 					}
 				});
 			};
@@ -89,14 +94,13 @@ define([
 			this.$ondestroy = () => {
 				this._image = null;
 				this._waitForViewerCreation = webix.promise.defer();
-			}
+			};
 
 			this.$onurlchange = async (params) => {
 				const {id, group: groupIndex} = params;
 				try {
-					await this.handleIdChange(id)
-				}
-				catch (err) {
+					await this.handleIdChange(id);
+				} catch (err) {
 					navigate(routes.userMode);
 				}
 
@@ -105,7 +109,7 @@ define([
 						this._changeGroupByURLParam(groupIndex);
 					});
 				}
-			}
+			};
 		}
 
 		get $ui() {
@@ -120,7 +124,7 @@ define([
 							{
 								view: "button",
 								type: "icon",
-								icon:"mdi mdi-arrow-left",
+								icon: "mdi mdi-arrow-left",
 								width: 80,
 								height: 30,
 								label: "Back",
@@ -128,7 +132,7 @@ define([
 									this.app.show("/top/user_mode");
 								}
 							},
-							new HeaderLabel(),
+							new HeaderLabel(app),
 							{}
 						]
 					},
@@ -138,7 +142,9 @@ define([
 						localId: MULTICHANNEL_WRAP_ID,
 						cols: [
 							this._channelList,
+							this._channlesListCollapser,
 							this._osdViewer,
+							this._groupsPanelCollapser,
 							this._groupsPanel
 						]
 					}
@@ -194,6 +200,7 @@ define([
 
 			await this._osdViewer.createViewer({tileSources});
 			this._waitForViewerCreation.resolve();
+			this.changeBitImage();
 		}
 
 		_parseChannels(channels) {
@@ -202,12 +209,11 @@ define([
 
 		async validateImage(image) {
 			return image &&
-			// image.meta &&
 			tilesCollection.getImageChannels(image);
 		}
 
 		_addGroupHandler({name}) {
-			const existedGroup = this._groupsCollection.find(group => group.name === name, true);
+			const existedGroup = this._groupsCollection.find((group) => group.name === name, true);
 			if (existedGroup) {
 				return;
 			}
@@ -215,7 +221,11 @@ define([
 			const selectedChannels = this._channelList.getSelectedChannels();
 			const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 				.map((channel) => {
-					return {...constants.DEFAULT_CHANNEL_SETTINGS, ...channel};
+					if(stateStore.bit = constants.SIXTEEN_BIT) {
+						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
+					} else {
+						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel};
+					}				
 				});
 
 			const groupId = this._addNewGroup(name, coloredChannels);
@@ -261,6 +271,16 @@ define([
 			});
 		}
 
+		async changeBitImage() {
+			const [histogramData] = await this._colorWindow.getHistogramData(constants.min, constants.max);
+			this._colorWindow.setMinAndMaxValuesByHistogram(histogramData.min, histogramData.max);
+			if(histogramData.max > constants.MAX_EDGE_FOR_8_BIT) {
+				stateStore.Bit = constants.SIXTEEN_BIT;
+			} else {
+				stateStore.Bit = constants.EIGHT_BIT;
+			}
+		}
+
 		_compositeFrames(channels, compositeType = "difference") {
 			const viewer = this._osdViewer.$viewer();
 			let numOfFrames = channels.length;
@@ -272,8 +292,7 @@ define([
 					let topFrame = viewer.world.getItemAt(bottomFrameIndex + 1);
 					topFrame.setCompositeOperation(compositeType);
 				}
-			}
-			else {
+			} else {
 				viewer.viewport.goHome();
 			}
 		}
@@ -321,20 +340,6 @@ define([
 					this._addGroupHandler({name});
 				}
 			});
-
-			osdViewerRoot.attachEvent("uploadGroupBtnClick", () => {
-				const groups = this._groupsCollection.data.serialize();
-
-				this.getRoot().showProgress();
-				saveGroups(this._image._id, groups)
-					.then((image) => {
-						webix.message("Groups are successfully saved");
-						this._image = image;
-					})
-					.finally(() => {
-						this.getRoot().hideProgress();
-					});
-			});
 		}
 
 		_attachGroupsPanelEvents() {
@@ -372,29 +377,18 @@ define([
 				}
 			});
 
-			groupsPanel.attachEvent("importGroups", (file) => {
-				getImportedGroups(file)
-					.then(({imageId, groups}) => {
-						if (imageId !== this._image._id) {
-							webix.message(`Incorrect image id: "${imageId}"`);
-							return;
-						}
-
-						groups.forEach((group) => {
-							this._addNewGroup(group.name, group.channels);
-						});
-					}).catch((err) => {
-						if (err && typeof err === "string") {
-							webix.message(err);
-						}
-						else {
-							webix.message("Something went wrong");
-						}
+			groupsPanel.attachEvent("uploadGroups", () => {
+				const groups = this._groupsCollection.data.serialize();
+	
+				this.getRoot().showProgress();
+				saveGroups(this._image._id, groups)
+					.then((image) => {
+						webix.message("Groups are successfully saved");
+						this._image = image;
+					})
+					.finally(() => {
+						this.getRoot().hideProgress();
 					});
-			});
-
-			groupsPanel.attachEvent("exportGroups", (groups) => {
-				downloadGroup(this._image.name, this._image._id, groups);
 			});
 		}
 
@@ -422,12 +416,12 @@ define([
 			if (parseInt(id) !== channel.id) {
 				return;
 			}
-			const {max, min} = constants.DEFAULT_CHANNEL_SETTINGS;
+			const {max, min} = constants.DEFAULT_16_BIT_CHANNEL_SETTINGS;
 			const colorSettings = {
 				palette2: channel.color,
 				min: channel.min || min,
 				max: channel.max || max
-			}
+			};
 
 			const tileSource = await this._tileService.getColoredChannelTileSource(
 				this._image,
@@ -484,8 +478,7 @@ define([
 			const urlParams = router.getParams();
 			if (group == null) {
 				delete urlParams.group;
-			}
-			else {
+			} else {
 				const groupIndex = this._groupsCollection.getIndexById(group.id);
 				urlParams.group = groupIndex;
 			}

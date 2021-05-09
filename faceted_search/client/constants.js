@@ -5,13 +5,22 @@ define([], function() {
 		HOST_BOX_ID: "host-box",
 		FOLDER_TREE_ID: "folder-tree-view",
 		LOCAL_API: `${window.location.origin}/api`,
-		DEFAULT_CHANNEL_SETTINGS: {
+		DEFAULT_16_BIT_CHANNEL_SETTINGS: {
 			opacity: 1,
 			min: 0,
 			max: 15000
 		},
+		DEFAULT_8_BIT_CHANNEL_SETTINGS: {
+			opacity: 1,
+			min: 0,
+			max: 256
+		},
 		USER_MODE: 1,
 		ADMIN_MODE: 0,
-		WHITELIST_POPUP_ID: "edit_whitelist_popup_id"
+		WHITELIST_POPUP_ID: "edit_whitelist_popup_id",
+		MAX_EDGE_FOR_8_BIT: 512,
+		MAX_EDGE_FOR_16_BIT: 65536,
+		EIGHT_BIT: 8,
+		SIXTEEN_BIT: 16
 	};
 });

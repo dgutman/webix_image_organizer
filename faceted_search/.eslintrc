@@ -1,14 +1,30 @@
 {
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "parserOptions": {
         "ecmaVersion": 7,
-        "sourceType": "module"
+        "sourceType": "module",
+        "requireConfigFile": false
     },
     "extends": ["google"],
     "rules": {
         "camelcase": 0,
         "quotes": 0,
         "new-cap": 0,
-        "require-jsdoc": 0
+        "require-jsdoc": 0,
+        "comma-dangle": ["error", "never"],
+        "no-undef": 2,
+        "no-const-assign":"error",
+        "no-trailing-spaces":"off",
+        "max-len":["warn", {"code": 120}]
+    },
+    "globals": {
+        "define": "readonly",
+        "webix": "readonly",
+        "$$": "readonly",
+        "Promise": "readonly"
+    },
+    "env": {
+        "browser": true,
+        "node": true
     }
 }

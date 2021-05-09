@@ -6,7 +6,8 @@ define([
     "views/multichannel_view",
     "helpers/authentication"
 ], function (Images, imageTemplate, filterHeaderView, imageWindow, multichannelView, auth) {
-    var dataviewId = "images-dataview", ui = {
+    let dataviewId = "images-dataview";
+    let ui = {
         id: "dataview-layout",
         rows: [
             filterHeaderView,
@@ -38,7 +39,7 @@ define([
                         return false;
                     }
                 },
-                template: function(data){
+                template: function(data) {
                     return imageTemplate.getTemplate(data);
                 },
                 tooltip: (data) => {
@@ -49,37 +50,31 @@ define([
     };
 
     Images.attachEvent("imagesLoaded", function() {
-       var data = this.getImages();
+        let data = this.getImages();
         $$(dataviewId).clearAll();
         $$(dataviewId).parse(data);
         $$(dataviewId).hideProgress();
     });
 
     Images.attachEvent("imagesViewStateChange", function() {
-        var sizes = this.getImagesSize($$(dataviewId).$width);
+        let sizes = this.getImagesSize($$(dataviewId).$width);
         $$(dataviewId).define("type", sizes);
         $$(dataviewId).render();
-
     });
 
 
     return {
         $ui: ui,
         $oninit: function() {
-            var sizes;
+            let sizes;
             webix.extend($$(dataviewId), webix.ProgressBar);
             webix.extend($$(dataviewId), webix.OverlayBox);
             sizes = Images.getImagesSize($$(dataviewId).$width);
             $$(dataviewId).define("type", sizes);
-            if (auth.isLoggedIn()) {
                 $$(dataviewId).showProgress({
-                    type:"icon"
+                    type: "icon"
                 });
                 Images.loadImages();
-            }
-            else {
-                $$(dataviewId).showOverlay("<div class='dataview-overlay'>To work with the Filter results, please Login</div>")
-            }
         }
-    }
+    };
 });
