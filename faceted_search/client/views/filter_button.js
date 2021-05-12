@@ -3,9 +3,9 @@ define([
     "helpers/authentication"
 ], function(Images, auth) {
     let buttonId = "filterButton";
-    let templateId = "button_template";
-    let visible = true;
-    let ui = {
+        let templateId = "button_template";
+        let visible = true;
+        let ui = {
         id: buttonId,
         cols: [
             {

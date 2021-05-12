@@ -16,7 +16,8 @@ function jwt() {
 			{url: /\/api\/skin\/user\/[a-zA-Z]+/},
 			{url: "/"},
 			{url: /\/api\/host\/\d+/},
-			{url: /\/api\/facets\/images[^\>]*/}
+			{url: /\/api\/facets\/images[^\>]*/},
+			{url: /\/api\/facets\/filters[^\>]*/}
 		]
 	});
 }
