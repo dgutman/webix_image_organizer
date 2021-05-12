@@ -1,13 +1,13 @@
 define(["helpers/ajax", "helpers/authentication"], function(ajax, auth) {
    return {
        getTemplate: function(data) {
-            let img = `<img src="assets/imgs/no-image.png" style="width: 90%" class="template-image">`
+            let img = `<img src="assets/imgs/no-image.png" style="width: 90%" class="template-image">`;
 
             let src = `${ajax.getHostApiUrl()}/item/${data.data._id}/tiles/thumbnail?token=${auth.getToken()}`;
             if (data.filename || data.filesrc) {
                 src = data.filename ? `/api/images/${data.filename}` : data.filesrc;
             }
-            img = `<img src="${src}" class="template-image">`
+            img = `<img src="${src}" class="template-image">`;
 
             const name = data.data.name || "no image";
 
@@ -17,10 +17,11 @@ define(["helpers/ajax", "helpers/authentication"], function(ajax, auth) {
                                     ${img}
                                 </div>
                                 <div class="template-image-icons">
-                                    <span class="icon multichannel mdi mdi-checkbox-multiple-blank-outline">
+                                    <span class="icon multichannel png-icon color-palette" title="open with multichannel viewer">
+                                    </span>
                                 </div>
-                            </div>`
+                            </div>`;
             return template;
        }
-   }
+   };
 });
