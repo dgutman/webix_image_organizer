@@ -275,9 +275,9 @@ define([
 			const [histogramData] = await this._colorWindow.getHistogramData(constants.min, constants.max);
 			this._colorWindow.setMinAndMaxValuesByHistogram(histogramData.min, histogramData.max);
 			if(histogramData.max > constants.MAX_EDGE_FOR_8_BIT) {
-				stateStore.Bit = constants.SIXTEEN_BIT;
+				stateStore.bit = constants.SIXTEEN_BIT;
 			} else {
-				stateStore.Bit = constants.EIGHT_BIT;
+				stateStore.bit = constants.EIGHT_BIT;
 			}
 		}
 
