@@ -18,9 +18,10 @@ define([], function() {
 		USER_MODE: 1,
 		ADMIN_MODE: 0,
 		WHITELIST_POPUP_ID: "edit_whitelist_popup_id",
-		MAX_EDGE_FOR_8_BIT: 512,
+		MAX_EDGE_FOR_8_BIT: 256,
 		MAX_EDGE_FOR_16_BIT: 65536,
 		EIGHT_BIT: 8,
-		SIXTEEN_BIT: 16
+		SIXTEEN_BIT: 16,
+		THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"]
 	};
 });

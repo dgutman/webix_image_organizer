@@ -127,7 +127,9 @@ define([
             }
         }
 
-        array.push(getPropertyAccordionItem(prefix, arrayData));
+        if (arrayData.length !== 0) {
+            array.push(getPropertyAccordionItem(prefix, arrayData));
+        }
 
         if (prefix !== '') {
             prefix += '/';
@@ -138,7 +140,7 @@ define([
             const key = keys[i];
             const value = data[key];
 
-            if (is.object(value) && is.not.empty(value) && !areAllPropertiesObjets(value)) {
+            if (is.object(value) && is.not.empty(value)) {
                 array = buildProperties(array, value, prefix + key);
             }
         }
@@ -177,11 +179,6 @@ define([
                 url: ajax.getImageUrl(imageId)
             }
         });
-    }
-
-    function areAllPropertiesObjets(obj) {
-        const values = Object.values(obj);
-        return values.every((item) => is.object(item));
     }
 
     return {
