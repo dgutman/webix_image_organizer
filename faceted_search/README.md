@@ -22,3 +22,8 @@ bower install
 3. create `config.js` file and add fields like in `sample_config.js`
 4. `npm start`.
 The app uses `8000` port.
+
+#### Run inside Docker
+1. create `config.js` file and add fields like in `sample_config.js`
+2. run `docker build -t faceted_search .` command
+3. run `docker run --network="host" -d faceted_search` command (-d for detached mode, --network="host" to run docker container inside local machine network instead of making it's own one)

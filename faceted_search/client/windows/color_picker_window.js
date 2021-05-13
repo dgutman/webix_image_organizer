@@ -29,8 +29,13 @@ define([
 			super(app);
 	
 			this._colorPicker = new ColorPicker(app, {name: "color", width: 300});
-			this._rangeSlider = new RangeSlider(app, {}, constants.MAX_EDGE_FOR_16_BIT, 0);
-			this._rangeSwitch = new RangeSwitch(app, {}, constants.MAX_EDGE_FOR_16_BIT, this._rangeSlider);
+			if(stateStore.bit == constants.EIGHT_BIT) {
+				this._rangeSlider = new RangeSlider(app, {}, constants.MAX_EDGE_FOR_8_BIT, 0);
+				this._rangeSwitch = new RangeSwitch(app, {}, constants.MAX_EDGE_FOR_8_BIT, this._rangeSlider);
+			} else {
+				this._rangeSlider = new RangeSlider(app, {}, constants.MAX_EDGE_FOR_16_BIT, 0);
+				this._rangeSwitch = new RangeSwitch(app, {}, constants.MAX_EDGE_FOR_16_BIT, this._rangeSlider);
+			}
 
 			this.$oninit = () => {
 				const chart = this._histogramChart;
@@ -127,7 +132,6 @@ define([
 					}
 					const [histogram] = data;
 					this.setHistogramValues(histogram);
-					this.setMinAndMaxValuesByHistogram(histogram);
 				})
 				.finally(() => {
 					this._histogramChart.hideOverlay();

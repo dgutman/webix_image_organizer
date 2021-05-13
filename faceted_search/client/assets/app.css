@@ -38,7 +38,8 @@
 }
 
 .template-image-icons .icon {
-    font-size: 1.3em;
+    width: 30px;
+    height: auto;
 }
 
 .template-image-icons .icon:hover {
