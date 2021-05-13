@@ -69,6 +69,11 @@
     font-size: 28px;
 }
 
+.app-logo {
+    width: auto;
+    height: 100%;
+}
+
 .found-button {
     position: relative;
     background: #3498db;
@@ -206,6 +211,10 @@
     max-width: 100%;
 }
 
+.openseadragon-template-image .webix_template {
+    display: none;
+}
+
 
 /*Collapsible Fitlers*/
 
@@ -331,3 +340,14 @@ body.compact-skin .webix_slider_box .webix_slider_handle {
     font-size: 25px;
     font-weight: bold;
 }
+
+/*Whitelist_popup*/
+
+.metadata-grouplist__group-value{
+    width: 60%;
+}
+
+.metadata-grouplist__item-value{
+    width: 60%;
+}
+

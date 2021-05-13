@@ -18,7 +18,7 @@ module.exports = (app) => {
         .catch(err => next(err));
     });
 
-    router.get('/admin/:skin', function(req ,res, next){
+    router.get('/admin/:skin', function(req, res, next) {
         let skin = req.params.skin;
         ServiceData.getSkinsList()
         .then((result) => {

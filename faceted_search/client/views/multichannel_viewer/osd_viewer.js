@@ -28,7 +28,6 @@ define([
 							<span title="zoom out" class="icon zoomout mdi mdi-minus-circle-outline"></span>
 							<span title="make a group with selected channels" class="icon addgroup mdi mdi-plus"></span>
 							<span title="reset main slide" class="icon reset mdi mdi-redo"></span>
-							<span title="upload groups" class="icon upload mdi mdi-upload"></span>
 						</div>
 						<div class="osd-container"></div>`,
 						css: "multichannel-openseadragon-viewer",
@@ -47,19 +46,13 @@ define([
 							},
 							addgroup: () => {
 								this.addGroup();
-							},
-							upload: () => {
-								this.uploadGroups();
 							}
 						}
 					}
 				]
 			};
 		}
-	
-		// ready() {
-		// 	webix.TooltipControl.addTooltip(this.getViewerTemplate().$view);
-		// }
+
 	
 		createViewer(options) {
 			const osdTemplateNode = this.getRoot().getNode();
@@ -105,10 +98,6 @@ define([
 	
 		addGroup() {
 			this.getRoot().callEvent("addGroupBtnClick");
-		}
-	
-		uploadGroups() {
-			this.getRoot().callEvent("uploadGroupBtnClick");
 		}
 	
 		replaceTile(tileSource, index = 0) {

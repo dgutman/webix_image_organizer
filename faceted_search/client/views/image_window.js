@@ -1,111 +1,190 @@
 define([
+    "helpers/ajax",
     "libs/is/is.min",
-    "templates/image",
-], function (is, imageTemplate) {
+    "libs/openseadragon/openseadragon.min.js"
+], function(ajax, is, openseadragon) {
+    const windowId = webix.uid();
+    const openseadragonTemplateId = `openseadragon-template-${windowId}`;
 
-    var windowWidthRatio = 0.7;
-    var windowWidthAdditionalRatio = 0.8;
-    var imageWidthRation = 0.4;
-    var windowHeightRatio = 0.28;
-    var propertyListWidthRatio = 0.42;
-
-    var showWindow = function (data) {
-        var id = webix.uid();
+    function showWindow(data) {
         webix.ui({
             view: "window",
-            id: id,
+            id: windowId,
             position: "center",
-            width: window.innerWidth * windowWidthRatio * windowWidthAdditionalRatio,
-            height: window.innerWidth * windowHeightRatio,
-            move: true,
-            scroll: 'x',
+            width: 1100,
+            height: 500,
+            minWidth: 720,
+            minHeight: 400,
+            modal: true,
+            resize: true,
             head: {
-                view: "toolbar", cols: [
-                    {view: "label", label: data.data.name},
+                view: "toolbar",
+                cols: [
                     {
-                        view: "button", label: "Close", width: 100, align: "right",
-                        click: function () {
-                            $$(this).close();
-                        }.bind(id)
+						view: "label",
+						width: 140,
+						template: "<img class='app-logo' src='assets/imgs/logo.png'>"
+					},
+                    {
+                        view: "label",
+                        label: data.data.name
+                    },
+                    {
+                        view: "button",
+                        label: "Close",
+                        width: 100,
+                        align: "right",
+                        click() {
+                            $$(windowId).close();
+                        }
                     }
                 ]
             },
             body: {
-                view: 'scrollview',
-                scroll: 'x',
-                body:{
-                    cols: [
-                        {
-                            rows: [
-                                {
-                                    view: "template",
-                                    css: 'popup-img',
-                                    width: window.innerWidth * windowWidthRatio * imageWidthRation,
-                                    template: () => imageTemplate.getTemplate(data)
-                                }
-                            ]
-                        },
-                        getPropertyList(data.data)
-                    ]
+                cols: [
+                    {
+                        view: "template",
+                        css: "openseadragon-template-image",
+                        minWidth: 400,
+                        id: openseadragonTemplateId
+                    },
+                    {
+                        view: 'scrollview',
+                        maxWidth: 400,
+                        minWidth: 300,
+                        body: getPropertyAccordionList(data.data)
+                    }
+                ]
+            },
+            on: {
+                onShow() {
+                    const imageId = data.data._id;
+                    const container = $$(openseadragonTemplateId).getNode();
+
+                    if (data.data.largeImage) {
+                        ajax.getImageTiles(imageId)
+                          .then((tiles) => {
+                              initLargeImageOpenseadragon(imageId, tiles, container);
+                          });
+                    } else {
+                        initSimpleImageOpenseadragon(imageId, container);
+                    }
                 }
             }
         }).show();
-    };
+    }
 
-    var getPropertyList = function (data) {
+    function getPropertyAccordionList(data) {
         return {
-            view: "property",
-            editable: false,
-            scroll: true,
-            nameWidth: 180,
-            width: window.innerWidth * propertyListWidthRatio,
-            elements: buildProperties([], data, '')
+            view: "accordion",
+            multi: true,
+            collapsed: true,
+            margin: 0,
+            rows: buildProperties([], data, '')
         };
-    };
+    }
 
-    var buildProperties = function (array, data, prefix) {
-        var key, i;
-        if (prefix === '') {
-            array.push({label: "Main", type: "label"});
-        } else {
-            array.push({label: prefix, type: "label"});
+    function getPropertyAccordionItem(prefix, data) {
+        return {
+            view: "accordionitem",
+            header: (prefix === '') ? "Main" : prefix,
+            body: {
+                view: "datatable",
+                header: false,
+                scroll: "x",
+                autoheight: true,
+                columns: [
+                    {
+                        id: "propertyName",
+                        minWidth: 170,
+                        adjust: "data"
+                    },
+                    {
+                        id: "propertyValue",
+                        minWidth: 230,
+                        adjust: "data"
+                    }
+                ],
+                data
+            }
+        };
+    }
+
+    function buildProperties(array, data, prefix) {
+        const keys = Object.keys(data);
+        const length = keys.length;
+
+        // for string values
+        const arrayData = [];
+        for (let i = 0; i < length; i++) {
+            const key = keys[i];
+
+            if (is.not.object(data[key])) {
+                arrayData.push({
+                    propertyName: key,
+                    propertyValue: data[key]
+                });
+            }
         }
+
+        array.push(getPropertyAccordionItem(prefix, arrayData));
 
         if (prefix !== '') {
             prefix += '/';
         }
 
-        var keys = Object.keys(data);
-        var length = keys.length;
-
-        // for string values
-        for (i = 0; i < length; i++) {
-            key = keys[i];
-
-            if (is.not.object(data[key])) {
-                array.push(
-                    {
-                        label: key,
-                        value: data[key],
-                        type: 'text'
-                    }
-                );
-            }
-        }
-
         // for object values
-        for (i = 0; i < length; i++) {
-            key = keys[i];
+        for (let i = 0; i < length; i++) {
+            const key = keys[i];
+            const value = data[key];
 
-            if (is.object(data[key])) {
-                array = buildProperties(array, data[key], prefix + key);
+            if (is.object(value) && is.not.empty(value) && !areAllPropertiesObjets(value)) {
+                array = buildProperties(array, value, prefix + key);
             }
         }
 
         return array;
-    };
+    }
+
+    function initLargeImageOpenseadragon(imageId, tiles, container) {
+        openseadragon({
+            element: container,
+            prefixUrl: "libs/openseadragon/images/",
+            crossOriginPolicy: "Anonymous",
+            loadTilesWithAjax: true,
+            imageLoaderLimit: 1,
+            tileSources: {
+                width: tiles.sizeX,
+                height: tiles.sizeY,
+                tileWidth: tiles.tileWidth,
+                tileHeight: tiles.tileHeight,
+                minLevel: 0,
+                maxLevel: tiles.levels - 1,
+                getTileUrl(level, x, y) {
+                    return ajax.getImageTileUrl(imageId, level, x, y);
+                }
+            }
+        });
+    }
+
+    function initSimpleImageOpenseadragon(imageId, container) {
+        openseadragon({
+            element: container,
+            prefixUrl: "libs/openseadragon/images/",
+            maxZoomPixelRatio: 6,
+            tileSources: {
+                type: 'image',
+                url: ajax.getImageUrl(imageId)
+            }
+        });
+    }
+
+    function areAllPropertiesObjets(obj) {
+        const values = Object.values(obj);
+        return values.every((item) => is.object(item));
+    }
 
     return {
-        showWindow: showWindow
-    }
+        showWindow
+    };
 });

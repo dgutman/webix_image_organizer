@@ -44,7 +44,7 @@ Backend.prototype.loadGirderFolder = function (data) {
         })
         .then((filename) => {
             message('[Moving]: finished');
-            return parseFile(filename, data.host.hostAPI, message);
+            return parseFile(filename, data.host, message);
         })
         .then((data) =>  uniqFilter(data))
         .then((data) => that.socket.emit('data', data))

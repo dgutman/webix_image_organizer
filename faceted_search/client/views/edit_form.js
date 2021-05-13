@@ -1,15 +1,21 @@
+/* eslint-disable max-len */
 define([
     "app",
     "models/edit_form",
-], function(app, EditForm) {
-    var uploadFormId = "edit_upload_form_id",
-        selectTypeId = "edit_select_type",
-        selectFacetId = "edit_select_facet",
-        toInterfaceBtnId = "edit_send_to_interface",
-        previewFormId = "edit_preview_form_id",
-        scrollViewId = webix.uid(),
+    "models/whitelist",
+    "views/whitelist_popup",
+    "constants"
+], function(app, EditForm, whitelistModel, whitelistPopup, constants) {
+    const uploadFormId = "edit_upload_form_id";
+    const selectTypeId = "edit_select_type";
+    const selectFacetId = "edit_select_facet";
+    const toInterfaceBtnId = "edit_send_to_interface";
+    const previewFormId = "edit_preview_form_id";
+    const setVisibleMetadataId = "set_visible_metadata_id";
+    const metadataGrouplistId = "metadata-grouplist-id";
+    const scrollViewId = webix.uid();
 
-        ui = {
+        const ui = {
             view: "scrollview",
             id: scrollViewId,
             scroll: "y",
@@ -36,17 +42,27 @@ define([
                                     },
                                     {
                                         view: "button",
+                                        id: setVisibleMetadataId,
+                                        value: "Set visible metadata",
+                                        type: "form",
+                                        click: function() {
+                                            $$(constants.WHITELIST_POPUP_ID).show(this.getNode());
+                                        }
+                                    },
+                                    {
+                                        view: "button",
                                         value: "Add",
                                         type: "form",
                                         width: 200,
-                                        click: function () {
-                                            var type = $$(selectTypeId).getValue(),
-                                                facet = $$(selectFacetId).getValue(), view, canBeAdded = false,
-                                                message = "Facet can't be added for selected type";
+                                        click: function() {
+                                            const type = $$(selectTypeId).getValue();
+                                            const facet = $$(selectFacetId).getValue();
+                                            let canBeAdded = false;
+                                            let message = "Facet can't be added for selected type";
                                             if (type && facet) {
                                                 canBeAdded = EditForm.checkAbilityToAdd(facet, type);
                                                 if (canBeAdded) {
-                                                    view = EditForm.addItem(facet, type);
+                                                    let view = EditForm.addItem(facet, type);
                                                     $$(previewFormId).show();
                                                     $$(previewFormId).addView(view);
                                                     updateFormSize();
@@ -59,18 +75,18 @@ define([
                                                 }
                                                 return;
                                             } else if (!type) {
-                                                message = "Please, select Type before adding"
+                                                message = "Please, select Type before adding";
                                             } else if (!facet) {
-                                                message = "Please, select Facet before adding"
+                                                message = "Please, select Facet before adding";
                                             } else {
-                                                message = "No More Attributes To Add"
+                                                message = "No More Attributes To Add";
                                             }
                                             webix.message({
                                                 type: "message",
                                                 text: message
                                             });
                                         }
-                                    },
+                                    }
                                 ]
                             },
                             {
@@ -104,7 +120,7 @@ define([
                                         id: toInterfaceBtnId,
                                         value: "Save changes",
                                         width: 450,
-                                        click: function () {
+                                        click: function() {
                                             EditForm.saveItems();
                                         }
                                     },
@@ -114,19 +130,19 @@ define([
                         ]
                     }
                 ]
-            },
-            height: NaN
+            }
         };
 
-    var getId = function () {
+    const getId = function() {
         return uploadFormId;
     };
 
     app.attachEvent("editForm:dataLoaded", function(views) {
-        var t = $$(previewFormId).getChildViews(), i;
-        if(t) {
-            for(i = 0; i < t.length; i++) {
-                $$(previewFormId).removeView(t[i]);
+        let childViews = $$(previewFormId).getChildViews();
+        let i;
+        if(childViews) {
+            for(i = 0; i < childViews.length; i++) {
+                $$(previewFormId).removeView(childViews[i]);
                 i--;
             }
         }
@@ -142,48 +158,51 @@ define([
     });
 
     app.attachEvent("editForm:clearForm", function() {
-        var t = $$(previewFormId).getChildViews(), i;
-        if(t) {
-            for(i = 0; i < t.length; i++) {
-                $$(previewFormId).removeView(t[i]);
+        let childViews = $$(previewFormId).getChildViews();
+        let i;
+        if(childViews) {
+            for(i = 0; i < childViews.length; i++) {
+                $$(previewFormId).removeView(childViews[i]);
                 i--;
             }
         }
     });
 
-    var reloadSelectsData = function (reloadOnlyLabels) {
+    const reloadSelectsData = function(reloadOnlyLabels) {
         if(!reloadOnlyLabels) {
             $$(selectTypeId).define("options", EditForm.getItemTypes());
             $$(selectTypeId).render();
         }
         $$(selectFacetId).define("options", EditForm.getLabels());
         $$(selectFacetId).render();
-
     };
 
 
-    var updateFormSize = function () {
+    const updateFormSize = function() {
         $$(scrollViewId).resize();
         $$(previewFormId).render();
     };
 
-    var itemRemoved = function (id) {
-        var t = EditForm.getCountOfAddedItems();
+    const itemRemoved = function(id) {
+        let countOfAddedItems = EditForm.getCountOfAddedItems();
         $$(previewFormId).removeView(id);
         updateFormSize();
-        if(!t) {
+        if(!countOfAddedItems) {
             $$(previewFormId).hide();
         }
-
     };
 
-    var areFiltersNotChanged = function() {
+    const loadWhitelistData = function() {
+        $$(metadataGrouplistId).parse(whitelistModel.getProps());
+    };
+
+    const areFiltersNotChanged = function() {
         return EditForm.areFiltersNotChanged();
     };
 
     app.attachEvent("editForm:modifyView", function(data) {
-        var view, canBeAdded = false;
-            canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
+        let view;
+        let canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
         if (canBeAdded) {
             view = EditForm.addItem(data.facet, data.newType);
             $$(previewFormId).show();
@@ -200,14 +219,18 @@ define([
     });
     app.attachEvent("editForm:reloadOptions", reloadSelectsData);
     app.attachEvent("editForm:doAfterItemRemoved", itemRemoved);
+    app.attachEvent("editForm:whitelistDataLoaded", loadWhitelistData);
 
-
+    app.ui(whitelistPopup);
 
 
     return {
         $ui: ui,
+        $oninit: function() {
+            app.callEvent("editForm:loadDataForWhitelist", []);
+        },
         getId: getId,
         reloadSelectsData: reloadSelectsData,
         areFiltersNotChanged
-    }
+    };
 });

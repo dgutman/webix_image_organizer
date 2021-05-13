@@ -11,7 +11,7 @@ function getToken() {
 	return tokenObj ? tokenObj.token : null;
 }
 
-define(["app", "constants"], function (app, constants) {
+define(["app", "constants"], function(app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
 
 	class AjaxActions {
@@ -20,27 +20,26 @@ define(["app", "constants"], function (app, constants) {
 				let toSearchInUrl = "cdn.webix.com";
 				let searchedInUrl = url.search(toSearchInUrl);
 				if (searchedInUrl === -1) {
-					const tokenObj = webix.storage.local.get(`authToken-${getHostId()}`);
-					headers["Girder-Token"] = tokenObj ? tokenObj.token : null;
+					headers["Girder-Token"] = getToken();
 				}
 				if (url.search(LOCAL_API) !== -1) {
 					headers["Local-JWT"] = webix.storage.local.get(`localJWT-${getHostId()}`);
 				}
 			});
 		}
-	
+
 		getHostApiUrl() {
 			return webix.storage.local.get("hostAPI") || app.config.hostsList[0].hostAPI;
 		}
-	
+
 		_ajax() {
 			return webix.ajax();
 		}
-	
+
 		_parseData(data) {
 			return data ? data.json() : data;
 		}
-	
+
 		_parseError(xhr) {
 			let message;
 			switch (xhr.status) {
@@ -53,15 +52,13 @@ define(["app", "constants"], function (app, constants) {
 					try {
 						let response = JSON.parse(xhr.response);
 						message = response.message;
-					}
-					catch (e) {
+					} catch (e) {
 						message = xhr.response || CONNECTION_ERROR_MESSAGE;
 						if (xhr.responseURL) console.log(`Not JSON response for request to ${xhr.responseURL}`);
 					}
 					if (Array.isArray(message)) {
 						showValidationErrors(message);
-					}
-					else if (!webix.message.pull[message]) {
+					} else if (!webix.message.pull[message]) {
 						const expire = message === CONNECTION_ERROR_MESSAGE ? -1 : 5000;
 						webix.message({text: message, expire, id: message});
 					}
@@ -70,11 +67,11 @@ define(["app", "constants"], function (app, constants) {
 			}
 			return Promise.reject(xhr);
 		}
-	
+
 		setTokenIntoUrl(token, symbol) {
 			return token ? `${symbol}token=${token}` : "";
 		}
-	
+
 		login(sourceParams) {
 			const params = sourceParams ? {
 				username: sourceParams.username || 0,
@@ -84,8 +81,7 @@ define(["app", "constants"], function (app, constants) {
 			let hash;
 			try {
 				hash = btoa(tok);
-			}
-			catch (e) {
+			} catch (e) {
 				console.log("Invalid character in password or login");
 			}
 			return this._ajax()
@@ -94,32 +90,32 @@ define(["app", "constants"], function (app, constants) {
 				})
 				.get(`${LOCAL_API}/auth`, {redirect_url: this.getHostApiUrl()})
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		logout() {
 			const params = {
 				host: this.getHostApiUrl()
 			};
-	
+
 			return webix.ajax().del(`${LOCAL_API}/auth`, params)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getUserInfo() {
 			return this._ajax().get(`${this.getHostApiUrl()}/user/me`)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getCollection() {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/collection`)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getFolder(parentType, parentId) {
 			const params = {
 				limit: 0,
@@ -129,21 +125,21 @@ define(["app", "constants"], function (app, constants) {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/folder`, params)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getFolderDetails(id) {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/folder/${id}/details`)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
 
 		downloadFolder(id) {
 			return this._ajax()
 			.response("blob")
 			.get(`${this.getHostApiUrl()}/folder/${id}/download`)
-			.fail(this._parseError)
+			.fail(this._parseError);
 		}
 
 		getResourceItems(id, type) {
@@ -154,43 +150,68 @@ define(["app", "constants"], function (app, constants) {
 			return this._ajax()
 			.response("blob")
 			.get(`${this.getHostApiUrl()}/resource/${id}/items`, params)
-			.fail(this._parseError)
+			.fail(this._parseError);
 		}
-	
+
 		getItems(folderId, options) {
 			const params = options || {
 				limit: 0
 			};
-	
+
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/item?folderId=${folderId}`, params)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getImage(imageId, imageType, params) {
 			return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params);
 		}
-	
+
 		updateFolderMetadata(folderId, metadata) {
 			return this._ajax()
 				.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
 		getItem(id) {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/item/${id}`)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
-	
+
+		getImageTiles(imageId) {
+			return this._ajax()
+				.get(`${this.getHostApiUrl()}/item/${imageId}/tiles`)
+				.fail(this._parseError)
+				.then((result) => this._parseData(result));
+		}
+
+		getImageTileUrl(itemId, z, x, y) {
+			const urlSearchParams = new URLSearchParams();
+			urlSearchParams.append("edge", "crop");
+			urlSearchParams.append("token", getToken());
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+		}
+
+		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
+			params.token = getToken();
+			const paramsArray = Object.entries(params);
+			const searchParams = new URLSearchParams("");
+			paramsArray.forEach((item) => {
+				searchParams.append(...item);
+			});
+			const queryString = searchParams.toString() || "";
+			return `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}?${queryString}`;
+		}
+
 		getUsers() {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/user?limit=0&sort=lastName&sortdir=1`)
 				.fail(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
 
 		// FOR MULTICHANNEL VIEWER
@@ -198,11 +219,13 @@ define(["app", "constants"], function (app, constants) {
 			const settings = {
 				width: 2048,
 				height: 2048,
-				bins: window.test || 256,
+				bins: 256,
 				...binsSettings
 			};
 			const urlSearchParams = new URLSearchParams();
-			urlSearchParams.append("frame", frame);
+			if(frame) {
+				urlSearchParams.append("frame", frame);
+			}
 			Object.keys(settings).forEach((paramKey) => {
 				if (settings[paramKey] != null) {
 					urlSearchParams.append(paramKey, settings[paramKey]);
@@ -212,30 +235,16 @@ define(["app", "constants"], function (app, constants) {
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles/histogram?${query}`)
 				.catch(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
 
-		getImageTiles(itemId) {
-			return this._ajax()
-				.get(`${this.getHostApiUrl()}/item/${itemId}/tiles`)
-				.catch(this._parseError)
-				.then(result => this._parseData(result));
-		}
-
-		getImageTileUrl(itemId, z, x, y) {
-			const urlSearchParams = new URLSearchParams();
-			urlSearchParams.append("edge", "crop");
-			urlSearchParams.append("token", getToken());
-			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
-		}
-	
 		getImageFrameTileUrl(itemId, frame, z, x, y) {
 			const urlSearchParams = new URLSearchParams();
 			urlSearchParams.append("edge", "crop");
 			urlSearchParams.append("token", getToken());
 			return `${this.getHostApiUrl()}/item/${itemId}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 		}
-	
+
 		getImageColoredFrameTileUrl(itemId, frame, coords, colorSettings) {
 			const {x, y, z} = coords;
 			const {
@@ -254,7 +263,7 @@ define(["app", "constants"], function (app, constants) {
 			urlSearchParams.append("frame", frame);
 			urlSearchParams.append("token", getToken());
 			urlSearchParams.append("style", JSON.stringify(style));
-	
+
 			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 		}
 
@@ -265,10 +274,10 @@ define(["app", "constants"], function (app, constants) {
 			return this._ajax()
 				.put(`${this.getHostApiUrl()}/${type}/${itemId}/metadata`, metadata)
 				.catch(this._parseError)
-				.then(result => this._parseData(result));
+				.then((result) => this._parseData(result));
 		}
 	}
-	
+
 	const instance = new AjaxActions();
 	return instance;
 });

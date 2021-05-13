@@ -97,12 +97,10 @@ define([
         $ui: ui,
         $oninit: function () {
             webix.extend($$(scrollViewId), webix.ProgressBar);
-            if (auth.isLoggedIn()) {
-                $$(scrollViewId).showProgress({
-                    type: "icon"
-                });
-                Filter.loadFilters();
-            }
+            $$(scrollViewId).showProgress({
+                type: "icon"
+            });
+            Filter.loadFilters();
         }
     }
 });

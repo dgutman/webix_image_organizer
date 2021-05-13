@@ -1,9 +1,12 @@
-define([], function() {
+define([
+	"constants"
+], function(constants) {
 	'use strict';
 	return {
 		group: null,
 		image: null,
 		adjustedChannel: null,
-		loadedImages: {}
+		loadedImages: {},
+		bit: constants.SIXTEEN_BIT
 	};
 });
