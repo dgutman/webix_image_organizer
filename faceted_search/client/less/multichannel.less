@@ -71,6 +71,14 @@
 		.groups-list .webix_list_item, .groups-channels-list .webix_list_item  {
 			display: flex;
 			justify-content: space-between;
+			.channel-item__name {
+				overflow: hidden;
+		   		text-overflow: ellipsis;
+			}
+			.icons {
+				flex-shrink: 0;
+				flex-grow: 0;
+			}
 			.icon:hover {
 				color: @btn-hover;
 				cursor: pointer;
