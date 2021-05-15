@@ -1,27 +1,27 @@
 {
-  "_from": "webix@6.2.0",
-  "_id": "webix@6.2.0",
+  "_from": "webix@6.2.x",
+  "_id": "webix@6.2.1",
   "_inBundle": false,
-  "_integrity": "sha512-ok9rxYMevzv3qiKrZi8je+bgYKUBpUtUICKfqoDChc/krheI5lqLKgGj10S6HIve8jUNupnx4JvNFjFt0qlrvA==",
+  "_integrity": "sha512-NZlXwsNbJPZGJpC9Q5RvM9ykztKYo1bPvmWqFz3/z3W6UH8ElRB//+m4ENhubDyyaoXziQy/FXzMYohzhHILzg==",
   "_location": "/webix",
   "_phantomChildren": {},
   "_requested": {
-    "type": "version",
+    "type": "range",
     "registry": true,
-    "raw": "webix@6.2.0",
+    "raw": "webix@6.2.x",
     "name": "webix",
     "escapedName": "webix",
-    "rawSpec": "6.2.0",
+    "rawSpec": "6.2.x",
     "saveSpec": null,
-    "fetchSpec": "6.2.0"
+    "fetchSpec": "6.2.x"
   },
   "_requiredBy": [
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/webix/-/webix-6.2.0.tgz",
-  "_shasum": "1a1e9b84310740944627c6f53fd12f706d072f10",
-  "_spec": "webix@6.2.0",
-  "_where": "C:\\Users\\Сергей\\Documents\\GitHub\\david-gutman-images-organizer_new",
+  "_resolved": "https://registry.npmjs.org/webix/-/webix-6.2.1.tgz",
+  "_shasum": "ae89d1445abb601ffa4c115f8f4ea5829b5aed25",
+  "_spec": "webix@6.2.x",
+  "_where": "C:\\Users\\batur\\OneDrive\\Документы\\Git\\gutmandb\\client",
   "author": {
     "name": "XB Software"
   },
@@ -45,5 +45,5 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "types": "types/webix.d.ts",
-  "version": "6.2.0"
+  "version": "6.2.1"
 }

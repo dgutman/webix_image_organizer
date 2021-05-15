@@ -68,7 +68,6 @@ define([
             totalFormData = [];
             itemsLabels = [];
             app.callEvent("facetsForm:clearAfterSave", []);
-            app.callEvent("uploader:clearAfterSave", []);
             app.callEvent("uploaderList:clearAfterSave", []);
             app.callEvent("adminMode:onLoaded", ["upload", true]);
         });

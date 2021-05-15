@@ -5,17 +5,18 @@ define([
 	"views/multichannel_viewer/channels_list",
 	"views/components/horizontal_collapser",
 	"views/components/header_label",
-	"helpers/base_jet_view",
-	"helpers/multichannel_view/tiles_service",
-	"helpers/debouncer",
 	"models/multichannel_view/state_store",
 	"models/multichannel_view/tiles_collection",
 	"helpers/multichannel_view/drag_and_drop_mediator",
 	"helpers/multichannel_view/groups_loader",
 	"helpers/ajax",
 	"helpers/router",
+	"helpers/base_jet_view",
+	"helpers/multichannel_view/tiles_service",
+	"helpers/debouncer",
 	"windows/color_picker_window",
-	"constants"
+	"constants",
+	"libs/lodash/lodash.min"
 ], function(
 	app,
 	MultichannelOSDViewer,
@@ -23,17 +24,18 @@ define([
 	ChannelList,
 	HorizontalCollapser,
 	HeaderLabel,
-	BaseJetView,
-	TilesService,
-	Debouncer,
 	stateStore,
 	tilesCollection,
 	DragAndDropMediator,
 	groupsLoader,
 	ajaxActions,
 	router,
+	BaseJetView,
+	TilesService,
+	Debouncer,
 	ColorPickerWindow,
-	constants
+	constants,
+	lodash
 ) {
 	'use strict';
 	const {routes, navigate} = router;
@@ -96,7 +98,7 @@ define([
 				this._waitForViewerCreation = webix.promise.defer();
 			};
 
-			this.$onurlchange = async (params) => {
+			this.$onurlchange = async(params) => {
 				const {id, group: groupIndex} = params;
 				try {
 					await this.handleIdChange(id);
@@ -272,9 +274,16 @@ define([
 		}
 
 		async changeBitImage() {
-			const [histogramData] = await this._colorWindow.getHistogramData(constants.min, constants.max);
-			this._colorWindow.setMinAndMaxValuesByHistogram(histogramData.min, histogramData.max);
-			if(histogramData.max > constants.MAX_EDGE_FOR_8_BIT) {
+			let min = lodash.get(this._image, "meta.ioparams.min");
+			let max = lodash.get(this._image, "meta.ioparams.max");
+			if (min == null || max == null) {
+				const [histogramData] = await this._colorWindow.getHistogramData(constants.min, constants.max);
+				min = histogramData.min;
+				max = histogramData.max;
+			}
+			
+			this._colorWindow.setMinAndMaxValuesByHistogram(min, max);
+			if(max > constants.MAX_EDGE_FOR_8_BIT) {
 				stateStore.bit = constants.SIXTEEN_BIT;
 			} else {
 				stateStore.bit = constants.EIGHT_BIT;
@@ -283,13 +292,13 @@ define([
 
 		_compositeFrames(channels, compositeType = "difference") {
 			const viewer = this._osdViewer.$viewer();
-			let numOfFrames = channels.length;
-			let topFrameIndex = numOfFrames - 1;
+			const numOfFrames = channels.length;
+			const topFrameIndex = numOfFrames - 1;
 
 			if (numOfFrames > 1) {
 				for (let i = topFrameIndex - numOfFrames + 1; i < topFrameIndex; i++) {
-					let bottomFrameIndex = i;
-					let topFrame = viewer.world.getItemAt(bottomFrameIndex + 1);
+					const bottomFrameIndex = i;
+					const topFrame = viewer.world.getItemAt(bottomFrameIndex + 1);
 					topFrame.setCompositeOperation(compositeType);
 				}
 			} else {
@@ -302,7 +311,7 @@ define([
 			const groupsList = this._groupsPanel.getGroupsList();
 			const groupsChannelList = this._groupsPanel.getGroupsChannelsList();
 
-			channelList.attachEvent("onAfterSelect", async (id) => {
+			channelList.attachEvent("onAfterSelect", async(id) => {
 				groupsList.unselectAll();
 				groupsChannelList.unselectAll();
 
@@ -329,7 +338,7 @@ define([
 		_attachOSDViewEvents() {
 			const osdViewerRoot = this._osdViewer.getRoot();
 
-			osdViewerRoot.attachEvent("resetMainFrameBtnClick", async () => {
+			osdViewerRoot.attachEvent("resetMainFrameBtnClick", async() => {
 				this.setDefaultOSDImage();
 			});
 
@@ -400,7 +409,7 @@ define([
 			this.showColoredChannels([{...channel, opacity: 1}]);
 			const debounce = new Debouncer(100);
 
-			const dataUpdateEventId = groupChannelList.attachEvent("onDataUpdate", async (id) => {
+			const dataUpdateEventId = groupChannelList.attachEvent("onDataUpdate", async(id) => {
 				debounce.execute(this._updateShownChannel, this, [{...channel, opacity: 1}, id]);
 			});
 			const hideWindowEventId = groupsPanel.attachEvent("channelColorAdjustEnd", () => {

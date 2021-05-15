@@ -1,6 +1,6 @@
 /**
  * @license
- * webix UI v.6.2.0
+ * webix UI v.6.2.1
  * This software is allowed to use under GPL or you need to obtain Commercial License
  * to use it in non-GPL project. Please contact sales@webix.com for details
  */
@@ -1385,7 +1385,6 @@
 	  parseDates: false
 	};
 
-	var _xhr_aborted = toArray();
 	function ajax(url, params, call) {
 	  //if parameters was provided - made fast call
 	  if (arguments.length !== 0) {
@@ -1424,7 +1423,11 @@
 	    var defer = Deferred.defer();
 	    var x = this.getXHR();
 	    var headers = this._header || {};
-	    if (!callEvent("onBeforeAjax", [mode, url, params, x, headers, null, defer])) return; //add content-type to POST|PUT|DELETE
+
+	    if (!callEvent("onBeforeAjax", [mode, url, params, x, headers, null, defer])) {
+	      return defer.reject(x);
+	    } //add content-type to POST|PUT|DELETE
+
 
 	    var json_mode = false;
 
@@ -1477,33 +1480,24 @@
 	    x.onreadystatechange = function () {
 	      if (!x.readyState || x.readyState == 4) {
 	        ajax.count++;
+	        var is_error = x.status >= 400 || x.status === 0;
+	        var text, data;
 
-	        if (!x.aborted) {
-	          //IE8 and IE9, handling .abort call
-	          if (_xhr_aborted.find(x) != -1) return _xhr_aborted.remove(x);
-	          var is_error = x.status >= 400 || x.status === 0;
-	          var text, data;
-
-	          if (x.responseType == "blob" || x.responseType == "arraybuffer") {
-	            text = "";
-	            data = x.response;
-	          } else {
-	            text = x.responseText || "";
-	            data = self._data(x);
-	          }
-
-	          if (is_error) {
-	            callEvent("onAjaxError", [x]);
-	            defer.reject(x);
-	            if (call) ajax.$callback(self.master || window, call, text, data, x, is_error);
-	          } else {
-	            defer.resolve(data);
-	            if (call) ajax.$callback(self.master || window, call, text, data, x, is_error);
-	          }
+	        if (x.responseType == "blob" || x.responseType == "arraybuffer") {
+	          text = "";
+	          data = x.response;
 	        } else {
-	          //anti-leak
-	          self.master = null;
-	          call = self = master = null;
+	          text = x.responseText || "";
+	          data = self._data(x);
+	        }
+
+	        if (is_error) {
+	          callEvent("onAjaxError", [x]);
+	          defer.reject(x);
+	          if (call) ajax.$callback(self.master || window, call, text, data, x, is_error);
+	        } else {
+	          defer.resolve(data);
+	          if (call) ajax.$callback(self.master || window, call, text, data, x, is_error);
 	        }
 	      }
 	    };
@@ -1511,21 +1505,12 @@
 	    if (this._timeout) x.timeout = this._timeout; //IE can use sync mode sometimes, fix it
 
 	    if (!this._sync) setTimeout(function () {
-	      if (!x.aborted) {
-	        //abort handling in IE9
-	        if (_xhr_aborted.find(x) != -1) _xhr_aborted.remove(x);else {
-	          x.send(params || null);
-	        }
-	      }
+	      x.send(params || null);
 	    }, 1);else x.send(params || null);
 
-	    if (this.master && this.master._ajax_queue && !this._sync) {
-	      this.master._ajax_queue.push(x);
-
+	    if (this.master && !this._sync) {
 	      defer.then(function (data) {
-	        self.master._ajax_queue.remove(x); //anti-leak
-
-
+	        //anti-leak
 	        self.master = null;
 	        call = self = master = null;
 	        return data;
@@ -1613,16 +1598,24 @@
 
 	var CodeParser = {
 	  //converts a complex object into an object with primitives properties
-	  collapseNames: function (base, prefix, data) {
+	  collapseNames: function (base, prefix, data, filter) {
 	    data = data || {};
 	    prefix = prefix || "";
+
+	    filter = filter || function () {
+	      return true;
+	    };
+
 	    if (!base || _typeof(base) != "object") return null;
 
 	    for (var prop in base) {
-	      if (base[prop] && _typeof(base[prop]) == "object" && !isDate(base[prop]) && !isArray(base[prop])) {
-	        CodeParser.collapseNames(base[prop], prefix + prop + ".", data);
+	      var value = base[prop];
+	      var name = prefix + prop;
+
+	      if (value && _typeof(value) == "object" && !isDate(value) && !isArray(value) && filter(name, value)) {
+	        CodeParser.collapseNames(value, name + ".", data, filter);
 	      } else {
-	        data[prefix + prop] = base[prop];
+	        data[name] = value;
 	      }
 	    }
 
@@ -3546,15 +3539,22 @@
 	      result = Deferred.resolve(result);
 	    }
 
+	    var gen = this._data_generation;
+
 	    if (result && result.then) {
 	      result.then(function (data) {
-	        if (_this.$destructed) return;
+	        // component destroyed, or clearAll was issued
+	        if (_this.$destructed || gen && _this._data_generation !== gen) // by returning rejection we are preventing the further executing chain
+	          // if user have used list.load(data).then(do_something)
+	          // the do_something will not be executed
+	          // the error handler may be triggered though
+	          return Deferred.reject();
 
 	        _this._onLoad(data);
 
 	        if (call) ajax.$callback(_this, call, "", data, -1);
 	      }, function (x) {
-	        _this._onLoadError(x);
+	        return _this._onLoadError(x, gen);
 	      });
 	    }
 
@@ -3563,17 +3563,21 @@
 	  //loads data from object
 	  parse: function (data, type) {
 	    if (data && typeof data.then == "function") {
+	      var generation = this._data_generation; // component destroyed, or clearAll was issued
+
 	      return data.then(bind(function (data) {
+	        if (this.$destructed || generation && this._data_generation !== generation) return Deferred.reject();
 	        this.parse(data, type);
 	      }, this));
 	    } //loading data from other component
 
 
-	    if (data && data.sync && this.sync) return this._syncData(data);
-	    if (!this.callEvent("onBeforeLoad", [])) return Deferred.reject();
-	    this.data.driver = DataDriver[type || "json"];
+	    if (data && data.sync && this.sync) this._syncData(data);else if (!this.callEvent("onBeforeLoad", [])) return Deferred.reject();else {
+	      this.data.driver = DataDriver[type || "json"];
 
-	    this._onLoad(data);
+	      this._onLoad(data);
+	    }
+	    return Deferred.resolve();
 	  },
 	  _syncData: function (data) {
 	    if (this.data) this.data.attachEvent("onSyncApply", bind(function () {
@@ -3612,13 +3616,18 @@
 
 	    data = this.data.driver.toObject(data);
 	    if (data && data.then) data.then(function (data) {
-	      _this2._onLoadContinue(data);
+	      return _this2._onLoadContinue(data);
 	    });else this._onLoadContinue(data);
 	  },
-	  _onLoadError: function (xhttp) {
-	    this.callEvent("onAfterLoad", []);
-	    this.callEvent("onLoadError", arguments);
+	  _onLoadError: function (xhttp, generation) {
+	    //ignore error for dead components
+	    if (!this.$destructed && (!generation || this._data_generation === generation)) {
+	      this.callEvent("onAfterLoad", []);
+	      this.callEvent("onLoadError", arguments);
+	    }
+
 	    callEvent("onLoadError", [xhttp, this]);
+	    return Deferred.reject(xhttp);
 	  },
 	  _check_data_feed: function (data) {
 	    if (!this._settings.dataFeed || this._ignore_feed || !data) return true;
@@ -3835,6 +3844,7 @@
 	    if (target instanceof Element) node = target;else node = target.$view;
 
 	    if (node.webix_tooltip) {
+	      if (this._last == node) this._last = null;
 	      delete node.webix_tooltip;
 	      this._tooltip_exist--;
 	    }
@@ -8234,7 +8244,9 @@
 
 	      var all = rules$$1.$all;
 	      var data = obj;
-	      if (this._settings.complexData) data = CodeParser.collapseNames(obj);
+	      if (this._settings.complexData) data = CodeParser.collapseNames(obj, "", {}, function (v) {
+	        return !rules$$1[v];
+	      });
 	      if (all) for (var _key in obj) {
 	        if (hidden[_key]) continue;
 
@@ -9598,10 +9610,9 @@
 	var DataLoader = exports.proto({
 	  $init: function (config) {
 	    //prepare data store
-	    config = config || ""; //list of all active ajax requests
-
-	    this._ajax_queue = toArray();
+	    config = config || "";
 	    this._feed_last = {};
+	    this._data_generation = 1;
 	    this.data = new DataStore();
 	    this.data.attachEvent("onClearAll", bind(this._call_onclearall, this));
 	    this.data.attachEvent("onServerConfig", bind(this._call_on_config, this));
@@ -9609,15 +9620,20 @@
 	    this.data.feed = this._feed;
 	    this.data.owner = config.id;
 	  },
-	  _feed: function (from, count, callback) {
+	  _feed: function (from, count, callback, defer) {
 	    //allow only single request at same time
-	    if (this._load_count) return this._load_count = [from, count, callback]; //save last ignored request
-	    else this._load_count = true;
+	    if (this._load_count) {
+	      defer = Deferred.defer();
+	      this._load_count = [from, count, callback, defer]; //save last ignored request
+
+	      return defer;
+	    } else this._load_count = true;
+
 	    this._feed_last.from = from;
 	    this._feed_last.count = count;
-	    return this._feed_common.call(this, from, count, callback);
+	    return this._feed_common.call(this, from, count, callback, false, false, defer);
 	  },
-	  _feed_common: function (from, count, callback, url, details) {
+	  _feed_common: function (from, count, callback, url, details, defer) {
 	    var _this = this;
 
 	    var state = null;
@@ -9637,10 +9653,9 @@
 	      }
 
 	      return this.load(url, 0, details).then(function (data) {
-	        _this._feed_callback();
-
-	        if (callback) ajax.$callback(_this, callback, data);
-	        return data;
+	        return _this._feed_on_load(data, callback, defer);
+	      }, function () {
+	        return _this._feed_callback();
 	      });
 	    } else {
 	      // GET
@@ -9666,15 +9681,24 @@
 	      if (this._feed_last.url !== url) {
 	        this._feed_last.url = url;
 	        return this.load(url).then(function (data) {
-	          _this._feed_callback();
-
-	          if (callback) ajax.$callback(_this, callback, data);
-	          return data;
+	          return _this._feed_on_load(data, callback, defer);
+	        }, function () {
+	          return _this._feed_callback();
 	        });
 	      } else {
 	        this._load_count = false;
 	      }
 	    }
+	  },
+	  _feed_on_load: function (data, callback, defer) {
+	    var _this2 = this;
+
+	    delay(function () {
+	      return _this2._feed_callback();
+	    }, "", "", 100);
+	    if (callback) ajax.$callback(this, callback, data);
+	    if (defer) defer.resolve(data);
+	    return data;
 	  },
 	  _feed_callback: function () {
 	    //after loading check if we have some ignored requests
@@ -9696,16 +9720,22 @@
 
 	    if (config.datathrottle && !now) {
 	      if (this._throttle_request) window.clearTimeout(this._throttle_request);
+	      var defer = Deferred.defer();
 	      this._throttle_request = delay(function () {
-	        this.loadNext(count, start, callback, url, true);
+	        defer.resolve(this.loadNext(count, start, callback, url, true));
 	      }, this, 0, config.datathrottle);
-	      return;
+	      return defer;
 	    }
 
 	    if (!start && start !== 0) start = this.count();
 	    if (!count) count = config.datafetch || this.count();
 	    this.data.url = this.data.url || url;
-	    if (this.callEvent("onDataRequest", [start, count, callback, url]) && this.data.url) return this.data.feed.call(this, start, count, callback);
+
+	    if (this.callEvent("onDataRequest", [start, count, callback, url]) && this.data.url) {
+	      var result = this.data.feed.call(this, start, count, callback);
+	      if (result && result.then) return result;else //loading was blocked due to same url
+	        return Deferred.reject("Attempt to load data with the same url");
+	    }
 	  },
 	  _maybe_loading_already: function (count, from) {
 	    var last = this._feed_last;
@@ -9741,7 +9771,7 @@
 	  dataFeed_setter: function (value) {
 	    value = proxy$a.$parse(value);
 	    this.data.attachEvent("onBeforeFilter", bind(function (text, filtervalue) {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      //complex filtering, can't be routed to dataFeed
 	      if (typeof text == "function") return true; //we have dataFeed and some text
@@ -9767,9 +9797,9 @@
 	                url.load(this, {
 	                  filter: filter
 	                }).then(function (data) {
-	                  _this2._onLoad(data);
+	                  return _this3._onLoad(data);
 	                }, function (x) {
-	                  _this2._onLoadError(x);
+	                  return _this3._onLoadError(x);
 	                });
 	              }
 	            }
@@ -9789,22 +9819,11 @@
 	    }
 	  },
 	  _call_onclearall: function (soft) {
-	    for (var i = 0; i < this._ajax_queue.length; i++) {
-	      var xhr = this._ajax_queue[i]; //IE9 and IE8 deny extending of ActiveX wrappers
-
-	      try {
-	        xhr.aborted = true;
-	      } catch (e) {
-	        _xhr_aborted.push(xhr);
-	      }
-
-	      xhr.abort();
-	    }
+	    this._data_generation++;
 
 	    if (!soft) {
 	      this._load_count = false;
 	      this._feed_last = {};
-	      this._ajax_queue = toArray();
 	      this.waitData = Deferred.defer();
 	    }
 	  },
@@ -11190,6 +11209,7 @@
 	    node.top = pos$$1.top; //later will be used during y-scrolling
 
 	    if (inline) pos$$1.parent.appendChild(node);
+	    return pos$$1;
 	  },
 	  _for_each_editor: function (handler) {
 	    for (var editor in this._editors) {
@@ -14607,14 +14627,14 @@
 	    var details = count === 0 ? {
 	      parent: encodeURIComponent(id)
 	    } : null;
-
-	    DataLoader.prototype._feed_common.call(this, id, count, callback, url, details);
+	    return DataLoader.prototype._feed_common.call(this, id, count, callback, url, details);
 	  },
 	  //load next set of data rows
 	  loadBranch: function (id, callback, url) {
 	    id = id || 0;
 	    this.data.url = url || this.data.url;
-	    if (this.callEvent("onDataRequest", [id, callback, this.data.url]) && this.data.url) this.data.feed.call(this, id, 0, callback, url);
+	    if (this.callEvent("onDataRequest", [id, callback, this.data.url]) && this.data.url) return this.data.feed.call(this, id, 0, callback, url);
+	    return Deferred.reject();
 	  },
 	  _sync_hierarchy: function (id, data, mode) {
 	    if (!mode || mode == "add" || mode == "delete" || mode == "branch") {
@@ -16110,7 +16130,11 @@
 	    return false;
 	  },
 	  setValues: function (data, update) {
-	    if (this._settings.complexData) data = CodeParser.collapseNames(data);
+	    var _this = this;
+
+	    if (this._settings.complexData) data = CodeParser.collapseNames(data, "", {}, function (v) {
+	      return isUndefined(_this._values[v]);
+	    });
 
 	    this._inner_setValues(data, update);
 	  },
@@ -16670,7 +16694,7 @@
 	  }
 	};
 
-	var version$1 = "6.2.0";
+	var version$1 = "6.2.1";
 	var name$1 = "core";
 
 	var errorMessage = "non-existing view for export";
@@ -17637,7 +17661,8 @@
 
 	function _boxStructure(config, ok, cancel) {
 	  var box = document.createElement("DIV");
-	  box.className = " webix_modal_box webix_" + config.type;
+	  var css = config.css ? " " + config.css : "";
+	  box.className = "webix_modal_box webix_" + config.type + css;
 	  box.setAttribute("webixbox", 1);
 	  box.setAttribute("role", "alertdialog");
 	  box.setAttribute("aria-label", config.title || "");
@@ -21200,6 +21225,11 @@
 	    var subtype = this._template_types[config.type];
 
 	    if (subtype) {
+	      if (subtype.css) {
+	        this._viewobj.className += " " + subtype.css;
+	        delete subtype.css;
+	      }
+
 	      exports.extend(config, subtype); //will reset borders for "section"
 
 	      if (config.borderless) {
@@ -23121,9 +23151,13 @@
 	var api$l = {
 	  name: "popup",
 	  $init: function () {
+	    var _this = this;
+
 	    this._settings.head = false;
 	    this.$view.className += " webix_popup";
-	    attachEvent("onClick", bind(this._hide, this));
+	    attachEvent("onClick", function (e) {
+	      return _this._hide(e);
+	    });
 	    this.attachEvent("onHide", this._hide_point);
 	  },
 	  $skin: function () {
@@ -23530,8 +23564,9 @@
 	    el.value = value;
 	  },
 	  select: function (el, value) {
-	    //select first option if no provided and if possible
-	    el.value = value ? value : el.firstElementChild.value || value;
+	    el.value = value; //incorrect option applied, select first option
+
+	    if (el.selectedIndex === -1) el.value = el.firstElementChild.value;
 	  },
 	  other: function (el, value) {
 	    el.innerHTML = value;
@@ -23608,6 +23643,14 @@
 	    var el = this._viewobj.querySelector("[name=\"" + id + "\"]");
 
 	    if (el) removeCss(el, "invalid");
+	  },
+	  focus: function (name) {
+	    if (!name && this.$view.contains(document.activeElement)) {
+	      // focus already inside of form, leaving
+	      return false;
+	    }
+
+	    Values.focus.apply(this, arguments);
 	  }
 	};
 	var view$q = exports.protoUI(api$q, template$1.view, Values);
@@ -23744,7 +23787,11 @@
 	    this.refresh();
 	  },
 	  setValues: function (data, update) {
-	    if (this._settings.complexData) data = CodeParser.collapseNames(data);
+	    var _this = this;
+
+	    if (this._settings.complexData) data = CodeParser.collapseNames(data, "", {}, function (v) {
+	      return isUndefined(_this._idToLine[v]);
+	    });
 	    if (!update) this._clear();
 
 	    for (var key in data) {
@@ -25362,6 +25409,7 @@
 	        switch (this._settings.align) {
 	          case "right":
 	            handle.style.cssFloat = "right";
+	            handle.style.textAlign = "right";
 	            break;
 
 	          case "center":
@@ -26641,6 +26689,10 @@
 	  },
 	  getValue: function () {
 	    return this._settings.value || "";
+	  },
+	  _ignoreLabelClick: function (ev) {
+	    this.focus();
+	    preventEvent(ev);
 	  }
 	};
 	var view$C = exports.protoUI(api$C, text.view);
@@ -26676,11 +26728,24 @@
 
 	    if (value != this._settings.value) this.setValue(value, true);else this.$setValue(value);
 	  },
+	  $compareValue: function (value) {
+	    var result = richselect.api.$compareValue.apply(this, arguments);
+	    if (result && value != this.getText()) this._revertValue();
+	    return result;
+	  },
 	  defaults: {
 	    template: function (config, common) {
 	      return common.$renderInput(config).replace(/(<input)\s*(?=\w)/, "$1" + " role='combobox'");
 	    },
 	    icon: "wxi-menu-down"
+	  },
+	  on_click: {
+	    "webix_inp_label": function (e) {
+	      this._ignoreLabelClick(e);
+	    },
+	    "webix_inp_top_label": function (e) {
+	      this._ignoreLabelClick(e);
+	    }
 	  }
 	};
 	var view$D = exports.protoUI(api$D, richselect.view);
@@ -27759,6 +27824,7 @@
 	      on: {
 	        onAfterRender: function () {
 	          top._rendered_input = true;
+	          top.refresh();
 
 	          _event(top.getInputNode(), "blur", function () {
 	            top._updateValue(this.innerHTML);
@@ -27836,7 +27902,7 @@
 	    }
 	  },
 	  refresh: function () {
-	    if (this._rendered_input) this.getInputNode().innerHTML = this.config.value;
+	    if (this._rendered_input) this.getInputNode().innerHTML = this.config.value || "";
 	  },
 	  _execCommandOnElement: function (el, commandName) {
 	    var sel, selText;
@@ -34657,7 +34723,7 @@
 	    classname: function (obj, common, marks) {
 	      var css = "webix_dataview_item";
 	      if (common.css) css += " " + common.css;
-	      if (common.type && common.type.toString() == "tiles") css += "tiles ";
+	      if (common.type && common.type.toString() == "tiles") css += " tiles ";
 
 	      if (obj.$css) {
 	        if (_typeof(obj.$css) == "object") obj.$css = createCss(obj.$css);
@@ -36031,6 +36097,7 @@
 	    this.defaults.titleHeight = $active.sidebarTitleHeight;
 	  },
 	  $init: function () {
+	    this.$view.className += " webix_sidebar";
 	    this.$ready.push(this._initSidebar);
 	    this.$ready.push(this._initContextMenu);
 
@@ -36348,7 +36415,6 @@
 	type(tree.view, {
 	  name: "sideBar",
 	  height: "auto",
-	  css: "webix_sidebar",
 	  template: function (obj, common) {
 	    if (common.collapsed) return common.icon(obj, common);
 	    return common.arrow(obj, common) + common.icon(obj, common) + "<span>" + obj.value + "</span>";
@@ -38398,7 +38464,7 @@
 
 	    this._addEditor(id, type);
 
-	    if (!type.$inline) this._sizeToCell(id, node, true);
+	    if (!type.$inline) type._editor_pos = this._sizeToCell(id, node, true);
 	    if (type.afterRender) type.afterRender();
 
 	    if (this._settings.liveValidation) {
@@ -38658,13 +38724,22 @@
 	      this._for_each_editor(function (editor) {
 	        if (editor.getPopup) {
 	          var node = this.getItemNode(editor);
-	          if (node) editor.getPopup().show(node);else editor.getPopup().show({
+	          var isHidden = false;
+
+	          if (this._settings.prerender) {
+	            var pos = editor._editor_pos;
+	            var ydiff = pos.top - this._scrollTop;
+	            var xdiff = pos.left - this._scrollLeft;
+	            isHidden = ydiff < 0 || ydiff + pos.height > this._dtable_offset_height || xdiff < 0 || xdiff + pos.width > this.$width - this._scrollSizeX;
+	          }
+
+	          if (!node || isHidden) editor.getPopup().show({
 	            x: -10000,
 	            y: -10000
-	          });
+	          });else editor.getPopup().show(node);
 	        }
 
-	        if (!editor.linkInput && !editor.$inline) {
+	        if (!this._settings.prerender && !editor.linkInput && !editor.$inline) {
 	          editor.node.top -= diff;
 	          editor.node.style.top = editor.node.top + "px";
 	        }

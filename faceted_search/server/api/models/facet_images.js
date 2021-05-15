@@ -36,18 +36,14 @@ const facetImagesModel = mongoose.model('facet_images', facetImagesSchema);
 
 class FacetImages {
     insertImage(obj, cb) {
-        facetImagesModel.updateOne({"data._id": obj.data._id}, obj, {upsert: true, setDefaultsOnInsert: true})
-            .then(() => {
-                cb();
-            })
+        return facetImagesModel.updateOne({"data._id": obj.data._id}, obj, {upsert: true, setDefaultsOnInsert: true})
             .catch((err) => {
                 console.error(obj.filename + ': ', err);
-                cb();
             });
     }
 
     getAll() {
-        return facetImagesModel.find({},{}).lean();
+        return facetImagesModel.find({}, {}).lean();
     }
 
     makeQuery() {
@@ -55,7 +51,7 @@ class FacetImages {
         .then((images) => {
             const convertedImages = this.convertImagesDataForFrontend(images);
             return Promise.resolve(convertedImages);
-        })
+        });
     }
 
     saveImagesResponse(images) {
@@ -65,7 +61,7 @@ class FacetImages {
         })
         .then((hash) => {
             return serviceData.updateImagesHash(hash);
-        })
+        });
     }
 
     getAllImages() {
@@ -75,13 +71,13 @@ class FacetImages {
         });
     }
 
-    convertImagesDataForFrontend(images){
-        let imagesLen = images.length;
-        for(let i = 0; i<imagesLen; i++){
-            let t = {};
-            let image = images[i];
-            let facetsLen = image.facets.length;
-            for(let j = 0; j<facetsLen; j++){
+    convertImagesDataForFrontend(images) {
+        const imagesLen = images.length;
+        for(let i = 0; i<imagesLen; i++) {
+            const t = {};
+            const image = images[i];
+            const facetsLen = image.facets.length;
+            for(let j = 0; j<facetsLen; j++) {
                 t[image.facets[j].id] = image.facets[j].value;
             }
             image.facets = t;
@@ -93,9 +89,26 @@ class FacetImages {
     getImagesCount(preQuery, cb) {
         const query = buildQuery(preQuery);
 
-        facetImagesModel.find(query).count(function (err, count) {
+        facetImagesModel.find(query).count(function(err, count) {
             cb(count);
         });
+    }
+
+
+    async getImagesFolderIds(host) {
+        const folderIds = await facetImagesModel.aggregate([
+            {$match: {host}},
+            {$group: {
+                _id: "$data.folderId"
+            }}
+        ]);
+
+        return folderIds.map(({_id}) => _id);
+    }
+
+    async removeImages(query) {
+       const res = await facetImagesModel.deleteMany(query);
+       return res.deletedCount;
     }
 }
 

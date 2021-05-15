@@ -3,7 +3,7 @@ const path = require('path');
 const folder = require('../../../config').images_folder;
 const fs = require('fs');
 
-let router = express.Router();
+const router = express.Router();
 
 module.exports = (app) => {
 	router.get('/:name(*)', function(req, res) {
