@@ -2,14 +2,14 @@ const whitelistModel = require('../models/whitelist');
 
 class ProcessWhitelistRequest {
     getWhitelistData() {
-         return whitelistModel.getWhitelistFilter()
+         return whitelistModel.getWhitelist()
         .then(
-            ([data, whtlstId]) => {
+            async ({data, updatedAt}) => {
                 if (data) {
-                    return Promise.resolve({"data": data, "id": whtlstId});
+                    return Promise.resolve({data, updatedAt});
                 } else {
-                    whitelistModel.initialWhitelist();
-                    return Promise.resolve(whitelistModel.getWhitelistFilter());
+                    await whitelistModel.initialWhitelist();
+                    return this.getWhitelistData();
                 }
             },
         );

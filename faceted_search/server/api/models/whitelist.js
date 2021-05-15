@@ -1,4 +1,4 @@
-const {reject, resolve} = require('bluebird');
+const { reject } = require('bluebird');
 const mongoose = require('mongoose');
 const facetImages = require('../models/facet_images');
 
@@ -7,12 +7,13 @@ const whitelistSchema = new mongoose.Schema({
         type: Object,
         required: true
     }
-});
+},
+{timestamps: true});
 
 const whitelistModel = mongoose.model('whitelist', whitelistSchema);
 
 class Whitelist {
-    getWhitelist() {
+    getWhitelistData() {
         return new Promise(
             (resolve, reject) => {
                 whitelistModel.findOne({},
@@ -23,11 +24,15 @@ class Whitelist {
                             if(result) {
                                 resolve(result.data);
                             } else {
-                                resolve();
+                                resolve('');
                             }
                         }
                     });
             });
+    }
+
+    getWhitelist() {
+        return whitelistModel.findOne({});
     }
 
     getWhitelistFilter() {
@@ -59,7 +64,7 @@ class Whitelist {
                             if(result) {
                                 resolve(result._id.toString());
                             } else {
-                                resolve();
+                                resolve('');
                             }
                         }
                     });
@@ -67,27 +72,40 @@ class Whitelist {
         );
     }
 
-    updateWhitelist(req, res) {
-        return new Promise(
-            (resolve, reject) => {
-                whitelistModel.deleteOne()
-                    .then((result) => {
-                        if(result.ok) {
-                            let newData = JSON.parse(req.body.data);
-                            const doc = new whitelistModel({
-                                data: newData
-                            });
-                            return doc.save();
-                        }
-                    });
+    updateWhitelist(newData) {
+        return this.getWhitelistData()
+            .then((data) => {
+                if(data) {
+                    whitelistModel.deleteOne({})
+                        .then((result) => {
+                            if(result) {
+                                const data = this.insert(newData);
+                                return data;
+                            }
+                        });
+                } else {
+                    const data = this.insert(newData);
+                    return data;
+                }
+            });
+    }
+
+    async insert(newData) {
+        const doc = new whitelistModel({
+            data: newData
         });
+        const savedData = await doc.save();
+        return savedData;
     }
 
     initialWhitelist() {
-        facetImages.getAll()
+        return new Promise((resolve) => {
+            facetImages.getAll()
             .then((images) => {
                 if(images.length !== 0) {
                     return this.getFacetesFromImagesData(images);
+                } else {
+                    resolve();
                 }
             })
             .then((facets) => {
@@ -97,12 +115,42 @@ class Whitelist {
             })
             .then((whitelist) => {
                 if(whitelist) {
-                    const doc = new whitelistModel({
-                        data: whitelist
-                    });
-                    return doc.save();
+                    const data = this.insert(whitelist);
+                    resolve(data);
+                } else {
+                    const array = [];
+                    const data = this.insert(array);
+                    resolve(data);
                 }
+            })
+            .catch((reason) => {
+                reject(reason);
             });
+        });        
+    }
+
+    async insertItems(image) {
+        const facets = this.getFacetesFromImagesData([image]);
+        const data = this.getData(facets);
+        let [whitelist, whitelistId] = await this.getWhitelistFilter();
+        whitelist = this.updateWhitelistItems(data, whitelist);
+        await whitelistModel.updateOne({_id: whitelistId}, {data: whitelist});
+    }
+
+    updateWhitelistItems(data, whitelist) {
+        for(const facet of data) {
+            let [whitelistItem] = whitelist.filter((item) => {
+                return facet.id === item.id;
+            });
+            if(whitelistItem) {
+                if(whitelistItem.data.length > 0) {
+                    whitelistItem.data = this.updateWhitelistItems(facet.data, whitelistItem.data);
+                }
+            } else {
+                whitelist.push(facet);
+            }
+        }
+        return whitelist;
     }
 
     getFacetesFromImagesData(images) {

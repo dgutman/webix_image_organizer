@@ -1,20 +1,27 @@
 const whitelist = require('../models/whitelist');
 
 const getProps = (req, res) => {
-    whitelist.getWhitelist()
+    whitelist.getWhitelistData()
         .then(
             (data) => {
                 if (data) {
                     res.status(200).send(data);
                 } else {
-                    whitelist.initialWhitelist();
+                    whitelist.initialWhitelist()
+                        .then((data) => {
+                            if(data) {
+                                res.status(200).send(data);
+                            } else {
+                                res.status(404).send('Not found');
+                            }
+                        });
                 }
             },
             (err) => res.status(500).send(err)
         )
         .catch((reason) => {
-            console.error(reason);
+            res.status(500).send(reason);
         });
 };
 
-module.exports = getProps;
+module.exports = {getProps};

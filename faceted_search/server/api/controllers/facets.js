@@ -1,6 +1,7 @@
 const ProcessImagesRequest = require('../extensions/process_images_request');
 const updateLocalCache = require('../extensions/updateLocalCache');
 const ProcessWhitelistRequest = require('../extensions/process_whitelist_request');
+const crypto = require('crypto');
 
 exports.getImagesData = (req, res, next) => {
     const host = req.query.host;
@@ -15,9 +16,12 @@ exports.getImagesData = (req, res, next) => {
     })
     .then(([hash, images, whitelist]) => {
         if(hash) {
+            const whiteListHash = crypto.createHash('sha256');
+            whiteListHash.update(whitelist.updatedAt.toString());
+
             res.set({
                 'Cache-Control': 'private',
-                'ETag': hash.data + whitelist.id
+                'ETag': hash.data + whiteListHash.digest('hex').slice(0, 10)
             });
             if (host) {
                    images = JSON.parse(images).filter((obj) => obj.host === host);
