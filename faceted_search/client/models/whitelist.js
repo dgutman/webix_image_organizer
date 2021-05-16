@@ -2,21 +2,30 @@ define([
     "app",
     "constants"
 ], function(app, constants) {
-    const URL = `${constants.LOCAL_API}/facets/whitelist`;
+    const whitelistURL = `${constants.LOCAL_API}/facets/whitelist`;
 
     let props = [];
 
-    app.attachEvent("editForm:loadDataForWhitelist", function() {
-       webix.ajax().get(URL, {})
-           .then(function(response) {
-                const data = response.json();
-                setProps(data);
-                app.callEvent("editForm:whitelistDataLoaded");
-           })
-           .catch((reason) => {
-               console.error(reason);
-           });
+    app.attachEvent("whitelist:loadDataForWhitelist", function() {
+        loadData(whitelistURL);
     });
+
+    const loadData = (url) => {
+        app.callEvent("editForm:doProgressOnWhitelist");
+        webix.ajax().get(url, {})
+            .then(function(response) {
+                const data = response.json();
+                if(data) {
+                    setProps(data);
+                }
+                app.callEvent("editForm:onWhitelistLoaded");
+                app.callEvent("editForm:whitelistDataLoaded");
+            })
+            .catch((reason) => {
+                console.error(reason);
+                app.callEvent("editForm:onWhitelistLoaded");
+            });
+    };
 
     const setProps = function(data) {
         props = data;
@@ -24,7 +33,7 @@ define([
 
     const saveWhitelist = function(whitelist) {
         deleteDollarProperties(whitelist);
-        webix.ajax().post(URL, {data: whitelist});
+        webix.ajax().post(whitelistURL, {data: whitelist});
     };
 
     const deleteDollarProperties = function(whitelist) {

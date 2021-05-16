@@ -1,24 +1,24 @@
-var debug_export = false;
+let debug_export = false;
 
-var gulp = require('gulp');
-var glob = require('glob');
+let gulp = require('gulp');
+let glob = require('glob');
 
-var _if = require('gulp-if');
-var rjs = require('gulp-requirejs');
-var uglify = require('gulp-uglify');
-var sourcemaps = require('gulp-sourcemaps');
-var babel = require('gulp-babel');
-var pug = require('gulp-pug');
+let _if = require('gulp-if');
+let rjs = require('gulp-requirejs');
+let uglify = require('gulp-uglify');
+let sourcemaps = require('gulp-sourcemaps');
+let babel = require('gulp-babel');
+let pug = require('gulp-pug');
 
-var rimraf = require('gulp-rimraf');
-var replace = require("gulp-replace");
-var jshint = require("gulp-jshint");
+let rimraf = require('gulp-rimraf');
+let replace = require("gulp-replace");
+let jshint = require("gulp-jshint");
 
-gulp.task("css", function(){
+gulp.task("css", function() {
 	return build_css();
 });
 
-var JADE_LOCALS = {
+let JADE_LOCALS = {
 	data: {
 		skin: "flat",
 		skinExtension: true,
@@ -27,7 +27,7 @@ var JADE_LOCALS = {
 	}
 };
 
-function build_css(){
+function build_css() {
 	return gulp.src('./assets/*.css')
 		.pipe(gulp.dest('./deploy/assets'));
 }
@@ -36,12 +36,12 @@ gulp.task('js', function(done) {
 	return build_js();
 });
 
-function build_js(){
-	var views = glob.sync("views/**/*.js").map(function(value){
+function build_js() {
+	let views = glob.sync("views/**/*.js").map(function(value) {
 		return value.replace(".js", "");
 	});
 
-	var locales = glob.sync("locales/**/*.js").map(function(value){
+	let locales = glob.sync("locales/**/*.js").map(function(value) {
 		return value.replace(".js", "");
 	});
 
@@ -49,13 +49,13 @@ function build_js(){
 		.pipe(rjs({
 			baseUrl: './',
 			out: 'app.js',
-			insertRequire:["app"],
+			insertRequire: ["app"],
 			optimize: "none",
-			paths:{
-				"locale" : "empty:",
+			paths: {
+				"locale": "empty:",
 				"text": 'libs/text'
 			}, 
-			deps:["app"],
+			deps: ["app"],
 			include: ["libs/almond/almond.js"].concat(views).concat(locales)
 		}))
 		.pipe(babel({
@@ -69,24 +69,24 @@ function build_js(){
 		.pipe(gulp.dest('./deploy/'));
 }
 
-gulp.task("clean", function(){
+gulp.task("clean", function() {
 	return gulp.src("deploy/*", {read: false}).pipe(rimraf());
 });
 
 gulp.task('build', gulp.series("clean", function(done) {
-	var build = (new Date())*1;
+	let build = (new Date())*1;
 	const mergeStream = require('merge-stream');
 
 	return mergeStream(
 	build_js(),
 	build_css(),
-		//assets
+		// assets
 	gulp.src("./assets/imgs/**/*.*")
 		.pipe(gulp.dest("./deploy/assets/imgs/")),
-		//copy libs
+		// copy libs
 	gulp.src(['./libs/**/*'])
 		.pipe(gulp.dest('./deploy/libs')),
-		//index
+		// index
 	gulp.src("./index.pug")
 		.pipe(pug({locals: JADE_LOCALS, pretty: true}))
 		.pipe(replace('data-main="app" src="libs/requirejs/require.js"', 'src="app.js"'))
@@ -97,13 +97,13 @@ gulp.task('build', gulp.series("clean", function(done) {
 		.pipe(replace("require.config", "webix.production = true; require.config"))
 		.pipe(replace(/libs\/webix\/codebase\//g, '//cdn.webix.com/edge/'))
 		.pipe(gulp.dest("./deploy/")),
-		//server
+		// server
 	gulp.src(["../server/**/*.*", 
-			  "!./server/*.log", "!./server/config.*",
-			  "!./server/dev/**/*.*", "!./server/dump/**/*.*"])
+			"!./server/*.log", "!./server/config.*",
+			"!./server/dev/**/*.*", "!./server/dump/**/*.*"])
 		.pipe(gulp.dest("./deploy/server/")),
 	);
-}))
+}));
 
 gulp.task('copy_modules', function() {
 	const mergeStream = require('merge-stream');
@@ -115,7 +115,9 @@ gulp.task('copy_modules', function() {
 		gulp.src("./node_modules/vanilla-picker/dist/**/*.js")
 			.pipe(gulp.dest("./libs/vanilla-picker/")),
 		gulp.src("./node_modules/file-saver/dist/**/*.js")
-			.pipe(gulp.dest("./libs/file-saver/"))
+			.pipe(gulp.dest("./libs/file-saver/")),
+		gulp.src("./node_modules/webix/**/*.*")
+			.pipe(gulp.dest("./libs/webix/"))
 	);
 });
 

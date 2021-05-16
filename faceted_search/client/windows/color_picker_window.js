@@ -47,7 +47,7 @@ define([
 				});
 		
 				const debounce = new Debouncer(200);
-				form.attachEvent("onChange", async () => {
+				form.attachEvent("onChange", async() => {
 					const values = this.getForm().getValues();
 					this.getRoot().callEvent("colorChanged", [values]);
 					debounce.execute(this.updateHistorgamHandler, this);
@@ -78,7 +78,7 @@ define([
 							color: "#36abee",
 							dynamic: false,
 							yAxis: {
-								template: yValue => (yValue % 50 ? "" : `<span title='${yValue}' class='y-axis-number-item ellipsis-text'>${yValue}</span>`)
+								template: (yValue) => (yValue % 50 ? "" : `<span title='${yValue}' class='y-axis-number-item ellipsis-text'>${yValue}</span>`)
 							},
 							xAxis: {
 								start: 0,

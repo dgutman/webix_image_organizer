@@ -15,7 +15,8 @@
         "no-undef": 2,
         "no-const-assign":"error",
         "no-trailing-spaces":"off",
-        "max-len":["warn", {"code": 120}]
+        "max-len":["warn", {"code": 120}],
+        "prefer-const": "error"
     },
     "globals": {
         "define": "readonly",

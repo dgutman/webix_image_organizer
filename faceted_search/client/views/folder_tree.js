@@ -5,8 +5,9 @@ define([
 	"helpers/authentication",
 	"helpers/ajax", 
 	"models/upload"
-], function (app, constants, auth, ajax, Upload) {
+], function(app, constants, auth, ajax, Upload) {
 	const uploadButtonId = "upload-btn";
+	const resyncButtonId = "resync-btn";
 	const statusTempateId = "status-template";
 
 	const treeView = {
@@ -30,24 +31,46 @@ define([
 	};
 
 	const statusTemplate = {
-		template: obj => obj.title || "",
+		template: (obj) => obj.title || "",
 		borderless: true,
 		id: statusTempateId,
 		height: 50
-	}
+	};
+
+	const resyncButton = {
+		view: "button",
+		type: "icon",
+		css: "icon-btn",
+		tooltip: "Resync uploaded images",
+		icon: "mdi mdi-sync",
+		id: resyncButtonId,
+		width: 45
+	};
 
 	const uploadButton = {
 		view: "button",
 		id: uploadButtonId,
 		value: "Upload items from folder",
-		disabled: true,
-	}
+		disabled: true
+	};
 	
 	return {
-		$ui: {rows: [treeView, statusTemplate, uploadButton]},
+		$ui: {
+			rows: [
+				treeView,
+				statusTemplate,
+				{
+					cols: [
+						uploadButton,
+						resyncButton
+					]
+				}
+			]
+		},
 		$oninit: () => {
 			const tree = $$(constants.FOLDER_TREE_ID);
 			const uploadButton = $$(uploadButtonId);
+			const resyncButton = $$(resyncButtonId);
 			webix.extend(tree, webix.ProgressBar);
 			tree.showProgress();
 			ajax.getCollection()
@@ -63,21 +86,24 @@ define([
 				tree.showProgress();
 				ajax.getFolder(item._modelType, item._id)
 					.then((data) => {
-						tree.parse({parent: id, data})
+						tree.parse({parent: id, data});
 					})
 					.finally(() => {
 						tree.hideProgress();
 					});
 			});
 
-			tree.attachEvent("onAfterSelect", (id) => {
-				const item = tree.getItem(id);
-				if (item._modelType === "folder") {
+			function toggleUploadButtonState(treeItem) {
+				if (treeItem && treeItem._modelType === "folder") {
 					uploadButton.enable();
-				}
-				else {
+				} else {
 					uploadButton.disable();
 				}
+			}
+
+			tree.attachEvent("onAfterSelect", (id) => {
+				const item = tree.getItem(id);
+				toggleUploadButtonState(item);
 			});
 
 			uploadButton.attachEvent("onItemClick", () => {
@@ -89,11 +115,20 @@ define([
 				Upload.getImagesFromGirder(ajax.getHostApiUrl(), folder._id, folder.name, token);
 			});
 
+			resyncButton.attachEvent("onItemClick", () => {
+				const token = auth.getToken();
+				tree.showProgress();
+				resyncButton.disable();
+				Upload.resyncImagesFromGirder(token);
+			});
+
 			app.attachEvent("editForm:finishLoading", function(data) {
 				const tree = $$(constants.FOLDER_TREE_ID);
-				const uploadButton = $$(uploadButtonId);
 				tree.hideProgress();
-				uploadButton.enable();
+
+				const selectedItem = tree.getSelectedItem();
+				toggleUploadButtonState(selectedItem);
+				resyncButton.enable();
 
 				$$(statusTempateId).setValues(data || {title: "Done!"});
 			});

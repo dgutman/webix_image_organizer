@@ -1,15 +1,13 @@
 const express = require('express');
 
 const facetFilters = require('../models/facet_filters');
-const facetImages = require('../models/facet_images');
 const filterCreator = require('../extensions/filters_creator');
 const filterImages = require('../extensions/filters_images');
-const serviceData = require('../models/service_data');
 const facetsController = require('../controllers/facets');
 const whitelistModel = require('../models/whitelist');
-const whitelistGetProps = require('../extensions/whitelist');
+const whitelistExtensions = require('../extensions/whitelist');
 
-let router = express.Router();
+const router = express.Router();
 
 module.exports = (app) => {
     router.post('/filters', facetFilters.addFilters);
@@ -17,8 +15,18 @@ module.exports = (app) => {
     router.get('/get-filters-with-images', filterImages);
     router.get('/images', facetsController.getImagesData);
     router.get('/updateCache', facetsController.updateCache);
-    router.get('/whitelist', whitelistGetProps);
-    router.post('/whitelist', whitelistModel.updateWhitelist);
+    router.get('/whitelist', whitelistExtensions.getProps);
+    router.post('/whitelist', (req, res) => {
+        const newData = JSON.parse(req.body.data);
+        whitelistModel.updateWhitelist(newData)
+            .then((data) => {
+                res.status(200).send(data);
+            })
+            .catch((error) => {
+                res.status(500).send('internal error');
+                console.error(error);
+            });
+    });
 
     app.use('/facets', router);
 };

@@ -69,6 +69,7 @@ define([
         $oninit: function () {
             if (auth.isLoggedIn()) {
                 app.callEvent("editForm:loadDataForFilters", []);
+                app.callEvent("whitelist:loadDataForWhitelist");
             }
             else {
                 app.show("/top/user_mode");

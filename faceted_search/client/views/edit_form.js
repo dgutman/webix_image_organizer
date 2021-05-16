@@ -18,12 +18,13 @@ define([
         const ui = {
             view: "scrollview",
             id: scrollViewId,
-            scroll: "y",
+            scroll: "auto",
             body: {
                 rows: [
                     {
                         view: "form",
                         id: uploadFormId,
+                        paddingY: 5,
                         elements: [
                             {
                                 margin: 20,
@@ -42,18 +43,9 @@ define([
                                     },
                                     {
                                         view: "button",
-                                        id: setVisibleMetadataId,
-                                        value: "Set visible metadata",
-                                        type: "form",
-                                        click: function() {
-                                            $$(constants.WHITELIST_POPUP_ID).show(this.getNode());
-                                        }
-                                    },
-                                    {
-                                        view: "button",
                                         value: "Add",
                                         type: "form",
-                                        width: 200,
+                                        width: 230,
                                         click: function() {
                                             const type = $$(selectTypeId).getValue();
                                             const facet = $$(selectFacetId).getValue();
@@ -62,7 +54,7 @@ define([
                                             if (type && facet) {
                                                 canBeAdded = EditForm.checkAbilityToAdd(facet, type);
                                                 if (canBeAdded) {
-                                                    let view = EditForm.addItem(facet, type);
+                                                    const view = EditForm.addItem(facet, type);
                                                     $$(previewFormId).show();
                                                     $$(previewFormId).addView(view);
                                                     updateFormSize();
@@ -86,31 +78,49 @@ define([
                                                 text: message
                                             });
                                         }
-                                    }
-                                ]
-                            },
-                            {
-                                borderless: true,
-                                cols: [
-                                    {
-                                        css: "webix_header filter-list-header",
-                                        borderless: true,
-                                        template: "Filter",
-                                        type: "header"
                                     },
                                     {
-                                        css: "webix_header filter-list-header",
-                                        borderless: true,
-                                        template: "Value",
-                                        type: "header"
+                                        view: "button",
+                                        id: setVisibleMetadataId,
+                                        value: "Set visible metadata",
+                                        width: 200,
+                                        type: "form",
+                                        click: function() {
+                                            $$(constants.WHITELIST_POPUP_ID).show(this.getNode());
+                                        }
                                     }
                                 ]
                             },
                             {
-                                id: previewFormId,
-                                view: "form",
-                                hidden: true,
-                                elements: []
+                                view: "scrollview",
+                                scroll: "y",
+                                body: {
+                                    rows: [
+                                        {
+                                            borderless: true,
+                                            cols: [
+                                                {
+                                                    css: "webix_header filter-list-header",
+                                                    borderless: true,
+                                                    template: "Filter",
+                                                    type: "header"
+                                                },
+                                                {
+                                                    css: "webix_header filter-list-header",
+                                                    borderless: true,
+                                                    template: "Value",
+                                                    type: "header"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            id: previewFormId,
+                                            view: "form",
+                                            hidden: true,
+                                            elements: []
+                                        }
+                                    ]
+                                }
                             },
                             {
                                 cols: [
@@ -138,7 +148,7 @@ define([
     };
 
     app.attachEvent("editForm:dataLoaded", function(views) {
-        let childViews = $$(previewFormId).getChildViews();
+        const childViews = $$(previewFormId).getChildViews();
         let i;
         if(childViews) {
             for(i = 0; i < childViews.length; i++) {
@@ -158,7 +168,7 @@ define([
     });
 
     app.attachEvent("editForm:clearForm", function() {
-        let childViews = $$(previewFormId).getChildViews();
+        const childViews = $$(previewFormId).getChildViews();
         let i;
         if(childViews) {
             for(i = 0; i < childViews.length; i++) {
@@ -184,7 +194,7 @@ define([
     };
 
     const itemRemoved = function(id) {
-        let countOfAddedItems = EditForm.getCountOfAddedItems();
+        const countOfAddedItems = EditForm.getCountOfAddedItems();
         $$(previewFormId).removeView(id);
         updateFormSize();
         if(!countOfAddedItems) {
@@ -202,7 +212,7 @@ define([
 
     app.attachEvent("editForm:modifyView", function(data) {
         let view;
-        let canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
+        const canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
         if (canBeAdded) {
             view = EditForm.addItem(data.facet, data.newType);
             $$(previewFormId).show();
@@ -223,12 +233,19 @@ define([
 
     app.ui(whitelistPopup);
 
+    app.attachEvent("editForm:doProgressOnWhitelist", function() {
+        webix.extend($$(constants.WHITELIST_POPUP_ID), webix.ProgressBar);
+        $$(constants.WHITELIST_POPUP_ID).showProgress({
+            type: "icon"
+        });
+    });
+
+    app.attachEvent("editForm:onWhitelistLoaded", function() {
+        $$(constants.WHITELIST_POPUP_ID).hideProgress();
+    });
 
     return {
         $ui: ui,
-        $oninit: function() {
-            app.callEvent("editForm:loadDataForWhitelist", []);
-        },
         getId: getId,
         reloadSelectsData: reloadSelectsData,
         areFiltersNotChanged
