@@ -139,5 +139,7 @@ export default {
 		SCENES_VIEW: "XBSViewOne"
 	},
 
-	OPEN_MULTICHANNEL_VIEW_EVENT: "showMultichannelView"
+	OPEN_MULTICHANNEL_VIEW_EVENT: "showMultichannelView",
+
+	THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"]
 };
