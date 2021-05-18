@@ -1,3 +1,5 @@
+import lodashObject from "lodash/object";
+import {isObject} from "lodash/lang";
 import ajaxActions from "../ajaxActions";
 import utils from "../../utils/utils";
 import galleryImageUrl from "../../models/galleryImageUrls";
@@ -246,7 +248,18 @@ class MainService {
 				this._filterModel.parseFilterToRichSelectList();
 			}
 
-			const bgIcon = getPreviewUrl(obj._id) ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
+			const previewUrl = getPreviewUrl(obj._id);
+			const bgIcon = previewUrl ? `background: url(${nonImageUrls.getNonImageUrl(obj)}) center / auto 100% no-repeat;` : "";
+
+			let src = nonImageUrls.getNonImageUrl(obj);
+			if (previewUrl) {
+				src = previewUrl;
+
+				const styleParamsString = this._getStyleParamsOfThumbnailPreview(obj);
+				if (styleParamsString) {
+					src += `&style=${styleParamsString}`;
+				}
+			}
 
 			return `<div title='${obj.name}' class='unselectable-dataview-items'>
 				<div class="gallery-images-container ${checkedClass}" style="height: ${utils.getNewImageHeight()}px">
@@ -259,7 +272,12 @@ class MainService {
 					<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 						${starHtml}
 						${warning}
-						<img style="${bgIcon}" height="${this._checkForImageHeight(IMAGE_HEIGHT)}" loading="lazy" src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="gallery-image">
+						<img
+							style="${bgIcon}"
+							height="${this._checkForImageHeight(IMAGE_HEIGHT)}"
+							loading="lazy" src="${src}"
+							class="gallery-image"
+						>
 					</div>
 				</div>
 				<div class="thumbnails-name">${obj.name}</div>
@@ -949,6 +967,23 @@ class MainService {
 		});
 
 		this._setGallerySelectedItemsFromLocalStorage();
+	}
+
+	_getStyleParamsOfThumbnailPreview(data) {
+		let styleParamsString = null;
+		const {THUMBNAIL_URLS} = constants;
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (let url of THUMBNAIL_URLS) {
+			const styleParams = lodashObject.get(data, url);
+			if (styleParams) {
+				styleParamsString = isObject(styleParams)
+					? encodeURIComponent(JSON.stringify(styleParams)) : styleParams;
+				break;
+			}
+		}
+
+		return styleParamsString;
 	}
 
 	// URL-NAV get folders and open it

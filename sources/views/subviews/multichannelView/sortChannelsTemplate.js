@@ -6,7 +6,7 @@ const SORT_TEMPLATE_INDEX = "index-sort";
 const ASC = "asc";
 const DESC = "desc";
 
-export default class ChannelList extends JetView {
+export default class SortTemplate extends JetView {
 	constructor(app) {
 		super(app);
 
