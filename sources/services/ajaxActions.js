@@ -158,14 +158,14 @@ class AjaxActions {
 		const settings = {
 			width: 2048,
 			height: 2048,
-			bins: window.test || 256,
+			bins: 256,
 			...binsSettings
 		};
 		const urlSearchParams = new URLSearchParams();
 		urlSearchParams.append("frame", frame);
-		Object.keys(settings).forEach((paramKey) => {
-			if (settings[paramKey] != null) {
-				urlSearchParams.append(paramKey, settings[paramKey]);
+		Object.entries(settings).forEach(([paramKey, param]) => {
+			if (param != null) {
+				urlSearchParams.append(paramKey, param);
 			}
 		});
 		const query = urlSearchParams.toString();
