@@ -11,33 +11,18 @@ define([
         let data = view.data;
         if(element.checked === true) {
             element.checked = false;
-            data.eachLeaf(id, function(child) {
-                child.checked = false;
-                if(child.data) {
-                    if(child.data.length > 0) {
-                        checkChildrenData(child, false);
-                    }
-                }
-            });
         } else {
             element.checked = true;
-            data.eachLeaf(id, function(child) {
-                child.checked = true;
-                if(child.data) {
-                    if(child.data.length > 0) {
-                        checkChildrenData(child, true);
-                    }
-                }
-            });
         }
+        checkData(id, data, element.checked);
         view.render();
     };
 
-    const checkChildrenData = (data, check) => {
+    const checkData = (id, data, check) => {
         data.eachChild(id, function(child) {
             child.checked = check;
-            if(child.data.length > 0) {
-                checkChildrenData(child, check);
+            if(data.getBranch(child.id).length > 0) {
+                checkData(child.id, data, check);
             }
         });
     };
@@ -68,7 +53,7 @@ define([
                         select: false,
                         drag: "source",
                         templateGroup: ({value, id, checked}, common) => `<div style="width:100$; display: flex">
-                        <span class='metadata-grouplist__group-value'>${value}</span> ${common.checkChildrenState(id, $$("metadata-grouplist-id"))} <span>Select all</span>
+                        <span class='metadata-grouplist__group-value'>${value}</span> ${common.checkboxState(checked)} <span>Select all</span>
                         </div>`,
                         templateItem: ({value, id, checked}, common) => `<div style="width: 100%; display: flex">
                         <span class='metadata-grouplist__item-value'>${value}</span> ${common.checkboxState(checked)}
@@ -77,16 +62,6 @@ define([
                             checkboxState: (checked) => {
                                 const icon = checked ? "checkbox mdi mdi-checkbox-marked" : "checkbox mdi mdi-checkbox-blank-outline";
                                 return `<span class='metadata-grouplist__checkbox ${icon}'></span>`;
-                            },
-                            checkChildrenState: (id, view) => {
-                                let data = view.data;
-                                let icon = "mdi mdi-checkbox-marked";
-                                data.eachLeaf(id, function(child) {
-                                    if(!child.checked) {
-                                        icon = "mdi mdi-checkbox-blank-outline";
-                                    }
-                                });
-                                return `<span class='checkbox ${icon}'></span>`;
                             }
                         },
                         onClick: {
@@ -101,7 +76,7 @@ define([
                         id: "confurm-button",
                         value: "Confirm",
                         click: function() {
-                            whitelistModel.saveWhitelist($$(metadataGrouplistId).serialize());
+                            whitelistModel.saveWhitelist($$(metadataGrouplistId).data.serialize());
                             $$(constants.WHITELIST_POPUP_ID).hide();
                         }
                     }
