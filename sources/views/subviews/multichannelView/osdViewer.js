@@ -10,39 +10,43 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 
 	config() {
 		return {
-			...this._cnf,
-			view: "template",
-			localId: OSD_VIEWER_TEMPLATE,
-			template: () => `<div class="icons">
-				<span webix_tooltip="home" class="icon home fas fa-home"></span>
-				<span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
-				<span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
-				<span webix_tooltip="make a group with selected channels" class="icon addgroup fas fa-plus-circle"></span>
-				<span webix_tooltip="reset main slide" class="icon reset fas fa-redo"></span>
-				<span webix_tooltip="upload groups" class="icon upload fas fa-upload"></span>
-			</div>
-			<div class="osd-container"></div>`,
-			css: "multichannel-openseadragon-viewer",
-			onClick: {
-				home: () => {
-					this.zoomHome();
-				},
-				zoomin: () => {
-					this.zoomIn();
-				},
-				zoomout: () => {
-					this.zoomOut();
-				},
-				reset: () => {
-					this.reset();
-				},
-				addgroup: () => {
-					this.addGroup();
-				},
-				upload: () => {
-					this.uploadGroups();
+			rows: [
+				{
+					...this._cnf,
+					view: "template",
+					localId: OSD_VIEWER_TEMPLATE,
+					template: () => `<div class="icons">
+						<span webix_tooltip="home" class="icon home fas fa-home"></span>
+						<span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
+						<span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
+						<span webix_tooltip="make a group with selected channels" class="icon addgroup fas fa-plus-circle"></span>
+						<span webix_tooltip="reset main slide" class="icon reset fas fa-redo"></span>
+						<span webix_tooltip="upload groups" class="icon upload fas fa-upload"></span>
+					</div>
+					<div class="osd-container"></div>`,
+					css: "multichannel-openseadragon-viewer",
+					onClick: {
+						home: () => {
+							this.zoomHome();
+						},
+						zoomin: () => {
+							this.zoomIn();
+						},
+						zoomout: () => {
+							this.zoomOut();
+						},
+						reset: () => {
+							this.reset();
+						},
+						addgroup: () => {
+							this.addGroup();
+						},
+						upload: () => {
+							this.uploadGroups();
+						}
+					}
 				}
-			}
+			]
 		};
 	}
 

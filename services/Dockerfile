@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM jjanzic/docker-python3-opencv
+FROM jjanzic/docker-python3-opencv:opencv-4.0.1
 
 # Set the working directory to /app
 WORKDIR /app
