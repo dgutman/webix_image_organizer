@@ -1,7 +1,9 @@
 define([
     "app",
-    "helpers/ajax"
-],function(app, ajax){
+    "helpers/ajax",
+    "libs/lodash/lodash.min",
+    "constants"
+],function(app, ajax, lodash, constants) {
     var imagesViewState = false,
         imagesCollection = new webix.DataCollection({}),
         sizes;
@@ -77,7 +79,7 @@ define([
 
     var allTrue = function (obj) {
         var key;
-        for (key in obj){
+        for (key in obj) {
             if (!obj[key]) {
                 return false;
             }
@@ -106,6 +108,10 @@ define([
                 } else if (data[i].status == "between" && data[i].max >= obj.facets[data[i].key] && data[i].min <= obj.facets[data[i].key]) {
                     show[data[i].key] = true;
                 }
+            } else if (data[i].key === constants.CHANNEL_MAP_FILTER) {
+                show[data[i].key] = data[i].value.every((filterValue) => {
+                    return lodash.get(obj.data, `${constants.CHANNEL_MAP_FIELD_PATH}.${filterValue}`) !== undefined;
+                });
             }
         }
         t = allTrue(show);
@@ -113,7 +119,7 @@ define([
     }
 
     app.attachEvent("images:FilterImagesView", function(data, skipId) {
-        var arr = [];
+        const arr = [];
         imagesCollection.filter(function(obj) {
             const isOk = data ? imagesCollection.filterSingleImage(obj, data) : true;
             if(isOk) {
@@ -123,7 +129,6 @@ define([
         });
         imagesCollection.callEvent("imagesFiltered", []);
         app.callEvent("reloadFormAfterCalculating", [arr, skipId]);
-
     });
 
     return imagesCollection;

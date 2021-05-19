@@ -1,9 +1,18 @@
 const is = require('is_js');
 const _ = require('lodash');
+const {CHANNEL_MAP_FILTER, CHANNEL_MAP_FIELD} = require('../../constants');
 const facetFilters = require("../models/facet_filters");
 
 // unconcat
 const build = (facets, prefix, obj) => {
+    if (prefix === CHANNEL_MAP_FILTER) {
+        facets.push({
+            id: prefix,
+            name: CHANNEL_MAP_FIELD,
+            value: Object.keys(obj)
+        });
+    }
+
     if (prefix !== "") {
         prefix += '|';
     }
@@ -92,7 +101,7 @@ const uniqFilter = (filter) => {
                 for(key in map) {
                     if(map && map.hasOwnProperty(key)) {
                         facetFilters
-                            .updateByParams({"_id": map[key].data._id}, map[key].data)
+                            .updateByParams({"_id": map[key].data._id}, map[key].data);
                     }
                 }
 
