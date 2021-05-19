@@ -77,5 +77,5 @@ define([
 				return this.getColoredChannelTileSource(this._image, channel.index, colorSettings);
 			}));
 		}
-	}
+	};
 });

@@ -33,28 +33,24 @@ class Backend {
     }
 
     loadGirderFolder(data) {
-        const filename = `${data.name}.json`;
-    
         this._message('[Uploading]: started');
         loadImagesFileFromGirder(data)
             .then((images) => {
                 this._message('[Uploading]: finished');
-                return this._parseData(filename, images, data.host);
+                return this._parseData(images, data.host);
             });
     }
 
     async resyncUploadedData({host, token}) {
-        const hostUrl = new URL(host);
-
         this._message('[Resync]: started');
         return resyncImages(host, token)
             .then((images) => {
                 this._message('[Resync]: finished');
-                return this._parseData(hostUrl.hostname, images, host);
+                return this._parseData(images, host);
             });
     }
 
-    async _parseData(filename, images, host) {
+    async _parseData(images, host) {
         this._message('[Parse]: started');
         return parseImages(images, host, this._message)
             .then((data) => {

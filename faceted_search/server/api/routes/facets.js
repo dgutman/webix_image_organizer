@@ -17,8 +17,8 @@ module.exports = (app) => {
     router.get('/updateCache', facetsController.updateCache);
     router.get('/whitelist', whitelistExtensions.getProps);
     router.post('/whitelist', (req, res) => {
-        const newData = JSON.parse(req.body.data);
-        whitelistModel.updateWhitelist(newData)
+        const valuesForUpdate = JSON.parse(req.body.data);
+        whitelistModel.updateWhitelist(valuesForUpdate)
             .then((data) => {
                 res.status(200).send(data);
             })

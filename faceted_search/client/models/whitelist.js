@@ -32,24 +32,25 @@ define([
     };
 
     const saveWhitelist = function(whitelist) {
-        deleteDollarProperties(whitelist);
+        deleteUnnecessaryProperties(whitelist);
         webix.ajax().post(whitelistURL, {data: whitelist});
     };
 
-    const deleteDollarProperties = function(whitelist) {
-        whitelist.forEach((element) => {
-            // eslint-disable-next-line max-len
-            let excludedElements = Object.getOwnPropertyNames(element).filter((exception) => exception.charAt(0) === '$');
+    const deleteUnnecessaryProperties = function(whitelist) {
+        whitelist.map((element) => {
+            let excludedElements = 
+                Object.getOwnPropertyNames(element)
+                .filter((exception) => exception !== 'id' && exception !== 'checked' && exception !== 'data');
             excludedElements.forEach((excludedElement) => {
                 delete(element[excludedElement]);
             });
             if(element.data) {
-                element.data = deleteDollarProperties(element.data);
+                deleteUnnecessaryProperties(element.data);
             } else{
                 element.data = [];
             }
+            return element;
         });
-        return whitelist;
     };
 
     const getProps = function() {
