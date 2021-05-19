@@ -21,7 +21,7 @@ define([
                     this._maxRangeRadio.setValue(maxEdgeFor8BitId);
                 }
                 this._maxRangeRadio.attachEvent("onChange", (id) => {
-                    this._rangeSlider.setEdges(0, this._maxRangeRadio.getOption(id).value);
+                    this._rangeSlider.setEdges(0, this._maxRangeRadio.getOption(id).edge);
                 });
             };
         }
@@ -34,16 +34,18 @@ define([
                     {
                         view: "radio",
                         localId: "max-range-radio-id",
-                        label: "Max range",
+                        label: "",
                         vertical: false,
                         options: [
                             {
                                 id: maxEdgeFor8BitId,
-                                value: constants.MAX_EDGE_FOR_8_BIT
+                                value: "8bit",
+                                edge: constants.MAX_EDGE_FOR_8_BIT
                             },
                             {
                                 id: maxEdgeFor16BitId,
-                                value: constants.MAX_EDGE_FOR_16_BIT
+                                value: "16bit",
+                                edge: constants.MAX_EDGE_FOR_16_BIT
                             }
                         ]
                     }
