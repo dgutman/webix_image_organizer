@@ -98,7 +98,7 @@ define([
 				this._waitForViewerCreation = webix.promise.defer();
 			};
 
-			this.$onurlchange = async(params) => {
+			this.$onurlchange = async (params) => {
 				const {id, group: groupIndex} = params;
 				try {
 					await this.handleIdChange(id);
@@ -223,7 +223,7 @@ define([
 			const selectedChannels = this._channelList.getSelectedChannels();
 			const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 				.map((channel) => {
-					if(stateStore.bit = constants.SIXTEEN_BIT) {
+					if(stateStore.bit == constants.SIXTEEN_BIT) {
 						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
 					} else {
 						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel};
@@ -282,7 +282,7 @@ define([
 				max = histogramData.max;
 			}
 			
-			this._colorWindow.setMinAndMaxValuesByHistogram(min, max);
+			this._colorWindow.setMinAndMaxValuesByHistogram(0, max);
 			if(max > constants.MAX_EDGE_FOR_8_BIT) {
 				stateStore.bit = constants.SIXTEEN_BIT;
 			} else {
@@ -311,7 +311,7 @@ define([
 			const groupsList = this._groupsPanel.getGroupsList();
 			const groupsChannelList = this._groupsPanel.getGroupsChannelsList();
 
-			channelList.attachEvent("onAfterSelect", async(id) => {
+			channelList.attachEvent("onAfterSelect", async (id) => {
 				groupsList.unselectAll();
 				groupsChannelList.unselectAll();
 
@@ -338,7 +338,7 @@ define([
 		_attachOSDViewEvents() {
 			const osdViewerRoot = this._osdViewer.getRoot();
 
-			osdViewerRoot.attachEvent("resetMainFrameBtnClick", async() => {
+			osdViewerRoot.attachEvent("resetMainFrameBtnClick", async () => {
 				this.setDefaultOSDImage();
 			});
 
@@ -409,7 +409,7 @@ define([
 			this.showColoredChannels([{...channel, opacity: 1}]);
 			const debounce = new Debouncer(100);
 
-			const dataUpdateEventId = groupChannelList.attachEvent("onDataUpdate", async(id) => {
+			const dataUpdateEventId = groupChannelList.attachEvent("onDataUpdate", async (id) => {
 				debounce.execute(this._updateShownChannel, this, [{...channel, opacity: 1}, id]);
 			});
 			const hideWindowEventId = groupsPanel.attachEvent("channelColorAdjustEnd", () => {

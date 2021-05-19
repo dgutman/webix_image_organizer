@@ -33,7 +33,7 @@ define([
 						this._minSlider.setValue(val - 1);
 					}
 				});
-			}
+			};
 		}
 	
 		get $ui() {
@@ -82,5 +82,10 @@ define([
 			this._maxSlider.refresh();
 			this._minSlider.refresh();
 		}
-	}
+
+		getEdges() {
+			const {min, max} = this._range;
+			return {min, max};
+		}
+	};
 });

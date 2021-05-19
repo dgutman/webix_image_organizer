@@ -22,6 +22,8 @@ define([], function() {
 		MAX_EDGE_FOR_16_BIT: 65536,
 		EIGHT_BIT: 8,
 		SIXTEEN_BIT: 16,
-		THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"]
+		THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"],
+		CHANNEL_MAP_FILTER: "meta|ioparams|channelmap",
+		CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap"
 	};
 });

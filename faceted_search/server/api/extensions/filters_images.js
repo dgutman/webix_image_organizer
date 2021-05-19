@@ -1,5 +1,6 @@
 const facetFilters = require('../models/facet_filters');
 const facetImages = require('../models/facet_images');
+const constants = require("../../constants");
 
 const getFiltersWithImages = (req, res) => {
     const map = {};
@@ -33,7 +34,12 @@ const getFiltersWithImages = (req, res) => {
                         }
                         if(!map[j.id].hasOwnProperty(j.value)) {
                             map[j.id][j.value] = true;
-                            result.facets[j.id].values.push(j.value);
+                            if (j.id === constants.CHANNEL_MAP_FILTER) {
+                                result.facets[j.id].values = Array
+                                    .from(new Set([...result.facets[j.id].values, ...j.value]));
+                            } else {
+                                result.facets[j.id].values.push(j.value);
+                            }
                         }
                     }
                 }

@@ -1,4 +1,3 @@
-const { reject } = require('bluebird');
 const mongoose = require('mongoose');
 const facetImages = require('../models/facet_images');
 
@@ -72,22 +71,38 @@ class Whitelist {
         );
     }
 
-    updateWhitelist(newData) {
+    updateWhitelist(valuesForUpdate) {
         return this.getWhitelistData()
             .then((data) => {
                 if(data) {
-                    whitelistModel.deleteOne({})
+                    return whitelistModel.deleteOne({})
                         .then((result) => {
+                            const newData = this.checkItems(data, valuesForUpdate);
                             if(result) {
                                 const data = this.insert(newData);
                                 return data;
                             }
                         });
-                } else {
-                    const data = this.insert(newData);
-                    return data;
                 }
             });
+    }
+
+    checkItems(data, valuesForUpdate) {
+        if(valuesForUpdate) {
+            data.map((element) => {
+                const valuesForUpdateItem = valuesForUpdate.find((item) => {
+                    return item.id === element.id;
+                });
+                if(valuesForUpdateItem) {
+                    element.checked = valuesForUpdateItem.checked;
+                    if(element.data.length > 0) {
+                        element.data = this.checkItems(element.data, valuesForUpdateItem.data);
+                    }
+                }
+                return element;
+            });
+        }
+        return data;
     }
 
     async insert(newData) {
@@ -99,7 +114,7 @@ class Whitelist {
     }
 
     initialWhitelist() {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             facetImages.getAll()
             .then((images) => {
                 if(images.length !== 0) {
@@ -139,7 +154,7 @@ class Whitelist {
 
     updateWhitelistItems(data, whitelist) {
         for(const facet of data) {
-            let [whitelistItem] = whitelist.filter((item) => {
+            const [whitelistItem] = whitelist.filter((item) => {
                 return facet.id === item.id;
             });
             if(whitelistItem) {
@@ -154,9 +169,9 @@ class Whitelist {
     }
 
     getFacetesFromImagesData(images) {
-        let facets = [];
-        for(let image of images) {
-            for(let f of image.facets) {
+        const facets = [];
+        for(const image of images) {
+            for(const f of image.facets) {
                 facets.push(f.id);
             }
         }
@@ -165,8 +180,8 @@ class Whitelist {
 
     getData(facets) {
         let props = this.parseFacetesData(facets);
-        let roots = [];
-        let map = {};
+        const roots = [];
+        const map = {};
 
         props = props.map((prop, i, props) => {
             map[prop.id] = i;
@@ -174,9 +189,9 @@ class Whitelist {
             return prop;
         });
 
-        let propsLen = props.length;
+        const propsLen = props.length;
         for (let i = 0; i < propsLen; i++) {
-            let node = props[i];
+            const node = props[i];
             if(node.parent !== "") {
                 props[map[node.parent]].data.push(node);
             } else {
@@ -191,13 +206,13 @@ class Whitelist {
     }
 
     parseFacetesData(facets) {
-        let props = [];
+        const props = [];
         facets.forEach(function(facet) {
             if(facet !== '_id' && facet !== 'name') {
-                let idArray = facet.split('|');
-                let idLen = idArray.length;
+                const idArray = facet.split('|');
+                const idLen = idArray.length;
                 for(let i = 0; i < idLen; i++) {
-                    let newFacet = {id: '', parent: ''};
+                    const newFacet = {id: '', parent: ''};
                     for(let j = 0; j <= i; j++) {
                         if(j === 0) {
                             newFacet.id += idArray[j];

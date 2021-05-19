@@ -12,7 +12,7 @@ const getProps = (req, res) => {
                             if(data) {
                                 res.status(200).send(data);
                             } else {
-                                res.status(404).send('Not found');
+                                res.status(200).send([]);
                             }
                         });
                 }
