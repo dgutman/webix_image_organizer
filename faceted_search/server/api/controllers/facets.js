@@ -45,7 +45,10 @@ exports.getImagesData = (req, res, next) => {
 
 const filterImageData = function(image, whitelist) {
     image.facets = filterFacets(image.facets, whitelist);
-    image.data = filterData(image.data, whitelist);
+    const dataToDisplay = filterData(image.data, whitelist);
+    dataToDisplay["_id"] = image.data._id;
+    dataToDisplay["name"] = image.data.name;
+    image.data = dataToDisplay;
     return image;
 };
 
@@ -62,6 +65,7 @@ const filterFacets = function(facets, whitelist) {
 };
 
 const filterData = function(data, whitelist) {
+    const dataToDisplay = {};
     whitelist.forEach((filter) => {
         if(filter.checked === false) {
             let dataForChecking;
@@ -69,21 +73,32 @@ const filterData = function(data, whitelist) {
                 dataForChecking = data[filter.value];
             }
             if(Array.isArray(dataForChecking)) {
-                delete(data[filter.value]);
-            } else if(dataForChecking && typeof(dataForChecking) === "object") {
-                if(filter.data.length > 0) {
-                    dataForChecking = filterData(data[filter.value], filter.data);
-                }
-                let checkingDataLength = Object.keys(dataForChecking).length ? Object.keys(dataForChecking).length : 0;
-                if(checkingDataLength === 0) {
-                    delete(data[filter.value]);
-                }
+                filter.data.forEach((item, i) => {
+                    if(item.checked) {
+                        if(!dataToDisplay.hasOwnProperty(filter.value)) {
+                            dataToDisplay[filter.value] = {};
+                        }
+                        dataToDisplay[filter.value][i] = dataForChecking[i];
+                    }
+                });
             } else {
-                delete(data[filter.value]);
-            }
+                if(dataForChecking && typeof(dataForChecking) === "object" && !Array.isArray(dataForChecking)) {
+                    if(filter.data.length > 0) {
+                        dataForChecking = filterData(dataForChecking, filter.data);
+                    }
+                    const checkingDataLength = Object.keys(dataForChecking).length > 0
+                        ? Object.keys(dataForChecking).length 
+                        : 0;
+                    if(checkingDataLength > 0) {
+                        dataToDisplay[filter.value] = dataForChecking;
+                    }
+                }
+            } 
+        } else if(data.hasOwnProperty(filter.value)) {
+            dataToDisplay[filter.value] = data[filter.value];
         }
     });
-    return data;
+    return dataToDisplay;
 };
 
 exports.updateCache = (req, res, next) => {

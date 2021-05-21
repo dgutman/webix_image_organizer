@@ -1,9 +1,7 @@
 define([
 	"app",
 	"helpers/base_jet_view",
-	"libs/openseadragon/openseadragon",
-	"libs/openseadragon-svg-overlay/openseadragon-svg-overlay",
-	"libs/openseadragon-filtering/openseadragon-filtering",
+	"helpers/openseadragon"
 ], function(app, BaseJetView, OpenSeadragon) {
 	'use strict';
 	return class OpenSeadragonViewer extends BaseJetView {
@@ -34,17 +32,17 @@ define([
 			this._openseaDragonViewer = new OpenSeadragon.Viewer({
 				...Object.assign({}, this._options, options),
 				element: node,
-				prefixUrl: "sources/images/images/"
+				prefixUrl: "libs/openseadragon/images/"
 			});
 	
 			const viewer = this._openseaDragonViewer;
 	
 			return new Promise((resolve, reject) => {
 				viewer.addOnceHandler("open", () => {
-					resolve();
+					resolve(viewer);
 				});
-				viewer.addOnceHandler("open-failed", () => {
-					reject();
+				viewer.addOnceHandler("open-failed", (error) => {
+					reject(error);
 				});
 			});
 		}

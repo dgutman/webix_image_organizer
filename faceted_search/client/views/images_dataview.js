@@ -1,13 +1,23 @@
 define([
+    "app",
     "models/images",
     "templates/image",
     "views/filter_header",
     "views/image_window",
     "views/multichannel_view",
-    "helpers/authentication"
-], function (Images, imageTemplate, filterHeaderView, imageWindow, multichannelView, auth) {
-    let dataviewId = "images-dataview";
-    let ui = {
+    "views/detailed_image_view"
+], function(
+  app,
+  Images,
+  imageTemplate,
+  filterHeaderView,
+  ImageWindow,
+  multichannelView,
+  detailedImageView
+) {
+    const dataviewId = "images-dataview";
+
+    const ui = {
         id: "dataview-layout",
         rows: [
             filterHeaderView,
@@ -20,8 +30,10 @@ define([
                 select: true,
                 data: null,
                 on: {
-                    onItemClick: async function (id) {
+                    onItemClick: async function(id) {
                         const item = this.getItem(id);
+                        const imageWindow = new ImageWindow(app);
+                        app.ui(imageWindow);
                         imageWindow.showWindow(item);
                     }
                 },
@@ -30,11 +42,8 @@ define([
                         const item = $$(dataviewId).getItem(id);
                         multichannelView.validateImage(item.data)
                             .then((isValid) => {
-                                if (!isValid) {
-                                    webix.message("Image can't be opened in the multichannel mode")
-                                    return;
-                                }
-                                multichannelView.show(item.data._id);
+                                const view = isValid ? multichannelView : detailedImageView;
+                                view.show(item.data._id);
                             });
                         return false;
                     }
@@ -43,21 +52,21 @@ define([
                     return imageTemplate.getTemplate(data);
                 },
                 tooltip: (data) => {
-                    return data.data && data.data.name ? data.data.name : "no image"
+                    return data.data && data.data.name ? data.data.name : "no image";
                 }
             }
         ]
     };
 
     Images.attachEvent("imagesLoaded", function() {
-        let data = this.getImages();
+        const data = this.getImages();
         $$(dataviewId).clearAll();
         $$(dataviewId).parse(data);
         $$(dataviewId).hideProgress();
     });
 
     Images.attachEvent("imagesViewStateChange", function() {
-        let sizes = this.getImagesSize($$(dataviewId).$width);
+        const sizes = this.getImagesSize($$(dataviewId).$width);
         $$(dataviewId).define("type", sizes);
         $$(dataviewId).render();
     });
@@ -65,11 +74,10 @@ define([
 
     return {
         $ui: ui,
-        $oninit: function() {
-            let sizes;
+        $oninit() {
             webix.extend($$(dataviewId), webix.ProgressBar);
             webix.extend($$(dataviewId), webix.OverlayBox);
-            sizes = Images.getImagesSize($$(dataviewId).$width);
+            const sizes = Images.getImagesSize($$(dataviewId).$width);
             $$(dataviewId).define("type", sizes);
                 $$(dataviewId).showProgress({
                     type: "icon"
