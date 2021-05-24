@@ -224,9 +224,9 @@ define([
 			const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 				.map((channel) => {
 					if(stateStore.bit == constants.SIXTEEN_BIT) {
-						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
-					} else {
 						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel};
+					} else {
+						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
 					}				
 				});
 
