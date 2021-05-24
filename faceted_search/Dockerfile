@@ -17,8 +17,10 @@ RUN npm -v
 RUN npm install pm2 -g
 
 # build app bundles
-RUN npm i
+RUN npm ci
+
+RUN cd ./client && npm i && npm run build-css
 
 EXPOSE 8000
 
-CMD ["pm2-runtime", "index.js"]
+CMD ["pm2-runtime", "start", "ecosystem.config.js", "--env=production"]

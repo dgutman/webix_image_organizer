@@ -42,7 +42,7 @@ function handleIndexRoutes(req, res, next) {
         }
         req.session.host = hosts.data.find((host) => host.id === currentHost.id) || hosts.data[0];
         data.host = req.session.host;
-        res.render('index.pug', {data: data});
+        res.render('index.pug', {data: data, mode: process.env.NODE_ENV || "development"});
     })
     .catch((err) => next(err));
 }
