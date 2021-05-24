@@ -48,6 +48,8 @@ const filterImageData = function(image, whitelist) {
     const dataToDisplay = filterData(image.data, whitelist);
     dataToDisplay["_id"] = image.data._id;
     dataToDisplay["name"] = image.data.name;
+    // temporary hack
+    dataToDisplay["largeImage"] = image.data.largeImage;
     image.data = dataToDisplay;
     return image;
 };
