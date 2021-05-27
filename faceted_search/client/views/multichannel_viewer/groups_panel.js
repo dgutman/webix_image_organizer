@@ -177,7 +177,7 @@ define([
 				.filter(({index}) => !group.channels.find(channel => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
-					if(stateStore.bit = constants.SIXTEEN_BIT) {
+					if(stateStore.bit == constants.SIXTEEN_BIT) {
 						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel, color};
 					} else {
 						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel, color};
