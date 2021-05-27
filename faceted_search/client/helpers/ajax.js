@@ -215,7 +215,7 @@ define(["app", "constants"], function(app, constants) {
 		}
 
 		// FOR MULTICHANNEL VIEWER
-		getImageTilesHistogram(itemId, frame, binsSettings) {
+		getImageTilesHistogram(itemId, frame, binsSettings = {}) {
 			const settings = {
 				width: 2048,
 				height: 2048,
