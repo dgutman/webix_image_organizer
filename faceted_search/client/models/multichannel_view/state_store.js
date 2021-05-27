@@ -7,6 +7,7 @@ define([
 		image: null,
 		adjustedChannel: null,
 		loadedImages: {},
-		bit: constants.SIXTEEN_BIT
+		bit: constants.SIXTEEN_BIT,
+		imageMetadata: null
 	};
 });
