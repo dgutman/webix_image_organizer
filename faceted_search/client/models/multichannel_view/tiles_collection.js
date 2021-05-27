@@ -1,6 +1,7 @@
 define([
-	"helpers/ajax"
-], function(ajaxActions) {
+	"helpers/ajax",
+	"libs/lodash/lodash.min.js"
+], function(ajaxActions, lodash) {
 	'use strict';
 	class ImageTileInfoCollection {
 		constructor() {
@@ -49,8 +50,25 @@ define([
 		}
 	
 		async getImageChannels(image) {
+			const channels = this.getChannelsFromChannelMap(image);
+			if (channels) return channels;
+
 			const tileInfo = await this.getImageTileInfo(image);
 			return tileInfo && tileInfo.channels;
+		}
+
+		getChannelsFromChannelMap(image) {
+			const channelmap = lodash.get(image, "meta.ioparams.channelmap");
+			if (channelmap) {
+				return this.parseChannelMap(channelmap);
+			}
+			return null;
+		}
+
+		parseChannelMap(channelmap) {
+			return Object.entries(channelmap)
+				.sort((a, b) => a[1] - b[1])
+				.reduce((acc, [index, name]) => acc.push({index, name}) && acc, []);
 		}
 	}
 	return new ImageTileInfoCollection();
