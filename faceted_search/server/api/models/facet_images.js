@@ -46,6 +46,10 @@ class FacetImages {
         return facetImagesModel.find({}, {}).lean();
     }
 
+    getImageById(id) {
+        return facetImagesModel.findOne({"data._id": id});
+    }
+
     makeQuery() {
         return this.getAll()
         .then((images) => {

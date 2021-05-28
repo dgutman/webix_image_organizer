@@ -38,26 +38,29 @@ class ProcessImagesRequest {
         .then((result) => {
             let promise;
             if(result) {
-                promise =  Promise.resolve(null);
+                promise = Promise.resolve(null);
             } else {
-                promise =  facetImages.getAllImages();
+                promise = facetImages.getAllImages();
             }
             return promise;
         })
         .then((images) => {
             let promise;
-            if(images){
+            if(images) {
                 let promises = [];
                 promises.push(serviceData.getImagesHash());
                 promises.push(Promise.resolve(images));
-                promise =  Promise.all(promises);
+                promise = Promise.all(promises);
             } else {
-                promise =  Promise.resolve([null, null]);
+                promise = Promise.resolve([null, null]);
             }
             return promise;
-        })
-    }
+        });
+    };
 
+    getImageData(id) {
+        return facetImages.getImageById(id);
+    }
 }
 
 module.exports = new ProcessImagesRequest();
