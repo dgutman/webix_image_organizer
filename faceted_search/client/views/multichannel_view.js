@@ -3,10 +3,12 @@ define([
 	"views/multichannel_viewer/osd_viewer",
 	"views/multichannel_viewer/groups_panel",
 	"views/multichannel_viewer/channels_list",
+	"views/multichannel_viewer/metadata_popup",
 	"views/components/horizontal_collapser",
 	"views/components/header_label",
 	"models/multichannel_view/state_store",
 	"models/multichannel_view/tiles_collection",
+	"models/multichannel_view/image_metadata",
 	"helpers/multichannel_view/drag_and_drop_mediator",
 	"helpers/multichannel_view/groups_loader",
 	"helpers/ajax",
@@ -22,10 +24,12 @@ define([
 	MultichannelOSDViewer,
 	GroupsPanel,
 	ChannelList,
+	MetadataPopup,
 	HorizontalCollapser,
 	HeaderLabel,
 	stateStore,
 	tilesCollection,
+	imageMetadata,
 	DragAndDropMediator,
 	groupsLoader,
 	ajaxActions,
@@ -42,6 +46,7 @@ define([
 	const {saveGroups, getSavedGroups} = groupsLoader;
 
 	const MULTICHANNEL_WRAP_ID = "multichannel-wrap";
+	const SHOW_METADATA_BUTTON_ID = "show-metadata-button-id";
 
 	class MultichannelView extends BaseJetView {
 		constructor(app) {
@@ -53,6 +58,7 @@ define([
 			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200, hidden: true}, this._colorWindow);
 			this._channlesListCollapser = new HorizontalCollapser(app, {direction: "left"});
 			this._groupsPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
+			this._metadataPopup = this.ui(new MetadataPopup(this.app));
 
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
@@ -131,11 +137,33 @@ define([
 								height: 30,
 								label: "Back",
 								click: () => {
+									const metadataPopupRoot = this._metadataPopup.getRoot();
+									if(metadataPopupRoot) {
+										if(metadataPopupRoot.isVisible()) {
+											metadataPopupRoot.hide();
+										}
+									}
 									this.app.show("/top/user_mode");
 								}
 							},
 							new HeaderLabel(app),
-							{}
+							{gravity: 10},
+							{
+								view: "button",
+								localId: SHOW_METADATA_BUTTON_ID,
+								width: 160,
+								height: 30,
+								label: "Show metadata",
+								click: () => {
+									const metadataPopupRoot = this._metadataPopup.getRoot();
+									if(metadataPopupRoot) {
+										metadataPopupRoot.show(this.$$(SHOW_METADATA_BUTTON_ID).getNode());
+										this._metadataPopup.setProperties();
+									}
+
+									// this._metadataPopup.show(this.$$(SHOW_METADATA_BUTTON_ID).getNode())
+								}
+							}
 						]
 					},
 					{
@@ -156,6 +184,10 @@ define([
 
 		show(imageId) {
 			this.app.show(`top/multichannel_view:id=${imageId}`);
+		}
+
+		loadImageMetadata(id) {
+			imageMetadata.loadImageMetadata(id);
 		}
 
 		async handleIdChange(id) {
@@ -203,6 +235,7 @@ define([
 			await this._osdViewer.createViewer({tileSources});
 			this._waitForViewerCreation.resolve();
 			this.changeBitImage();
+			this.loadImageMetadata(this._image._id);
 		}
 
 		_parseChannels(channels) {
@@ -224,9 +257,9 @@ define([
 			const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 				.map((channel) => {
 					if(stateStore.bit == constants.SIXTEEN_BIT) {
-						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
-					} else {
 						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel};
+					} else {
+						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
 					}				
 				});
 

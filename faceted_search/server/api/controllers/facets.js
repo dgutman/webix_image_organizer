@@ -43,11 +43,37 @@ exports.getImagesData = (req, res, next) => {
     });
 };
 
+exports.getImageData = (req, res, next) => {
+    const host = req.query.host;
+    ProcessImagesRequest.getImageData(req.query.id)
+    .then((image) => {
+        return Promise.all([
+            Promise.resolve(image),
+            ProcessWhitelistRequest.getWhitelistData()
+        ]);
+    })
+    .then(([image, whitelist]) => {
+        if (host) {
+            if(image.host === host) {
+                image = filterImageData(image, whitelist.data);
+                res.status(200).send(image);
+            } else {
+                res.status(404);
+            }
+        }
+    })
+    .catch((err) => {
+        next(err);
+    });
+};
+
 const filterImageData = function(image, whitelist) {
     image.facets = filterFacets(image.facets, whitelist);
     const dataToDisplay = filterData(image.data, whitelist);
     dataToDisplay["_id"] = image.data._id;
     dataToDisplay["name"] = image.data.name;
+    // temporary hack
+    dataToDisplay["largeImage"] = image.data.largeImage;
     image.data = dataToDisplay;
     return image;
 };

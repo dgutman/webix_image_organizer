@@ -4,8 +4,9 @@ define([
     "models/images",
     "helpers/filters",
     "libs/lodash/lodash.min",
-    "helpers/authentication"
-], function(app, Filter, Images, filterHelper, lodash, auth) {
+    "helpers/authentication",
+    "constants"
+], function(app, Filter, Images, filterHelper, lodash, auth, constants) {
     const scrollViewId = "scroll_view"; const filterFormId = "filter_form";
     const ui = {
         view: "scrollview",
@@ -26,7 +27,7 @@ define([
     const getValuesCountById = function(data, key, type, options) {
         let filtersData = Filter.getSelectedFiltersData();
         const currentFilter = filtersData.find((filter) => filter.key === key);
-        if (key === "meta|ioparams|channelmap") {
+        if (key === constants.CHANNEL_MAP_FILTER) {
             filtersData = filtersData.filter((filter) => filter.key != key);
 
             data = Images.data
@@ -35,7 +36,8 @@ define([
 
             const counts = options.reduce((acc, val) => {
                 const count = data
-                    .filter((image) => lodash.get(image.data, `meta.ioparams.channelmap.${val}`) !== undefined);
+                    .filter((image) => lodash
+                        .get(image.data, `${constants.CHANNEL_MAP_FIELD_PATH}.${val}`) !== undefined);
                 acc[val] = count;
                 return acc;
             }, {});

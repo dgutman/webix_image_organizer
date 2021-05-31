@@ -3,26 +3,27 @@ define([
 	"views/components/color_picker",
 	"views/components/range_slider",
 	"views/components/range_switch",
+	"views/components/histogram_chart",
 	"helpers/debouncer",
 	"helpers/ajax",
 	"models/multichannel_view/state_store",
 	"models/multichannel_view/tiles_collection",
-	"models/multichannel_view/histogram_chart",
 	"constants"
 ], function(
 	BaseJetView,
 	ColorPicker,
 	RangeSlider,
 	RangeSwitch,
+	HistogramChart,
 	Debouncer,
 	ajaxActions,
 	stateStore,
 	tilesCollection,
-	HistogramChart,
 	constants
 ) {
 	'use strict';
 	const FORM_ID = "color-form";
+	const HISTOGRAM_FORM_ID = "histogram-form";
 	const chartOverlay = "<div class='chart-overlay'></div>";
 
 	return class ColorPickerWindow extends BaseJetView {
@@ -34,7 +35,8 @@ define([
 				constants.MAX_EDGE_FOR_8_BIT : constants.MAX_EDGE_FOR_16_BIT;
 			this._rangeSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
 			this._rangeSwitch = new RangeSwitch(app, {hidden: true}, initialMaxEdge, this._rangeSlider);
-			this._histogramChart = new HistogramChart(app, {width: 330, height: 190});
+			this._histogramChart = new HistogramChart(app, {width: 330, height: 210});
+			this._histogramSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
 
 			this.$oninit = () => {
 				const chart = this._histogramChart.getRoot();
@@ -45,11 +47,9 @@ define([
 					this.getRoot().callEvent("colorChanged", [form.getValues()]);
 				});
 		
-				const debounce = new Debouncer(400);
 				form.attachEvent("onChange", async () => {
 					const values = this.getForm().getValues();
 					this.getRoot().callEvent("colorChanged", [values]);
-					debounce.execute(this.updateHistorgamHandler, this);
 				});
 
 
@@ -69,6 +69,12 @@ define([
 				this.getRoot().attachEvent("onHide", () => {
 					webix.UIManager.removeHotKey("Shift+S", toggleRangeSwitchVisibility);
 				});
+
+				const histogramForm = this.getHistogramForm();
+				const debounce = new Debouncer(400);
+				histogramForm.attachEvent("onChange", async () => {
+					debounce.execute(this.updateHistorgamHandler, this);
+				});
 			};
 		}
 	
@@ -82,34 +88,45 @@ define([
 				height: 1050,
 				width: 700,
 				body: {
-					view: "form",
-					localId: FORM_ID,
-					elements: [
-						this._histogramChart,
-						this._colorPicker,
-						this._rangeSlider,
-						this._rangeSwitch,
+					rows: [
 						{
-							cols: [
+							view: "form",
+							localId: HISTOGRAM_FORM_ID,
+							elements: [
+								this._histogramChart,
+								this._histogramSlider
+							]
+						},
+						{
+							view: "form",
+							localId: FORM_ID,
+							elements: [
+								this._colorPicker,
+								this._rangeSlider,
+								this._rangeSwitch,
 								{
-									view: "button",
-									css: "btn-contour",
-									label: "Cancel",
-									click: () => {
-										this.getForm().setValues(this._initValues);
-										this.applyChanges();
-										this.closeWindow();
-									}
-								},
-								{},
-								{
-									view: "button",
-									css: "btn",
-									label: "Apply",
-									click: () => {
-										this.applyChanges();
-										this.closeWindow();
-									}
+									cols: [
+										{
+											view: "button",
+											css: "btn-contour",
+											label: "Cancel",
+											click: () => {
+												this.getForm().setValues(this._initValues);
+												this.applyChanges();
+												this.closeWindow();
+											}
+										},
+										{},
+										{
+											view: "button",
+											css: "btn",
+											label: "Apply",
+											click: () => {
+												this.applyChanges();
+												this.closeWindow();
+											}
+										}
+									]
 								}
 							]
 						}
@@ -131,6 +148,7 @@ define([
 					}
 					const [histogram] = data;
 					this.setHistogramValues(histogram);
+					this.setMinAndMaxValuesByHistogram(histogram.min, histogram.max);
 				})
 				.finally(() => {
 					this._histogramChart.getRoot().hideOverlay();
@@ -162,12 +180,12 @@ define([
 		}
 
 		async getHistogramData(min, max) {
-			const tileInfo = await tilesCollection.getImageTileInfo(this._image);
+			// const tileInfo = await tilesCollection.getImageTileInfo(this._image);
 			const binSettings = {
-				width: tileInfo.sizeX,
-				height: tileInfo.sizeY,
-				rangeMin: min,
-				rangeMax: max
+				// width: tileInfo.sizeX,
+				// height: tileInfo.sizeY,
+				// rangeMin: min,
+				// rangeMax: max
 			};
 	
 			return ajaxActions.getImageTilesHistogram(this._image._id, '', binSettings);
@@ -179,44 +197,36 @@ define([
 				const bitMaxEdge = histogram.bin_edges[i + 1];
 				const name = typeof bitMaxEdge === "number" ? bitMaxEdge.toFixed(2) : bitMaxEdge;
 				return {value, name};
-			})
-			.reduce((acc, current, i) => {
-				const lastFiltered = acc[acc.length - 1];
-				if (lastFiltered && lastFiltered.value === current.value && current.value === 0) {
-					lastFiltered.name = current.name;
-					return acc;
-				}
-				acc.push(current);
-				return acc;
-			}, []);
+			});
 			this._histogramChart.makeChart(chartValues);
 		}
 	
 		setMinAndMaxValuesByHistogram(min = 0, max) {
-			if (max > constants.MAX_EDGE_FOR_8_BIT) { 
-				max = constants.MAX_EDGE_FOR_16_BIT; 
-			} else { 
-				max = constants.MAX_EDGE_FOR_8_BIT; 
-			}
 			this._rangeSlider.setEdges(min, max);
+			this._histogramSlider.setEdges(min, max);
 			this._rangeSwitch.setMaxRange(max);
 		}
 	
-		async _getHistogramInfo() {
+		async _getHistogramInfo(initial) {
 			if (!this._image || !this._channel) {
 				return;
 			}
-			const {min, max} = this.getForm().getValues();
+			const {min, max} = this.getHistogramForm().getValues();
 			const binSettings = {
 				rangeMin: min,
 				rangeMax: max
 			};
 	
-			return ajaxActions.getImageTilesHistogram(this._image._id, this._channel.index, binSettings);
+			return ajaxActions
+				.getImageTilesHistogram(this._image._id, this._channel.index, initial ? null : binSettings);
 		}
 	
 		getForm() {
 			return this.$$(FORM_ID);
+		}
+
+		getHistogramForm() {
+			return this.$$(HISTOGRAM_FORM_ID);
 		}
 	
 		get _image() {

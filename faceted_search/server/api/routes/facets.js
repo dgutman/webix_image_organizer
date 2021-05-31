@@ -14,6 +14,7 @@ module.exports = (app) => {
     router.get('/filters', filterCreator);
     router.get('/get-filters-with-images', filterImages);
     router.get('/images', facetsController.getImagesData);
+    router.get('/image', facetsController.getImageData);
     router.get('/updateCache', facetsController.updateCache);
     router.get('/whitelist', whitelistExtensions.getProps);
     router.post('/whitelist', (req, res) => {
