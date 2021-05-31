@@ -8,7 +8,8 @@ define([
     "views/components/controls_view",
     "helpers/controls_events_service",
     "helpers/maker_layer",
-    "helpers/multichannel_view/tiles_service"
+    "helpers/multichannel_view/tiles_service",
+    "models/image"
 ], function(
   BaseJetView,
   ajax,
@@ -19,7 +20,8 @@ define([
   ControlsView,
   ControlsEventsService,
   MakerLayer,
-  TilesService
+  TilesService,
+  Image
 ) {
     const uid = webix.uid();
     const windowLabelId = `label-${uid}`;
@@ -52,10 +54,7 @@ define([
             };
 
             this.$oninit = () => {
-                this._controlsEventsService = new ControlsEventsService(
-                  this.getRoot(),
-                  this._controlsView
-                );
+                this._controlsEventsService = new ControlsEventsService(this._controlsView);
             };
         }
 
@@ -126,7 +125,8 @@ define([
         showWindow(data) {
             this.getRoot().show();
             this.$$(windowLabelId).setValue(data.data.name);
-            this._propertyAccordion.setProperties(data.data);
+            const dataToDisplay = Image.filterData(data.data);
+            this._propertyAccordion.setProperties(dataToDisplay);
             const imageId = data.data._id;
 
             if (data.data.largeImage) {
