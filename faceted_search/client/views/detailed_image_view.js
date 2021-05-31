@@ -35,17 +35,6 @@ define([
 		constructor(app) {
 			super(app);
 
-			this._osdViewer = new OpenSeadragonViewer(this.app);
-			this._controlsView = new ControlsView(this.app, {
-				width: 270
-			});
-
-			this._metadataPanel = new PropertyAccordion(this.app, {
-				scrollviewOptions: {
-					width: 350
-				}
-			});
-
 			this._controlsListCollapser = new HorizontalCollapser(app, {direction: "left"});
 			this._metadataPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
 
@@ -58,10 +47,7 @@ define([
 				webix.extend(wrapper, webix.OverlayBox);
 				webix.extend(view, webix.ProgressBar);
 
-				this._controlsEventsService = new ControlsEventsService(
-					this.getRoot(),
-					this._controlsView
-				);
+				this._controlsEventsService = new ControlsEventsService(this._controlsView);
 			};
 
 			this.$onurlchange = async (params) => {
@@ -74,6 +60,17 @@ define([
 		}
 
 		get $ui() {
+			this._osdViewer = new OpenSeadragonViewer(this.app);
+			this._metadataPanel = new PropertyAccordion(this.app, {
+				scrollviewOptions: {
+					width: 350
+				}
+			});
+
+			this._controlsView = new ControlsView(this.app, {
+				width: 270
+			});
+
 			return {
 				name: "detailedImageViewCell",
 				css: "detailed-image-view",
@@ -125,6 +122,7 @@ define([
 		}
 
 		async setImage(image) {
+			this._controlsView.reset();
 			this._metadataPanel.setProperties(image);
 			this._osdViewer.destroy();
 			this.getRoot().showProgress();
