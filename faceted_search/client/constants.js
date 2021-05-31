@@ -24,6 +24,11 @@ define([], function() {
 		SIXTEEN_BIT: 16,
 		THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"],
 		CHANNEL_MAP_FILTER: "meta|ioparams|channelmap",
-		CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap"
+		CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap",
+		HIDDEN_METADATA_FIELDS: [
+			"_id",
+			"meta.ioparams.channelmap",
+			"largeImage"
+		]
 	};
 });

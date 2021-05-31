@@ -4,14 +4,14 @@ define([
 	OrganizerFilters
 ) {
 	return class ControlsEventsService {
-		constructor(rootScope, controlsView) {
-			this._rootScope = rootScope;
+		constructor(controlsView) {
 			this._controlsView = controlsView;
 	
 			this._viewFilters = new OrganizerFilters();
 	
 			this._layer = null;
 			this._openSeadragonViewer = null;
+			this._isEventsAttached = false;
 		}
 	
 		init(openSeadragonViewer, layer) {
@@ -20,8 +20,11 @@ define([
 			this._layer.tiledImage = this._openSeadragonViewer
 				.world
 				.getItemAt(0);
-	
-			this._attachControlsEvents();
+
+			if (!this._isEventsAttached) {
+				this._attachControlsEvents();
+				this._isEventsAttached = true;
+			}
 		}
 	
 		get _getTiledImage() {

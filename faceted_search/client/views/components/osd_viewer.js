@@ -14,10 +14,11 @@ define([
 			this.$oninit = () => {
 				const view = this.getRoot();
 				webix.extend(view, webix.OverlayBox);
-			}
+			};
+
 			this.$ondestroy = () => {
 				return this.destroy();
-			}
+			};
 		}
 	
 		get $ui() {

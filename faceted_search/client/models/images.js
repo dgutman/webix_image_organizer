@@ -79,7 +79,7 @@ define([
 
     const allTrue = function(obj) {
         for (let key in obj) {
-            if (!obj[key]) {
+            if (!obj.hasOwnProperty(key) || obj[key] === false) {
                 return false;
             }
         }
@@ -118,7 +118,6 @@ define([
 
     app.attachEvent("images:FilterImagesView", function(data, skipId) {
         const arr = [];
-        console.log(imagesCollection.data.serialize());
         imagesCollection.filter((obj) => {
             const isOk = data ? imagesCollection.filterSingleImage(obj, data) : true;
             if(isOk) {
