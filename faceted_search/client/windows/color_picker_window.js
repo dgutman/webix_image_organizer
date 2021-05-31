@@ -141,7 +141,7 @@ define([
 			this.getForm().setValues(initValues);
 	
 			this._histogramChart.getRoot().showOverlay(chartOverlay);
-			this._getHistogramInfo()
+			this._getHistogramInfo(true)
 				.then((data) => {
 					if (!data) {
 						return;

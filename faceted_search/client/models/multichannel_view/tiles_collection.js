@@ -68,7 +68,7 @@ define([
 		parseChannelMap(channelmap) {
 			return Object.entries(channelmap)
 				.sort((a, b) => a[1] - b[1])
-				.reduce((acc, [name, index]) => acc.push({index, name}) && acc, []);
+				.reduce((acc, [name, index]) => acc.push({name, index}) && acc, []);
 		}
 	}
 	return new ImageTileInfoCollection();
