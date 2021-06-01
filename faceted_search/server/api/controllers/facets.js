@@ -2,6 +2,8 @@ const ProcessImagesRequest = require('../extensions/process_images_request');
 const updateLocalCache = require('../extensions/updateLocalCache');
 const ProcessWhitelistRequest = require('../extensions/process_whitelist_request');
 const crypto = require('crypto');
+const constants = require('../../constants');
+const lodash = require('lodash');
 
 exports.getImagesData = (req, res, next) => {
     const host = req.query.host;
@@ -70,10 +72,7 @@ exports.getImageData = (req, res, next) => {
 const filterImageData = function(image, whitelist) {
     image.facets = filterFacets(image.facets, whitelist);
     const dataToDisplay = filterData(image.data, whitelist);
-    dataToDisplay["_id"] = image.data._id;
-    dataToDisplay["name"] = image.data.name;
-    // temporary hack
-    dataToDisplay["largeImage"] = image.data.largeImage;
+    addServiceData(dataToDisplay, image.data);
     image.data = dataToDisplay;
     return image;
 };
@@ -125,6 +124,15 @@ const filterData = function(data, whitelist) {
         }
     });
     return dataToDisplay;
+};
+
+const addServiceData = function(dataToDisplay, data) {
+    const arrayOfServiceMetadata = constants.HIDDEN_METADATA_FIELDS.slice();
+    arrayOfServiceMetadata.forEach((serviceMetadataItem) => {
+        if(lodash.get(data, serviceMetadataItem)) {
+            lodash.set(dataToDisplay, serviceMetadataItem, lodash.get(data, serviceMetadataItem));
+        }
+    });
 };
 
 exports.updateCache = (req, res, next) => {

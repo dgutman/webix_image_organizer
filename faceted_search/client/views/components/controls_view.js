@@ -220,6 +220,7 @@ define([
 		reset() {
 			this._blockControlsEvents();
 			this.$controlForm().setValues(this._defaultFormValues);
+			this.$colorPalette().unselectAll();
 			this._unblockControlsEvents();
 		}
 	};

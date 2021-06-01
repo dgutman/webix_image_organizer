@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const facetImages = require('../models/facet_images');
+const constants = require('../../constants');
 
 const whitelistSchema = new mongoose.Schema({
     data: {
@@ -32,43 +33,6 @@ class Whitelist {
 
     getWhitelist() {
         return whitelistModel.findOne({});
-    }
-
-    getWhitelistFilter() {
-        return new Promise(
-            (resolve, reject) => {
-                whitelistModel.findOne({},
-                    (err, result) => {
-                        if(err) {
-                            reject(err);
-                        } else {
-                            if(result) {
-                                resolve([result.data, result._id.toString()]);
-                            } else {
-                                resolve(['', '']);
-                            }
-                        }
-                    });
-            });
-    }
-
-    getWhitelistId() {
-        return new Promise(
-            (resolve, reject) => {
-                whitelistModel.findOne({},
-                    (err, result) => {
-                        if(err) {
-                            reject(err);
-                        } else {
-                            if(result) {
-                                resolve(result._id.toString());
-                            } else {
-                                resolve('');
-                            }
-                        }
-                    });
-            }
-        );
     }
 
     updateWhitelist(valuesForUpdate) {
@@ -147,9 +111,10 @@ class Whitelist {
     async insertItems(image) {
         const facets = this.getFacetesFromImagesData([image]);
         const data = this.getData(facets);
-        let [whitelist, whitelistId] = await this.getWhitelistFilter();
-        whitelist = this.updateWhitelistItems(data, whitelist);
-        await whitelistModel.updateOne({_id: whitelistId}, {data: whitelist});
+        const whitelist = await this.getWhitelist();
+        const newWhitelistData = this.updateWhitelistItems(data, whitelist.data);
+        const whitelistId = whitelist._id.toString();
+        await whitelistModel.updateOne({_id: whitelistId}, {data: newWhitelistData});
     }
 
     updateWhitelistItems(data, whitelist) {
@@ -207,20 +172,20 @@ class Whitelist {
 
     parseFacetesData(facets) {
         const props = [];
-        facets.forEach(function(facet) {
-            if(facet !== '_id' && facet !== 'name') {
-                const idArray = facet.split('|');
-                const idLen = idArray.length;
-                for(let i = 0; i < idLen; i++) {
-                    const newFacet = {id: '', parent: ''};
-                    for(let j = 0; j <= i; j++) {
-                        if(j === 0) {
-                            newFacet.id += idArray[j];
-                        } else {
-                            newFacet.parent = newFacet.id;
-                            newFacet.id += `|${idArray[j]}`;
-                        }
+        facets.forEach((facet) => {
+            const idArray = facet.split('|');
+            const idArrayLen = idArray.length;
+            for(let i = 0; i < idArrayLen; i++) {
+                const newFacet = {id: '', parent: ''};
+                for(let j = 0; j <= i; j++) {
+                    if(j === 0) {
+                        newFacet.id += idArray[j];
+                    } else {
+                        newFacet.parent = newFacet.id;
+                        newFacet.id += `|${idArray[j]}`;
                     }
+                }
+                if(!this.checkForServiceMetadata(newFacet)) {
                     if(!props.find(
                         (prop) => {
                         if(prop.id == newFacet.id) {
@@ -242,6 +207,15 @@ class Whitelist {
             }
         });
         return props;
+    }
+    checkForServiceMetadata(newFacet) {
+        let flag = false;
+        constants.HIDDEN_METADATA_FIELDS.forEach((serviceMetadata, i) => {
+            if(newFacet.id.includes(serviceMetadata)) {
+                flag = true;
+            }
+        });
+        return flag;
     }
 }
 

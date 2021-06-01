@@ -20,6 +20,7 @@ define([
 			return {
 				...this._cnf,
 				id: this._rootId,
+				css: "histogram-chart",
 				template: () => {
 					return "";
 				}
@@ -35,6 +36,7 @@ define([
 			const templateNode = template.getNode();
 			templateNode.innerHTML = "";
 			templateNode.appendChild(this._renderChart(data));
+			webix.TooltipControl.addTooltip(templateNode);
 		}
 
 		_renderChart(data) {
@@ -49,20 +51,23 @@ define([
 			const x = d3.scaleBand()
 				.domain(data.map((d) => d.name))
 				.range([margin.left, width - margin.right])
-				.padding(0);
+				.padding(0.1);
 	
 			const yAxis = (g) => g
 				.attr("transform", `translate(${margin.left},0)`)
 				.call(d3.axisLeft(y))
 				.call((g) => g.select(".domain").remove());
 	
+			const dataNameLengths = data.map((obj) => obj.name.length);
+			const maxNameChars = Math.max(...dataNameLengths);
+
 			const xAxis = (g) => g
 				.attr("transform", `translate(0,${height - margin.bottom})`)
 				.call(d3.axisBottom(x)
 				.tickValues(
 					x.domain()
-						.filter((d, i, arr) => {
-							const textMaxWidth = 50;
+						.filter((d, i) => {
+							const textMaxWidth = maxNameChars * 10;
 							const barWidth = x.bandwidth();
 							const denominator = textMaxWidth / barWidth;
 							return !(i%Math.floor(Math.max(denominator, 1)));
@@ -76,6 +81,7 @@ define([
 				const zoomed = (event) => {
 					x.range([margin.left, width - margin.right].map((d) => event.transform.applyX(d)));
 					svg.selectAll(".bars rect").attr("x", (d) => x(d.name)).attr("width", x.bandwidth());
+					svg.selectAll(".bg-bars rect").attr("x", (d) => x(d.name)).attr("width", x.bandwidth());
 					svg.selectAll(".x-axis").call(xAxis);
 				};
 	
@@ -99,9 +105,27 @@ define([
 				.attr("x", (d) => x(d.name))
 				.attr("y", (d) => y(d.value))
 				.attr("height", (d) => y(0) - y(d.value))
+				.attr("width", x.bandwidth());
+
+			svg.append("g")
+				.attr("class", "bg-bars")
+				.attr("fill", "#9aedf23b")
+				.selectAll("rect")
+				.data(data)
+				.join("rect")
+				.attr("x", (d) => x(d.name))
+				.attr("y", margin.top)
+				.attr("height", height - margin.top - margin.bottom)
 				.attr("width", x.bandwidth())
-				.append("svg:title")
-				.text((d) => d.value);
+				.attr("webix_tooltip", (d, i) => {
+					const minEdge = data[i-1] ? data[i-1].name : 0;
+					return `
+					Count: <br />
+					${d.value} <br />
+					Bin edges: <br />
+					${minEdge} - ${d.name}`;
+				})
+				.attr("class", "bg-bar");
 	
 			svg.append("g")
 				.attr("class", "x-axis")

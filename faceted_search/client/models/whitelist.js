@@ -38,7 +38,7 @@ define([
 
     const deleteUnnecessaryProperties = function(whitelist) {
         whitelist.map((element) => {
-            let excludedElements = 
+            const excludedElements = 
                 Object.getOwnPropertyNames(element)
                 .filter((exception) => exception !== 'id' && exception !== 'checked' && exception !== 'data');
             excludedElements.forEach((excludedElement) => {
