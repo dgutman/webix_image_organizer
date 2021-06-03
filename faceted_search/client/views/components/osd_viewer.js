@@ -78,5 +78,5 @@ define([
 				this.$viewer().destroy();
 			}
 		}
-	}
+	};
 });

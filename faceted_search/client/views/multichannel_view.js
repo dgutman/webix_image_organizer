@@ -6,6 +6,7 @@ define([
 	"views/multichannel_viewer/metadata_popup",
 	"views/components/horizontal_collapser",
 	"views/components/header_label",
+	"views/multichannel_viewer/channels_controls",
 	"models/multichannel_view/state_store",
 	"models/multichannel_view/tiles_collection",
 	"models/multichannel_view/image_metadata",
@@ -16,6 +17,8 @@ define([
 	"helpers/base_jet_view",
 	"helpers/multichannel_view/tiles_service",
 	"helpers/debouncer",
+	"helpers/organizer_filters",
+	"helpers/maker_layer",
 	"windows/color_picker_window",
 	"constants",
 	"libs/lodash/lodash.min"
@@ -27,6 +30,7 @@ define([
 	MetadataPopup,
 	HorizontalCollapser,
 	HeaderLabel,
+	ChannelsControls,
 	stateStore,
 	tilesCollection,
 	imageMetadata,
@@ -37,6 +41,8 @@ define([
 	BaseJetView,
 	TilesService,
 	Debouncer,
+	OrganizerFilters,
+	MakerLayer,
 	ColorPickerWindow,
 	constants,
 	lodash
@@ -54,7 +60,7 @@ define([
 
 			this._colorWindow = this.ui(new ColorPickerWindow(this.app));
 			this._osdViewer = new MultichannelOSDViewer(app, {showNavigationControl: false});
-			this._channelList = new ChannelList(app, {gravity: 0.2, minWidth: 200});
+			this._channelList = new ChannelList(app);
 			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200, hidden: true}, this._colorWindow);
 			this._channlesListCollapser = new HorizontalCollapser(app, {direction: "left"});
 			this._groupsPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
@@ -63,7 +69,10 @@ define([
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
 
+			this._organizerFilters = new OrganizerFilters();
 			this._waitForViewerCreation = webix.promise.defer();
+
+			this._channelLayers = {};
 
 			this.$oninit = () => {
 				const view = this.getRoot();
@@ -97,6 +106,12 @@ define([
 						this._groupsPanelCollapser.collapse();
 					}
 				});
+
+				this._waitForViewerCreation.then(() => {
+					const params = router.getParams();
+					const groupIndex = params.group || 0;
+					this._changeGroupByIndex(groupIndex);
+				});
 			};
 
 			this.$ondestroy = () => {
@@ -114,13 +129,15 @@ define([
 
 				if (groupIndex != null) {
 					this._waitForViewerCreation.then(() => {
-						this._changeGroupByURLParam(groupIndex);
+						this._changeGroupByIndex(groupIndex);
 					});
 				}
 			};
 		}
 
 		get $ui() {
+			this._channelsControls = new ChannelsControls(app, {height: 100, hidden: true});
+
 			return {
 				name: "multichannelViewCell",
 				css: "multichannel-view",
@@ -146,7 +163,7 @@ define([
 									this.app.show("/top/user_mode");
 								}
 							},
-							new HeaderLabel(app),
+							new HeaderLabel(this.app),
 							{gravity: 10},
 							{
 								view: "button",
@@ -160,8 +177,6 @@ define([
 										metadataPopupRoot.show(this.$$(SHOW_METADATA_BUTTON_ID).getNode());
 										this._metadataPopup.setProperties();
 									}
-
-									// this._metadataPopup.show(this.$$(SHOW_METADATA_BUTTON_ID).getNode())
 								}
 							}
 						]
@@ -171,7 +186,14 @@ define([
 						margin: 8,
 						localId: MULTICHANNEL_WRAP_ID,
 						cols: [
-							this._channelList,
+							{
+								gravity: 0.2,
+								minWidth: 200,
+								rows: [
+									this._channelList,
+									this._channelsControls
+								]
+							},
 							this._channlesListCollapser,
 							this._osdViewer,
 							this._groupsPanelCollapser,
@@ -347,12 +369,12 @@ define([
 			channelList.attachEvent("onAfterSelect", async (id) => {
 				groupsList.unselectAll();
 				groupsChannelList.unselectAll();
-
+				
 				const channel = this._channelsCollection.getItem(id);
-				const channelTileSource = await this._tileService
-					.getChannelTileSources(this._image, channel.index);
+				const layer = await this.getSingleOSDLayer(channel.index);
+
 				this._osdViewer.removeAllTiles();
-				this._osdViewer.addNewTile(channelTileSource);
+				this._osdViewer.addNewTile(layer.tileSource);
 			});
 
 			channelList.attachEvent("customSelectionChanged", (channels) => {
@@ -365,6 +387,26 @@ define([
 				this._groupsPanel.addChannelsToGroup(channels, selectedGroup);
 				this._groupsPanel.updateSelectedGroupTiles();
 				this._channelList.unselectAllChannels();
+			});
+
+			channelList.attachEvent("onSelectChange", async () => {
+				const selectedChannel = channelList.getSelectedItem();
+				const controlsForm = this._channelsControls.$controlForm();
+				if (selectedChannel) {
+					const layer = await this.getSingleOSDLayer(selectedChannel.index);
+					controlsForm.setValues(layer);
+					controlsForm.show();
+				} else {
+					controlsForm.hide();
+				}
+			});
+
+			this._channelsControls.$brightnessSlider().attachEvent("onSliderDragging", async (value) => {
+				this.changeFilterBySliderValue("brightness", value);
+			});
+
+			this._channelsControls.$contrastSlider().attachEvent("onSliderDragging", async (value) => {
+				this.changeFilterBySliderValue("contrast", value);
 			});
 		}
 
@@ -508,7 +550,7 @@ define([
 				.join("_");
 		}
 
-		_changeGroupByURLParam(index) {
+		_changeGroupByIndex(index) {
 			const groupsList = this._groupsPanel.getGroupsList();
 			const groups = this._groupsCollection.data.serialize();
 			if (groups[index]) {
@@ -529,6 +571,32 @@ define([
 
 		getMultichannelWrap() {
 			return this.$$(MULTICHANNEL_WRAP_ID);
+		}
+
+		async getSingleOSDLayer(id) {
+			let layer = this._channelLayers[id];
+			if (!layer) {
+				const tileSource = await this._tileService
+					.getChannelTileSources(this._image, id);
+				layer = MakerLayer.makeLayer({tileSource});
+				this._channelLayers[id] = layer;
+			}
+
+			layer.tiledImage = this._osdViewer
+				.$viewer()
+				.world
+				.getItemAt(0);
+
+			return layer;
+		}
+
+		async changeFilterBySliderValue(field, value) {
+			const channelList = this._channelList.getList();
+			const selectedChannel = channelList.getSelectedItem();
+			const layer = await this.getSingleOSDLayer(selectedChannel && selectedChannel.index);
+			layer[field] = value;
+			const viewer = this._osdViewer.$viewer();
+			this._organizerFilters.updateFilters([layer], viewer);
 		}
 
 		get _image() {
