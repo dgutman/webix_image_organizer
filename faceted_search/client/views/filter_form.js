@@ -6,8 +6,17 @@ define([
     "libs/lodash/lodash.min",
     "helpers/authentication",
     "constants"
-], function(app, Filter, Images, filterHelper, lodash, auth, constants) {
-    const scrollViewId = "scroll_view"; const filterFormId = "filter_form";
+], function(
+    app, 
+    Filter, 
+    Images, 
+    filterHelper, 
+    lodash, 
+    auth, 
+    constants
+) {
+    const scrollViewId = "scroll_view"; 
+    const filterFormId = "filter_form";
     const ui = {
         view: "scrollview",
         id: scrollViewId,
@@ -78,7 +87,6 @@ define([
                 arr.push(images[key].facets);
             }
         }
-        // clearForm();
         const tmpData = getDataWithCounts(arr);
         const elements = filterHelper.transformToFormFormat(tmpData);
         for(let i = 0; i < elements.length; i++) {
@@ -86,15 +94,6 @@ define([
         }
         $$(scrollViewId).hideProgress();
     });
-
-    const clearForm = function() {
-        const t = $$(filterFormId).getChildViews();
-        if(t) {
-            for(let i = 0; i < t.length; i++) {
-                $$(filterFormId).removeView(t[i]);
-            }
-        }
-    };
 
     app.attachEvent("reloadFormAfterCalculating", function(data, skipId) {
         const tmp = getDataWithCounts(data);
