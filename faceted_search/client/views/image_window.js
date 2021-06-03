@@ -9,6 +9,7 @@ define([
     "helpers/controls_events_service",
     "helpers/maker_layer",
     "helpers/multichannel_view/tiles_service",
+    "helpers/style_params",
     "models/image"
 ], function(
   BaseJetView,
@@ -21,6 +22,7 @@ define([
   ControlsEventsService,
   MakerLayer,
   TilesService,
+  styleParams,
   Image
 ) {
     const uid = webix.uid();
@@ -31,14 +33,6 @@ define([
         constructor(app) {
             super(app);
 
-            this._propertyAccordion = new PropertyAccordion(this.app, {
-                scrollviewOptions: {
-                    maxWidth: 400,
-                    minWidth: 300
-                }
-            });
-
-            this._controlsView = new ControlsView(this.app);
             this._controlsCollapser = new HorizontalCollapser(
               this.app,
               {direction: "left"}
@@ -59,6 +53,15 @@ define([
         }
 
         get $ui() {
+            this._controlsView = new ControlsView(this.app);
+
+            this._propertyAccordion = new PropertyAccordion(this.app, {
+                scrollviewOptions: {
+                    maxWidth: 400,
+                    minWidth: 300
+                }
+            });
+
             return {
                 view: "window",
                 id: this._rootId,
@@ -122,52 +125,46 @@ define([
             };
         }
 
-        showWindow(data) {
+        async showWindow(data) {
             this.getRoot().show();
             this.$$(windowLabelId).setValue(data.data.name);
             const dataToDisplay = Image.filterData(data.data);
             this._propertyAccordion.setProperties(dataToDisplay);
-            const imageId = data.data._id;
 
+            const styleParamsString = styleParams.getStyleParams(data.data);
+            const urlParams = {style: styleParamsString};
+
+            let layerConfig;
+            let openseadragonConfig;
             if (data.data.largeImage) {
-                this._tilesService.getTileSources(data.data)
-                  .then((tiles) => {
-                      const layer = MakerLayer.makeLayer({tileSource: tiles});
-                      this.initLargeImageOpenseadragon(layer)
-                        .then(({eventSource: openSeadragonViewer}) => {
-                            this._controlsEventsService.init(openSeadragonViewer, layer);
-                        });
-                  })
-                  .catch(() => {
-                      console.error('something wrong');
-                  });
+                const tiles = await this._tilesService.getTileSources(data.data, urlParams);
+                layerConfig = {tileSource: tiles};
+                openseadragonConfig = {imageLoaderLimit: 1};
             } else {
-                this.initSimpleImageOpenseadragon(imageId);
-            }
-        }
-
-        initLargeImageOpenseadragon(layer) {
-            return this._initOpenseadragon({
-                crossOriginPolicy: "Anonymous",
-                loadTilesWithAjax: true,
-                imageLoaderLimit: 1,
-                tileSources: layer
-            });
-        }
-
-        initSimpleImageOpenseadragon(imageId) {
-            return this._initOpenseadragon({
-                maxZoomPixelRatio: 6,
-                tileSources: {
+                layerConfig = {
                     type: 'image',
-                    url: ajax.getImageUrl(imageId)
-                }
-            });
+                    url: ajax.getImageUrl(
+                      data.data._id,
+                      'thumbnail',
+                      urlParams
+                    )
+                };
+                openseadragonConfig = {maxZoomPixelRatio: 6};
+            }
+
+            const layer = MakerLayer.makeLayer(layerConfig);
+            this._initOpenseadragon(layer, openseadragonConfig)
+              .then(({eventSource: openSeadragonViewer}) => {
+                  this._controlsEventsService.init(openSeadragonViewer, layer);
+              });
         }
 
-        _initOpenseadragon(config) {
+        _initOpenseadragon(layer, config) {
             const openSeadragonViewer = new openseadragon.Viewer({
                 ...config,
+                tileSources: layer,
+                crossOriginPolicy: "Anonymous",
+                loadTilesWithAjax: true,
                 element: $$(openseadragonTemplateId).getNode(),
                 prefixUrl: "libs/openseadragon/images/"
             });
