@@ -1,9 +1,12 @@
 define([
 	"helpers/base_jet_view",
-	"helpers/ajax",
 	"models/multichannel_view/selected_items",
 	"views/multichannel_viewer/sort_template"
-], function(BaseJetView, ajaxActions, SelectedItems, SortTemplate) {
+], function(
+	BaseJetView,
+	SelectedItems,
+	SortTemplate
+) {
 	'use strict';
 	const LIST_ID = "channels-list";
 	const TEXT_SEARCH_ID = "channels-search-field";

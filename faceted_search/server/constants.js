@@ -10,6 +10,7 @@ module.exports = {
 		"_id",
 		"name",
 		"meta.ioparams.channelmap",
+		"meta.ioparams.thumbnailUrl",
 		"largeImage"
 	]
 };

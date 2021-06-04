@@ -2,34 +2,18 @@ define([
   "helpers/ajax",
   "helpers/authentication",
   "constants",
-  "libs/lodash/lodash.min",
+  "helpers/style_params",
   "models/multichannel_view/tiles_collection"
 ], function(
   ajax,
   auth,
   constants,
-  lodash,
+  styleParams,
   tilesCollection
 ) {
-  function getStyleParams(data) {
-    let styleParamsString = null;
-    const {THUMBNAIL_URLS} = constants;
-
-    for (let url of THUMBNAIL_URLS) {
-      const styleParams = lodash.get(data, url);
-      if (styleParams) {
-        styleParamsString = lodash.isObject(styleParams)
-          ? encodeURIComponent(JSON.stringify(styleParams)) : styleParams;
-        break;
-      }
-    }
-
-    return styleParamsString;
-  }
-
    return {
        getTemplate: function(data) {
-            const styleParamsString = getStyleParams(data.data);
+            const styleParamsString = styleParams.getStyleParams(data.data);
             let src = `${ajax.getHostApiUrl()}/item/${data.data._id}/tiles/thumbnail?token=${auth.getToken()}`;
 
             if (styleParamsString) {
@@ -42,7 +26,7 @@ define([
 
             const name = data.data.name || "no image";
 
-            const viewIconSrc = tilesCollection.getChannelsFromChannelMap(data.data) ? 
+            const viewIconSrc = tilesCollection.getChannelsFromChannelMap(data.data) ?
               "assets/imgs/icons8-paint-palette-48.png" : "assets/imgs/microscope.png";
             return `
                 <div class="template-image-wrap">

@@ -11,6 +11,15 @@ function getToken() {
 	return tokenObj ? tokenObj.token : null;
 }
 
+function getStyleParam(params) {
+	let styleParam = "";
+	if (params.style) {
+		styleParam = `&style=${params.style}`;
+		delete params.style;
+	}
+	return styleParam;
+}
+
 define(["app", "constants"], function(app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
 
@@ -189,22 +198,32 @@ define(["app", "constants"], function(app, constants) {
 				.then((result) => this._parseData(result));
 		}
 
-		getImageTileUrl(itemId, z, x, y) {
+		getImageTileUrl(itemId, z, x, y, params = {}) {
+			// HACK
+			const styleParam = getStyleParam(params);
 			const urlSearchParams = new URLSearchParams();
-			urlSearchParams.append("edge", "crop");
-			urlSearchParams.append("token", getToken());
-			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+			urlSearchParams.set("edge", "crop");
+			urlSearchParams.set("token", getToken());
+
+			const paramsArray = Object.entries(params);
+			paramsArray.forEach(([key, value]) => {
+				urlSearchParams.set(key, value);
+			});
+
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}${styleParam}`;
 		}
 
 		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
-			params.token = getToken();
+			// HACK
+			const styleParam = getStyleParam(params);
+			const searchParams = new URLSearchParams();
+			searchParams.set("token", getToken());
+
 			const paramsArray = Object.entries(params);
-			const searchParams = new URLSearchParams("");
-			paramsArray.forEach((item) => {
-				searchParams.append(...item);
+			paramsArray.forEach(([key, value]) => {
+				searchParams.set(key, value);
 			});
-			const queryString = searchParams.toString() || "";
-			return `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}?${queryString}`;
+			return `${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}?${searchParams.toString()}`;
 		}
 
 		getUsers() {
@@ -220,6 +239,7 @@ define(["app", "constants"], function(app, constants) {
 				width: 2048,
 				height: 2048,
 				bins: 256,
+				resample: false,
 				...binsSettings
 			};
 			const urlSearchParams = new URLSearchParams();
