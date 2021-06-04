@@ -10,7 +10,7 @@ define([
 			this._imageTileSources = null;
 		}
 	
-		async getTileSources(image) {
+		async getTileSources(image, params = {}) {
 			if (this._imageTileSources && image === this._image) {
 				return Promise.resolve(this._imageTileSources);
 			}
@@ -29,7 +29,7 @@ define([
 				minLevel: 0,
 				maxLevel: tileSourceOptions.levels - 1,
 				getTileUrl(level, x, y) {
-					return ajaxActions.getImageTileUrl(image._id, level, x, y);
+					return ajaxActions.getImageTileUrl(image._id, level, x, y, {...params});
 				}
 			};
 	

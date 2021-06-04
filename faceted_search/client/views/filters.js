@@ -1,11 +1,18 @@
 define([
     "app",
-    "helpers/authentication",
-], function (app, auth) {
-    var value = "All";
+    "helpers/authentication"
+], function(app, auth) {
+    const value = "All";
 
-    var getLabelUI = function (filterLabel, fullPath) {
-        const label = fullPath[1] === "parentMeta" ? `${filterLabel.toUpperCase()} (parent's)` : filterLabel.toUpperCase();
+    const filterChannelText = {
+        view: "text",
+        hidden: true
+    };
+
+    const getLabelUI = function(filterLabel, fullPath) {
+        const label = fullPath[1] === "parentMeta" 
+            ? `${filterLabel.toUpperCase()} (parent's)` 
+            : filterLabel.toUpperCase();
         return {
             view: "label",
             label: label,
@@ -15,11 +22,11 @@ define([
         };
     };
 
-    var getOptionsFromData = function (data) {
-        var options = [value].concat(data.options);
-        options.forEach(function (item, index, array) {
-            var count = data.count[item] && data.count[item].length ? data.count[item].length : 0,
-                result = {};
+    const getOptionsFromData = function(data) {
+        const options = [value].concat(data.options);
+        options.forEach(function(item, index, array) {
+            const count = data.count[item] && data.count[item].length ? data.count[item].length : 0;
+            const result = {};
 
             result.id = item;
             result.value = item;
@@ -33,16 +40,23 @@ define([
         return options;
     };
 
-    var getRadioUI = function (data) {
-        var options = getOptionsFromData(data);
+    const getRadioUI = function(data) {
+        const options = getOptionsFromData(data);
+        filterChannelText.name = 'radioTextFilter';
 
         return {
             rows: [
                 {
-                    view: "label",
-                    css: "checkbox-label",
-                    label: data.name
+                    cols: [
+                        {
+                            view: "label",
+                            css: "checkbox-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
                 },
+                
                 {
                     id: data.id,
                     css: "radio-css",
@@ -52,7 +66,7 @@ define([
                     value: value,
                     options: options,
                     on: {
-                        onChange: function (a) {
+                        onChange: function(a) {
                             app.callEvent("filtersChanged", [{
                                 "view": "radio",
                                 "key": data.id,
@@ -67,18 +81,25 @@ define([
         };
     };
 
-    var getSliderUI = function (data) {
-        var min = Math.min(...data.options) || 0,
-            max = Math.max(...data.options) || 0,
-            selectedValue = min - 1;
+    const getSliderUI = function(data) {
+        filterChannelText.name = 'sliderTextFilter';
+        const min = Math.min(...data.options) || 0;
+        const max = Math.max(...data.options) || 0;
+        const selectedValue = min - 1;
 
         return {
             rows: [
                 {
-                    view: "label",
-                    css: "slider-label",
-                    label: data.name
+                    cols: [
+                        {
+                            view: "label",
+                            css: "slider-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
                 },
+                
                 {
                     height: 60,
                     cols: [
@@ -93,15 +114,15 @@ define([
                                     height: 40,
                                     min: min - 1,
                                     max: max,
-                                    title: function (obj) {
-                                        var value = obj.value;
+                                    title: function(obj) {
+                                        let value = obj.value;
                                         if (value === min - 1) {
                                             value = "All";
                                         }
                                         return value;
                                     },
                                     on: {
-                                        onChange: function (a) {
+                                        onChange: function(a) {
                                             app.callEvent("filtersChanged", [{
                                                 "view": "slider",
                                                 "key": data.id,
@@ -138,15 +159,22 @@ define([
         };
     };
 
-    var getComboUI = function (data) {
-        var options = getOptionsFromData(data);
+    const getComboUI = function(data) {
+        filterChannelText.name = 'comboTextFilter';
+        const options = getOptionsFromData(data);
         return {
             rows: [
                 {
-                    view: "label",
-                    css: "combo-label",
-                    label: data.name
+                    cols: [
+                        {
+                            view: "label",
+                            css: "combo-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
                 },
+                
                 {
                     cols: [
                         {width: 40},
@@ -156,7 +184,7 @@ define([
                             value: value,
                             options: options,
                             on: {
-                                onChange: function (newValue) {
+                                onChange: function(newValue) {
                                     app.callEvent("filtersChanged", [{
                                         "view": "combo",
                                         "key": data.id,
@@ -173,23 +201,29 @@ define([
         };
     };
 
-    var getCheckboxUI = function (data) {
-        var view = {
+    const getCheckboxUI = function(data) {
+        filterChannelText.name = 'checkboxTextFilter';
+        const view = {
             rows: [
                 {
-                    view: "label",
-                    css: "checkbox-label",
-                    label: data.name
+                    cols: [
+                        {
+                            view: "label",
+                            css: "checkbox-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
                 },
                 {
-                    rows:[]
+                    rows: []
                 }
             ]
         };
 
-        data.options.forEach(function (option) {
-            var value = 0,
-                count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
+        data.options.forEach(function(option) {
+            const value = 0;
+            const count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
 
             view.rows[1].rows.push(
                 {
@@ -199,7 +233,7 @@ define([
                     labelRight: option + " (" + count + ")",
                     value: value,
                     on: {
-                        onChange: function (status) {
+                        onChange: function(status) {
                             app.callEvent("filtersChanged", [{
                                 "view": "checkbox",
                                 "key": data.id,
@@ -207,7 +241,6 @@ define([
                                 "remove": !status,
                                 "status": "equals"
                             }]);
-
                         }
                     }
                 }
@@ -215,26 +248,32 @@ define([
         });
 
         return view;
-
     };
 
-    var getToggleUI = function (data) {
-        var view = {
+    const getToggleUI = function(data) {
+        filterChannelText.name = 'toggleTextFilter';
+        const view = {
             rows: [
                 {
-                    view: "label",
-                    css: "toggle-label",
-                    label: data.name
+                    cols: [
+                        {
+                            view: "label",
+                            css: "toggle-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
                 },
+
                 {
                     rows: []
                 }
             ]
         };
 
-        data.options.forEach(function (option) {
-            var value = 0,
-                count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
+        data.options.forEach(function(option) {
+            const value = 0;
+            const count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
             view.rows[1].rows.push(
                 {
                     cols: [
@@ -250,7 +289,7 @@ define([
                             label: option + " (" + count + ")",
                             value: value,
                             on: {
-                                onChange: function (status) {
+                                onChange: function(status) {
                                     app.callEvent("filtersChanged", [{
                                         "view": "toggle",
                                         "key": data.id,
@@ -269,21 +308,27 @@ define([
         return view;
     };
 
-    var getRangeSliderUI = function (data) {
-        var min = Math.min(...data.options) || 0,
-            max = Math.max(...data.options) || 0;
+    const getRangeSliderUI = function(data) {
+        filterChannelText.name = 'rangeSliderTextFilter';
+        const min = Math.min(...data.options) || 0;
+        const max = Math.max(...data.options) || 0;
 
-        var view = {
+        const view = {
             rows: [
                 {
-                    view: "label",
-                    css: "rangeslider-label",
-                    label: data.name
-                }
+                    cols: [
+                        {
+                            view: "label",
+                            css: "rangeslider-label",
+                            label: data.name
+                        },
+                        filterChannelText
+                    ]
+                }                
             ]
-        }
+        };
 
-        var controls = {
+        const controls = {
             height: 110,
             rows: [
                 {
@@ -298,7 +343,7 @@ define([
                     max: max,
                     title: "#value#",
                     on: {
-                        onChange: function (a) {
+                        onChange: function(a) {
                             app.callEvent("filtersChanged", [{
                                 "view": "multiSlider",
                                 "max": parseInt($$(data.id + "|end").getValue()),
@@ -322,7 +367,7 @@ define([
                     max: max,
                     title: "#value#",
                     on: {
-                        onChange: function (a) {
+                        onChange: function(a) {
                             app.callEvent("filtersChanged", [{
                                 "view": "multiSlider",
                                 "key": data.id,
@@ -356,31 +401,31 @@ define([
                     ]
                 }
             ]
-        }
+        };
 
         view.rows[1] = controls;
         return view;
     };
 
 
-    var getOptions = function (data) {
-        return getOptionsFromData(data)
+    const getOptions = function(data) {
+        return getOptionsFromData(data);
     };
 
-    var getToggleOptions = function (data) {
-        var tmp = [];
-        data.options.forEach(function (option) {
-            var count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
-            tmp.push({id: data.id + "|" + option, label: option + " (" + count + ")"})
+    const getToggleOptions = function(data) {
+        const tmp = [];
+        data.options.forEach(function(option) {
+            const count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
+            tmp.push({id: data.id + "|" + option, label: option + " (" + count + ")"});
         });
         return tmp;
     };
 
-    var getCheckboxOptions = function (data) {
-        var tmp = [];
-        data.options.forEach(function (option) {
-            var count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
-            tmp.push({id: data.id + "|" + option, labelRight: option + " (" + count + ")"})
+    const getCheckboxOptions = function(data) {
+        const tmp = [];
+        data.options.forEach(function(option) {
+            const count = data.count[option] && data.count[option].length ? data.count[option].length : 0;
+            tmp.push({id: data.id + "|" + option, labelRight: option + " (" + count + ")"});
         });
         return tmp;
     };
@@ -396,5 +441,5 @@ define([
         getOptions: getOptions,
         getCheckboxOptions: getCheckboxOptions,
         getToggleOptions: getToggleOptions
-    }
+    };
 });

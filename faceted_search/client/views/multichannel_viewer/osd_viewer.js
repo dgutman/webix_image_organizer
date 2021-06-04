@@ -11,7 +11,7 @@ define([
 
 			this.$oninit = () => {
 				webix.TooltipControl.addTooltip(this.getViewerTemplate().$view);
-			}
+			};
 		}
 	
 		get $ui() {
@@ -79,11 +79,10 @@ define([
 	
 		zoomOut() {
 			const viewer = this.$viewer();
-			let zoomValue = viewer.viewport.getZoom();
+			const zoomValue = viewer.viewport.getZoom();
 			if (zoomValue / 2 > viewer.viewport.getMinZoom()) {
 				this.zoomTo(zoomValue / 2);
-			}
-			else {
+			} else {
 				this.zoomTo(viewer.viewport.getMinZoom());
 			}
 		}
@@ -129,7 +128,7 @@ define([
 			const [firstItem, secondItem] = tileIndexes.map((tileIndex) => {
 				const tile = viewer.world.getItemAt(tileIndex);
 				if (tileIndex === 0) {
-					const anotherTileIndex = tileIndexes.find(index => index !== tileIndex);
+					const anotherTileIndex = tileIndexes.find((index) => index !== tileIndex);
 					const anotherTile = viewer.world.getItemAt(anotherTileIndex);
 	
 					tile.setCompositeOperation("difference");
@@ -157,5 +156,5 @@ define([
 		getViewerTemplate() {
 			return this.$$(OSD_VIEWER_TEMPLATE);
 		}
-	}
+	};
 });

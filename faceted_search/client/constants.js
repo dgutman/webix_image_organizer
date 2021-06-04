@@ -28,6 +28,7 @@ define([], function() {
 		HIDDEN_METADATA_FIELDS: [
 			"_id",
 			"meta.ioparams.channelmap",
+			"meta.ioparams.thumbnailUrl",
 			"largeImage"
 		]
 	};
