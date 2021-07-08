@@ -1,9 +1,11 @@
 define([
 	"helpers/base_jet_view",
-	"libs/lodash/lodash.min.js"
+	"libs/lodash/lodash.min.js",
+	"constants"
 ], function(
 	BaseJetView,
-	lodash
+	lodash,
+	constants
 ) {
 	'use strict';
 	const {d3} = window;
@@ -27,7 +29,7 @@ define([
 			};
 		}
 
-		makeChart(data) {
+		makeChart(data, yScaleType) {
 			const template = this.$chartTemplate();
 			template.refresh();
 			if (lodash.isEmpty(data)) {
@@ -35,19 +37,29 @@ define([
 			}
 			const templateNode = template.getNode();
 			templateNode.innerHTML = "";
-			templateNode.appendChild(this._renderChart(data));
+			templateNode.appendChild(this._renderChart(data, yScaleType));
 			webix.TooltipControl.addTooltip(templateNode);
 		}
 
-		_renderChart(data) {
+		_getYScale(yScaleType, data, height, margin) {
+			if(yScaleType === constants.LOGARITHMIC_SCALE_VALUE) {
+				return d3.scaleLog()
+				.domain([1, d3.max(data, (d) => d.value)])
+				.nice()
+				.range([height - margin.bottom, margin.top]);
+			} else {
+				return d3.scaleLinear()
+				.domain([1, d3.max(data, (d) => d.value)])
+				.nice()
+				.range([height - margin.bottom, margin.top]);
+			}
+		}
+
+		_renderChart(data, yScaleType) {
 			const margin = ({top: 20, right: 20, bottom: 40, left: 60});
 			const height = this.height;
 			const width = this.width;
-	
-			const y = d3.scaleLinear()
-			.domain([0, d3.max(data, (d) => d.value)]).nice()
-			.range([height - margin.bottom, margin.top]);
-	
+			const y = this._getYScale(yScaleType, data, height, margin);
 			const x = d3.scaleBand()
 				.domain(data.map((d) => d.name))
 				.range([margin.left, width - margin.right])
@@ -103,8 +115,8 @@ define([
 				.data(data)
 				.join("rect")
 				.attr("x", (d) => x(d.name))
-				.attr("y", (d) => y(d.value))
-				.attr("height", (d) => y(0) - y(d.value))
+				.attr("y", (d) => d.value != 0 ? y(d.value):0)
+				.attr("height", (d) => d.value != 0 ? y(1) - y(d.value):0)
 				.attr("width", x.bandwidth());
 
 			svg.append("g")

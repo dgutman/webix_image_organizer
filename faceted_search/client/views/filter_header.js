@@ -4,19 +4,22 @@ define([
     "views/filter_breadcrumbs",
     "views/toolbar",
     "views/user_panel",
-    "views/components/header_label"
+    "views/components/header_label",
+    "views/video_window"
 ], function(
     app,
     Images,
     breadcrumbs,
     modeToolbar,
     userPanel,
-    HeaderLabel
+    HeaderLabel,
+    VideoWindow
 ) {
     window.img = Images;
     const toolbarId = "filter_toolbar";
     const rowViewButtonId = 'row_view_button_id';
     const colViewButtonId = 'col_view_button_id';
+    const tutorialButtonId = 'tutorial_button_id';
 
     const headerLabel = new HeaderLabel(app);
 
@@ -60,6 +63,17 @@ define([
                                 }
                             },
                             modeToolbar,
+                            {
+                                view: "button",
+                                id: tutorialButtonId,
+                                label: "Tutorial",
+                                width: 100,
+                                click: function() {
+                                    const videoWindow = new VideoWindow(app);
+                                    app.ui(videoWindow);
+                                    videoWindow.showWindow();
+                                }
+                            },
                             userPanel
                         ]
                     }
@@ -72,7 +86,7 @@ define([
     return {
         $ui: ui,
         $oninit: function() {
-            let state = Images.getImagesViewState();
+            const state = Images.getImagesViewState();
             if(state) {
                 $$(rowViewButtonId).enable();
                 $$(colViewButtonId).disable();

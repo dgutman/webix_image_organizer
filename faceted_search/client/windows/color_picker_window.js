@@ -4,6 +4,7 @@ define([
 	"views/components/range_slider",
 	"views/components/range_switch",
 	"views/components/histogram_chart",
+	"views/components/scale_type_toggle",
 	"helpers/debouncer",
 	"helpers/ajax",
 	"models/multichannel_view/state_store",
@@ -15,6 +16,7 @@ define([
 	RangeSlider,
 	RangeSwitch,
 	HistogramChart,
+	ScaleTypeToggle,
 	Debouncer,
 	ajaxActions,
 	stateStore,
@@ -37,6 +39,10 @@ define([
 			this._rangeSwitch = new RangeSwitch(app, {hidden: true}, initialMaxEdge, this._rangeSlider);
 			this._histogramChart = new HistogramChart(app, {width: 330, height: 210});
 			this._histogramSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
+			this._scaleTypeToggle = new ScaleTypeToggle(
+				app, 
+				{value: constants.LINEAR_SCALE_VALUE}
+			);
 
 			this.$oninit = () => {
 				const chart = this._histogramChart.getRoot();
@@ -80,21 +86,22 @@ define([
 	
 		get $ui() {
 			return {
-				view: "popup",
+				view: "window",
 				css: "color-picker-popup",
 				id: this._rootId,
-				move: false,
-				modal: true,
+				move: true,
+				modal: false,
 				height: 1050,
 				width: 700,
 				body: {
-					rows: [
+					cols: [
 						{
 							view: "form",
 							localId: HISTOGRAM_FORM_ID,
 							elements: [
 								this._histogramChart,
-								this._histogramSlider
+								this._histogramSlider,
+								this._scaleTypeToggle
 							]
 						},
 						{
@@ -113,6 +120,7 @@ define([
 											click: () => {
 												this.getForm().setValues(this._initValues);
 												this.applyChanges();
+												this.savePosition();
 												this.closeWindow();
 											}
 										},
@@ -123,6 +131,7 @@ define([
 											label: "Apply",
 											click: () => {
 												this.applyChanges();
+												this.savePosition();
 												this.closeWindow();
 											}
 										}
@@ -137,7 +146,13 @@ define([
 	
 		showWindow(initValues, node, pos = "left") {
 			this._initValues = webix.copy(initValues);
-			this.getRoot().show(node, {pos});
+			const currentWindowPosition = webix.storage.cookie.get("colorPickerWindowPosition");
+			if(currentWindowPosition) {
+				this.getRoot().setPosition(currentWindowPosition.left, currentWindowPosition.top);
+				this.getRoot().show();
+			} else {
+				this.getRoot().show(node, {pos});
+			}
 			this.getForm().setValues(initValues);
 	
 			this._histogramChart.getRoot().showOverlay(chartOverlay);
@@ -153,6 +168,12 @@ define([
 				.finally(() => {
 					this._histogramChart.getRoot().hideOverlay();
 				});
+		}
+
+		savePosition() {
+			const top = this.getRoot().$view.offsetTop;
+			const left = this.getRoot().$view.offsetLeft;
+			webix.storage.cookie.put("colorPickerWindowPosition", {top: top, left: left});
 		}
 	
 		closeWindow() {
@@ -193,12 +214,13 @@ define([
 	
 		setHistogramValues(histogram) {
 			this._histogram = histogram;
+			const yScale = this._scaleTypeToggle.getValue();
 			const chartValues = histogram.hist.map((value, i) => {
 				const bitMaxEdge = histogram.bin_edges[i + 1];
 				const name = typeof bitMaxEdge === "number" ? bitMaxEdge.toFixed(2) : bitMaxEdge;
 				return {value, name};
 			});
-			this._histogramChart.makeChart(chartValues);
+			this._histogramChart.makeChart(chartValues, yScale);
 		}
 	
 		setMinAndMaxValuesByHistogram(min = 0, max) {
