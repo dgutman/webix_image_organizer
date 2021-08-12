@@ -107,7 +107,14 @@ module.exports = (env) => {
 //					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
 //					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
 //					{id: "5", value: "Candygram", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
-				]
+				],
+				// ENABLE/DISABLE MODULES (TABS)
+				TABSTATE: {
+					metadata: "enable",
+					applyFilter: "enable",
+					pathologyReport: "enable",
+					aperioAnnotations: "disable"
+				}
 			}),
 			new Dotenv({
 				path: path.resolve(__dirname, ".env") // Path to .env file
