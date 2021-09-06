@@ -185,7 +185,7 @@ export default class AnnotationView extends JetView {
 					}
 				},
 				type: {
-					fillOpacity: function(obj, common) {
+					fillOpacity: function (obj, common) {
 						return `<div class='webix_el_box'>
 							<div role='spinbutton' class='webix_el_group'>
 								<button class='decrease_button'>-</button><!--
@@ -194,7 +194,7 @@ export default class AnnotationView extends JetView {
 							</div>
 						</div>`;
 					},
-					strokeOpacity: function(obj, common) {
+					strokeOpacity: function (obj, common) {
 						return `<div class='webix_el_box'>
 							<div class='webix_el_group'>
 								<button class='decrease_button'>-</button><!--
@@ -203,10 +203,7 @@ export default class AnnotationView extends JetView {
 							</div>
 						</div>`;
 					},
-					strokeWidth: function(obj, common) {
-						let min = 0;
-						let max = 3;
-						let step = 0.2;
+					strokeWidth: function (obj, common) {
 						return `<div class='webix_el_box'>
 							<div role='spinbutton' aria-label aria-valuemin='0.1' aria-valuemax='1' aria-valuenow='0.9' class='webix_el_group'>
 								<button class='decrease_button'>-</button><!--
@@ -232,7 +229,8 @@ export default class AnnotationView extends JetView {
 								}
 								this.app.callEvent("deleteLayer", [item, table]);
 								this.app.callEvent("changeTreeannotations", []);
-							} else {
+							}
+							else {
 								table.remove(item.id);
 								this.app.callEvent("deleteAnnotation", ["", item, table]);
 							}
@@ -246,12 +244,12 @@ export default class AnnotationView extends JetView {
 					},
 					"decrease_button" : function(ev, id) {
 						window.showAttentionPopup();
-						const operation = "subtraction"
+						const operation = "subtraction";
 						this.$scope.updateCounterValue(id, operation);
 					},
 					"increase_button" : function(ev, id) {
 						window.showAttentionPopup();
-						const operation = "addition"
+						const operation = "addition";
 						this.$scope.updateCounterValue(id, operation);
 					}
 				},
@@ -298,7 +296,7 @@ export default class AnnotationView extends JetView {
 													let table = ref.getRoot().queryView({view: "datatableCounter"});
 													let value = event.target.value;
 													const [row, column] = ref.parseInputCounterName(this.name);
-													if(!/^[0-9\.]+$/.test(value) || value > this.max || value < this.min) {
+													if (!/^[0-9\.]+$/.test(value) || value > this.max || value < this.min) {
 														this.value = event.target.defaultValue;
 														return;
 													}

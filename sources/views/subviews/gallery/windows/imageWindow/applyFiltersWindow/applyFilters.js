@@ -49,10 +49,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -65,10 +65,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -81,10 +81,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -97,10 +97,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -113,10 +113,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -129,10 +129,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -145,10 +145,10 @@ export default class ApplyFiltersView extends JetView {
 						title: webix.template("Selected: #value#"),
 						on: {
 							onSliderDrag: () => {
-								this.apply();
+								this.applyChanges();
 							},
 							onChange: () => {
-								this.apply();
+								this.applyChanges();
 							}
 						}
 					},
@@ -203,7 +203,7 @@ export default class ApplyFiltersView extends JetView {
 		this.refreshSliders(form.getChildViews());
 	}
 
-	apply() {
+	applyChanges() {
 		const form = this.getRoot().queryView({view: "form"});
 		let values = form.getValues();
 		const css = `
@@ -218,10 +218,10 @@ export default class ApplyFiltersView extends JetView {
 		openseadragonCanvas.style.webkitFilter = css;
 	}
 
-	refreshSliders(array) {
-		for (let i = 0; i < array.length; i++) {
-			if (array[i].config.view === "slider") {
-				array[i].refresh();
+	refreshSliders(childViews) {
+		for (let i = 0; i < childViews.length; i++) {
+			if (childViews[i].config.view === "slider") {
+				childViews[i].refresh();
 			}
 		}
 	}

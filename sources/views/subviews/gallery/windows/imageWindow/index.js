@@ -349,7 +349,7 @@ export default class ImageWindowView extends JetView {
 
 	refreshSlide(viewer, sd) {
 		if (viewer && sd) {
-			this.app.callEvent("setSlide", [sd, true]);
+			this.app.callEvent("setSlide", [sd]);
 			window.viewer.viewport.zoomTo(3);
 			window.viewer.viewport.goHome(true);
 		}

@@ -31,93 +31,7 @@ export default class imageWindowViewModel {
 		this.annotationsLength = 0;
 		this.isAnnotationAdd = false;
 		this.lastLabelNumber = 0;
-
-		this.newAnnotation = ((model, view) => {
-			return (evt) => {
-				let idArray = [];
-				let annotationLabelNumber;
-				const annotationsArray = window.annotationLayer.annotations();
-				for (let i = 0; i < annotationsArray.length; i++) {
-					if (annotationsArray[i].id() !== evt.annotation.id()) {
-						idArray.push(annotationsArray[i].id());
-					}
-				}
-	
-				if (idArray.length !== 0) {
-					const lastId = Math.max(...idArray);
-					let currentLayerIndex = 0;
-					model.treeannotations.some((treeannotation, treeannotationIndex) => {
-						if (treeannotation.id === model.currentLayerId) {
-							currentLayerIndex = treeannotationIndex;
-							treeannotation.data.some((data) => {
-								if (data.geoid === lastId && data.hasOwnProperty("labelId")) {
-									annotationLabelNumber = data.labelId + 1;
-									return true;
-								}
-								return false;
-							});
-							if (!annotationLabelNumber
-									&& treeannotation.data.length !== 0
-									&& treeannotation.data[treeannotation.data.length - 1].hasOwnProperty("labelId")) {
-								annotationLabelNumber = view
-									.treeannotations[currentLayerIndex]
-									.data[treeannotation.data.length - 1]
-									.labelId + 1
-							}
-						}
-						if (annotationLabelNumber) {
-							return true;
-						}
-						return false;
-					});
-					if (!annotationLabelNumber
-						&& model.treeannotations[currentLayerIndex].data.length !== 0) {
-						annotationLabelNumber = idArray[idArray.length - 1] + 1;
-					}
-					else if (!annotationLabelNumber) {
-						annotationLabelNumber = 1;
-					}
-				}
-				else {
-					annotationLabelNumber = 1;
-				}
-				if (model.lastLabelNumber < annotationLabelNumber) {
-					model.lastLabelNumber = annotationLabelNumber;
-				}
-				else model.lastLabelNumber += 1;
-
-				document.querySelector("#geojs .geojs-layer").style.pointerEvents = "none";
-
-				let newAnnotationTree = {
-					id: `${model.currentLayerId}.${annotationLabelNumber}`,
-					labelId: annotationLabelNumber,
-					geoid: evt.annotation.id(),
-					value: `${evt.annotation.type()[0].toUpperCase() + evt.annotation.type().substring(1)} ${model.lastLabelNumber}`,
-					type: evt.annotation.type(),
-					fillColor: "#00FF00",
-					checked: true,
-					fillOpacity: evt.annotation.options("style").fillOpacity,
-					strokeColor: "#000000",
-					strokeOpacity: evt.annotation.options("style").strokeOpacity,
-					strokeWidth: evt.annotation.options("style").strokeWidth
-				};
-	
-				evt.annotation.label(`${evt.annotation.type()[0].toUpperCase() + evt.annotation.type().substring(1)} ${model.lastLabelNumber}`);
-				for (let i = 0; i < model.treeannotations.length; i++) {
-					if (model.treeannotations[i].id === model.currentLayerId) {
-						model.treeannotations[i].data.push(newAnnotationTree);
-					}
-				}
-				let updateStringArray = JSON.stringify(model.treeannotations);
-				let tempJSONArray = JSON.parse(updateStringArray);
-				view.app.callEvent("annotationTableParse", [tempJSONArray]);
-				view.app.callEvent("changeRichselectData", [model.treeannotations]);
-				model.treeCheckBoxesClicked("", "", null, model.treeannotations);
-				model.updateGirderWithAnnotationData();
-				model.toggleLabel(window.switchLabel);
-				model.isAnnotationAdd = true;
-			};
-		})(this, this._imagesWindowView);
+		this.newAnnotation = this.makeNewAnnotationFunc(this, imageWindowView);
 	}
 
 	setItem(item) {
@@ -132,6 +46,93 @@ export default class imageWindowViewModel {
 		this.currentShape = type;
 		document.querySelector("#geojs .geojs-layer").style.pointerEvents = "auto";
 		this.layer.mode(this.currentShape);
+	}
+
+	makeNewAnnotationFunc(model, view) {
+		return (evt) => {
+			let idArray = [];
+			let annotationLabelNumber;
+			const annotationsArray = window.annotationLayer.annotations();
+			const evtAnnotationId = evt.annotation.id();
+			annotationsArray.forEach((annotation) => {
+				if (annotation.id() !== evtAnnotationId) {
+					idArray.push(annotation.id());
+				}
+			});
+
+			if (idArray.length !== 0) {
+				const lastId = Math.max(...idArray);
+				let currentLayerIndex = 0;
+				model.treeannotations.some((treeannotation, treeannotationIndex) => {
+					if (treeannotation.id === model.currentLayerId) {
+						currentLayerIndex = treeannotationIndex;
+						treeannotation.data.some((treeannotationItem) => {
+							if (treeannotationItem.geoid === lastId && treeannotationItem.hasOwnProperty("labelId")) {
+								annotationLabelNumber = treeannotationItem.labelId + 1;
+								return true;
+							}
+							return false;
+						});
+						if (!annotationLabelNumber
+							&& treeannotation.data.length !== 0
+							&& treeannotation.data[treeannotation.data.length - 1].hasOwnProperty("labelId")) {
+							annotationLabelNumber = view
+								.treeannotations[currentLayerIndex]
+								.data[treeannotation.data.length - 1]
+								.labelId + 1;
+						}
+					}
+					if (annotationLabelNumber) {
+						return true;
+					}
+					return false;
+				});
+				if (!annotationLabelNumber
+					&& model.treeannotations[currentLayerIndex].data.length !== 0) {
+					annotationLabelNumber = idArray[idArray.length - 1] + 1;
+				}
+				else if (!annotationLabelNumber) {
+					annotationLabelNumber = 1;
+				}
+			}
+			else {
+				annotationLabelNumber = 1;
+			}
+			if (model.lastLabelNumber < annotationLabelNumber) {
+				model.lastLabelNumber = annotationLabelNumber;
+			}
+			else model.lastLabelNumber += 1;
+
+			document.querySelector("#geojs .geojs-layer").style.pointerEvents = "none";
+
+			let newAnnotationTree = {
+				id: `${model.currentLayerId}.${annotationLabelNumber}`,
+				labelId: annotationLabelNumber,
+				geoid: evt.annotation.id(),
+				value: `${evt.annotation.type()[0].toUpperCase() + evt.annotation.type().substring(1)} ${model.lastLabelNumber}`,
+				type: evt.annotation.type(),
+				fillColor: "#00FF00",
+				checked: true,
+				fillOpacity: evt.annotation.options("style").fillOpacity,
+				strokeColor: "#000000",
+				strokeOpacity: evt.annotation.options("style").strokeOpacity,
+				strokeWidth: evt.annotation.options("style").strokeWidth
+			};
+			evt.annotation.label(`${evt.annotation.type()[0].toUpperCase() + evt.annotation.type().substring(1)} ${model.lastLabelNumber}`);
+			model.treeannotations.forEach((treeannotation) => {
+				if (treeannotation.id === model.currentLayerId) {
+					treeannotation.data.push(newAnnotationTree);
+				}
+			});
+			let updateStringArray = JSON.stringify(model.treeannotations);
+			let tempJSONArray = JSON.parse(updateStringArray);
+			view.app.callEvent("annotationTableParse", [tempJSONArray]);
+			view.app.callEvent("changeRichselectData", [model.treeannotations]);
+			model.treeCheckBoxesClicked("", "", null, model.treeannotations);
+			model.updateGirderWithAnnotationData();
+			model.toggleLabel(window.switchLabel);
+			model.isAnnotationAdd = true;
+		};
 	}
 
 	setBounds() {
@@ -159,21 +160,18 @@ export default class imageWindowViewModel {
 	}
 
 	toggleLabel(switchValue) {
-		for (let i = 0; i < this.treeannotations.length; i++) {
-			for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-				let annotation = this.layer.annotationById(this.treeannotations[i].data[j].geoid);
-				if (!switchValue) {
-					annotation.options("showLabel", switchValue);
-				}
-				else if (this.treeannotations[i].data[j].checked) {
+		this.treeannotations.forEach((treeannotation) => {
+			treeannotation.data.forEach((treeannotationItem) => {
+				let annotation = this.layer.annotationById(treeannotationItem.geoid);
+				if (!switchValue || treeannotationItem.checked) {
 					annotation.options("showLabel", switchValue);
 				}
 				else {
 					annotation.options("showLabel", false);
 				}
-				window.map.draw();
-			}
-		}
+			});
+		});
+		window.map.draw();
 	}
 
 	resetDataStructures(boolValue) {
@@ -190,28 +188,27 @@ export default class imageWindowViewModel {
 		webix.ajax().get(url, (text) => {
 			this.resetDataStructures();
 			this.currentSlide = JSON.parse(text);
-			if (typeof this.currentSlide !== "undefined"
-				&& typeof this.currentSlide.meta !== "undefined") {
+			if (this.currentSlide && this.currentSlide.meta) {
 				let allShapesLength = 0;
-				if (typeof this.currentSlide.meta.dsalayers !== "undefined"
+				if (this.currentSlide.meta.dsalayers
 					&& !this.isEmpty(this.currentSlide.meta.dsalayers)
 					&& this.currentSlide.meta.dsalayers.length > 0) {
 					this.treeannotations.length = 0;
 					this.dsalayers = this.currentSlide.meta.dsalayers;
 					this.treeannotations = this.currentSlide.meta.dsalayers;
-					for (let i = 0; i < this.dsalayers.length; i++) {
-						allShapesLength += this.dsalayers[i].data.length;
-					}
+					this.dsalayers.forEach((dsalayer) => {
+						allShapesLength += dsalayer.data.length;
+					});
 					let geoIdArray = [];
 					let labelId = [];
-					for (let i = 0; i < this.dsalayers.length; i++) {
-						for (let j = 0; j < this.dsalayers[i].data.length; j++) {
-							geoIdArray.push(this.dsalayers[i].data[j].geoid);
-							if (this.dsalayers[i].data[j].labelId) {
-								labelId.push(this.dsalayers[i].data[j].labelId);
+					this.dsalayers.forEach((dsalayer) => {
+						dsalayer.data.forEach((dsalayerData) => {
+							geoIdArray.push(dsalayerData.geoid);
+							if (dsalayerData.labelId) {
+								labelId.push(dsalayerData.labelId);
 							}
-						}
-					}
+						});
+					});
 					if (labelId.length !== 0) {
 						labelId = labelId.sort();
 						this.lastLabelNumber = labelId[labelId.length - 1];
@@ -228,17 +225,17 @@ export default class imageWindowViewModel {
 					this.reinitializeTreeLayers();
 				}
 				// Reload existing annotations.
-				if (this.currentSlide.meta.hasOwnProperty("geojslayer") 
+				if (this.currentSlide.meta.hasOwnProperty("geojslayer")
 					&& !this.isEmpty(this.currentSlide.meta.geojslayer)
 					&& this.currentSlide.meta.geojslayer.features
 					&& !this.isEmpty(this.currentSlide.meta.geojslayer.features)) {
 					let features = this.currentSlide.meta.geojslayer.features;
 					if (allShapesLength > features.length) {
 						this.dsalayers = this.dsalayers.filter((dsalayer) => {
-							dsalayer.data = dsalayer.data.filter((data) => {
+							dsalayer.data = dsalayer.data.filter((dsalayerData) => {
 								let count = 0;
 								features.forEach((feature) => {
-									if (data.geoid !== feature.properties.annotationId) {
+									if (dsalayerData.geoid !== feature.properties.annotationId) {
 										count++;
 									}
 								});
@@ -285,22 +282,15 @@ export default class imageWindowViewModel {
 
 		let annots = this.layer.annotations();
 		let geojsannotations = [];
-		for (let i = 0; i < annots.length; i++) {
-			let anno = {
-				type: annots[i].type(),
-				features: annots[i].features()
+		annots.forEach((annotate, index) => {
+			geojsannotations[index] = {
+				type: annotate.type(),
+				features: annotate.features()
 			};
-			geojsannotations[i] = anno;
-		}
+		});
 
-		const geojsonParams = [
-			undefined,
-			undefined,
-			undefined,
-			true
-		];
-
-		let geojsonObj = this.layer.geojson(...geojsonParams);
+		const [geojson, clear, gcs, includeCrs] = [undefined, false, undefined, true];
+		let geojsonObj = this.layer.geojson(geojson, clear, gcs, includeCrs);
 
 		let metaInfo = {
 			dsalayers: this.treeannotations,
@@ -330,19 +320,13 @@ export default class imageWindowViewModel {
 		if (table) {
 			checkedIds = table.getChecked();
 			this.selectedData = checkedIds;
-			for (let i = 0; i < this.treeannotations.length; i++) {
-				for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-					if (checkedIds.includes(this.treeannotations[i].id)) {
-						this.treeannotations[i].checked = true;
-					}
-					else {
-						this.treeannotations[i].checked = false;
-					}
-					let annotation = this.layer.annotationById(this.treeannotations[i].data[j].geoid);
-					if (checkedIds.includes(this.treeannotations[i].data[j].id)) {
-						this.treeannotations[i].data[j].checked = true;
+			this.treeannotations.forEach((treeannotation) => {
+				treeannotation.data.forEach((treeannotationItem) => {
+					let annotation = this.layer.annotationById(treeannotationItem.geoid);
+					if (checkedIds.includes(treeannotationItem.id)) {
+						treeannotationItem.checked = true;
 						annotation.options("showLabel", labelsBool);
-						if (this.treeannotations[i].data[j].type === "line") {
+						if (treeannotationItem.type === "line") {
 							annotation.style({strokeOpacity: 1});
 						}
 						else {
@@ -350,26 +334,26 @@ export default class imageWindowViewModel {
 						}
 					}
 					else {
-						this.treeannotations[i].data[j].checked = false;
+						treeannotationItem.checked = false;
 						annotation.options("showLabel", false);
-						if (this.treeannotations[i].data[j].type === "line") {
+						if (treeannotationItem.type === "line") {
 							annotation.style({strokeOpacity: 0});
 						}
 						else {
 							annotation.style({fill: false, stroke: false});
 						}
 					}
-					window.map.draw();
-				}
-			}
+				});
+			});
+			window.map.draw();
 		}
 		else if (checkedIds) {
-			for (let i = 0; i < this.treeannotations.length; i++) {
-				for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-					let annotation = this.layer.annotationById(this.treeannotations[i].data[j].geoid);
-					if (this.treeannotations[i].data[j].checked) {
-						annotation.options("showLabel", window.switchLabel);
-						if (this.treeannotations[i].data[j].type === "line") {
+			this.treeannotations.forEach((treeannotation) => {
+				treeannotation.data.forEach((treeannotationItem) => {
+					let annotation = this.layer.annotationById(treeannotationItem.geoId);
+					if (treeannotationItem.checked) {
+						annotation.option("showLabel", window.switchLabel);
+						if (treeannotationItem.type === "line") {
 							annotation.style({strokeOpacity: 1});
 						}
 						else {
@@ -378,49 +362,48 @@ export default class imageWindowViewModel {
 					}
 					else {
 						annotation.options("showLabel", false);
-						if (this.treeannotations[i].data[j].type === "line") {
+						if (treeannotationItem.type === "line") {
 							annotation.style({strokeOpacity: 0});
 						}
 						else {
 							annotation.style({fill: false, stroke: false});
 						}
 					}
-					window.map.draw();
-				}
-			}
+				});
+			});
+			window.map.draw();
 		}
 		else if (treeannotations) {
-			for (let i = 0; i < this.treeannotations.length; i++) {
+			this.treeannotations.forEach((treeannotation) => {
 				let count = 0;
-				for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-					if (this.treeannotations[i].data[j].checked) {
+				treeannotation.data.forEach((treeannotationItem) => {
+					if (treeannotationItem.checked) {
 						count++;
 					}
-				}
-				if (count === this.treeannotations[i].data.length) {
-					this.treeannotations[i].checked = true;
+				});
+				if (count === treeannotation.data.length) {
+					treeannotation.checked = true;
 				}
 				else {
-					this.treeannotations[i].checked = false;
+					treeannotation.checked = false;
 				}
-			}
+			});
 		}
 		else {
-			for (let i = 0; i < this.treeannotations.length; i++) {
-				for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-					const annotation = this.layer.annotationById(this.treeannotations[i].data[j].geoid);
-					this.treeannotations[i].data[j].checked = false;
+			this.treeannotations.forEach((treeannotation) => {
+				treeannotation.data.forEach((treeannotationItem) => {
+					const annotation = this.layer.annotationById(treeannotationItem.geoid);
+					treeannotationItem.checked = false;
 					annotation.options("showLabel", false);
-					if (this.treeannotations[i].data[j].type === "line") {
+					if (treeannotationItem.type === "line") {
 						annotation.style({strokeOpacity: 0});
 					}
 					else {
 						annotation.style({fill: false, stroke: false});
 					}
-					window.map.draw();
-				}
-				this.treeannotations[i].checked = false;
-			}
+				});
+			});
+			window.map.draw();
 			this.reloadAnnotationsTable();
 		}
 	}
@@ -446,50 +429,46 @@ export default class imageWindowViewModel {
 		let found = false;
 		let visibleAnnotationsChanged = false;
 		let item = null;
-		for (let i = 0; i < this.treeannotations.length; i++) {
-			if (property === "deleteLayer") {
-				if (this.treeannotations[i].id === geoid) {
-					this.treeannotations.splice(i, 1);
-					visibleAnnotationsChanged = true;
-					this.reloadAnnotationsTable();
-
-					if (this.treeannotations.length === 0) {
-						webix.message("All the layers were deleted. Initializing it to default layer...");
-						this.reinitializeTreeLayers();
-						this.lastLabelNumber = 0;
-					}
-					break;
+		this.treeannotations.some((treeannotation, treeannotationIndex) => {
+			if (property === "deleteLayer" && treeannotation.id === geoid) {
+				this.treeannotations.splice(treeannotationIndex, 1);
+				visibleAnnotationsChanged = true;
+				this.reloadAnnotationsTable();
+				if (this.treeannotations.length === 0) {
+					webix.message("All the layers were deleted. Initializing it to default layer...");
+					this.reinitializeTreeLayers();
+					this.lastLabelNumber = 0;
 				}
 			}
 			else {
-				for (let j = 0; j < this.treeannotations[i].data.length; j++) {
-					if (this.treeannotations[i].data[j].geoid === geoid) {
-						item = this.treeannotations[i].data[j];
+				treeannotation.data.some((treeannotationItem, treeannotationItemIndex) => {
+					if (treeannotationItem.geoid === geoid) {
+						item = treeannotationItem;
 						switch (property) {
 							case "strokeWidth":
-								this.treeannotations[i].data[j].strokeWidth = value;
+								treeannotationItem.strokeWidth = value;
 								break;
 							case "fillOpacity":
-								this.treeannotations[i].data[j].fillOpacity = value;
+								treeannotationItem.fillOpacity = value;
 								break;
 							case "strokeOpacity":
-								this.treeannotations[i].data[j].strokeOpacity = value;
+								treeannotationItem.strokeOpacity = value;
 								break;
 							case "deleteAnnotation":
-								this.treeannotations[i].data.splice(j, 1);
+								treeannotation.data.splice(treeannotationItemIndex, 1);
 								item = null;
 								visibleAnnotationsChanged = true;
 								break;
 							case "annotationStyleChange":
 								switch (editorcolumn) {
 									case "fillColor":
-										this.treeannotations[i].data[j].fillColor = value;
+										treeannotationItem.fillColor = value;
 										break;
 									case "strokeColor":
-										this.treeannotations[i].data[j].strokeColor = value;
+										treeannotationItem.strokeColor = value;
 										break;
 									case "name":
-										this.treeannotations[i].data[j].value = value;
+										treeannotationItem.value = value;
 										break;
 									default:
 										break;
@@ -499,14 +478,13 @@ export default class imageWindowViewModel {
 								break;
 						}
 						found = true;
-						break;
+						return found; // if found is true stop iterate data
 					}
-				}
-				if (found) {
-					break;
-				}
+					return found;
+				});
 			}
-		}
+			return found; // if found is true stop iterate treeannotations
+		});
 		if (!type) {
 			this.updateGirderWithAnnotationData(table, item);
 		}

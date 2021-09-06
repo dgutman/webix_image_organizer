@@ -18,8 +18,7 @@ export default class ImageTemplateEventsService {
 		/* 	CALLED WHERE WE DELETED LAYER OR ADDED NEW LAYER */
 		this._imageWindowView.on(this._imageWindowView.app, "changeTreeannotations", (newLayer) => {
 			if (newLayer) {
-				newLayer.id =
-					Number(this._imageWindowViewModel.treeannotations[this._imageWindowViewModel.treeannotations.length - 1].id) + 1;
+				newLayer.id = Number(this._imageWindowViewModel.treeannotations[this._imageWindowViewModel.treeannotations.length - 1].id) + 1;
 				this._imageWindowViewModel
 					.treeannotations[this._imageWindowViewModel.treeannotations.length] = newLayer;
 				this._imageWindowViewModel.currentLayerId = newLayer.id;
@@ -205,7 +204,7 @@ export default class ImageTemplateEventsService {
 
 		this._imageWindowView.on(this._imageWindowView.app, "changeRichselectData", (treeannotation) => {
 			this._imageWindowViewModel.layouts = treeannotation;
-			let richselect = this._imageWindowView.getRoot().queryView({ view: "richselect" });
+			let richselect = this._imageWindowView.getRoot().queryView({view: "richselect"});
 			let list = richselect.getList();
 			list.clearAll();
 			list.parse(this._imageWindowViewModel.layouts);
