@@ -8,7 +8,7 @@ define([
 			super(app, config);
 			this._cnf = config;
 		}
-	
+
 		get $ui() {
 			return {
 				...this._cnf,
@@ -23,7 +23,8 @@ define([
 						view: "label",
 						width: 300,
 						template: "<p class='images-header-p'>HTAN Image Explorer</p>"
-					}
+					},
+					{gravity: 1}
 				]
 			};
 		}

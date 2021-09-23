@@ -81,23 +81,23 @@ define([
 				this._tileService = new TilesService();
 				webix.extend(wrapper, webix.OverlayBox);
 				webix.extend(view, webix.ProgressBar);
-				
+
 				const groupsList = this._groupsPanel.getGroupsList();
 				const channelList = this._channelList.getList();
-	
+
 				channelList.sync(this._channelsCollection);
 				groupsList.sync(this._groupsCollection);
-	
+
 				this._dragAndDropMediator = new DragAndDropMediator({
 					main: this,
 					groupsPanel: this._groupsPanel,
 					channelsList: this._channelList
 				});
-	
+
 				this._attachChannelsListEvents();
 				this._attachOSDViewEvents();
 				this._attachGroupsPanelEvents();
-	
+
 				this._groupsCollection.data.attachEvent("onStoreUpdated", () => {
 					const count = this._groupsCollection.count();
 					if (count) {
@@ -230,7 +230,7 @@ define([
 			const isValid = await this.validateImage(image);
 
 			if (!isValid) {
-				rootView.showOverlay("<div class='empty-overlay'></>");
+				rootView.showOverlay("<div class='empty-overlay'></div>");
 				return;
 			}
 			this._channelsCollection.clearAll();
@@ -282,7 +282,7 @@ define([
 						return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel};
 					} else {
 						return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel};
-					}				
+					}
 				});
 
 			const groupId = this._addNewGroup(name, coloredChannels);
@@ -336,7 +336,7 @@ define([
 				min = histogramData.min;
 				max = histogramData.max;
 			}
-			
+
 			this._colorWindow.setMinAndMaxValuesByHistogram(0, max);
 			if(max > constants.MAX_EDGE_FOR_8_BIT) {
 				stateStore.bit = constants.SIXTEEN_BIT;
@@ -369,7 +369,7 @@ define([
 			channelList.attachEvent("onAfterSelect", async (id) => {
 				groupsList.unselectAll();
 				groupsChannelList.unselectAll();
-				
+
 				const channel = this._channelsCollection.getItem(id);
 				const layer = await this.getSingleOSDLayer(channel.index);
 
@@ -463,7 +463,7 @@ define([
 
 			groupsPanel.attachEvent("uploadGroups", () => {
 				const groups = this._groupsCollection.data.serialize();
-	
+
 				this.getRoot().showProgress();
 				saveGroups(this._image._id, groups)
 					.then((image) => {

@@ -8,6 +8,7 @@ const uniqFilter = require('./create_facets').uniqFilter;
 
 const facetImages = require('../models/facet_images');
 const serviceData = require('../models/service_data');
+const approvedFacetModel = require('../models/approved_facet');
 
 const IMAGES_PATH = require('../../constants').ALL_IMAGES_RES_PATH;
 
@@ -63,6 +64,7 @@ class Backend {
             .then((convertedData) => fsp.writeFile(IMAGES_PATH, JSON.stringify(convertedData)))
             .then((result) => md5(IMAGES_PATH))
             .then((hash) => serviceData.updateImagesHash(hash))
+            .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => {
                 this.socket.emit('finishLoading', {});
                 console.log('response for images collection is cached');
