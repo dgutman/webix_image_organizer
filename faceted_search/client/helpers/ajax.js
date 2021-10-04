@@ -26,8 +26,8 @@ define(["app", "constants"], function(app, constants) {
 	class AjaxActions {
 		constructor() {
 			webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, promise) => {
-				let toSearchInUrl = "cdn.webix.com";
-				let searchedInUrl = url.search(toSearchInUrl);
+				const toSearchInUrl = "cdn.webix.com";
+				const searchedInUrl = url.search(toSearchInUrl);
 				if (searchedInUrl === -1) {
 					headers["Girder-Token"] = getToken();
 				}
@@ -59,7 +59,7 @@ define(["app", "constants"], function(app, constants) {
 				}
 				default: {
 					try {
-						let response = JSON.parse(xhr.response);
+						const response = JSON.parse(xhr.response);
 						message = response.message;
 					} catch (e) {
 						message = xhr.response || CONNECTION_ERROR_MESSAGE;
