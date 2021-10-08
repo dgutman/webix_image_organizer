@@ -13,9 +13,28 @@ module.exports = (app) => {
 	router.post('/filters', facetFilters.addFilters);
 	router.get('/filters', filterCreator);
 	router.get('/get-filters-with-images', filterImages);
-	router.get('/images', facetsController.getImagesData);
 	router.get('/image', facetsController.getImageData);
 	router.get('/updateCache', facetsController.updateCache);
+	router.get('/images', async (req, res, next) => {
+		try {
+			const [hash, data] = await facetsController.getImagesData(req, res);
+			if(hash) {
+				if(data) {
+					res.status(200).send(data);
+				} else {
+					res.status(200).send([]);
+				}
+			} else {
+				res.status(304).send();
+			}
+		} catch(err) {
+			if(err.code === 'ENOENT') {
+				res.status(200).send({});
+			} else {
+				next(err);
+			}
+		}
+	});
 	router.get('/approved-metadata', async (req, res) => {
 		const data = await approvedMetadataController.getApprovedMetadataData();
 		if (data) {

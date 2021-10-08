@@ -81,8 +81,38 @@ async function resyncImages(host, token) {
 	}
 }
 
+async function getAllowedFolders(host, token) {
+	try {
+		const url = `${host}/folder`;
+		const options = token
+			? {headers: {"girder-token": token}}
+			: {headers: {"girder-token": ""}};
+		const existedFolderIds = await facetImagesModel.getImagesFolderIds(host);
+		const allowedFolders = [];
+		const existedFolderIdsCount = existedFolderIds.length;
+		for(let i = 0; i < existedFolderIdsCount; i++) {
+			const folder = await axios.get(`${url}/${existedFolderIds[i]}`, options)
+				.then((response) => {
+					return response.data;
+				})
+				.catch((err) => {
+					console.log(err.response || err);
+				});
+			if(folder && folder._id) {
+				allowedFolders.push(existedFolderIds[i]);
+			} else {
+				console.log(`${existedFolderIds[i]} does not fit`);
+			}
+		}
+		return allowedFolders;
+	} catch(err) {
+		console.error(err.response || err);
+	}
+}
+
 module.exports = {
 	loadImagesFileFromGirder,
-	resyncImages
+	resyncImages,
+	getAllowedFolders
 };
 
