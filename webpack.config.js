@@ -99,23 +99,19 @@ module.exports = (env) => {
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
 					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
-<<<<<<< HEAD
 					{id: "2", value: "ISIC Archive", hostAPI: "http://isic-archive.com/girder/api/v1"},
 					{id: "3", value: "Computable Brain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
 					{id: "4", value: "Transplant", hostAPI: "http://170.140.232.21:8080/api/v1"},
 					{id: "5", value: "STYX", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"},
 					{id: "6", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"} 
-=======
-					{id: "2", value: "ISIC Archive", hostAPI: "https://isic-archive.com/girder/api/v1"},
-					{id: "3", value: "Computablebrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
-					{id: "4", value: "HTAN", hostAPI: "https://imaging.htan.dev/girder/api/v1"}
-
-//					{id: "4", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"}
-//					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
-//					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
-//					{id: "5", value: "Candygram", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
->>>>>>> 97e1c1fd7335e2aef9f141ae6444cb4f1c3c743e
-				]
+				],
+				// ENABLE/DISABLE MODULES (TABS)
+				TABSTATE: {
+					metadata: "enable",
+					applyFilter: "enable",
+					pathologyReport: "enable",
+					aperioAnnotations: "disable"
+				}
 			}),
 			new Dotenv({
 				path: path.resolve(__dirname, ".env") // Path to .env file

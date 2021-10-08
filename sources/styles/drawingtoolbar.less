@@ -1,0 +1,55 @@
+/* MAIN VIEW STYLE*/
+.drawing_toolbar {
+	.webix_el_button button{
+		border:1px solid #3498db;
+		border-radius: 10px;
+		span {
+			&::before {
+				font-size: 21px;
+				display: inline-block;
+				margin-top: 4px;
+			}
+		}
+		span.fa-connectdevelop {
+			&::before {
+				margin-left: -1px;
+			}
+		}
+		span.fa-map-marker {
+			&::before {
+				margin-left: 3px;
+			}
+		}
+		span.fa-pencil {
+			&::before {
+				margin-left: 3px;
+			}
+		}
+		span.fa-square-o {
+			&::before {
+				margin-left: 3px;
+				margin-top: 6px;
+			}
+		}
+		&:hover{
+			background: #F4F5F9 !important;
+			border-color: #dbdce0 !important;
+		}
+		&:active, &:focus {
+			background: transparent;
+		}
+	}
+	.webix_el_button.blue_button button,
+	.webix_el_button button.button_selected,
+	.webix_el_button button.button_selected:focus {
+		background: #3498db !important;
+	}
+	.webix_el_button button.button_selected > span::before,
+	.webix_el_button button.button_selected:focus > span::before{
+		color:white;
+	}
+	.webix_el_button.blue_button button span::before{
+		color:white;
+		margin-left:3px;
+	}
+}

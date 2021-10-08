@@ -8,3 +8,5 @@ services/__pycache__/*
 services/.ipynb_checkpoints/
 .vscode
 .env
+services/*.png
+services/*.jpg

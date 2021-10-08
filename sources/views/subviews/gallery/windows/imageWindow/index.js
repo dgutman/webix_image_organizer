@@ -8,6 +8,11 @@ import collapser from "../../../../components/collapser";
 import ControlsView from "./controlsView";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import ControlsEventsService from "./controlsEventsService";
+import ToolbarView from "./toolbarView";
+import ToolbarEventServices from "./toolbarEventService";
+import ImageTemplateEventsService from "./imageTemplateEventService";
+import auth from "../../../../../services/authentication";
+import ImageWindowViewModel from "../../../../../models/imageWindowViewModel";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -21,6 +26,8 @@ export default class ImageWindowView extends JetView {
 		super(app, config);
 
 		this._controlsView = new ControlsView(this.app);
+		this._toolbarView = new ToolbarView(this.app, {}, this);
+		this._imageWindowViewModel = new ImageWindowViewModel(this);
 	}
 
 	config() {
@@ -56,7 +63,14 @@ export default class ImageWindowView extends JetView {
 						icon: "fas fa-times",
 						width: 30,
 						height: 30,
-						click: () => this.close()
+						click: () => {
+							const switchElement = this._toolbarView.getDrawingSwitch();
+							let switchElementValue = switchElement.getValue();
+							if (switchElementValue) {
+								switchElement.toggle();
+							}
+							this.close();
+						}
 					}
 				]
 			},
@@ -79,42 +93,66 @@ export default class ImageWindowView extends JetView {
 								]
 							},
 							{
-								view: "template",
-								css: "absolute-centered-image-template",
-								localId: IMAGE_CONTAINER_ID,
-								template: (obj) => {
-									let imageType = "thumbnail";
-									let getPreviewUrl = galleryImageUrl.getNormalImageUrl;
-									let setPreviewUrl = galleryImageUrl.setNormalImageUrl;
+								rows: [
+									this._toolbarView,
+									{
+										view: "template",
+										css: "absolute-centered-image-template",
+										name: "imageTemplate",
+										localId: IMAGE_CONTAINER_ID,
+										template: (obj) => {
+											let imageType = "thumbnail";
+											let getPreviewUrl = galleryImageUrl.getNormalImageUrl;
+											let setPreviewUrl = galleryImageUrl.setNormalImageUrl;
 
-									if (obj.label) {
-										imageType = "images/label";
-										getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
-										setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
-									}
+											if (obj.label) {
+												imageType = "images/label";
+												getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
+												setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
+											}
 
-									if (obj._id && !obj.emptyObject) {
-										const previewImageUrl = getPreviewUrl(obj._id);
-										if (previewImageUrl === undefined) {
-											this.view.showProgress();
-											ajax.getImage(obj._id, imageType, {width: WIDTH, height: HEIGHT})
-												.then((url) => {
-													setPreviewUrl(obj._id, url);
-													this.$imageContainer.refresh();
-												})
-												.catch(() => setPreviewUrl(obj._id, false))
-												.finally(() => this.view.hideProgress());
-										}
+											if (obj._id && !obj.emptyObject) {
+												const previewImageUrl = getPreviewUrl(obj._id);
+												if (previewImageUrl === undefined) {
+													this.view.showProgress();
+													ajax.getImage(obj._id, imageType, {width: WIDTH, height: HEIGHT})
+														.then((url) => {
+															setPreviewUrl(obj._id, url);
+															this.$imageContainer.refresh();
+														})
+														.catch(() => setPreviewUrl(obj._id, false))
+														.finally(() => this.view.hideProgress());
+												}
 
-										const imageSrc = getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj);
-										return `<div class="image-container">
+												const imageSrc = getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj);
+												return `<div class="image-container">
 											<img src="${imageSrc}" alt="${obj.name}">
 										</div>`;
-									}
+											}
 
-									return "";
-								},
-								borderless: true
+											// return "";
+
+											return `
+											<div class="viewer-container" id="geo_osd" style="width:100%;height:100%;">
+												<div class="viewer" style="width:100%;height:100%;position:absolute;">
+													<div class="container" id="image_viewer" style="width:100%; height:100%;position: relative">
+													</div>
+												</div>
+												<!--GEO JS layer for drawing-->
+												<div class="viewer">
+													<div class="container" id="geojs" style="width:100%; height:100%;position: relative">
+													</div>
+												</div>
+												<div class = "fullpageButton">
+													<img src="sources/images/images/fullpage_grouphover.png" style="width:100%" class = "fullpage_grouphover">
+													<img src="sources/images/images/fullpage_hover.png" style="width:100%; display:none;" class = "fullpage_hover">
+												</div>
+											</div>
+											`;
+										},
+										borderless: true
+									}
+								]
 							}
 						]
 					}
@@ -126,10 +164,55 @@ export default class ImageWindowView extends JetView {
 	init(view) {
 		this.view = view;
 		webix.extend(this.view, webix.ProgressBar);
+
+		let imageTemplate = document.querySelector(".absolute-centered-image-template");
+		imageTemplate.addEventListener("dblclick", () => {
+			if (window.annotationLayer.annotations().length
+				=== this._imageWindowViewModel.annotationsLength
+				&& this._imageWindowViewModel.currentShape) {
+				this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
+			}
+		});
+
+		imageTemplate.addEventListener("click", () => {
+			if (this._imageWindowViewModel.isAnnotationAdd) {
+				this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
+			}
+		});
+
+		window.showAttentionPopup = (callBack) => {
+			if (!auth.getToken()) {
+				webix.alert({
+					title: "Attention",
+					ok: "OK",
+					type: "confirm-warning",
+					text: "In order to save your changes, please, log in application. Changes of not logged in users can not be saved."
+				}).then(() => {
+					if (callBack) {
+						callBack();
+					}
+				});
+			}
+			else if (callBack) callBack();
+		};
 	}
 
 	ready() {
 		this._controlsEventsService = new ControlsEventsService(this, this._controlsView);
+
+		if (this.getRoot().queryView({name: "drawing_toolbar"})) {
+			this._toolbarEventService =
+				new ToolbarEventServices(this, this._toolbarView, this._imageWindowViewModel);
+			this._toolbarEventService.init();
+		}
+
+		if (this.getRoot().queryView({name: "imageTemplate"})) {
+			this._imageTemplateEventServices =
+				new ImageTemplateEventsService(this, this._imageWindowViewModel);
+			this._imageTemplateEventServices.init();
+		}
+
+		this.app.callEvent("enableButtons", [true]);
 	}
 
 	get $leftPanel() {
@@ -167,6 +250,7 @@ export default class ImageWindowView extends JetView {
 		this.$leftPanel.hide();
 		this.$windowTitle.parse(obj);
 
+		this._imageWindowViewModel.setItem(obj);
 		if (viewerType === "standard") {
 			this.$imageContainer.parse(obj);
 			this.$imageContainer.define("scroll", false);
@@ -174,28 +258,35 @@ export default class ImageWindowView extends JetView {
 		}
 
 		this.getRoot().show();
-		const templateNode = this.$imageContainer.getNode();
+		const templateNode = this.$imageContainer.getNode().querySelector("#image_viewer");
 
 		if (viewerType === "seadragon") {
 			this.view.showProgress();
 			ajax.getImageTiles(obj._id)
 				.then((data) => {
+					this.tiles = data; // for geojs
 					this.$leftPanel.show();
 					this.$controlsPanel.show();
 					const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
-					this.createOpenSeadragonViewer(obj, layerOfViewer, templateNode.firstChild)
+					this.createOpenSeadragonViewer(obj, layerOfViewer, templateNode)
 						.then(() => {
+							// for setBound()
+							window.viewer = this._openSeadragonViewer;
+							const slide = this;
+							this.refreshSlide(window.viewer, slide);
 							this._controlsEventsService
 								.init(this._openSeadragonViewer, layerOfViewer);
 						});
 				})
-				.finally(() => this.view.hideProgress());
+				.finally(() => {
+					this.view.hideProgress();
+				});
 		}
 		else if (viewerType === "jsonviewer") {
 			this.view.showProgress();
 			ajax.getJSONFileData(obj._id)
 				.then((data) => {
-					this.createJSONViewer(data, templateNode.firstChild);
+					this.createJSONViewer(data, templateNode);
 				})
 				.finally(() => this.view.hideProgress());
 		}
@@ -228,6 +319,8 @@ export default class ImageWindowView extends JetView {
 			tileSources: layer
 		});
 
+		this._openSeadragonViewer.svgOverlay();
+
 		return new Promise((resolve, reject) => {
 			this._openSeadragonViewer.addOnceHandler("open", resolve);
 			this._openSeadragonViewer.addOnceHandler("open-failed", reject);
@@ -248,5 +341,18 @@ export default class ImageWindowView extends JetView {
 		this.$imageContainer.parse({emptyObject: true});
 		this.getRoot().hide();
 		this._controlsView.reset();
+	}
+
+	getOSDViewer() {
+		return this._openSeadragonViewer;
+	}
+
+	refreshSlide(viewer, sd) {
+		if (viewer && sd) {
+			this.app.callEvent("setSlide", [sd]);
+			window.viewer.viewport.zoomTo(3);
+			window.viewer.viewport.goHome(true);
+		}
+		this.app.callEvent("setBounds", []);
 	}
 }
