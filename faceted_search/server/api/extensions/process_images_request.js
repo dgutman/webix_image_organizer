@@ -1,6 +1,6 @@
 const serviceData = require('../models/service_data');
 const facetImages = require('../models/facet_images');
-const whitelistModel = require('../models/whitelist');
+const approvedMetadataModel = require('../models/approved_metadata');
 const md5 = require('md5-file/promise');
 const crypto = require('crypto');
 
@@ -12,15 +12,15 @@ class ProcessImagesRequest {
         if(clientHash) {
             return Promise.all([
                 serviceData.getImagesHash(),
-                whitelistModel.getWhitelist()
+                approvedMetadataModel.getApprovedMetadata()
             ])
-            .then(([hashObj, whitelist]) => {
-                const whiteListHash = crypto.createHash('sha256');
-                whiteListHash.update(whitelist.updatedAt.toString());
+            .then(([hashObj, approvedMetadata]) => {
+                const approvedMetadataHash = crypto.createHash('sha256');
+                approvedMetadataHash.update(approvedMetadata.updatedAt.toString());
                 let promise;
                 if(!hashObj) {
                     promise = Promise.reject({code: 'ENOENT'});
-                } else if(clientHash === hashObj.data + whiteListHash.digest('hex').slice(0, 10)) {
+                } else if(clientHash === hashObj.data + approvedMetadataHash.digest('hex').slice(0, 10)) {
                     promise = Promise.resolve(true);
                 } else {
                     promise = Promise.resolve(false);

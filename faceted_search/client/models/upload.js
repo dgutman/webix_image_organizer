@@ -13,8 +13,8 @@ define([
 
     socketConnect.on('finishLoading', function() {
         app.callEvent("editForm:finishLoading", []);
-        app.callEvent("editForm:loadDataForFilters", []);
-        app.callEvent("whitelist:loadDataForWhitelist");
+        app.callEvent("approvedMetadata:loadData");
+        app.callEvent("approvedFacet:loadApprovedFacetData");
     });
 
     const uploadJSONFile = function(file) {
@@ -25,7 +25,7 @@ define([
         let size = 0;
         const uploadStream = socketStream.createStream();
         const blobStream = socketStream.createBlobReadStream(file.file);
-        
+
         file.status = 'transfer';
         socketStream(socketConnect).emit('file', uploadStream, {name: file.name, host: ajax.getHostApiUrl()});
 

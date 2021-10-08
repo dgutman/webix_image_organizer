@@ -41,10 +41,10 @@ define([
 	}
 
 	const skins = app.config.skinsList.map((skin) => {
-		let obj = {id: skin, value: skin};
+		const obj = {id: skin, value: skin};
 		addSwitch(skin, switchSkinConfirm);
-		return obj;		
-	})
+		return obj;
+	});
 
 	const loginMenu = {
 		name: "loginMenu",
@@ -96,21 +96,21 @@ define([
 			}
 		}
 	};
-	
+
 	const loginPanel = {
 		id: constants.LOGIN_PANEL_ID,
 		cols: [
 			loginMenu
 		]
 	};
-	
+
 	const logoutPanel = {
 		id: constants.LOGOUT_PANEL_ID,
 		rows: [
-			logoutMenu,
+			logoutMenu
 		]
 	};
-	
+
 	const userPanel = {
 		view: "multiview",
 		css: "userbar",
@@ -120,7 +120,7 @@ define([
 			logoutPanel
 		]
 	};
-	
+
 	return {
         $ui: userPanel,
         $oninit: function() {

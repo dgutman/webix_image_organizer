@@ -1,6 +1,6 @@
 const facetImages = require('../models/facet_images');
 const {facets, filters} = require('./create_facets');
-const whitelistModel = require('../models/whitelist');
+const approvedMetadataModel = require('../models/approved_metadata');
 
 const parse = (arr, host) => {
     let filter = {};
@@ -8,7 +8,7 @@ const parse = (arr, host) => {
     if (arr.length) {
         const insertImagesPromises = [];
 
-        arr.forEach((item) => {
+        arr.forEach(async (item) => {
             if (!item.largeImage) {
                 return;
             }
@@ -17,15 +17,15 @@ const parse = (arr, host) => {
 
             // save json data to object
             mongo_object.data = item;
-    
+
             // cork
             mongo_object.facets = facets(mongo_object.data);
             filter = filters(filter, mongo_object.facets);
-    
+
             mongo_object.filesrc = mongo_object.data.largeImage.src || null;
             mongo_object.filename = null;
             if (host) mongo_object.host = host;
-            whitelistModel.insertItems(mongo_object);
+            await approvedMetadataModel.insertItems(mongo_object);
             insertImagesPromises.push(facetImages.insertImage(mongo_object));
         });
         return Promise.all(insertImagesPromises).then(() => {
