@@ -15,15 +15,15 @@ define([
 	return class ChannelList extends BaseJetView {
 		constructor(app, config = {}) {
 			super(app);
-	
+
 			this._cnf = config;
 			this._sort = {
 				type: "index",
 				order: "asc"
 			};
-	
+
 			this._sortTemplate = new SortTemplate(app);
-	
+
 			this.$oninit = () => {
 				const view = this.getRoot();
 
@@ -31,11 +31,11 @@ define([
 				const list = this.getList();
 				this._selectedChannelsModel = new SelectedItems(list);
 				this._sortTemplate.addListById(list.config.id);
-	
+
 				this.attachListEvents();
 			};
 		}
-	
+
 		get $ui() {
 			return {
 				...this._cnf,
@@ -53,7 +53,7 @@ define([
 									if (!value) {
 										return true;
 									}
-	
+
 									return name.toLowerCase().includes(value.toLowerCase());
 								});
 							}
@@ -99,18 +99,18 @@ define([
 				]
 			};
 		}
-	
+
 		attachListEvents() {
 			const list = this.getList();
 			list.attachEvent("onItemDblClick", (id) => {
 				this.handleCustomSelect(id);
 			});
-	
+
 			list.attachEvent("onItemClick", (id) => {
 				list.select(id);
 			});
 		}
-	
+
 		handleCustomSelect(id) {
 			if (this._selectedChannelsModel.isSelected(id)) {
 				this._selectedChannelsModel.unselect(id);
@@ -121,22 +121,22 @@ define([
 			list.callEvent("customSelectionChanged", [this._selectedChannelsModel.getSelectedItems()]);
 			list.refresh(id); // rerender item
 		}
-	
+
 		isSelected(id) {
 			return this._selectedChannelsModel.isSelected(id);
 		}
-	
+
 		getSelectedChannels() {
 			return this._selectedChannelsModel.getSelectedItems();
 		}
-	
+
 		unselectAllChannels() {
 			const list = this.getList();
 			this._selectedChannelsModel.unselectAll();
 			list.refresh();
 			list.callEvent("customSelectionChanged", [this._selectedChannelsModel.getSelectedItems()]);
 		}
-	
+
 		changeButtonVisibility(show) {
 			const button = this.getAddToGroupButton();
 			if (show) {
@@ -145,15 +145,15 @@ define([
 				button.hide();
 			}
 		}
-	
+
 		getList() {
 			return this.$$(LIST_ID);
 		}
-	
+
 		getListSearch() {
 			return this.$$(TEXT_SEARCH_ID);
 		}
-	
+
 		getAddToGroupButton() {
 			return this.$$(ADD_TO_GROUP_BUTTON_ID);
 		}

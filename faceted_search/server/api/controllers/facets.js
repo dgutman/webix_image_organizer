@@ -1,6 +1,6 @@
 const ProcessImagesRequest = require('../extensions/process_images_request');
 const updateLocalCache = require('../extensions/updateLocalCache');
-const ProcessWhitelistRequest = require('../extensions/process_whitelist_request');
+const ProcessApprovedMetadataRequest = require('../extensions/process_approved_metadata_request');
 const crypto = require('crypto');
 const constants = require('../../constants');
 const lodash = require('lodash');
@@ -13,23 +13,23 @@ exports.getImagesData = (req, res, next) => {
         return Promise.all([
             Promise.resolve(hash),
             Promise.resolve(images),
-            ProcessWhitelistRequest.getWhitelistData()
+            ProcessApprovedMetadataRequest.getApprovedMetadataData()
         ]);
     })
-    .then(([hash, images, whitelist]) => {
+    .then(([hash, images, approvedMetadataData]) => {
         if(hash) {
-            const whiteListHash = crypto.createHash('sha256');
-            whiteListHash.update(whitelist.updatedAt.toString());
+            const approvedMetadataHash = crypto.createHash('sha256');
+            approvedMetadataHash.update(approvedMetadataData.updatedAt.toString());
 
             res.set({
                 'Cache-Control': 'private',
-                'ETag': hash.data + whiteListHash.digest('hex').slice(0, 10)
+                'ETag': hash.data + approvedMetadataHash.digest('hex').slice(0, 10)
             });
             if (host) {
                    images = JSON.parse(images).filter((obj) => obj.host === host);
                }
             images.forEach((image) => {
-                image = filterImageData(image, whitelist.data);
+                image = filterImageData(image, approvedMetadataData.data);
             });
             res.status(200).send(images);
         } else {
@@ -51,13 +51,13 @@ exports.getImageData = (req, res, next) => {
     .then((image) => {
         return Promise.all([
             Promise.resolve(image),
-            ProcessWhitelistRequest.getWhitelistData()
+            ProcessApprovedMetadataRequest.getApprovedMetadataData()
         ]);
     })
-    .then(([image, whitelist]) => {
+    .then(([image, approvedMetadataData]) => {
         if (host) {
             if(image.host === host) {
-                image = filterImageData(image, whitelist.data);
+                image = filterImageData(image, approvedMetadataData.data);
                 res.status(200).send(image);
             } else {
                 res.status(404);
@@ -69,16 +69,16 @@ exports.getImageData = (req, res, next) => {
     });
 };
 
-const filterImageData = function(image, whitelist) {
-    image.facets = filterFacets(image.facets, whitelist);
-    const dataToDisplay = filterData(image.data, whitelist);
+const filterImageData = function(image, approvedMetadataData) {
+    image.facets = filterFacets(image.facets, approvedMetadataData);
+    const dataToDisplay = filterData(image.data, approvedMetadataData);
     addServiceData(dataToDisplay, image.data);
     image.data = dataToDisplay;
     return image;
 };
 
-const filterFacets = function(facets, whitelist) {
-    whitelist.forEach((filter) => {
+const filterFacets = function(facets, approvedMetadataData) {
+    approvedMetadataData.forEach((filter) => {
         if(filter.checked === false) {
             delete(facets[filter.id]);
         }
@@ -89,9 +89,9 @@ const filterFacets = function(facets, whitelist) {
     return facets;
 };
 
-const filterData = function(data, whitelist) {
+const filterData = function(data, approvedMetadataData) {
     const dataToDisplay = {};
-    whitelist.forEach((filter) => {
+    approvedMetadataData.forEach((filter) => {
         if(filter.checked === false) {
             let dataForChecking;
             if(data.hasOwnProperty(filter.value)) {
@@ -112,13 +112,13 @@ const filterData = function(data, whitelist) {
                         dataForChecking = filterData(dataForChecking, filter.data);
                     }
                     const checkingDataLength = Object.keys(dataForChecking).length > 0
-                        ? Object.keys(dataForChecking).length 
+                        ? Object.keys(dataForChecking).length
                         : 0;
                     if(checkingDataLength > 0) {
                         dataToDisplay[filter.value] = dataForChecking;
                     }
                 }
-            } 
+            }
         } else if(data.hasOwnProperty(filter.value)) {
             dataToDisplay[filter.value] = data[filter.value];
         }

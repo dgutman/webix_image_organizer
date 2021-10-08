@@ -1,13 +1,13 @@
 define([], function () {
-	var ui = {
-		rows: [
-			{
-				$subview: true
-			}
-		]
-	};
+    var ui = {
+        rows: [
+            {
+                $subview: true
+            }
+        ]
+    };
 
-	return {
-		$ui: ui
-	};
+    return {
+        $ui: ui
+    };
 });
