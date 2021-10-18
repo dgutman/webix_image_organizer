@@ -1,7 +1,11 @@
 module.exports = {
   archive_upload_path: __dirname + '/upload',
   images_folder: __dirname + '/upload/images',
-  mongo: 'mongodb://localhost:27017/faceted_search',
+  mongo: {
+    name: process.env.MONGODB_NAME || "faceted_search",
+    host: process.env.MONGODB_HOST || "localhost",
+    port: process.env.MONGODB_PORT || 27017
+  },
   session_secret: 'sample-secret',
   hosts_list: [
     {id: "1", value: "Girder", hostAPI: "http://dermannotator.org:8080/api/v1"},
