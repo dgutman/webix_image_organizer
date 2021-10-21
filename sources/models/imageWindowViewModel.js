@@ -268,8 +268,6 @@ export default class imageWindowViewModel {
 		let url = `${ajax.getHostApiUrl()}/annotation/item/${this.item._id}`;
 		const result = await webix.ajax().get(url);
 		this.resetDataStructures();
-		// let resultString = JSON.stringify(result);
-		// this.annotations = JSON.parse(resultString);
 		if (result && result.json) {
 			this.annotations = result.json();
 		}
@@ -278,16 +276,14 @@ export default class imageWindowViewModel {
 		let allShapesLength = 0;
 		let geoIdArray = [];
 		let labelId = [];
-		if (lodash.isArray(this.annotations) && this.annotations.length !== 0) {
+		if (!lodash.isEmpty(this.annotations)) {
 			this.annotations = this.annotations.filter(annotation => annotation.annotation.attributes.dsalayers);
 			this.annotations.forEach((annotation) => {
-				if (annotation.annotation.attributes.dsalayers
-					&& !this.isEmpty(annotation.annotation.attributes.dsalayers)
-					&& annotation.annotation.attributes.dsalayers.length > 0) {
-					annotation.annotation.attributes.dsalayers.forEach((dsalayer) => {
-						if (!dsalayer.annotationId) {
-							dsalayer.annotationId = annotation._id;
-						}
+				const dsalayers = annotation.annotation.attributes.dsalayers;
+				if (dsalayers
+					&& !this.isEmpty(dsalayers)
+					&& dsalayers.length > 0) {
+					dsalayers.forEach((dsalayer) => {
 						this.dsalayers.push(dsalayer);
 						this.treeannotations.push(dsalayer);
 						allShapesLength += dsalayer.data.length;
@@ -455,14 +451,14 @@ export default class imageWindowViewModel {
 			};
 
 			let annotationElement = {};
+			annotationElement.label = {
+				value: feature.properties.value
+			};
+			annotationElement.lineColor = feature.properties.strokeColor;
+			annotationElement.lineWidth = feature.properties.strokeWidth;
 			switch (feature.properties.annotationType) {
 				case "line":
 					annotationElement.id = feature.properties.annotationId;
-					annotationElement.label = {
-						value: feature.properties.label
-					};
-					annotationElement.lineColor = feature.properties.strokeColor;
-					annotationElement.lineWidth = feature.properties.strokeWidth;
 					annotationElement.type = "polyline";
 					annotationElement.fillColor = feature.properties.fillColor || "#00ff00";
 					annotationElement.fillOpacity = feature.properties.fillOpacity;
@@ -471,24 +467,14 @@ export default class imageWindowViewModel {
 					break;
 				case "rectangle":
 					annotationElement.id = feature.properties.id;
-					annotationElement.label = {
-						value: feature.properties.value
-					};
-					annotationElement.lineColor = feature.properties.strokeColor;
-					annotationElement.lineWidth = feature.properties.strokeWidth;
-					annotationElement.type = "polyline";
-					annotationElement.center = ["Coordinates"];
-					annotationElement.fillColor = "Fill color";
+					annotationElement.type = "rectangle";
+					// annotationElement.center = ["Coordinates"];
+					// annotationElement.fillColor = "Fill color";
 					annotationElement.fillOpacity = feature.properties.fillOpacity;
 					// annotationElement.points = geojsonObj.features.geometry.coordinates;
 					break;
 				case "polygon":
 					annotationElement.id = feature.properties.annotationId;
-					annotationElement.label = {
-						value: feature.properties.label
-					};
-					annotationElement.lineColor = feature.properties.strokeColor;
-					annotationElement.lineWidth = feature.properties.strokeWidth;
 					annotationElement.type = "polyline";
 					// annotationElement.center = ["Coordinates"];
 					annotationElement.fillColor = feature.properties.fillColor || "#00ff00";
@@ -558,9 +544,7 @@ export default class imageWindowViewModel {
 					let annotationInfo = {
 						// elements: []
 						attributes: {
-							dsalayers: this.treeannotations.filter((annotationFromTree) => {
-								return annotationFromTree.annotationId === annotation._id;
-							}),
+							dsalayers: this.dsalayers,
 							geojslayer: geojsonObj
 						}
 					};
