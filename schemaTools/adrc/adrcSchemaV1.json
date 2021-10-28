@@ -56,23 +56,29 @@
         },
         "region": {
             "$id": "#/properties/region",
-            "type": "string",
-            "title": "The region schema",
-            "description": "An explanation about the purpose of this instance.",
             "default": "",
+            "description": "An explanation about the purpose of this instance.",
+            "enum": [
+                "Amygdala"
+            ],
             "examples": [
                 "13"
-            ]
+            ],
+            "title": "The region schema",
+            "type": []
         },
         "stain": {
             "$id": "#/properties/stain",
-            "type": "string",
-            "title": "The stain schema",
-            "description": "An explanation about the purpose of this instance.",
             "default": "",
+            "description": "An explanation about the purpose of this instance.",
             "examples": [
                 "HE"
-            ]
+            ],
+            "title": "The stain schema",
+            "enum": [
+                "HE","pTDP"
+            ],
+            "type": "string"
         },
         "subject": {
             "$id": "#/properties/subject",
