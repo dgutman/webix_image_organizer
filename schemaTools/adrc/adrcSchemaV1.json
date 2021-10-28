@@ -1,0 +1,89 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "folderId": "1997_E97-53",
+            "slideName": "OS97-53_13_SM.svs",
+            "itemId": "5f4adddf239fccd2dfc399cd",
+            "region": "13",
+            "stain": "HE",
+            "subject": "OS97-53"
+        }
+    ],
+    "required": [
+        "folderId",
+        "slideName",
+        "itemId",
+        "region",
+        "stain",
+        "subject"
+    ],
+    "properties": {
+        "folderId": {
+            "$id": "#/properties/folderId",
+            "type": "string",
+            "title": "The folderId schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "1997_E97-53"
+            ]
+        },
+        "slideName": {
+            "$id": "#/properties/slideName",
+            "type": "string",
+            "title": "The slideName schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "OS97-53_13_SM.svs"
+            ]
+        },
+        "itemId": {
+            "$id": "#/properties/itemId",
+            "type": "string",
+            "title": "The itemId schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "5f4adddf239fccd2dfc399cd"
+            ]
+        },
+        "region": {
+            "$id": "#/properties/region",
+            "type": "string",
+            "title": "The region schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "13"
+            ]
+        },
+        "stain": {
+            "$id": "#/properties/stain",
+            "type": "string",
+            "title": "The stain schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "HE"
+            ]
+        },
+        "subject": {
+            "$id": "#/properties/subject",
+            "type": "string",
+            "title": "The subject schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "OS97-53"
+            ]
+        }
+    },
+    "additionalProperties": true
+}
