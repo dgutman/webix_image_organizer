@@ -56,16 +56,13 @@
         },
         "region": {
             "$id": "#/properties/region",
-            "default": "",
-	    "type": "string",
+            "type": "string",
+            "enum": ["Amygdala"],
             "description": "An explanation about the purpose of this instance.",
-            "enum": [
+            "examples": [
                 "Amygdala"
             ],
-            "examples": [
-                "13"
-            ],
-            "title": "The region schema",
+            "title": "The region schema"
         },
         "stain": {
             "$id": "#/properties/stain",
@@ -91,5 +88,5 @@
             ]
         }
     },
-    "additionalProperties": true
+    "additionalProperties": false
 }
