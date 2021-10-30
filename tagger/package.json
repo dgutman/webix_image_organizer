@@ -49,7 +49,7 @@
     "@fortawesome/fontawesome-free": "^5.12.1",
     "PubSub": "^3.4.0",
     "ajv": "^6.12.2",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "body-parser": "^1.19.0",
     "codemirror": "^5.58.2",
     "cors": "^2.8.5",
