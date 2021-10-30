@@ -24,10 +24,12 @@ export default class FilterModel {
 		this.dataCollection.data.attachEvent("onDataUpdate", (id) => {
 			const item = this.dataCollection.getItem(id);
 			const starColor = this.itemsModel.findStarColorForItem(item);
+			const highlightedValues = this.itemsModel.findHighlightedValues(item);
 			if (starColor && starColor !== item.starColor) {
 				this.addFilterValue(`${starColor} star`);
 				this.parseFilterToRichSelectList();
 				item.starColor = starColor;
+				item.highlightedValues = highlightedValues;
 				this.itemsModel.dataview.render(item.id, item, "update");
 			}
 		});
@@ -54,6 +56,22 @@ export default class FilterModel {
 			this.addFilterValue(itemType);
 			if (itemStarColor) this.addFilterValue(`${itemStarColor} star`);
 			if (itemWarningStatus) this.addFilterValue("warning");
+			// if (item.hasOwnProperty("meta") && item.meta.hasOwnProperty("tag")) {
+			// 	const tagsImageId = imagesTagsCollection.getLastId();
+			// 	const tagsImage = imagesTagsCollection.getItem(tagsImageId);
+			// 	item.meta.tag.forEach((tag) => {
+			// 		for (let key in tag) {
+			// 			if (Array.isArray(tag[key])) {
+			// 				tag[key].forEach((tagId) => {
+			// 					addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
+			// 				});
+			// 			} else {
+			// 				const tagId = tag[key];
+			// 				addFilterValue(getTagValue(tagsImage, tagId, key, "id", "value"));
+			// 			}
+			// 		}
+			// 	});
+			// }
 		});
 		this.clearFilterRichSelectList();
 		this.addNoFiltersSelection();
