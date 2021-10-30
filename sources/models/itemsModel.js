@@ -165,6 +165,7 @@ export default class ItemsModel {
 
 			data.forEach((item) => {
 				item.starColor = this.findStarColorForItem(item);
+				item.highlightedValues = this.findHighlightedValues(item);
 			});
 
 			this.dataCollection.parse(data);
@@ -239,6 +240,35 @@ export default class ItemsModel {
 			return starColor;
 		}
 		return null;
+	}
+
+	findHighlightedValues(item) {
+		const highlight = [];
+
+		if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
+			const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
+			const projectSchema = projectSchemaItem.meta.schema
+				|| projectSchemaItem.meta.ProjectSchema
+				|| projectSchemaItem.meta.projectSchema
+				|| {};
+
+			const schemaKeys = Object.keys(projectSchema);
+
+			schemaKeys.forEach((key) => {
+				const metadataValue = dot.pick(`meta.${key}`, item);
+
+				if (metadataValue !== undefined) {
+					const correctValue = projectSchema[key].find(value => metadataValue === value);
+					if (!correctValue) {
+						highlight.push(key);
+					}
+				}
+				else {
+					highlight.push(key);
+				}
+			});
+		}
+		return highlight;
 	}
 
 	findAndRemove(id, folder) {

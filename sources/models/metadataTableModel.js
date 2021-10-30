@@ -97,13 +97,22 @@ function setSelectFilterOptions(filterType, columnId, initial) {
 	return options;
 }
 
-function getMetadataColumnTemplate(obj, columnId) {
+function markWrongMetadata(value, config) {
+	let style = {"background-color": "#ff5d5d"};
+	return style;
+}
+
+function getMetadataColumnTemplate(obj, config, columnId) {
 	if (obj.hasOwnProperty("meta")) {
-		const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
+		// const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
 		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
 
 		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
-			return `<span class="metadata-column-template" style="color: ${columnValueColor};">${metadataColumnValue}</span>`;
+			if (obj.highlightedValues
+					&& obj.highlightedValues.find(highlightedValue => highlightedValue === columnId)) {
+				config.cssFormat = markWrongMetadata;
+			}
+			return `<span class="metadata-column-template">${metadataColumnValue}</span>`;
 		}
 	}
 	return "No present metadata";
@@ -324,7 +333,7 @@ function getColumnsForDatatable(datatable) {
 						sort: "text",
 						filterType,
 						minWidth: 180,
-						template: obj => getMetadataColumnTemplate(obj, columnId)
+						template: (obj, common, value, config) => getMetadataColumnTemplate(obj, config, columnId)
 					};
 				}
 				else {
