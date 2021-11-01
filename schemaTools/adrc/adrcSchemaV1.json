@@ -65,7 +65,7 @@
             "examples": [
                 "13"
             ],
-            "title": "The region schema",
+            "title": "The region schema"
         },
         "stain": {
             "$id": "#/properties/stain",
