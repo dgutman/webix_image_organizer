@@ -3,7 +3,7 @@
     "$id": "http://example.com/adrcSchemaV2.json",
     "type": "object",
     "title": "The root schema",
-    "description": "The root schema comprises the entire JSON document.",
+    "description": "The root schema comprises the entire JSON document. ",
     "default": {},
     "examples": [
         {
@@ -56,11 +56,14 @@
         },
         "region": {
             "$id": "#/properties/region",
-            "type": "string",
-            "enum": ["Amygdala"],
+            "default": "",
+	    "type": "string",
             "description": "An explanation about the purpose of this instance.",
-            "examples": [
+            "enum": [
                 "Amygdala"
+            ],
+            "examples": [
+                "13"
             ],
             "title": "The region schema"
         },
@@ -88,5 +91,5 @@
             ]
         }
     },
-    "additionalProperties": false
+    "additionalProperties": true
 }
