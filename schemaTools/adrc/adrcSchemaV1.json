@@ -3,7 +3,7 @@
     "$id": "http://example.com/adrcSchemaV1.json",
     "type": "object",
     "title": "The root schema",
-    "description": "The root schema comprises the entire JSON document.",
+    "description": "The root schema comprises the entire JSON document. ",
     "default": {},
     "examples": [
         {
