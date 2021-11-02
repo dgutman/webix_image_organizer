@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": https://raw.githubusercontent.com/dgutman/webix_image_organizer/adrcSchema/schemaTools/adrc/adrcSchemaV1.json",
+    "$id": http://exmaple.com/adrcSchemaV1.json",
     "type": "object",
     "title": "The root schema",
     "description": "The root schema comprises the entire JSON document.",
