@@ -3,11 +3,11 @@ const Promise = require('bluebird');
 const mongo = require('../config').mongo;
 
 module.exports = function(callback) {
-    const uri = mongo;
+    const uri = `mongodb://${mongo.host}:${mongo.port}/${mongo.name}`;
 
     // Use bluebird
     mongoose.Promise = Promise;
-    mongoose.connect(process.env.MONGODB_URI || uri);
+    mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true});
 
     callback();
 };

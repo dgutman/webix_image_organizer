@@ -13,8 +13,10 @@ RUN npm -v
 # build app bundles
 RUN npm i
 
+RUN npm install pm2 -g
+
 RUN npm run build
 
 EXPOSE 80
 
-CMD ["npx", "http-server", "/app/dev/codebase", "-p", "80"]
+CMD ["pm2-runtime", "start", "pm2.config.js", "--env=production"]

@@ -4,7 +4,7 @@ To run:
 1. change `server_name` properties to your domain names in custom.conf (for https: https.conf);
 2. make sure 80 and/or 443 ports are available;
 (don't forget to change `.env` file at` tagger` directory)
-3. `run docker-compose up -d --build`;
+3. run `docker-compose up -d --build`;
 
 To configure https and run:
 1. change server_name properties to your domain names in https.conf;
