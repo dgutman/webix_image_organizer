@@ -5,6 +5,7 @@ import authService from "../../../../services/authentication";
 import NewColumnsService from "../../../../services/metadataTable/newColumnsService";
 import ImageColumnService from "../../../../services/metadataTable/imageColumnService";
 import constants from "../../../../constants";
+import patientsDataModel from "../../../../models/patientsDataModel";
 
 const WIDTH = 600;
 const buttonMinusIcon = "fas fa-minus";
@@ -84,6 +85,7 @@ export default class EditColumnsWindow extends JetView {
 					cols: [
 						{
 							template: "Item field",
+							name: "fieldHeader",
 							borderless: true,
 							css: "new-columns-header"
 						},
@@ -198,7 +200,8 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	removeOldDatatableColumns(columnConfig) {
-		const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
+		const existedColumns = metadataTableModel.getLocalStorageColumnsConfig()
+			|| metadataTableModel.getInitialColumnsForDatatable();
 		const newDatatableColumns = existedColumns.filter((existedColumn) => {
 			if (existedColumn.initial && existedColumn.id === columnConfig.id) {
 				existedColumn.hidden = true;
@@ -210,11 +213,24 @@ export default class EditColumnsWindow extends JetView {
 		});
 
 		metadataTableModel.putInLocalStorage(newDatatableColumns, this.userInfo._id);
+
+		const patientColumns = metadataTableModel.getLocalStoragePatientsFields()
+			|| [];
+		const newPatientColumns = patientColumns.filter((patientColumn) => {
+			if (patientColumn.patientColumn) {
+				return columnConfig.id !== patientColumn.id;
+			}
+			return false;
+		});
+		metadataTableModel.putPatientsFieldsToStorage(newPatientColumns, this.userInfo._id);
 	}
 
 	createNewDatatableColumns(columnConfig, filterTypeValue) {
 		let filterType;
-		const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
+		const existedColumns = metadataTableModel.getLocalStorageColumnsConfig()
+			|| metadataTableModel.getInitialColumnsForDatatable();
+		const patientColumns = metadataTableModel.getLocalStoragePatientsFields()
+			|| [];
 
 		switch (filterTypeValue) {
 			case constants.FILTER_TYPE_TEXT: {
@@ -245,14 +261,28 @@ export default class EditColumnsWindow extends JetView {
 				}
 			});
 		}
+		else if (columnConfig.patientColumn) {
+			patientColumns.push(columnConfig);
+			const patientColumnsCount = patientColumns.length;
+			patientColumns.forEach((patientColumn, index) => {
+				const patientHeader = index === 0 ? "Patient data" : null;
+				if (patientColumn.header.length > 1) patientColumn.header.shift();
+				patientColumn.header.unshift(patientHeader
+					? {text: patientHeader, colspan: patientColumnsCount}
+					: {text: patientHeader});
+			});
+		}
 		else existedColumns.push(columnConfig);
 
 		metadataTableModel.putInLocalStorage(existedColumns, this.userInfo._id);
+		metadataTableModel.putPatientsFieldsToStorage(patientColumns, this.userInfo._id);
 	}
 
 	createFormElement(columnConfig, buttonIcon) {
 		const newFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+		const patientsFields = metadataTableModel.getLocalStoragePatientsFields() || [];
 		const isNew = newFields.includes(columnConfig.id);
+		const isPatient = patientsFields.includes(columnConfig.id);
 		const isInitial = columnConfig.initial;
 
 		const columnTextValue = columnConfig.id;
@@ -339,7 +369,7 @@ export default class EditColumnsWindow extends JetView {
 			]
 		};
 
-		if (isNew) {
+		if (isNew || isPatient) {
 			element.id = usersColId;
 			element.cols.push(deleteButton);
 		}
@@ -347,7 +377,7 @@ export default class EditColumnsWindow extends JetView {
 	}
 
 	// filling form view with new dynamic elements
-	fillInFormElements(columnsToAdd, columnsToDelete) {
+	fillInFormElements(columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete) {
 		let elements = [];
 		const windowForm = this.getWindowForm();
 
@@ -357,7 +387,8 @@ export default class EditColumnsWindow extends JetView {
 			users: [],
 			initial: [],
 			generated: [],
-			image: []
+			image: [],
+			patients: []
 		};
 
 		columnsToAdd.forEach((config) => {
@@ -374,6 +405,16 @@ export default class EditColumnsWindow extends JetView {
 			else if (config.initial) columns.initial.push(formElement);
 			else if (config.columnType === "image") columns.image.push(formElement);
 			else columns.generated.push(formElement);
+		});
+
+		patientsColumnsToAdd.forEach((config) => {
+			const formElement = this.createFormElement(config, buttonPlusIcon);
+			columns.patients.push(formElement);
+		});
+
+		patientsColumnsToDelete.forEach((config) => {
+			const formElement = this.createFormElement(config, buttonMinusIcon);
+			columns.patients.push(formElement);
 		});
 
 		Object.keys(columns).forEach((k) => {
@@ -394,6 +435,14 @@ export default class EditColumnsWindow extends JetView {
 						elements.unshift({type: "section", template, id: `${k}-section`});
 						return;
 					}
+					case "generated": {
+						template = "GENERATED COLUMNS";
+						break;
+					}
+					case "patients": {
+						template = "PATIENT COLUMNS";
+						break;
+					}
 					default: {
 						template = "GENERATED COLUMNS";
 						break;
@@ -409,17 +458,38 @@ export default class EditColumnsWindow extends JetView {
 
 	buildColumnsConfig(metadataTable) {
 		const promise = new Promise((success) => {
-			const existedColumns = metadataTableModel.getLocalStorageColumnsConfig() || metadataTableModel.getInitialColumnsForDatatable();
+			const existedColumns
+				= metadataTableModel.getLocalStorageColumnsConfig()
+				|| metadataTableModel.getInitialColumnsForDatatable();
 			const columnsToAdd = [];
+			const patientsColumnsToAdd = [];
+			const patientsColumnsToDelete = metadataTableModel.getLocalStoragePatientsFields() || [];
 			metadataTableModel.metadataDotObject = {};
+			metadataTableModel.patientsDataDotObject = {};
+			const patientsData = patientsDataModel.getPatientsData();
+			let newPatients = [];
 			metadataTable.find((obj) => {
+				let found = false;
 				if (obj.hasOwnProperty("meta")) {
 					const copy = webix.copy(obj.meta);
 					dot.remove(constants.IGNORED_METADATA_COLUMNS, copy);
-					metadataTableModel.metadataDotObject = Object.assign(metadataTableModel.metadataDotObject, dot.dot(copy));
-					return obj;
+					metadataTableModel.metadataDotObject
+						= Object.assign(metadataTableModel.metadataDotObject, dot.dot(copy));
+					found = true;
+					if (copy.hasOwnProperty("subject")) {
+						const subject = copy.subject;
+						const foundPatient = this.findPatientData(patientsData, subject);
+						if (!foundPatient) {
+							newPatients.push(subject);
+						}
+					}
 				}
+				return found ? obj : false;
 			});
+
+			if (newPatients.length > 0) {
+				patientsDataModel.createNewPatientRecord(newPatients);
+			}
 
 			const columnsToDelete = existedColumns.filter((columnConfig) => {
 				if (columnConfig.hidden) columnsToAdd.push(columnConfig);
@@ -433,15 +503,33 @@ export default class EditColumnsWindow extends JetView {
 			// add columns of not existing item fields to window form
 			this.newColumnsService.addNewColumnsFromLS();
 
-			this.createColumnsConfig(columnsToAdd, columnsToDelete);
+			this.createColumnsConfig(columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete);
 
-			return success([columnsToAdd, columnsToDelete]);
+			return success([columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete]);
 		});
 		return promise;
 	}
 
-	createColumnsConfig(columnsToAdd, columnsToDelete) {
+	findPatientData(patientsData, subject) {
+		let foundPatient = false;
+		patientsData.forEach((patient) => {
+			if (patient.name === subject && patient.hasOwnProperty("meta")) {
+				metadataTableModel.patientsDataDotObject
+					= Object.assign(metadataTableModel.patientsDataDotObject, dot.dot(patient.meta));
+				foundPatient = true;
+			}
+		});
+		return foundPatient;
+	}
+
+	createColumnsConfig(
+		columnsToAdd,
+		columnsToDelete,
+		patientsColumnsToAdd,
+		patientsColumnsToDelete
+	) {
 		const keys = Object.keys(metadataTableModel.metadataDotObject);
+		const patientsKeys = Object.keys(metadataTableModel.patientsDataDotObject);
 		keys.forEach((key) => {
 			const dotNotation = key.split(".");
 			const header = dotNotation.map(text => ({text}));
@@ -453,11 +541,34 @@ export default class EditColumnsWindow extends JetView {
 				});
 			}
 		});
+		patientsKeys.forEach((patientsKey) => {
+			const dotNotation = patientsKey.split(".");
+			const header = dotNotation.map(text => ({text}));
+			const toDelete = patientsColumnsToDelete.find(patientColumnToDelete => patientColumnToDelete.id === patientsKey);
+			if (!toDelete && !patientsColumnsToAdd.find(patientColumn => patientColumn.id === patientsKey)) {
+				patientsColumnsToAdd.push({
+					id: patientsKey,
+					header,
+					patientColumn: true
+				});
+			}
+		});
 	}
 
-	showWindow(columnsToAdd, columnsToDelete, datatable) {
+	showWindow(
+		columnsToAdd,
+		columnsToDelete,
+		patientsColumnsToAdd,
+		patientsColumnsToDelete,
+		datatable
+	) {
 		this.metadataTable = datatable;
-		this.fillInFormElements(columnsToAdd, columnsToDelete);
+		this.fillInFormElements(
+			columnsToAdd,
+			columnsToDelete,
+			patientsColumnsToAdd,
+			patientsColumnsToDelete
+		);
 		this.getRoot().show();
 	}
 

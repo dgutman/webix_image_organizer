@@ -34,43 +34,70 @@ export default class NewColumnsClass {
 				},
 				columnName: webix.rules.isNotEmpty
 			},
-			cols: [
+			rows: [
 				{
-					view: "text",
-					name: "itemField",
-					placeholder: "e.g. clinicalData.person.age",
-					css: "text-field",
-					columnConfig,
-					height: 27,
-					on: {
-						onChange: (val) => {
-							const newColumnForm = webix.$$(columnConfig.id);
-							const dotNotation = val.split(".");
-							const header = dotNotation.pop();
-
-							newColumnForm.setValues({
-								itemField: val,
-								columnName: header
-							});
+					cols: [
+						{
+							view: "text",
+							name: "itemField",
+							placeholder: "e.g. clinicalData.person.age",
+							css: "text-field",
+							columnConfig,
+							height: 27,
+							on: {
+								onChange: (val) => {
+									const newColumnForm = webix.$$(columnConfig.id);
+									const formValues = newColumnForm.getValues();
+									const dotNotation = val.split(".");
+									const header = dotNotation.pop();
+									newColumnForm.setValues({
+										itemField: val,
+										columnName: header,
+										fieldType: formValues.fieldType
+									});
+								}
+							}
+						},
+						{width: 10},
+						{
+							view: "text",
+							name: "columnName",
+							placeholder: "e.g. age (read only)",
+							css: "text-field",
+							readonly: true,
+							height: 20
+						},
+						{
+							view: "button",
+							type: "icon",
+							icon: buttonDeleteIcon,
+							width: 30,
+							click: () => {
+								this.removeNewColumn(columnConfig.id);
+							}
 						}
-					}
-				},
-				{width: 10},
-				{
-					view: "text",
-					name: "columnName",
-					placeholder: "e.g. age (read only)",
-					css: "text-field",
-					readonly: true,
-					height: 20
+					]
 				},
 				{
-					view: "button",
-					type: "icon",
-					icon: buttonDeleteIcon,
-					width: 30,
-					click: () => {
-						this.removeNewColumn(columnConfig.id);
+					view: "radio",
+					name: "fieldType",
+					value: 1,
+					options: [
+						{id: "item", value: "Item field"},
+						{id: "patient", value: "Patient field"}
+					],
+					on: {
+						onChange: (newValue) => {
+							const fieldHeader = this.newColumnsLayout.queryView({name: "fieldHeader"});
+							if (newValue === "item") {
+								fieldHeader.define("template", "Item field");
+								fieldHeader.refresh();
+							}
+							else {
+								fieldHeader.define("template", "Patient field");
+								fieldHeader.refresh();
+							}
+						}
 					}
 				}
 			]
@@ -108,11 +135,26 @@ export default class NewColumnsClass {
 		}
 	}
 
+	addPatientsColumnsFromLS() {
+		let patientsFields = metadataTableModel.getLocalStoragePatientsFields();
+		if (patientsFields) {
+			patientsFields = patientsFields.filter((field) => {
+				if (metadataTableModel.patientsDataDotObject.hasOwnProperty(field)) {
+					return false;
+				}
+				metadataTableModel.patientsDataDotObject[field] = "";
+				return field;
+			});
+			metadataTableModel.putPatientsFieldsToStorage(patientsFields, this.userInfo._id);
+		}
+	}
+
 	saveNewColumns() {
 		const idsToDelete = {};
 
 		const localNewItemFields = metadataTableModel.getLocalStorageNewItemFields() || [];
-		const newItemFields = this.newColumnsForm.queryView({view: "form"}, "all")
+		const localNewPatientsFields = metadataTableModel.getLocalStoragePatientsFields() || [];
+		const newFields = this.newColumnsForm.queryView({view: "form"}, "all")
 			.filter((view) => {
 				const field = view.getValues().itemField;
 				if (view.validate() && !localNewItemFields.includes(field)) {
@@ -121,18 +163,28 @@ export default class NewColumnsClass {
 				}
 				return false;
 			})
-			.map(view => view.getValues().itemField);
+			.map(view => ({field: view.getValues().itemField, fieldType: view.getValues().fieldType}));
 
-		metadataTableModel.putNewItemFieldsToStorage(localNewItemFields.concat(newItemFields), this.userInfo._id);
+		newFields.forEach((obj) => {
+			if (obj.fieldType === "item") {
+				localNewItemFields.push(obj.field);
+			}
+			else {
+				localNewPatientsFields.push(obj.field);
+			}
+		});
 
-		const itemFieldsConfig = newItemFields.map((field) => {
-			const dotNotation = field.split(".");
+		metadataTableModel.putNewItemFieldsToStorage(localNewItemFields, this.userInfo._id);
+		metadataTableModel.putPatientsFieldsToStorage(localNewPatientsFields, this.userInfo._id);
+
+		const itemFieldsConfig = newFields.map((obj) => {
+			const dotNotation = obj.field.split(".");
 			const header = dotNotation.map(text => ({text}));
 
-			this.removeNewColumn(idsToDelete[field]);
-			delete idsToDelete[field];
+			this.removeNewColumn(idsToDelete[obj.field]);
+			delete idsToDelete[obj.field];
 
-			return this.root.$scope.createFormElement({id: field, header}, buttonPlusIcon);
+			return this.root.$scope.createFormElement({id: obj, header}, buttonPlusIcon);
 		});
 
 		if (itemFieldsConfig.length && !$$("users-section")) {

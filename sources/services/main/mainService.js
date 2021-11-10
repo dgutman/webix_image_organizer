@@ -20,6 +20,7 @@ import GalleryDataviewContextMenu from "../../views/components/galleryDataviewCo
 import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
 import RenamePopup from "../../views/components/renamePopup";
 import projectMetadata from "../../models/projectMetadata";
+import patientsDataModel from "../../models/patientsDataModel";
 import ItemsModel from "../../models/itemsModel";
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
@@ -35,6 +36,7 @@ let contextToFolder;
 let scrollEventId;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
+const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
 let filesToLargeImage = [];
 let isRecognitionResultMode;
 
@@ -100,6 +102,7 @@ class MainService {
 		this._makeLargeImageButton = this._view.$scope
 			.getSubGalleryFeaturesView().getMakeLargeImageButton();
 		this._renamePopup = this._view.$scope.ui(RenamePopup);
+		// this._tableTemplateCollapser = this._metadataTable.$scope.getTableTemplateCollapser();
 		this._galleryDataviewImageViewer = this._view.$scope
 			.getSubGalleryFeaturesView().getGalleryImageViewer();
 		this._projectFolderWindowButton = this._view.$scope
@@ -111,6 +114,7 @@ class MainService {
 		if (ItemsModel.instance) ItemsModel.instance.destroy();
 		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
+		this._metadataTableDataCollection = metadataTableModel.getMetadataTableDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
 		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
 		this._recognitionProgressTemplate = this._view.$scope
@@ -145,7 +149,7 @@ class MainService {
 		viewMouseEvents.setMakeLargeImageButton(this._makeLargeImageButton);
 
 		this._galleryDataview.sync(this._itemsDataCollection);
-		this._metadataTable.sync(this._itemsDataCollection);
+		this._metadataTable.sync(this._metadataTableDataCollection);
 		zstackCell.setCollection(this._itemsDataCollection);
 		scenesViewCell.syncSlider(this._itemsDataCollection);
 
@@ -217,7 +221,7 @@ class MainService {
 		this._metadataTable.attachEvent("onBeforeSelect", () => false);
 
 		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir) => {
-			this._itemsDataCollection.sort(by, dir);
+			this._metadataTableDataCollection.sort(by, dir);
 			return false;
 		});
 
@@ -823,17 +827,11 @@ class MainService {
 		});
 
 		this._itemsDataCollection.attachEvent("onAfterLoad", () => {
-			const selectionId = utils.getDataviewSelectionId();
-			const datatableState = this._metadataTable.getState();
-			if (datatableState.sort) {
-				this._itemsDataCollection.sort(datatableState.sort.id, datatableState.sort.dir);
-			}
-			if (selectionId && selectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
-				this._galleryDataviewYCountSelection.callEvent("onChange", [selectionId]);
-			}
+			this._updateMetadataTableData();
+		});
 
-			this._setFilesToLargeImage();
-			metadataTableModel.refreshDatatableColumns();
+		patientsDataCollection.attachEvent("onAfterLoad", ()=> {
+			this._updateMetadataTableData();
 		});
 
 		this._makeLargeImageWindow.getRoot().attachEvent("onHide", () => {
@@ -967,6 +965,39 @@ class MainService {
 		});
 
 		this._setGallerySelectedItemsFromLocalStorage();
+	}
+
+	_updateMetadataTableData() {
+		this._metadataTableDataCollection.clearAll();
+		const itemsData = this._itemsDataCollection.serialize();
+		const patientsData = patientsDataCollection.serialize();
+		const metadataTableData = [];
+		itemsData.forEach((item) => {
+			const patientDataToAdd = patientsData.find(patient => patient.name === item.meta.subject);
+			const itemKeys = Object.keys(item);
+			const patientKeys = patientDataToAdd ? Object.keys(patientDataToAdd) : [];
+			const metadataToAdd = {};
+			itemKeys.forEach((itemKey) => {
+				metadataToAdd[itemKey] = item[itemKey];
+			});
+			patientKeys.forEach((patientKey) => {
+				metadataToAdd[`patient-${patientKey}`] = patientDataToAdd[patientKey];
+			});
+			metadataTableData.push(metadataToAdd);
+		});
+		this._metadataTableDataCollection.parse(metadataTableData);
+
+		const selectionId = utils.getDataviewSelectionId();
+		const datatableState = this._metadataTable.getState();
+		if (datatableState.sort) {
+			this._itemsDataCollection.sort(datatableState.sort.id, datatableState.sort.dir);
+		}
+		if (selectionId && selectionId !== constants.DEFAULT_DATAVIEW_COLUMNS) {
+			this._galleryDataviewYCountSelection.callEvent("onChange", [selectionId]);
+		}
+
+		this._setFilesToLargeImage();
+		metadataTableModel.refreshDatatableColumns();
 	}
 
 	_getStyleParamsOfThumbnailPreview(data) {
@@ -1260,45 +1291,61 @@ class MainService {
 		return {imageType, getPreviewUrl, setPreviewUrl};
 	}
 
-	_collectionChangeHandler(collectionItem) {
-		this.pendingCollectionChange = true;
-		isRecognitionResultMode = false;
-		this._changeRecognitionResultsMode();
-		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
-		actionPanel.scenesViewOptionToggle();
-		actionPanel.multichannelViewOptionToggle();
-		this._itemsModel.clearAll();
-
-		this._itemsDataCollection.clearAll();
-		this._metadataTemplate.setValues({});
-		this._collapser.config.setClosedState();
-		this._view.showProgress();
-		this._view.$scope.getSubFinderView()
-			.loadTreeFolders("collection", collectionItem._id)
-			.then((data) => {
-				this._folderNav.openFirstFolder();
-				const projectMetadataFolder = data
-					.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
-				projectMetadataCollection.clearAll();
-				projectMetadata.clearWrongMetadata();
-				if (projectMetadataFolder) {
-					projectMetadataCollection.add(projectMetadataFolder);
-					this._projectFolderWindowButton.show();
+	async _collectionChangeHandler(collectionItem) {
+		try {
+			this.pendingCollectionChange = true;
+			isRecognitionResultMode = false;
+			this._changeRecognitionResultsMode();
+			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
+			actionPanel.scenesViewOptionToggle();
+			actionPanel.multichannelViewOptionToggle();
+			this._itemsModel.clearAll();
+			this._itemsDataCollection.clearAll();
+			this._metadataTemplate.setValues({});
+			this._collapser.config.setClosedState();
+			this._view.showProgress();
+			const subcollectionData = await this._view.$scope.getSubFinderView()
+				.loadTreeFolders("collection", collectionItem._id);
+			this._folderNav.openFirstFolder();
+			const projectMetadataFolder = subcollectionData
+				.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
+			projectMetadataCollection.clearAll();
+			projectMetadata.clearWrongMetadata();
+			if (projectMetadataFolder) {
+				projectMetadataCollection.add(projectMetadataFolder);
+				this._projectFolderWindowButton.show();
+			}
+			else {
+				this._projectFolderWindowButton.hide();
+			}
+			const schemaFolder = subcollectionData
+				.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
+			patientsDataCollection.clearAll();
+			if (schemaFolder && schemaFolder._id && schemaFolder._modelType) {
+				const schemafolderData = await this._view.$scope.getSubFinderView()
+					.loadTreeFolders(schemaFolder._modelType, schemaFolder._id);
+				const patientsDataFolder = schemafolderData
+					.find(folder => folder.name === constants.PATIENTS_METADATA_FOLDER_NAME);
+				if (patientsDataFolder) {
+					patientsDataModel.setPatientsDataFolderId(patientsDataFolder);
+					const patientsFolderData = await this._view.$scope.getSubFinderView()
+						.getFolderItems(patientsDataFolder);
+					patientsFolderData.forEach((patientData) => {
+						patientsDataCollection.add(patientData);
+					});
 				}
-				else {
-					this._projectFolderWindowButton.hide();
-				}
-				utils.putHostsCollectionInLocalStorage(collectionItem);
-				// define datatable columns
-				metadataTableModel.refreshDatatableColumns();
-				this._itemsModel.parseItems(data);
-				this.pendingCollectionChange = false;
-				this._view.hideProgress();
-			})
-			.catch(() => {
-				this.pendingCollectionChange = false;
-				this._view.hideProgress();
-			});
+			}
+			utils.putHostsCollectionInLocalStorage(collectionItem);
+			// define datatable columns
+			metadataTableModel.refreshDatatableColumns();
+			this._itemsModel.parseItems(subcollectionData);
+			this.pendingCollectionChange = false;
+			this._view.hideProgress();
+		}
+		catch (error) {
+			this.pendingCollectionChange = false;
+			this._view.hideProgress();
+		}
 	}
 
 	linearStructureHandler(folderId, sourceParams, addBatch) {
