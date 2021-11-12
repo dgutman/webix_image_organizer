@@ -55,6 +55,7 @@ export default class UploadMetadataView extends JetView {
 			]
 		};
 
+		// TODO: leave one editaction
 		const datatable = {
 			view: "datatable",
 			name: "metaDatatable",
@@ -73,10 +74,11 @@ export default class UploadMetadataView extends JetView {
 					// the spot for using AJV schema validators
 					const schema = webix.storage.local.get("currentSchema");
 					if (schema) {
-						const validate = ajv.compile(JSON.parse(schema));
+						const validate = ajv.getSchema("http://example.com/adrcSchemaV1.json")
+								|| ajv.compile(JSON.parse(schema));
 						const valid = validate(obj);
 						if (!valid) {
-							console.log("Found invalid obj..")
+							console.log("Found invalid obj..");
 							errorsCollection[obj.id] = validate.errors;
 							validate.errors.forEach((err) => {
 								const dataPath = err.dataPath;
@@ -128,12 +130,19 @@ export default class UploadMetadataView extends JetView {
 													value: "Load schema",
 													css: "webix_primary ",
 													width: 120
+												},
+												{
+													view: "button",
+													name: "applySchemaButton",
+													value: "Apply schema",
+													css: "webix_primary",
+													width: 120
 												}
 											]
 										}
 									]
 								},
-								{}	
+								{}
 							]
 						},
 						{},
@@ -171,7 +180,7 @@ export default class UploadMetadataView extends JetView {
 	}
 
 	ready(view) {
-		this._service = new UploadMetadataService(view);
+		this._service = new UploadMetadataService(view, ajv);
 	}
 
 	get uploader() {
@@ -196,6 +205,10 @@ export default class UploadMetadataView extends JetView {
 
 	get loadSchemaButton() {
 		return this.getRoot().queryView({name: "loadSchemaButton"});
+	}
+
+	get loadApplySchemaButton() {
+		return this.getRoot().queryView({name: "applySchemaButton"});
 	}
 
 	get schemaStatusTemplate() {
