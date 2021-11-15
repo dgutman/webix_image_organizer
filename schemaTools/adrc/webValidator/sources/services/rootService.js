@@ -2,8 +2,9 @@ import DatatableService from "./datatableService";
 import UploaderService from "./uploaderService";
 
 class MetadataUploadService {
-	constructor(view) {
+	constructor(view, ajv) {
 		this._view = view;
+		this._ajv = ajv;
 		this._ready();
 	}
 
@@ -18,6 +19,7 @@ class MetadataUploadService {
 		this._filesList = this._filesDropDown.getList();
 		this._metaDatatable = scope.metaDatatable;
 		this._loadSchemaButton = scope.loadSchemaButton;
+		this._applySchemaButton = scope.loadApplySchemaButton;
 		this._schemaStatusTemplate = scope.schemaStatusTemplate;
 
 		this._datatableService = new DatatableService({
@@ -69,6 +71,10 @@ class MetadataUploadService {
 						webix.message(err.message || "Unexpected error");
 					});
 			}
+		});
+		this._applySchemaButton.attachEvent("onItemClick", () => {
+			this._ajv.removeSchema("http://example.com/adrcSchemaV1.json");
+			this._metaDatatable.validate();
 		});
 	}
 }
