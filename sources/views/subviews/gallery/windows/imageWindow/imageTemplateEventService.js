@@ -84,7 +84,9 @@ export default class ImageTemplateEventsService {
 				}
 				return;
 			}
-			this._imageWindowViewModel.getMetadataAndLoadAnnotations();
+			// TODO uncomment this part of code if annotations storing in items endpoint
+			// this._imageWindowViewModel.getMetadataAndLoadAnnotations();
+			this._imageWindowViewModel.getAndLoadAnnotations();
 		});
 
 		this._imageWindowView.on(this._imageWindowView.app, "toggleLabel", (newValue) => {
