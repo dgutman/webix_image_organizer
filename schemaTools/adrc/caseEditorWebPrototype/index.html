@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <link rel="stylesheet" href="//cdn.webix.com/edge/webix.css" type="text/css">
+    <script src="//cdn.webix.com/edge/webix.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <script type="text/javascript" charset="utf-8">
+        webix.ui({
+            rows: [{
+                view: "template",
+                type: "header",
+                template: "DSA NP Case Viewer Prototype"
+            }, {
+                view: "combo",
+                id: "caseId",
+                options: [],
+                width: 200,
+                on: {
+                    'onChange': function(id) {
+                        var newCaseId = this.getValue();
+                        $$("caseDT").parse(npSlideData[newCaseId]);
+                    }
+                }
+
+            }, {
+                view: "datatable",
+                autoConfig: true,
+                editable: true,
+                resizeColumn: true,
+                id: "caseDT"
+            }, {
+                view: "dataview",
+                id: "caseDV",
+                template: "HELLO WORLD"
+            }]
+        }); /* app code */
+
+        var npSlideData = {}; //Probably should not simply load this globally but ok for now
+
+        webix.ready(function() {
+
+
+
+            webix.ajax().get("npSampleJsonData.json").then(d => {
+
+                npSlideData = d.json();
+                // $$("caseId").parse(d)
+                var caseSet = Object.keys(d.json());
+                var list = $$("caseId").getPopup().getList();
+                list.clearAll();
+                list.parse(caseSet);
+
+            })
+
+        })
+    </script>
+
+
+</body>
+
+</html>
