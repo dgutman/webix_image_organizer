@@ -16,6 +16,14 @@ services:
             - 80:80
             - 443:443
         restart: always
+    # certbot:
+    #     container_name: certbot
+    #     image: certbot/certbot
+    #     volumes:
+    #         - ./conf/nginx/data/certbot/conf/:/etc/letsencrypt/
+    #         - ./conf/nginx/data/certbot/www/:/var/www/certbot/
+    #     restart: always
+    #     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     tagger_client:
         container_name: tagger_client
         env_file: ./tagger/.env
@@ -57,3 +65,15 @@ services:
         volumes:
             - mongodb_volume:/data/db
         restart: always
+    faceted_search:
+        container_name: faceted_search
+        environment:
+            - MONGODB_HOST=mongodb
+            - PORT=80
+        build:
+            context: ./faceted_search/
+            dockerfile: ./Dockerfile
+        expose:
+            - "80"
+        ports:
+            - 8000:80

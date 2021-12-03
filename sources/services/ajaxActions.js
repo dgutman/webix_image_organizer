@@ -266,6 +266,11 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
+	updatePatientMetadata(patientId, metadataObject, type = "item") {
+		// Patient data store in the same endpoint as item
+		return this.updateItemMetadata(patientId, metadataObject, type);
+	}
+
 	deleteItemMetadata(itemId, fields, type) {
 		const modelType = type || "item";
 		fields = fields || [];
@@ -285,6 +290,17 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.put(`${this.getHostApiUrl()}/item/${itemId}`, params)
+			.catch(parseError)
+			.then(result => this._parseData(result));
+	}
+
+	createNewItem(folderId, name) {
+		const params = {
+			folderId,
+			name
+		};
+		return this._ajax()
+			.post(`${this.getHostApiUrl()}/item`, params)
 			.catch(parseError)
 			.then(result => this._parseData(result));
 	}

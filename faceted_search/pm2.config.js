@@ -6,11 +6,11 @@ module.exports = {
 			script: "./index.js",
 			increment_var: "PORT",
 			env: {
-				PORT: 8000,
+				PORT: 80,
 				NODE_ENV: "development"
 			},
 			env_production: {
-				PORT: 8000,
+				PORT: 80,
 				NODE_ENV: "production"
 			}
 		}

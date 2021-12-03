@@ -6,12 +6,11 @@ import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
 import downloadFiles from "../../models/downloadFiles";
 import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
-import constants from "../../constants";
+import patientsDataModel from "../../models/patientsDataModel";
 
 let editUniqueClick;
 let editValue;
 let movedColumnsArray = [];
-let keyPressEventId;
 
 class MetadataTableService {
 	constructor(view, metadataTable, editColumnButton, exportButton, metadataTableThumbnailsTemplate) {
@@ -38,12 +37,17 @@ class MetadataTableService {
 
 		this._editColumnButton.attachEvent("onItemClick", () => {
 			this._editColumnsWindow.buildColumnsConfig(this._metadataTable)
-				.then(([columnsToAdd, columnsToDelete]) => {
-					this._editColumnsWindow.showWindow(columnsToAdd, columnsToDelete, this._metadataTable);
+				.then(([columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete]) => {
+					this._editColumnsWindow.showWindow(
+						columnsToAdd,
+						columnsToDelete,
+						patientsColumnsToAdd,
+						patientsColumnsToDelete,
+						this._metadataTable
+					);
 				})
 				.catch(err => webix.message(err.message));
 		});
-
 
 		this._metadataTable.attachEvent("onAfterRender", () => {
 			this._attachNameFilterKeyPressEvent();
@@ -51,8 +55,10 @@ class MetadataTableService {
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
 			this._clearDatatableFilters();
-			const newDatatableColumns = metadataTableModel.getColumnsForDatatable(this._metadataTable);
-			this._setColspansForColumnsHeader(newDatatableColumns);
+			const [itemsDatatableColumns, patientDatatableCollumns] = metadataTableModel.getColumnsForDatatable();
+			this._setColspansForColumnsHeader(itemsDatatableColumns);
+			metadataTableModel.putInLocalStorage(itemsDatatableColumns, authService.getUserInfo()._id);
+			this._setColspansForColumnsHeader(patientDatatableCollumns);
 			// to prevent null header bug
 			this._metadataTable.refreshColumns([]);
 			metadataTableModel.refreshDatatableColumns();
@@ -120,10 +126,6 @@ class MetadataTableService {
 			this._view.$scope.exportToExcel();
 		});
 
-		this._metadataTable.attachEvent("onAfterLoad", () => {
-			metadataTableModel.refreshDatatableColumns();
-		});
-
 		this._metadataTable.attachEvent("onBeforeEditStart", (infoObject) => {
 			this._selectDatatableItem(infoObject.row);
 		});
@@ -133,7 +135,12 @@ class MetadataTableService {
 			const editor = this._metadataTable.getEditor();
 			const rowId = infoObject.row;
 			const item = this._metadataTable.getItem(rowId);
-			editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
+			if (infoObject.patientColumn) {
+				editValue = item.hasOwnProperty("patient-meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `patient-meta.${columnId}`) : "";
+			}
+			else {
+				editValue = item.hasOwnProperty("meta") ? metadataTableModel.getOrEditMetadataColumnValue(item, `meta.${columnId}`) : "";
+			}
 			editValue = editValue || "";
 			if (editValue && typeof editValue !== "object") { editor.setValue(editValue); }
 		});
@@ -142,25 +149,62 @@ class MetadataTableService {
 			if (typeof editValue !== "object" && editValue != values.value) {
 				const columnId = obj.column;
 				const rowId = obj.row;
-				const itemToEdit = this._metadataTable.getItem(rowId);
-				const copyOfAnItemToEdit = webix.copy(itemToEdit);
-				try {
-					// insert new metadata value or edit already existed
-					utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
-				}
-				catch (err) {
-					webix.message(`Can't define ${columnId} property for ${copyOfAnItemToEdit.name} item`);
-					return true;
-				}
-				this._view.showProgress();
-				ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta, itemToEdit._modelType)
-					.then(() => {
-						this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
-						this._view.hideProgress();
-					})
-					.catch(() => {
-						this._view.hideProgress();
+				const metadataToEdit = this._metadataTable.getItem(rowId);
+				const isPatientColumn = obj.config.patientColumn;
+				if (isPatientColumn) {
+					const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
+					const patientToEdit = patientsDataCollection.find(patient => patient.name === metadataToEdit["patient-name"], true);
+					const patientKeys = Object.keys(patientToEdit);
+					patientKeys.forEach((patientKey) => {
+						patientToEdit[patientKey] = metadataToEdit[`patient-${patientKey}`];
 					});
+					const copyOfAnPatientToEdit = webix.copy(patientToEdit);
+					try {
+						// insert new metadata value or edit already existed
+						utils.setObjectProperty(copyOfAnPatientToEdit, `meta.${columnId}`, values.value);
+					}
+					catch (err) {
+						webix.message(`Can't define ${columnId} property for ${copyOfAnPatientToEdit.name} item`);
+						return true;
+					}
+					patientsDataCollection.parse(copyOfAnPatientToEdit);
+					this._view.showProgress();
+					ajaxActions.updatePatientMetadata(patientToEdit._id, copyOfAnPatientToEdit.meta, patientToEdit._modelType)
+						.then(() => {
+							this._view.hideProgress();
+						})
+						.catch(() => {
+							this._view.hideProgress();
+						});
+				}
+				else {
+					const itemsModel = webixViews.getItemsModel();
+					const itemsDataCollection = itemsModel.getDataCollection();
+					const itemToEdit = itemsDataCollection.getItem(metadataToEdit.id);
+					const itemKeys = Object.keys(itemToEdit);
+					itemKeys.forEach((itemKey) => {
+						itemToEdit[itemKey] = metadataToEdit[itemKey];
+					});
+					const copyOfAnItemToEdit = webix.copy(itemToEdit);
+					try {
+						// insert new metadata value or edit already existed
+						utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
+					}
+					catch (err) {
+						webix.message(`Can't define ${columnId} property for ${copyOfAnItemToEdit.name} item`);
+						return true;
+					}
+					itemsDataCollection.parse(copyOfAnItemToEdit);
+					this._view.showProgress();
+					ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta, itemToEdit._modelType)
+						.then(() => {
+							this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
+							this._view.hideProgress();
+						})
+						.catch(() => {
+							this._view.hideProgress();
+						});
+				}
 			}
 		});
 
@@ -276,8 +320,6 @@ class MetadataTableService {
 				if (err !== BreakException) throw err;
 			}
 		});
-
-		metadataTableModel.putInLocalStorage(tableColumns, authService.getUserInfo()._id);
 	}
 
 	_selectDatatableItem(rowId) {

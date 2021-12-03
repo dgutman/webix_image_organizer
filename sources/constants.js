@@ -52,6 +52,7 @@ export default {
 	},
 
 	IGNORED_METADATA_COLUMNS: ["dsalayers", "geojslayer"], // not for only top level keys. Example for nested keys: geojslayer[0].someValue
+	IGNORED_PATIENTS_COLUMNS: [], //
 
 	THREE_DATAVIEW_COLUMNS: "Display large images",
 	FIVE_DATAVIEW_COLUMNS: "Display medium images",
@@ -59,6 +60,7 @@ export default {
 
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
+	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
 
 	LINEAR_STRUCTURE_LIMIT: 2000,
 	FOLDERS_LIMIT: 0,
@@ -71,6 +73,8 @@ export default {
 	FILTER_TYPE_TEXT: "Typing filter",
 
 	PROJECT_METADATA_FOLDER_NAME: ".ProjectMetadata",
+	SCHEMA_METADATA_FOLDER_NAME: ".schema",
+	PATIENTS_METADATA_FOLDER_NAME: "CaseLevelData",
 
 	THUMBNAIL_DATAVIEW_IMAGES: "Display THUMBNAIL images",
 	LABEL_DATAVIEW_IMAGES: "Display LABEL images",

@@ -10,6 +10,12 @@ import webixViews from "./webixViews";
 import ImageThumbnailLoader from "../services/gallery/imageThumbnailLoader";
 
 let metadataDotObject = {};
+let patientsDataDotObject = {};
+const metadataTableDataCollection = new webix.DataCollection();
+
+function getMetadataTableDataCollection() {
+	return metadataTableDataCollection;
+}
 
 function setFaIconsForDatatable(obj) {
 	let icon;
@@ -49,12 +55,6 @@ function setFaIconsForDatatable(obj) {
 	return `<span class='item-icon webix_icon far ${icon}'></span> ${obj.name}`;
 }
 
-function getLocalStorageColumnsConfig() {
-	if (authService.isLoggedIn()) {
-		return webix.storage.local.get(`${constants.STORAGE_COLUMNS_CONFIG}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
-	} return false;
-}
-
 function getOrEditMetadataColumnValue(obj, valuePath) {
 	const parts = valuePath.split(".");
 	const newObj = obj[parts[0]];
@@ -64,6 +64,19 @@ function getOrEditMetadataColumnValue(obj, valuePath) {
 		return getOrEditMetadataColumnValue(newObj, newString);
 	}
 	return newObj;
+}
+
+function getLocalStorageColumnsConfig() {
+	if (authService.isLoggedIn()) {
+		return webix.storage.local.get(`${constants.STORAGE_COLUMNS_CONFIG}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+	} return false;
+}
+
+function getLocalStoragePatientsFields() {
+	if (authService.isLoggedIn()) {
+		return webix.storage.local.get(`${constants.STORAGE_PATIENTS_DATA_FIELDS}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+	}
+	return false;
 }
 
 function setSelectFilterOptions(filterType, columnId, initial) {
@@ -112,6 +125,13 @@ function getMetadataColumnTemplate(obj, config, columnId) {
 					&& obj.highlightedValues.find(highlightedValue => highlightedValue === columnId)) {
 				config.cssFormat = markWrongMetadata;
 			}
+			return `<span class="metadata-column-template">${metadataColumnValue}</span>`;
+		}
+	}
+	else if (obj.hasOwnProperty("patient-meta")) {
+		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `patient-meta.${columnId}`);
+
+		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
 			return `<span class="metadata-column-template">${metadataColumnValue}</span>`;
 		}
 	}
@@ -276,81 +296,95 @@ function getImageColumnTemplate(columnConfig, size) {
 	};
 }
 
-function getColumnsForDatatable(datatable) {
+function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig) {
+	if (columnConfigToAdd.columnType === "image") {
+		columnConfigToAdd.template = getImageColumnTemplate(columnConfigToAdd, columnConfigToAdd.imageSize);
+		columnConfigToAdd.tooltip = getImageColumnTemplate(columnConfigToAdd, 64);
+	}
+	else {
+		const filterType = columnConfigToAdd.filterType;
+		const filterTypeValue = columnConfigToAdd.filterTypeValue;
+		const columnId = columnConfigToAdd.id;
+		let localColumnHeader = columnConfigToAdd.header;
+		let placeholder;
+
+		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
+			placeholder = "mm/dd/yy";
+		}
+
+		if (!Array.isArray(localColumnHeader)) {
+			localColumnHeader = [localColumnHeader];
+		}
+
+		let lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+		if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
+		if (filterType) {
+			localColumnHeader.push({
+				content: `${filterType}Filter`,
+				options: setSelectFilterOptions(filterType, columnId, columnConfigToAdd.initial),
+				placeholder
+			});
+		}
+		if (!columnConfigToAdd.initial) {
+			const headerValue = getHeaderTextValue(columnConfigToAdd);
+			lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+			const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
+			const headerText = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
+			if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
+				localColumnHeader.splice(-2, 2);
+				localColumnHeader = [...localColumnHeader, headerText, lastHeaderItem];
+			}
+			else {
+				localColumnHeader.splice(-1, 1);
+				localColumnHeader = [...localColumnHeader, headerText];
+			}
+			const isPatientColumn = columnConfigToAdd.patientColumn;
+			columnConfigToAdd = {
+				id: columnId,
+				header: localColumnHeader,
+				fillspace: true,
+				editor: authService.isLoggedIn() ? "text" : false,
+				sort: "text",
+				filterType,
+				minWidth: 180,
+				template: obj => getMetadataColumnTemplate(obj, columnId, isPatientColumn)
+			};
+			if (isPatientColumn) columnConfigToAdd.patientColumn = isPatientColumn;
+		}
+		else {
+			columnConfigToAdd.header = localColumnHeader;
+			const initialColumn = initialColumnsConfig
+				.find(initialColumnConfig => initialColumnConfig.id === columnConfigToAdd.id && !columnConfigToAdd.hidden);
+			if (initialColumn && initialColumn.template) columnConfigToAdd.template = initialColumn.template;
+		}
+		if (filterTypeValue) columnConfigToAdd.filterTypeValue = filterTypeValue;
+	}
+	columnsConfig.push(columnConfigToAdd);
+}
+
+function getColumnsForDatatable() {
 	let columnConfig = [];
+	const patientConfig = [];
 	const initialColumnsConfig = getInitialColumnsForDatatable();
 	const localStorageColumnsConfig = getLocalStorageColumnsConfig();
+	const patientLocalStorageColumnsConfig = getLocalStoragePatientsFields();
 	// const isAdmin = authService.isLoggedIn() && authService.getUserInfo().admin;
 
 	if (localStorageColumnsConfig) {
 		localStorageColumnsConfig.forEach((localColumnConfig) => {
-			if (localColumnConfig.columnType === "image") {
-				localColumnConfig.template = getImageColumnTemplate(localColumnConfig, localColumnConfig.imageSize);
-				localColumnConfig.tooltip = getImageColumnTemplate(localColumnConfig, 64);
-			}
-			else {
-				const filterType = localColumnConfig.filterType;
-				const filterTypeValue = localColumnConfig.filterTypeValue;
-				const columnId = localColumnConfig.id;
-				let localColumnHeader = localColumnConfig.header;
-				let placeholder;
-	
-				if (filterTypeValue === constants.FILTER_TYPE_DATE) {
-					placeholder = "mm/dd/yy";
-				}
-	
-				if (!Array.isArray(localColumnHeader)) {
-					localColumnHeader = [localColumnHeader];
-				}
-
-				let lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-				if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
-				if (filterType) {
-					localColumnHeader.push({
-						content: `${filterType}Filter`,
-						options: setSelectFilterOptions(filterType, columnId, localColumnConfig.initial),
-						placeholder
-					});
-				}
-				if (!localColumnConfig.initial) {
-					const headerValue = getHeaderTextValue(localColumnConfig);
-					lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-					const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
-					const headerText = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
-					if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
-						localColumnHeader.splice(-2, 2);
-						localColumnHeader = [...localColumnHeader, headerText, lastHeaderItem];
-					}
-					else {
-						localColumnHeader.splice(-1, 1);
-						localColumnHeader = [...localColumnHeader, headerText];
-					}
-					localColumnConfig = {
-						id: columnId,
-						header: localColumnHeader,
-						fillspace: true,
-						editor: authService.isLoggedIn() ? "text" : false,
-						sort: "text",
-						filterType,
-						minWidth: 180,
-						template: (obj, common, value, config) => getMetadataColumnTemplate(obj, config, columnId)
-					};
-				}
-				else {
-					localColumnConfig.header = localColumnHeader;
-					const initialColumn = initialColumnsConfig.find(initialColumnConfig => initialColumnConfig.id === localColumnConfig.id && !localColumnConfig.hidden);
-					if (initialColumn && initialColumn.template) localColumnConfig.template = initialColumn.template;
-				}
-				if (filterTypeValue) localColumnConfig.filterTypeValue = filterTypeValue;
-			}
-			columnConfig.push(localColumnConfig);
+			addColumnConfig(initialColumnsConfig, localColumnConfig, columnConfig);
 		});
 	}
 	else {
 		columnConfig = initialColumnsConfig;
 	}
+	if (patientLocalStorageColumnsConfig) {
+		patientLocalStorageColumnsConfig.forEach((patientColumnConfig) => {
+			addColumnConfig(initialColumnsConfig, patientColumnConfig, patientConfig);
+		});
+	}
 
-	return columnConfig;
+	return [columnConfig, patientConfig];
 }
 
 function putInLocalStorage(newColumnsConfig, userId) {
@@ -375,6 +409,15 @@ function getLocalStorageNewItemFields() {
 	} return false;
 }
 
+
+function putPatientsFieldsToStorage(fields, userId) {
+	webix.storage.local.put(`${constants.STORAGE_PATIENTS_DATA_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`, fields);
+}
+
+function clearPatientsFieldsInStorage(userId) {
+	webix.storage.local.remove(`${constants.STORAGE_PATIENTS_DATA_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+}
+
 function getConfigForNewColumn() {
 	return {
 		id: webix.uid(),
@@ -386,8 +429,8 @@ function getConfigForNewColumn() {
 function refreshDatatableColumns() {
 	const defaultHeight = constants.METADATA_TABLE_ROW_HEIGHT;
 	const metadataTable = webixViews.getMetadataTableView();
-	const datatableColumns = getColumnsForDatatable(metadataTable);
-	const imageColumn = datatableColumns.find(col => col.id === "-image");
+	const [datatableItemColumns, datatablePatientColumns] = getColumnsForDatatable();
+	const imageColumn = datatableItemColumns.find(col => col.id === "-image");
 
 	const newRowHeight = Math.max(imageColumn ? imageColumn.imageSize : defaultHeight, defaultHeight);
 	const oldRowHeight = metadataTable.config._rowHeight || defaultHeight;
@@ -400,10 +443,13 @@ function refreshDatatableColumns() {
 		});
 	}
 
+	const datatableColumns = datatableItemColumns.concat(datatablePatientColumns);
+
 	metadataTable.refreshColumns(datatableColumns);
 }
 
 export default {
+	getMetadataTableDataCollection,
 	getInitialColumnsForDatatable,
 	getColumnsForDatatable,
 	getLocalStorageColumnsConfig,
@@ -415,7 +461,11 @@ export default {
 	putNewItemFieldsToStorage,
 	clearNewItemFieldsInStorage,
 	getLocalStorageNewItemFields,
+	putPatientsFieldsToStorage,
+	clearPatientsFieldsInStorage,
+	getLocalStoragePatientsFields,
 	setFaIconsForDatatable,
 	refreshDatatableColumns,
-	metadataDotObject
+	metadataDotObject,
+	patientsDataDotObject
 };
