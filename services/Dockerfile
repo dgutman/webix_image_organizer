@@ -19,16 +19,24 @@ COPY requirements.txt /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
+RUN pip install --upgrade pip
+
+RUN pip install histomicstk --find-links https://girder.github.io/large_image_wheels
+RUN pip install imageio
+
+RUN pip install tqdm
+
+
 # Copy the current directory contents into the container at /app
 COPY . /app
 
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
 
 # Define environment variable
 ENV NAME insearch
 ENV FLASK_APP /app/server.py
+ENV FLASK_ENV=development
 
-
-CMD ["flask" , "run",  "--host=0.0.0.0"]
+CMD ["flask" , "run", "--port=8000", "--host=0.0.0.0"]

@@ -91,7 +91,8 @@ export default {
 	RECOGNITION_OPTION_IDS: {
 		MARKER: "Find markers",
 		STICKER: "Find stickers",
-		LABEL: "Find labels"
+		LABEL: "Find labels",
+		PPC: "Run PPC"
 	},
 
 	LOADING_STATUSES: {

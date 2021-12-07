@@ -126,6 +126,11 @@ export default class RecognitionServiceWindow extends JetView {
 					value = "label";
 					break;
 				}
+				case constants.RECOGNITION_OPTION_IDS.PPC: {
+					name = constants.RECOGNITION_OPTION_IDS.PPC;
+					value = "ppc";
+					break;
+				}
 				default:
 					break;
 			}

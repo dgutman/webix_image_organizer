@@ -1,7 +1,7 @@
 RUN:
 
 `$ docker build -t=yourname .`<br>
-`$ docker run -p 5050:5000 yourname`
+`$ docker run -p 8000:8000 yourname`
 
 ## I am changing the port since I have some other services running on 5000
 API:
