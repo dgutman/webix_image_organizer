@@ -178,7 +178,7 @@ def run_ppc():
             # get coords for image center ROI
             region = get_center_roi(gc, item['_id'], roi_size=roi_size)
             # run ppc on image
-            output = ppc.count_image(gc, item['_id'], params, region, tile_dim=roi_size, metadata_key='testppcio')
+            output = ppc.count_image(gc, item['_id'], params, region, tile_dim=roi_size, metadata_key='testppcio', save_dir='TEST')
             
             status.append({'status': 'ok', 'id': id, 'results': output})
         except Exception as e:

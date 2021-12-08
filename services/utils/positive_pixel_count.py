@@ -7,6 +7,9 @@ from os import makedirs
 from os.path import join, splitext
 from PIL import Image
 from tqdm import tqdm
+from imageio import imwrite
+import hashlib
+import json
 
 from .annotation_utils import get_annotation_mask
 from .girder_utils import get_region_im
@@ -235,6 +238,13 @@ def count_image(gc, item_id, params, region, metadata_key=None, save_dir=None, t
         file path + filename of the file locally stored, if this is passed then the image regions will be pulled locally
         which is faster than getting them from the DSA server
     """
+    # create hash for files saved for this run
+    hashobject = {'params': params, 'item_id': item_id, 'region': region, 'tile_dim': tile_dim, 'color_map': color_map}
+    _hash = hashlib.md5(str(hashobject).encode()).hexdigest() 
+
+    with open(join(save_dir, f'{_hash}.PPC.json'), 'w') as fp:
+        json.dump(hashobject, fp)
+
     if save_dir is not None: 
         makedirs(save_dir, exist_ok=True)
         
@@ -288,8 +298,10 @@ def count_image(gc, item_id, params, region, metadata_key=None, save_dir=None, t
     
         if save_dir is not None:
             # save tile labeled image
-            save_path = join(save_dir, '{}_left_{}_top_{}-rowInd_{}_colInd_{}.npy'.format(
-                filename, left, top, y, x))
+            # im_savepath = join(save_dir, '{}_left_{}_top_{}-rowInd_{}_colInd_{}-im.png'.format(filename, left, top, y, x))
+            # output_savepath = join(save_dir, '{}_left_{}_top_{}-rowInd_{}_colInd_{}-output.png'.format(filename, left, top, y, x))
+            im_savepath = join(save_dir, f'{_hash}.IMG.png')
+            output_savepath = join(save_dir, f'{_hash}.PPC.png')
 
         # region to get
         region = {'left': tile_left, 'top': tile_top, 'width': tile_dim, 'height': tile_dim}
@@ -344,12 +356,10 @@ def count_image(gc, item_id, params, region, metadata_key=None, save_dir=None, t
                     strong_ind = ind[mask_strong, :]
                     output_tile[strong_ind[:, 0], strong_ind[:, 1]] = color_map['strong_pos']
 
-                if save_dir is not None:
-                    # save npy file of output tile image
-                    np.save(save_path, output_tile)
-        elif save_dir is not None:
-            # save image tile
-            np.save(save_path, im)
+                # save npy file of output tile image
+                # np.save(save_path, output_tile)
+                imwrite(output_savepath, output_tile)
+                imwrite(im_savepath, im)
 
     # make the total and formatted to dict to return
     output = OutputTotals._make(total)
