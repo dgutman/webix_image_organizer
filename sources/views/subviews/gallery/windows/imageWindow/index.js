@@ -26,8 +26,8 @@ export default class ImageWindowView extends JetView {
 		super(app, config);
 
 		this._controlsView = new ControlsView(this.app);
-		this._toolbarView = new ToolbarView(this.app, {}, this);
 		this._imageWindowViewModel = new ImageWindowViewModel(this);
+		this._toolbarView = new ToolbarView(this.app, {}, this._imageWindowViewModel);
 	}
 
 	config() {

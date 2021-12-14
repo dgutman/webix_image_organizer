@@ -5,10 +5,10 @@ import AnnotationView from "./annotationWindow/annotation";
 import ApplyFiltersView from "./applyFiltersWindow/applyFilters";
 
 export default class ToolbarView extends JetView {
-	constructor(app, config = {}, imageWindowView) {
+	constructor(app, config = {}, imageWindowViewModel) {
 		super(app, config);
 
-		this._imageWindowView = imageWindowView;
+		this._imageWindowViewModel = imageWindowViewModel;
 		this._cnf = config;
 	}
 
@@ -22,7 +22,7 @@ export default class ToolbarView extends JetView {
 					value: "Metadata",
 					name: "metadata",
 					click: () => {
-						let item = this._imageWindowView.getItem();
+						let item = this._imageWindowViewModel.getItem();
 						this._metadataPopup.showWindow(item);
 					}
 				},
@@ -31,7 +31,7 @@ export default class ToolbarView extends JetView {
 					value: "Apply Filters",
 					name: "applyFilter",
 					click: () => {
-						const item = this._imageWindowView.getItem();
+						const item = this._imageWindowViewModel.getItem();
 						this._applyFiltersPopup.showWindow(item);
 					}
 				},
@@ -40,7 +40,7 @@ export default class ToolbarView extends JetView {
 					name: "pathologyReport",
 					value: "Pathology Report",
 					click: async () => {
-						let item = this._imageWindowView.getItem();
+						let item = this._imageWindowViewModel.getItem();
 						const button = this.getRoot().queryView({name: "pathologyReport"});
 						button.showProgress();
 						await this._pathologyPopup.showWindow(item);
@@ -222,7 +222,7 @@ export default class ToolbarView extends JetView {
 					options: {
 						body: {
 							template: "#value#",
-							data: this._imageWindowView.layouts,
+							data: this._imageWindowViewModel.layouts,
 							tooltip: "#value#"
 						}
 					},
@@ -362,7 +362,7 @@ export default class ToolbarView extends JetView {
 	}
 
 	organizeButtonsAction(localId) {
-		let drawingToolbar = this._imageWindowView.getRoot().queryView({name: "drawing_buttons_layout"});
+		let drawingToolbar = this._imageWindowViewModel.getRoot().queryView({name: "drawing_buttons_layout"});
 		let buttons = drawingToolbar.getChildViews();
 		if (!localId) {
 			for (let i = 0; i < buttons.length; i++) {
