@@ -2,7 +2,7 @@
 module.exports = {
 	apps: [
 		{
-			name: "tagger-client",
+			name: "image-organizer",
 			script: "serve",
 			env: {
 				PM2_SERVE_PATH: "/app/dev/codebase/",
