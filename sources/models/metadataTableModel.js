@@ -115,7 +115,7 @@ function markWrongMetadata(value, config) {
 	return style;
 }
 
-function getMetadataColumnTemplate(obj, config, columnId) {
+function getMetadataColumnTemplate(obj, columnId) {
 	if (obj.hasOwnProperty("meta")) {
 		// const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
 		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
@@ -347,7 +347,7 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 				sort: "text",
 				filterType,
 				minWidth: 180,
-				template: obj => getMetadataColumnTemplate(obj, columnId, isPatientColumn)
+				template: obj => getMetadataColumnTemplate(obj, columnId)
 			};
 			if (isPatientColumn) columnConfigToAdd.patientColumn = isPatientColumn;
 		}
