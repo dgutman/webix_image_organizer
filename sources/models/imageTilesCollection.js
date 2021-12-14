@@ -1,3 +1,4 @@
+import lodash from "lodash";
 import ajaxActions from "../services/ajaxActions";
 
 class ImageTileInfoCollection {
@@ -47,8 +48,24 @@ class ImageTileInfoCollection {
 	}
 
 	async getImageChannels(image) {
+		const channels = this.getChannelsFromChannelMap(image);
+		if (channels) return channels;
 		const tileInfo = await this.getImageTileInfo(image);
 		return tileInfo && tileInfo.channels;
+	}
+
+	getChannelsFromChannelMap(image) {
+		const channelmap = lodash.get(image, "meta.ioparams.channelmap");
+		if (channelmap) {
+			return this.parseChannelMap(channelmap);
+		}
+		return null;
+	}
+
+	parseChannelMap(channelmap) {
+		return Object.entries(channelmap)
+			.sort((a, b) => a[1] - b[1])
+			.reduce((acc, [name, index]) => acc.push({name, index}) && acc, []);
 	}
 }
 

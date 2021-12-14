@@ -79,4 +79,9 @@ export default class RangeSlider extends JetView {
 		this._maxSlider.refresh();
 		this._minSlider.refresh();
 	}
+
+	getEdges() {
+		const {min, max} = this._range;
+		return {min, max};
+	}
 }

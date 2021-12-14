@@ -14,9 +14,9 @@ export default class MultichannelView extends JetView {
 	constructor(app) {
 		super(app);
 
-		this._osdViewer = new MultichannelOSDViewer(app, {showNavigationControl: false});
-		this._channelList = new ChannelList(app, {gravity: 0.2, minWidth: 200});
-		this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200});
+		this._osdViewer = new MultichannelOSDViewer(this.app, {showNavigationControl: false});
+		this._channelList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
+		this._groupsPanel = new GroupsPanel(this.app, {gravity: 0.2, minWidth: 200});
 
 		this._channelsCollection = new webix.DataCollection();
 		this._groupsCollection = new webix.DataCollection();
@@ -350,6 +350,7 @@ export default class MultichannelView extends JetView {
 			max: channel.max || 30000 // default value
 		};
 
+
 		const tileSource = await this._tileService.getColoredChannelTileSource(
 			this._image,
 			channel.index,
@@ -389,7 +390,6 @@ export default class MultichannelView extends JetView {
 	}
 
 	_getGroupNameByChannels(channels) {
-		// eslint-disable-next-line camelcase
 		return channels.map(({name}) => name)
 			.join("_");
 	}

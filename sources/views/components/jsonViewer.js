@@ -41,7 +41,11 @@ webix.protoUI({
 	},
 	setValue(obj) {
 		this.$view.innerHTML = "";
-		const formatter = new JSONFormatter(obj, this.config.viewerConfig.open, this.config.viewerConfig);
+		const formatter = new JSONFormatter(
+			obj,
+			this.config.viewerConfig.open,
+			this.config.viewerConfig
+		);
 		this.$view.appendChild(formatter.render());
 		webix.delay(() => {
 			this._set_size();
