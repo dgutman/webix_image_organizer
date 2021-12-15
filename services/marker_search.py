@@ -14,7 +14,6 @@ def isContoursClose(cnt1, cnt2, size):
 
 
 def haveImageMarker(img):
-
     img = cv2.resize(img, (224, 224), interpolation=cv2.INTER_CUBIC)
     # img = cv2.blur(img, (3,3))
     color = MARKER
@@ -34,7 +33,7 @@ def haveImageMarker(img):
     _, contours, hier = cv2.findContours(thresh, cv2.RETR_EXTERNAL, 2)
 
     LENGTH = len(contours)
-
+    print(LENGTH)
     if LENGTH != 0:
         groups = np.zeros((LENGTH, 1))
 

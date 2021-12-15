@@ -14,7 +14,7 @@ import numpy as np
 
 app = Flask(__name__)
 CORS(app)
-
+print("HI JC")
 def get_image(gc, _id, width=256, height=256, array=False, label=False):
     """get_label_image()
     Given a girder id, get the label image if it exists otherwise throws error.
@@ -98,6 +98,7 @@ def get_stickers():
 
     status = []
     for id in ids:
+        print(id)
         try:
             item = gc.getItem(id)
             image = get_image(gc, item['_id'])
@@ -119,7 +120,7 @@ def get_marker():
     ids = ids.split(',')
     status = []
     for id in ids:
-
+        print(id)
         try:
             item = gc.getItem(id)
             image = get_image(gc, item['_id'])

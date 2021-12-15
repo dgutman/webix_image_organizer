@@ -13,6 +13,8 @@ RUN  apt-get install -y \
 RUN  apt-get install -y \
     tesseract-ocr-eng libdmtx-*
 
+RUN apt-get install nano
+
 # Copy the current directory contents into the container at /app
 COPY requirements.txt /app
 
@@ -22,6 +24,7 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+RUN pip install jupyter
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
@@ -29,6 +32,7 @@ EXPOSE 5000
 # Define environment variable
 ENV NAME insearch
 ENV FLASK_APP /app/server.py
+
 
 
 CMD ["flask" , "run",  "--host=0.0.0.0"]
