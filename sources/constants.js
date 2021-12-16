@@ -145,5 +145,25 @@ export default {
 
 	OPEN_MULTICHANNEL_VIEW_EVENT: "showMultichannelView",
 
-	THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"]
+	// begin MultichannelView
+	DEFAULT_16_BIT_CHANNEL_SETTINGS: {
+		opacity: 1,
+		min: 0,
+		max: 15000
+	},
+	DEFAULT_8_BIT_CHANNEL_SETTINGS: {
+		opacity: 1,
+		min: 0,
+		max: 256
+	},
+	MAX_EDGE_FOR_8_BIT: 256,
+	MAX_EDGE_FOR_16_BIT: 65536,
+	EIGHT_BIT: 8,
+	SIXTEEN_BIT: 16,
+	THUMBNAIL_URLS: ["meta.ioparams.thumbnailUrl"],
+	CHANNEL_MAP_FILTER: "meta|ioparams|channelmap",
+	CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap",
+	LINEAR_SCALE_VALUE: 1,
+	LOGARITHMIC_SCALE_VALUE: 0
+	// end MultichannelView
 };

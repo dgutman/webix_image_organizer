@@ -2,6 +2,7 @@ import {JetView} from "webix-jet";
 import MathCalculations from "../../../utils/mathCalculations";
 import ColorPickerWindow from "./windows/colorPopup";
 import stateStore from "../../../models/multichannelView/stateStore";
+import constants from "../../../constants";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -14,7 +15,6 @@ const GROUPS_TITLE_TEMPLATE = "groups-title";
 export default class GroupsPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app);
-
 		this._cnf = config;
 	}
 
@@ -178,12 +178,16 @@ export default class GroupsPanel extends JetView {
 			.filter(({index}) => !group.channels.find(channel => channel.index === index))
 			.map((channel, i, arr) => {
 				const color = this.createColorByIndex(count + i, arr.length + count);
-				const defaultChannelSettings = {
-					opacity: 1,
-					min: 500,
-					max: 30000
-				};
-				return Object.assign(defaultChannelSettings, channel, {color});
+				// const defaultChannelSettings = {
+				// 	opacity: 1,
+				// 	min: 500,
+				// 	max: 30000
+				// };
+				if (stateStore.bit === constants.SIXTEEN_BIT) {
+					return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel, color};
+				}
+				return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel, color};
+				// return Object.assign(defaultChannelSettings, channel, {color});
 			});
 		group.channels.push(...newChannels);
 		return newChannels;
