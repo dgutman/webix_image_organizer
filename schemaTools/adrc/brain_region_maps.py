@@ -1696,7 +1696,7 @@ MAP = {
         '25':  'Diaphragm',
         '26':  'Paraspinal muscle',
     },
-    'A14-69': {
+    'E14-69': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex with small infarct',
@@ -1719,7 +1719,7 @@ MAP = {
         '20':  'Dorsal roots',
         '21':  'Ventral roots',
     },
-    'A15-01': {
+    'E15-01': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1743,7 +1743,7 @@ MAP = {
         '21':  'Dorsal root ganglia',
         '22':  'Tumor',
     },
-    'A15-101': {
+    'E15-101': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1769,7 +1769,7 @@ MAP = {
         '23':  'Right hippocampus',
         '24':  'Occipital cortex with white matter degeneration',
     },
-    'A15-106': {
+    'E15-106': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1790,7 +1790,7 @@ MAP = {
         '18':  'Cerebellum and dentate nucleus',
         '19':  'Right hippocampus',
     },
-    'A15-110': {
+    'E15-110': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1814,7 +1814,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Right hippocampus',
     },
-    'A15-111': {
+    'E15-111': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1835,7 +1835,7 @@ MAP = {
         '18':  'Cerebellum and dentate nucleus',
         '19':  'Right hippocampus',
     },
-    'A15-125': {
+    'E15-125': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1861,7 +1861,7 @@ MAP = {
         '23':  'Right hippocampus',
         '24':  'Various blood vessels from the Circle of Willis',
     },
-    'A15-132': {
+    'E15-132': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -1886,7 +1886,7 @@ MAP = {
         '22': 'Dorsal root ganglia',
         '23': 'Right hippocampus',
     },
-    'A15-140': {
+    'E15-140': {
         '1': 'Hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -1910,7 +1910,7 @@ MAP = {
         '21':  'Dorsal roots',
         '22':  'Ventral roots',
     },
-    'A15-30': {
+    'E15-30': {
         '1': 'Hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex with small infarct',
@@ -1937,7 +1937,7 @@ MAP = {
         '24':  'Dorsal root ganglia',
         '25':  'Para-spinal muscle',
     },
-    'A15-45': {
+    'E15-45': {
         '1': 'Hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex with small infarct',
@@ -1961,7 +1961,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Dorsal root ganglia',
     },
-    'A15-46': {
+    'E15-46': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex with small infarct',
@@ -1988,7 +1988,7 @@ MAP = {
         '24':  'Diaphragm',
         '25':  'Paraspinal muscle',
     },
-    'A15-65': {
+    'E15-65': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2016,7 +2016,7 @@ MAP = {
         '25':  'Diaphragm',
         '26':  'Paraspinal muscle',
     },
-    'A15-92': {
+    'E15-92': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2040,7 +2040,7 @@ MAP = {
         '21': 'Dorsal root ganglia',
         '22': 'Right hippocampus',
     },
-    'A15-97': {
+    'E15-97': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2065,7 +2065,7 @@ MAP = {
         '22': 'Dorsal root ganglia',
         '23': 'Right hippocampus',
     },
-    'A16-11': {
+    'E16-11': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2090,7 +2090,7 @@ MAP = {
         '22': 'Dorsal root ganglia',
         '23': 'Right hippocampus',
     },
-    'A16-110': {
+    'E16-110': {
         '1': 'Right hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2114,7 +2114,7 @@ MAP = {
         '21': 'Dorsal root ganglia',
         '22': 'Left hippocampus',
     },
-    'A16-114': {
+    'E16-114': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2135,7 +2135,7 @@ MAP = {
         '18': 'Lower spinal cord',
         '19': 'Dorsal root ganglia',
     },
-    'A16-123': {
+    'E16-123': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2160,7 +2160,7 @@ MAP = {
         '22':  'Left hippocampus',
         '23':  'Blood vessels from Circle of WiIlis',
     },
-    'A16-131': {
+    'E16-131': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex with small infarct',
@@ -2182,7 +2182,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Dorsal root ganglia',
     },
-    'A16-138': {
+    'E16-138': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2207,7 +2207,7 @@ MAP = {
         '22': 'Dorsal root ganglia',
         '23': 'Right hippocampus',
     },
-    'A16-16': {
+    'E16-16': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2228,7 +2228,7 @@ MAP = {
         '18': 'Lower spinal cord',
         '19': 'Dorsal root ganglia',
     },
-    'A16-18': {
+    'E16-18': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2250,7 +2250,7 @@ MAP = {
         '19': 'Lower spinal cord',
         '20': 'Dorsal root ganglia',
     },
-    'A16-19': {
+    'E16-19': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2272,7 +2272,7 @@ MAP = {
         '19':  'Mid-level spinal cord',
         '20':  'Lower spinal cord',
     },
-    'A16-21': {
+    'E16-21': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2298,7 +2298,7 @@ MAP = {
         '23':  'Dorsal root ganglia',
         '24':  'Blood vessels from the Circle of Willis containing atherosclerotic plaque'
     },
-    'A16-45': {
+    'E16-45': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2322,7 +2322,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Dorsal root ganglia'
     },
-    'A16-66': {
+    'E16-66': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2383,7 +2383,7 @@ MAP = {
         '18':  'Cerebellum and dentate nucleus',
         '19':  'Spinal cord taken from base of brain stem',
     },
-    'A17-05': {
+    'E17-05': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2408,7 +2408,7 @@ MAP = {
         '22':  'Dorsal root ganglia',
         '23':  'Left hippocampus'
     },
-    'A17-12': {
+    'E17-12': {
         '1': 'Hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2438,7 +2438,7 @@ MAP = {
         '27':  'Diaphragm with calcification',
         '28':  'Heart muscle with area of calcification',
     },
-    'A17-138': {
+    'E17-138': {
         '1': 'Hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2460,7 +2460,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Dorsal root ganglia',
     },
-    'A17-141': {
+    'E17-141': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2484,7 +2484,7 @@ MAP = {
         '21':  'Dorsal root ganglia',
         '22':  'Right hippocampus'
     },
-    'A17-143': {
+    'E17-143': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2504,7 +2504,7 @@ MAP = {
         '17':  'Upper spinal cord',
         '18':  'Lower spinal cord',
     },
-    'A17-147': {
+    'E17-147': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2526,7 +2526,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Middle cerebral artery',
     },
-    'A17-150': {
+    'E17-150': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2549,7 +2549,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia',
     },
-    'A17-152': {
+    'E17-152': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2575,7 +2575,7 @@ MAP = {
         '23':  'Dorsal root ganglia',
         '24':  'Right hippocampus'
     },
-    'A17-17': {
+    'E17-17': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2598,7 +2598,7 @@ MAP = {
         '20':  'Dorsal root ganglia',
         '21':  'Right hippocampus',
     },
-    'A17-21': {
+    'E17-21': {
         '1': 'Left hippocampus',
         '2': 'Amygdala',
         '3': 'Frontal cortex',
@@ -2620,7 +2620,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Dorsal root ganglia',
     },
-    'A17-22': {
+    'E17-22': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2644,7 +2644,7 @@ MAP = {
         '21':  'Dorsal root ganglia',
         '22':  'Right hippocampus',
     },
-    'A17-32': {
+    'E17-32': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2667,7 +2667,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia',
     },
-    'A17-36': {
+    'E17-36': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2692,7 +2692,7 @@ MAP = {
         '22':  'Dorsal root ganglia',
         '23':  'Right hippocampus'
     },
-    'A17-39': {
+    'E17-39': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2717,7 +2717,7 @@ MAP = {
         '22':  'Paraspinal muscle',
         '23':  'Diaphragm'
     },
-    'A17-40': {
+    'E17-40': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2740,7 +2740,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia',
     },
-    'A17-47': {
+    'E17-47': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2763,7 +2763,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia',
     },
-    'A17-53': {
+    'E17-53': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2787,7 +2787,7 @@ MAP = {
         '21':  'Dorsal root ganglia',
         '22':  'Right hippocampus',
     },
-    'A17-54': {
+    'E17-54': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2813,7 +2813,7 @@ MAP = {
         '23':  'Right basal ganglia with infarct',
         '24':  'Multiple blood vessels from the Circle of Willis with atherosclerotic plaques',
     },
-    'A17-56': {
+    'E17-56': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2834,7 +2834,7 @@ MAP = {
         '18': 'Cerebellum and dentate nucleus',
         '19':  'Anterior caudate nucleus, right, with possible infarct',
     },
-    'A17-57': {
+    'E17-57': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2854,7 +2854,7 @@ MAP = {
         '17':  'Upper spinal cord',
         '18':  'Lower spinal cord',
     },
-    'A17-71': {
+    'E17-71': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2875,7 +2875,7 @@ MAP = {
         '18':  'Mid-level spinal cord',
         '19':  'Lower spinal cord',
     },
-    'A17-88': {
+    'E17-88': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2940,7 +2940,7 @@ MAP = {
         '19':  'Pons, with possible infarct',
         '20':  'Basilar and left vertebral arteries with atherosclerotic plaque',
     },
-    'A18-07': {
+    'E18-07': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2962,7 +2962,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Dorsal root ganglia',
     },
-    'A18-108': {
+    'E18-108': {
         '1':  'Right hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2984,7 +2984,7 @@ MAP = {
         '19':  'Mid-level spinal cord',
         '20':  'Lower spinal cord',
     },
-    'A18-18': {
+    'E18-18': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3005,7 +3005,7 @@ MAP = {
         '18':  'Lower spinal cord',
         '19':  'Cross-sections of basilar, vertebral, and posterior communicating arteries',
     },
-    'A18-92': {
+    'E18-92': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3026,7 +3026,7 @@ MAP = {
         '18':  'Upper spinal cord',
         '19':  'Lower spinal cord',
     },
-    'A18-47': {
+    'E18-47': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3048,7 +3048,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '20':  'Dorsal root ganglia'
     },
-    'A18-45': {
+    'E18-45': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3072,7 +3072,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Dorsal root ganglia',
     },
-    'A18-27': {
+    'E18-27': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3098,7 +3098,7 @@ MAP = {
         '23':  'Dorsal root ganglia',
         '24':  'Cross-sections of left anterior and middle cerebral arteries',
     },
-    'A18-49': {
+    'E18-49': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3119,7 +3119,7 @@ MAP = {
         '18': 'Cerebellum and dentate nucleus',
         '19':  'Right hippocampus',
     },
-    'A18-38': {
+    'E18-38': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3144,7 +3144,7 @@ MAP = {
         '22':  'Right hippocampus',
         '23':  'Cross-sections of left anterior, left middle, and right posterior cerebral arteries',
     },
-    'A18-37': {
+    'E18-37': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3174,7 +3174,7 @@ MAP = {
         '27':  'Right hippocampus',
         '28':  'Occipital cortex with hemorrhagic infarct',
     },
-    'A18-61': {
+    'E18-61': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3197,7 +3197,7 @@ MAP = {
         '20':  'Dorsal root ganglia',
         '21':  'Cross-sections of left middle and posterior cerebral arteries',
     },
-    'A10-33': {
+    'E10-33': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -3222,7 +3222,7 @@ MAP = {
         '19':  'Lower spinal cord',
         '16':  'Medulla'
     },
-    'A10-64': {
+    'E10-64': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -3245,7 +3245,7 @@ MAP = {
         '1T':  'Lower spinal cord',
         '1U':  'Dorsal root ganglion',
     },
-    'A10-18': {
+    'E10-18': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -3264,7 +3264,7 @@ MAP = {
         '1P':  'Medulla',
         '1Q':  'Cerebellum and dentate nucleus',
     },
-    'A19-35': {
+    'E19-35': {
         '1':  'Left hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3286,7 +3286,7 @@ MAP = {
         '19':  'Mid-level spinal cord',
         '20':  'Lower spinal cord',
     },
-    'A19-34': {
+    'E19-34': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3329,7 +3329,7 @@ MAP = {
         '18': 'Cerebellum and dentate nucleus',
         '19': 'Right hippocampus'
     },
-    'A20-17': {
+    'E20-17': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3353,7 +3353,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Dorsal root ganglia',
     },
-    'A20-13': {
+    'E20-13': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3375,7 +3375,7 @@ MAP = {
         '19':  'Mid-level spinal cord',
         '20':  'Lower spinal cord',
     },
-    'A20-18': {
+    'E20-18': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -3400,7 +3400,7 @@ MAP = {
         '22':  'Dorsal root ganglia',
         'HP':  'Hippocampus'
     },
-    'A20-11': {
+    'E20-11': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
