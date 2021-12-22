@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>PivotTable.js</title>
+
+        <!-- external libs from cdnjs -->
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/0.71/jquery.csv-0.71.min.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.19.0/pivot.min.css">
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.19.0/pivot.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.19.0/d3_renderers.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.19.0/c3_renderers.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.19.0/export_renderers.min.js"></script>
+
+        <style>
+            body {font-family: Verdana;}
+            .node {
+              border: solid 1px white;
+              font: 10px sans-serif;
+              line-height: 12px;
+              overflow: hidden;
+              position: absolute;
+              text-indent: 2px;
+            }
+            .c3-line, .c3-focused {stroke-width: 3px !important;}
+            .c3-bar {stroke: white !important; stroke-width: 1;}
+            .c3 text { font-size: 12px; color: grey;}
+            .tick line {stroke: white;}
+            .c3-axis path {stroke: grey;}
+            .c3-circle { opacity: 1 !important; }
+            .c3-xgrid-focus {visibility: hidden !important;}
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+            $(function(){
+                if(window.location != window.parent.location)
+                    $("<a>", {target:"_blank", href:""})
+                        .text("[pop out]").prependTo($("body"));
+
+                $("#output").pivotUI(
+                    $.csv.toArrays($("#output").text()),
+                    $.extend({
+                        renderers: $.extend(
+                            $.pivotUtilities.renderers,
+                            $.pivotUtilities.c3_renderers,
+                            $.pivotUtilities.d3_renderers,
+                            $.pivotUtilities.export_renderers
+                            ),
+                        hiddenAttributes: [""]
+                    }, {})
+                ).show();
+             });
+        </script>
+        <div id="output" style="display: none;">,Year,caseID,totalSlidesInDir,validBrainMap
+0,2014,E14-69,117,Yes
+1,2015,E15-106,68,Yes
+2,2015,E15-110,82,Yes
+3,2015,E15-132,92,Yes
+4,2015,E15-46,123,Yes
+5,2015,E15-65,112,Yes
+6,2016,E16-11,96,Yes
+7,2016,E16-110,77,Yes
+8,2016,E16-114,89,Yes
+9,2016,E16-123,103,Yes
+10,2016,E16-128,154,No
+11,2016,E16-131,107,Yes
+12,2016,E16-137,0,Yes
+13,2016,E16-138,80,Yes
+14,2016,E16-15,72,No
+15,2016,E16-16,77,Yes
+16,2016,E16-18,74,Yes
+17,2016,E16-19,90,Yes
+18,2016,E16-21,101,Yes
+19,2016,E16-24,69,No
+20,2016,E16-27,75,No
+21,2016,E16-33,63,No
+22,2016,E16-34,58,No
+23,2016,E16-45,73,Yes
+24,2016,E16-66,113,Yes
+25,2016,OS160608,86,No
+26,2016,OS161018,66,No
+27,2017,E17-05,102,Yes
+28,2017,E17-12,115,Yes
+29,2017,E17-128,58,Yes
+30,2017,E17-129,48,Yes
+31,2017,E17-138,78,Yes
+32,2017,E17-140,56,Yes
+33,2017,E17-141,76,Yes
+34,2017,E17-143,123,Yes
+35,2017,E17-147,87,Yes
+36,2017,E17-150,86,Yes
+37,2017,E17-152,97,Yes
+38,2017,E17-17,104,Yes
+39,2017,E17-21,108,Yes
+40,2017,E17-22,96,Yes
+41,2017,E17-32,74,Yes
+42,2017,E17-36,98,Yes
+43,2017,E17-39,169,Yes
+44,2017,E17-40,83,Yes
+45,2017,E17-47,76,Yes
+46,2017,E17-53,93,Yes
+47,2017,E17-54,81,Yes
+48,2017,E17-56,73,Yes
+49,2017,E17-57,89,Yes
+50,2017,E17-71,76,Yes
+51,2017,E17-88,71,Yes
+52,2017,OS,78,No
+53,2017,OS,80,No
+54,2018,E18-07,77,Yes
+55,2018,E18-108,154,Yes
+56,2018,E18-115,64,No
+57,2018,E18-18,76,Yes
+58,2018,E18-27,96,Yes
+59,2018,E18-37,134,Yes
+60,2018,E18-38,105,Yes
+61,2018,E18-45,91,Yes
+62,2018,E18-47,81,Yes
+63,2018,E18-49,82,Yes
+64,2018,E18-61,111,Yes
+65,2018,E18-70,76,No
+66,2018,E18-86,125,No
+67,2018,E18-92,110,Yes
+68,2018,OS-180213,31,No
+69,2019,E19-131,91,Yes
+70,2019,E19-132,3,Yes
+71,2019,E19-139,51,Yes
+72,2019,E19-141,91,Yes
+73,2019,E19-142,95,Yes
+74,2019,E19-18,89,No
+75,2019,E19-27,142,No
+76,2019,E19-31,105,No
+77,2019,E19-34,169,Yes
+78,2019,E19-35,179,Yes
+79,2019,E19-70,127,No
+80,2019,E19-9,94,No
+81,2019,E19-97,16,No
+82,2020,E20-106,84,Yes
+83,2020,E20-11,87,Yes
+84,2020,E20-13,101,Yes
+85,2020,E20-17,83,Yes
+86,2020,E20-18,79,Yes
+87,2020,E20-55,77,No
+88,2020,E20-56,98,No
+89,2020,E20-63,78,No
+90,2020,E20-71,136,No
+91,2020,E20-72,128,No
+92,2020,E20-73,134,No
+93,2020,E20-9,85,No
+94,2020,E20-95,116,Yes
+95,2020,E20-98,103,Yes
+96,2021,E21-17,90,Yes
+97,2021,E21-24,87,Yes
+98,2021,E21-29,77,Yes
+99,2021,E21-3,68,No
+100,2021,E21-30,83,Yes
+</div>
+    </body>
+</html>
