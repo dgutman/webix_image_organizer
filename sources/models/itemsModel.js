@@ -298,6 +298,41 @@ export default class ItemsModel {
 		return this.getFolderItems(folder.id).length;
 	}
 
+	createCaseFolders(itemsToParse, folderId) {
+		const caseFolders = [];
+		const folderNames = [];
+		itemsToParse.forEach((item) => {
+			const firstDotIndex = item.name.indexOf(".");
+			let slidePattern = item.name.substr(0, firstDotIndex);
+			const caseId = slidePattern.substr(0, slidePattern.indexOf("_"));
+			slidePattern = slidePattern.slice(slidePattern.indexOf("_") + 1);
+			const regionId = slidePattern.substr(0, slidePattern.indexOf("_"));
+			const caseFolderName = `${caseId}_${regionId}`;
+			const found = folderNames.find((folderName) => {
+				if (caseFolderName === folderName) {
+					return true;
+				}
+				return false;
+			});
+			if (!found) {
+				folderNames.push(caseFolderName);
+			}
+		});
+		folderNames.forEach((folderName) => {
+			caseFolders.push({
+				name: folderName,
+				parentCollection: "folder",
+				parentId: folderId,
+				caseview: true,
+				_id: webix.uid(),
+				_modelType: "folder"
+			});
+		});
+		this.parseItems(caseFolders, folderId);
+		// const linearData = false;
+		// this.parseDataToViews(webix.copy(caseFolders), linearData, folderId);
+	}
+
 	destroy() {
 		ItemsModel.instance = null;
 	}

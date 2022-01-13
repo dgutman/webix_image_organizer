@@ -31,6 +31,7 @@ import FilterModel from "../../models/filterModel";
 import editableFoldersModel from "../../models/editableFoldersModel";
 import FolderNav from "../folderNav";
 import ImageThumbnailLoader from "../gallery/imageThumbnailLoader";
+import SetDefaultViewWindow from "../../views/subviews/finder/windows/setDefaultViewWindow";
 
 let contextToFolder;
 let scrollEventId;
@@ -126,6 +127,7 @@ class MainService {
 			this._galleryDataviewRichselectFilter,
 			this._filterTableView
 		);
+		this._optionsWindow = this._view.$scope.ui(SetDefaultViewWindow);
 
 		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
@@ -142,6 +144,7 @@ class MainService {
 		webixViews.setRenamePopup(this._renamePopup);
 		webixViews.setMetadataTemplate(this._metadataTemplate);
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
+		webixViews.setOptionsWindow(this._optionsWindow);
 
 		this._folderNav = new FolderNav(this._view.$scope, this._finder);
 		this._imageTumbnailLoader = new ImageThumbnailLoader(this._galleryDataview);
@@ -312,6 +315,7 @@ class MainService {
 			] = constants.MAIN_MULTIVIEW_OPTIONS;
 			const scenesOption = constants.SCENES_VIEW_OPTION;
 			const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
+			const caseViewOption = constants.CASE_VIEW_OPTION;
 
 			const selectedItem = this._finder.getSelectedItem();
 
@@ -343,6 +347,13 @@ class MainService {
 				case multichannelViewOption.id:
 					this._closeThumbnailViewPanels();
 					multichannelViewCell.show();
+					break;
+				case caseViewOption.id:
+					this._closeThumbnailViewPanels();
+					metadataTableCell.show();
+					this._filterTableView.show();
+					this._metadataTable.scrollTo(0, 0);
+					this._selectTableItemByDataview();
 					break;
 				default:
 					break;
@@ -396,7 +407,12 @@ class MainService {
 				this._itemsModel.findAndRemove(id, folder);
 				this._itemsModel.selectedItem = null;
 			}
-			else if (!folder.linear && folder.hasOpened) {
+			else if (folder.caseview && !folder.hasOpened) {
+				folder.caseview = false;
+				this._itemsModel.findAndRemove(id, folder);
+				this._itemsModel.selectedItem = null;
+			}
+			else if (!folder.linear && !folder.caseview && folder.hasOpened) {
 				this._galleryDataviewPager.hide();
 				this._itemsDataCollection.clearAll();
 			}
@@ -433,12 +449,20 @@ class MainService {
 							{$template: "Separator"},
 							constants.LINEAR_CONTEXT_MENU_ID
 						]);
+						if (item.meta.caseViewFlag === 1) {
+							this._finderContextMenu.parse([
+								{$template: "Separator"},
+								constants.CASEVIEW_CONTEXT_MENU_ID
+							]);
+						}
 						if (editableFoldersModel.isFolderEditable(item._id)) {
 							this._finderContextMenu.parse([
 								{$template: "Separator"},
 								constants.RENAME_CONTEXT_MENU_ID,
 								{$template: "Separator"},
-								constants.UPLOAD_METADATA_MENU_ID
+								constants.UPLOAD_METADATA_MENU_ID,
+								{$template: "Separator"},
+								constants.SET_OPTIONS
 							]);
 						}
 						if (authService.getUserInfo() && authService.getUserInfo().admin) {
@@ -489,7 +513,6 @@ class MainService {
 						break;
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
-						this._finder.detachEvent(scrollEventId);
 						const sourceParams = {
 							sort: "lowerName",
 							limit: constants.LINEAR_STRUCTURE_LIMIT
@@ -510,6 +533,30 @@ class MainService {
 						this._itemsModel.updateItems(this._finderFolder);
 
 						this.linearStructureHandler(folderId, sourceParams);
+						break;
+					}
+					case constants.CASEVIEW_CONTEXT_MENU_ID: {
+						const sourceParams = {
+							sort: "lowerName",
+							limit: constants.CASEVIEW_LIMIT
+						};
+						if (this._finderFolder.hasOpened || this._finderFolder.open) {
+							this._finder.close(folderId);
+							this._itemsModel.findAndRemove(folderId, this._finderFolder);
+						}
+						this._finder.blockEvent();
+						this._finder.data.blockEvent();
+						this._setLastSelectedFolderId();
+						this._finder.data.unblockEvent();
+						this._finder.unblockEvent();
+						this._folderNav.setFoldersIntoUrl();
+						this._itemsModel.selectedItem = this._finderFolder;
+
+						this._finderFolder.caseview = constants.LOADING_STATUSES.IN_PROGRESS;
+						this._itemsModel.updateItems(this._finderFolder);
+						const itemsToSort = [];
+
+						this.caseviewHandler(folderId, sourceParams, itemsToSort);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -543,6 +590,11 @@ class MainService {
 						webix.delay(() => {
 							this._view.$scope.app.show(`${constants.APP_PATHS.UPLOAD_METADATA}/${this._view.$scope.getParam("folders") || ""}`);
 						}, 100);
+						break;
+					}
+					case constants.SET_OPTIONS: {
+						const currentFolder = this._finderFolder;
+						this._optionsWindow.showWindow(currentFolder);
 						break;
 					}
 					default: {
@@ -1153,7 +1205,7 @@ class MainService {
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
 		actionPanel.scenesViewOptionToggle(item);
 		await actionPanel.multichannelViewOptionToggle(item);
-
+		actionPanel.caseViewOptionToggle(item);
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
@@ -1291,6 +1343,17 @@ class MainService {
 		return {imageType, getPreviewUrl, setPreviewUrl};
 	}
 
+	async _getCasedataCount(item) {
+		try {
+			const firstDotIndex = item.name.indexOf(".");
+			const slidePattern = item.name.substr(0, firstDotIndex);
+			const rePattern = slidePattern.substr(0, slidePattern.lastIndexOf("_"));
+			const caseData = await ajaxActions.findCaseItems(rePattern);
+			return caseData.length;
+		}
+		catch (e) { return null; }
+	}
+
 	async _collectionChangeHandler(collectionItem) {
 		try {
 			this.pendingCollectionChange = true;
@@ -1377,6 +1440,33 @@ class MainService {
 					}
 				}
 			});
+	}
+
+	async caseviewHandler(folderId, sourceParams, itemsToParse) {
+		const folder = this._finder.getItem(folderId);
+		const items = await ajaxActions.getLinearStucture(folder._id, sourceParams);
+		itemsToParse.push(...items);
+		if (items.length === 0) {
+			this._finder.parse({
+				name: "Nothing to display", parent: folderId
+			});
+		}
+		if (folder.caseview) {
+			if (items.length < sourceParams.limit) {
+				this._itemsModel.createCaseFolders(itemsToParse, folderId);
+				this._finder.updateItem(folderId, {caseview: constants.LOADING_STATUSES.DONE});
+			}
+			else {
+				const newParams = {
+					sort: "lowerName",
+					limit: constants.LINEAR_STRUCTURE_LIMIT,
+					offset: this._itemsModel.getFolderCount(folder)
+				};
+
+				this.caseviewHandler(folderId, newParams, itemsToParse);
+			}
+		}
+
 	}
 
 	_closeThumbnailViewPanels() {

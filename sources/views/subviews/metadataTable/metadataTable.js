@@ -9,6 +9,11 @@ import MetadataTableService from "../../../services/metadataTable/metadataTable"
 const collapserName = "tableTemplateCollapser";
 
 export default class MetadataTableCellClass extends JetView {
+	constructor(app, config = {}, idDataTableCaseviewTemplate) {
+		super(app, config);
+		this._idDataTableCaseviewTemplate = idDataTableCaseviewTemplate;
+	}
+
 	config() {
 		const tableCollapser = collapser.getConfig(constants.ID_DATATABLE_IMAGES_TEMPLATE, {type: "right", closed: true}, collapserName);
 

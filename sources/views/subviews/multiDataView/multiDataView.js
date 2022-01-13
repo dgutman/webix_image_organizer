@@ -55,4 +55,8 @@ export default class MultiDataviewClass extends JetView {
 	getMultichannelView() {
 		return this._multiChannelView;
 	}
+
+	getCaseView() {
+		return this._metadataTableCell;
+	}
 }

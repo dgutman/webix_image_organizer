@@ -1,4 +1,5 @@
 import constants from "../constants";
+import ajax from "../services/ajaxActions";
 
 export default class FinderModel {
 	constructor(view, finder, itemsModel) {
@@ -13,7 +14,7 @@ export default class FinderModel {
 		const array = [];
 		let itemsArray = [];
 		const item = finderView.getItem(id);
-		if (!item.hasOpened && !item.linear) {
+		if (!item.hasOpened && !item.linear && !item.caseview) {
 			view.showProgress();
 			return view.$scope.getSubFinderView()
 				.loadTreeFolders("folder", item._id)
@@ -48,7 +49,8 @@ export default class FinderModel {
 				finderView.open(id);
 				finderView.unblockEvent();
 				itemsArray = this.finder.data.getBranch(item.id);
-				if (itemsArray.length === 1 && itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+				if (itemsArray.length === 1
+					&& itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
 					itemsArray = this.finder.data.getBranch(itemsArray[0].id);
 				}
 				let isChildFolderExists = false;
@@ -60,6 +62,49 @@ export default class FinderModel {
 					return false;
 				});
 				itemsModel.parseDataToViews(filteredItems, false, item.id, isChildFolderExists);
+				resolve();
+			});
+		}
+
+		else if (item.caseview) {
+			return new Promise((resolve) => {
+				finderView.blockEvent();
+				itemsArray = this.finder.data.getBranch(item.id);
+				if (itemsArray.length === 1
+					&& itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+					itemsArray = this.finder.data.getBranch(itemsArray[0].id);
+				}
+				let isChildFolderExists = false;
+				if (itemsArray.length > 0) {
+					const filteredItems = itemsArray.filter((obj) => {
+						if (obj._modelType !== "folder") {
+							return true;
+						}
+						isChildFolderExists = true;
+						return false;
+					});
+					itemsModel.parseDataToViews(filteredItems, false, item.id, isChildFolderExists);
+					finderView.open(id);
+					finderView.unblockEvent();
+				}
+				else {
+					ajax.findCaseItems(item.name)
+						.then((data) => {
+							if (data.length > 0) {
+								const filteredItems = data.filter((obj) => {
+									if (obj._modelType !== "folder") {
+										return true;
+									}
+									isChildFolderExists = true;
+									return false;
+								});
+								itemsModel.parseItems(filteredItems, item.id);
+								itemsModel.parseDataToViews(filteredItems, false, item.id, false);
+								finderView.open(id);
+								finderView.unblockEvent();
+							}
+						});
+				}
 				resolve();
 			});
 		}

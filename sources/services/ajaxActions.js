@@ -340,6 +340,17 @@ class AjaxActions {
 			.get(this.getOpenFileUrl(id))
 			.catch(parseError);
 	}
+
+	findCaseItems(rePattern) {
+		const params = {
+			query: {name: {$regex: `${rePattern}`}}
+		};
+
+		return this._ajax()
+			.get(`${this.getHostApiUrl()}/item/query`, params)
+			.catch(parseError)
+			.then(result => this._parseData(result));
+	}
 }
 
 const instance = new AjaxActions();
