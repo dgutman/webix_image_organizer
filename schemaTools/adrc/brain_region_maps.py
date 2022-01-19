@@ -4,7 +4,7 @@ All case IDs use the A##-### or OS-##### convention.
 """
 
 MAP = {
-    'A03-168': {
+    'E03-168': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -22,7 +22,7 @@ MAP = {
         '1O':  'Medulla',
         '1P':  'Cerebellum',
     },
-    'A03-74': {
+    'E03-74': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -40,7 +40,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum with dentate nucleus',
     },
-    'A04-169': {
+    'E04-169': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -58,7 +58,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A04-152': {
+    'E04-152': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -78,7 +78,7 @@ MAP = {
         '1Q':  'Medulla',
         '1R':  'Cerebellum and dentate nucleus',
     },
-    'A04-186': {
+    'E04-186': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -96,7 +96,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A04-49': {
+    'E04-49': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -116,7 +116,7 @@ MAP = {
         '1Q':  'Medulla',
         '1R':  'Cerebellum'
     },
-    'A05-04': {
+    'E05-04': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -134,7 +134,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A05-130': {
+    'E05-130': {
         '2A':  'Hippocampus',
         '2B':  'Amygdala',
         '2C':  'Frontal cortex',
@@ -152,7 +152,7 @@ MAP = {
         '2O':  'Medulla',
         '2P':  'Cerebellar cortex and dentate nucleus'
     },
-    'A05-132': {
+    'E05-132': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -170,7 +170,7 @@ MAP = {
         '1O':  'Medulla',
         '1P':  'Cerebellar cortex and dentate nucleus'
     },
-    'A05-179': {
+    'E05-179': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -188,7 +188,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A05-194': {
+    'E05-194': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -208,7 +208,7 @@ MAP = {
         '1Q':  'Medulla',
         '1R':  'Cerebellum and dentate nucleus'
     },
-    'A05-56': {
+    'E05-56': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -226,7 +226,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A05-74': {
+    'E05-74': {
         '2A':  'Hippocampus',
         '2B':  'Amygdala',
         '2C':  'Frontal cortex',
@@ -244,7 +244,7 @@ MAP = {
         '2O':  'Medulla',
         '2P':  'Cerebellar cortex and dentate nucleus'
     },
-    'A05-81': {
+    'E05-81': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -263,7 +263,7 @@ MAP = {
         '1P':  'Cerebellum and dentate nucleus',
         '1Q':  'Cerebellar cortex'
     },
-    'A05-87': {
+    'E05-87': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -281,7 +281,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A06-06': {
+    'E06-06': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -307,7 +307,7 @@ MAP = {
         '1W':  'Right perineal nerve',
         '1X':  'Left quadriceps muscle'
     },
-    'A06-128': {
+    'E06-128': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -325,7 +325,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A06-13': {
+    'E06-13': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -344,7 +344,7 @@ MAP = {
         '1P': 'Medulla',
         '1Q': 'Cerebellum and dentate nucleus'
     },
-    'A06-15': {
+    'E06-15': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -362,7 +362,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A06-155': {
+    'E06-155': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -383,7 +383,7 @@ MAP = {
         '1R':  'Cerebellum and dentate nucleus',
         '1S':  'Pituitary'
     },
-    'A06-18': {
+    'E06-18': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -401,7 +401,7 @@ MAP = {
         '1O': 'Medulla',
         '1P': 'Cerebellum and dentate nucleus'
     },
-    'A06-41': {
+    'E06-41': {
         '2A':  'Hippocampus',
         '2B':  'Amygdala',
         '2C':  'Frontal cortex',
@@ -419,7 +419,7 @@ MAP = {
         '2O':  'Medulla',
         '2P':  'Cerebellar cortex and dentate nucleus'
     },
-    'A06-97': {
+    'E06-97': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -446,7 +446,7 @@ MAP = {
         '1X':  'Left femoral nerve',
         '1Y':  'Left intercostal nerve'
     },
-    'A08-101': {
+    'E08-101': {
         '1A': 'Hippocampus',
         '1B': 'Amygdala',
         '1C': 'Frontal cortex',
@@ -467,7 +467,7 @@ MAP = {
         '1R': 'Dorsal root ganglia',
         '1S': 'Occipital cortex with hemorrhage'
     },
-    'A08-145': {
+    'E08-145': {
         '2A':  'Hippocampus',
         '2B':  'Amygdala',
         '2C':  'Frontal cortex',
@@ -485,7 +485,7 @@ MAP = {
         '2O':  'Medulla',
         '2P':  'Cerebellum'
     },
-    'A08-162': {
+    'E08-162': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -509,7 +509,7 @@ MAP = {
         '1U':  'Psoas muscle',
         '22': 'unknown'
     },
-    'A08-53': {
+    'E08-53': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -530,7 +530,7 @@ MAP = {
         '1R':  'Spinal cord',
         '1S':  'Spinal cord'
     },
-    'A09-08': {
+    'E09-08': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -550,7 +550,7 @@ MAP = {
         '1Q':  'Spinal cord',
         '1R':  'Dorsal root ganglia'
     },
-    'A09-136': {
+    'E09-136': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -571,7 +571,7 @@ MAP = {
         '1R':  'Spinal cord',
         '1S':  'Dorsal root ganglia'
     },
-    'A09-155': {
+    'E09-155': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -595,7 +595,7 @@ MAP = {
         '1U':  'Olfactory bulb',
         '1V':  'Choroid plexus cyst'
     },
-    'A09-164': {
+    'E09-164': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -622,7 +622,7 @@ MAP = {
         '1X':  'Psoas muscle',
         '1Y':  'Diaphragm muscle'
     },
-    'A09-81': {
+    'E09-81': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -645,7 +645,7 @@ MAP = {
         '1T':  'Psoas muscle',
         '1U':  'Meningeal mass'
     },
-    'A09-91': {
+    'E09-91': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -664,7 +664,7 @@ MAP = {
         '1P':  'Medulla',
         '1Q':  'Cerebellum and dentate nucleus'
     },
-    'A10-110': {
+    'E10-110': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -685,7 +685,7 @@ MAP = {
         '1R':  'Lower spinal cord',
         '1S':  'Basilar artery'
     },
-    'A10-129': {
+    'E10-129': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -711,7 +711,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Right quadriceps muscle'
     },
-    'A10-137': {
+    'E10-137': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -735,7 +735,7 @@ MAP = {
         '1U':  'Dorsal root ganglion',
         '1V':  'Ventricular mass'
     },
-    'A10-150': {
+    'E10-150': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -761,7 +761,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Paraspinal muscle'
     },
-    'A10-151': {
+    'E10-151': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -788,7 +788,7 @@ MAP = {
         '1X':  'Paraspinal muscle',
         '1Y':  'Left posterior cerebral artery'
     },
-    'A10-160': {
+    'E10-160': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -814,7 +814,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Paraspinal muscle',
     },
-    'A10-179': {
+    'E10-179': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -838,7 +838,7 @@ MAP = {
         '1U':  'Occipital pole',
         '1V':  'Parieto-occipito cortex',
     },
-    'A10-38': {
+    'E10-38': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -862,7 +862,7 @@ MAP = {
         '1U':  'Lower spinal cord',
         '1V':  'Pituitary',
     },
-    'A10-48': {
+    'E10-48': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -885,7 +885,7 @@ MAP = {
         '1T':  'Lower spinal cord',
         '1U':  'Dorsal roots',
     },
-    'A10-56': {
+    'E10-56': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -908,7 +908,7 @@ MAP = {
         '1T':  'Lower spinal cord',
         '1U':  'Dorsal root ganglion',
     },
-    'A10-63': {
+    'E10-63': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -927,7 +927,7 @@ MAP = {
         '1P':  'Cerebellar cortex, in area of softening',
         '1Q':  'Posterior cerebral arteries and basilar artery',
     },
-    'A10-81': {
+    'E10-81': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -951,7 +951,7 @@ MAP = {
         '1U':  'Frontal pole',
         '1V':  'Dorsal root ganglia',
     },
-    'A10-88': {
+    'E10-88': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -977,7 +977,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Psoas muscle',
     },
-    'A11-112': {
+    'E11-112': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -998,7 +998,7 @@ MAP = {
         '18':  'Upper spinal cord',
         '19':  'Lower spinal cord',
     },
-    'A11-124': {
+    'E11-124': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1025,7 +1025,7 @@ MAP = {
         '24':  'Paraspinal muscle',
         '25':  'Dorsal root ganglia',
     },
-    'A11-125': {
+    'E11-125': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1052,7 +1052,7 @@ MAP = {
         '24':  'Paraspinal muscle',
         '25':  'Dorsal root ganglia',
     },
-    'A11-128': {
+    'E11-128': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1076,7 +1076,7 @@ MAP = {
         '21':  'Dorsal root ganglia',
         '22':  'Frontoparietal cortex with infarct',
     },
-    'A11-139': {
+    'E11-139': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1099,7 +1099,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia',
     },
-    'A11-143': {
+    'E11-143': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1125,7 +1125,7 @@ MAP = {
         '23':  'Diaphragm muscle',
         '24':  'Paraspinal muscle',
     },
-    'A11-20': {
+    'E11-20': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -1150,7 +1150,7 @@ MAP = {
         '1V':  'Diaphragm muscle',
         '1W':  'Paraspinal muscle',
     },
-    'A11-41': {
+    'E11-41': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -1176,7 +1176,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Paraspinal muscle',
     },
-    'A11-59': {
+    'E11-59': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -1202,7 +1202,7 @@ MAP = {
         '1W':  'Diaphragm muscle',
         '1X':  'Paraspinal muscle',
     },
-    'A11-60': {
+    'E11-60': {
         '1A':  'Hippocampus',
         '1B':  'Amygdala',
         '1C':  'Frontal cortex',
@@ -1229,7 +1229,7 @@ MAP = {
         '1X':  'Paraspinal muscle',
         '1Y':  'Injection site – dura with inflammatory tissue'
     },
-    'A11-70': {
+    'E11-70': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1255,7 +1255,7 @@ MAP = {
         '23':  'Diaphragm muscle',
         '24':  'Paraspinal muscle',
     },
-    'A11-71': {
+    'E11-71': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1281,7 +1281,7 @@ MAP = {
         '23':  'Diaphragm muscle',
         '24':  'Paraspinal muscle',
     },
-    'A11-73': {
+    'E11-73': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1307,7 +1307,7 @@ MAP = {
         '23':  'Diaphragm muscle',
         '24':  'Paraspinal muscle',
     },
-    'A11-75': {
+    'E11-75': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1333,34 +1333,7 @@ MAP = {
         '23':  'Diaphragm muscle',
         '24':  'Paraspinal muscle',
     },
-    'A11-81': {
-        '1':  'Hippocampus',
-        '2':  'Amygdala',
-        '3':  'Frontal cortex',
-        '4':  'Temporal cortex',
-        '5':  'Parietal cortex',
-        '6':  'Occipital cortex',
-        '7':  'Left perirolandic cortex',
-        '8':  'Right perirolandic cortex',
-        '9': 'Cingulate cortex',
-        '10':  'Insular cortex',
-        '11':  'Anterior basal ganglia',
-        '12':  'Mid-level basal ganglia',
-        '13':  'Hypothalamus and thalamus',
-        '14':  'Thalamus',
-        '15':  'Midbrain',
-        '16':  'Pons',
-        '17':  'Medulla',
-        '18':  'Cerebellum and dentate nucleus',
-        '19':  'Upper spinal cord',
-        '20':  'Lower spinal cord',
-        '21':  'Dorsal roots',
-        '22':  'Ventral roots',
-        '23':  'Diaphragm muscle',
-        '24':  'Paraspinal muscle',
-        '25':  'Dorsal root ganglia'
-    },
-    'A11-83': {
+    'E11-81': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1387,7 +1360,7 @@ MAP = {
         '24':  'Paraspinal muscle',
         '25':  'Dorsal root ganglia'
     },
-    'A11-84': {
+    'E11-83': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1414,7 +1387,34 @@ MAP = {
         '24':  'Paraspinal muscle',
         '25':  'Dorsal root ganglia'
     },
-    'A11-97': {
+    'E11-84': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Mid-level basal ganglia',
+        '13':  'Hypothalamus and thalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Lower spinal cord',
+        '21':  'Dorsal roots',
+        '22':  'Ventral roots',
+        '23':  'Diaphragm muscle',
+        '24':  'Paraspinal muscle',
+        '25':  'Dorsal root ganglia'
+    },
+    'E11-97': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1438,7 +1438,7 @@ MAP = {
         '21':  'Lower spinal cord',
         '22':  'Dorsal root ganglia',
     },
-    'A12-06': {
+    'E12-06': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1461,7 +1461,7 @@ MAP = {
         '20':  'Lower spinal cord',
         '21':  'Dorsal root ganglia'
     },
-    'A12-120': {
+    'E12-120': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1489,7 +1489,7 @@ MAP = {
         '25':  'Paraspinal muscle',
         '26':  'Choroid plexus from cyst-like area',
     },
-    'A12-32': {
+    'E12-32': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1516,7 +1516,7 @@ MAP = {
         '24':  'Muscle #2',
         '25':  'Dorsal root ganglia'
     },
-    'A12-64': {
+    'E12-64': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1544,7 +1544,7 @@ MAP = {
         '25':  'Diaphragm',
         '26':  'Paraspinal muscle',
     },
-    'A12-74': {
+    'E12-74': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1572,7 +1572,7 @@ MAP = {
         '25':  'Paraspinal muscle',
         '26':  "Right perirolandic cortex (Marla’s guess)"
     },
-    'A12-85': {
+    'E12-85': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -1599,7 +1599,7 @@ MAP = {
         '24':  'Diaphragm',
         '25':  'Paraspinal muscle'
     },
-    'A12-158': {
+    'E12-158': {
         '1':  'Hippocampus',
         '2':  'Amygdala',
         '3':  'Frontal cortex',
@@ -2468,6 +2468,85 @@ MAP = {
         '23':  'Dorsal root ganglia',
         '24':  'Diaphragm',
         '25':  'Paraspinal muscle',
+    },'E15-55': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex with small infarct',
+        '4':  'Temporal cortex with infarct',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex and anterior basal ganglia',
+        '11':  'Posterior basal ganglia',
+        '12':  'Hypothalamus',
+        '13':  'Thalamus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17': 'Cerebellum and dentate nucleus',
+        '18':  'Upper spinal cord',
+        '19': 'Mid-level spinal cord',
+        '20':  'Lower spinal cord',
+        '21':  'Dorsal root ganglia',
+        '22':  'Right hippocampus'
+    },
+    'E15-61': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Mid-level basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18': 'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Lower spinal cord',
+        '21':  'Dorsal roots',
+        '22':  'Ventral roots',
+        '23':  'Dorsal root ganglia',
+        '24':  'Diaphragm',
+        '25': 'Muscle'
+    },
+
+    'E15-64': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Mid-level basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18': 'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Mid-level spinal cord',
+        '21':  'Lower spinal cord',
+        '22':  'Dorsal roots',
+        '23':  'Ventral roots',
+        '24':  'Dorsal root ganglia',
+        '25':  'Diaphragm',
+        '26': 'Muscle'
     },
     'E15-65': {
         '1':  'Hippocampus',
@@ -2496,6 +2575,98 @@ MAP = {
         '24':  'Ventral roots',
         '25':  'Diaphragm',
         '26':  'Paraspinal muscle',
+    },
+
+
+    'E15-66': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex and anterior basal ganglia',
+        '11':  'Posterior basal ganglia and hypothalamus',
+        '12':  'Thalamus',
+        '13':  'Midbrain',
+        '14':  'Pons',
+        '15':  'Medulla',
+        '16': 'Cerebellum and dentate nucleus',
+        '17':  'Upper spinal cord',
+        '18':  'Lower spinal cord',
+        '19':  'Dorsal root ganglia'
+    },
+    'E15-69': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex and anterior basal ganglia',
+        '11':  'Posterior basal ganglia and hypothalamus',
+        '12':  'Thalamus',
+        '13':  'Midbrain',
+        '14':  'Pons',
+        '15':  'Medulla',
+        '16': 'Cerebellum and dentate nucleus',
+        '17':  'Upper spinal cord',
+        '18': 'Mid-level spinal cord',
+        '19':  'Lower spinal cord',
+        '20':  'Dorsal root ganglia',
+        '21': 'Left hippocampus',
+        '22': 'Basilar artery'
+    },
+    'E15-72': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex and anterior basal ganglia',
+        '11':  'Posterior basal ganglia and hypothalamus',
+        '12':  'Thalamus',
+        '13':  'Midbrain',
+        '14':  'Pons',
+        '15':  'Medulla',
+        '16': 'Cerebellum and dentate nucleus',
+        '17':  'Upper spinal cord',
+        '18': 'Mid-level spinal cord',
+        '19':  'Lower spinal cord',
+        '20':  'Dorsal root ganglia'
+    }, 'E15-84': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11': 'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13': 'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18': 'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Lower spinal cord',
+        '21':  'Dorsal root ganglia',
+        '22':  'Right hippocampus'
     },
     'E15-92': {
         '1': 'Left hippocampus',
@@ -4247,7 +4418,84 @@ MAP = {
         '16':  'Medulla',
         '17':  'Cerebellum and dentate nucleus',
         '18':  'Upper spinal cord',
-        '19':  'Upper spinal cord'
+        '19':  'Lower spinal cord'
+    }, 'E20-125': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left peri-Rolandic cortex',
+        '8':  'Right peri-Rolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Mid-level spinal cord',
+        '21': 'Lower spinal cord',
+        '22': 'Right hippocampus',
+        '23': 'Paraspinal muscle'
+
+    }, 'E20-131': {
+        '1': 'Hippocampus',
+        '2': 'Amygdala',
+        '3': 'Frontal cortex',
+        '4': 'Temporal cortex',
+        '5': 'Parietal cortex',
+        '6': 'Occipital cortex',
+        '7': 'Left perirolandic cortex',
+        '8': 'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10': 'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20': 'Mid-level spinal cord',
+        '21':  'Lower spinal cord',
+        '22':  'Ventral roots',
+        '23':  'Dorsal roots',
+        '24':  'Dorsal root ganglia',
+        '25':  'Diaphragm muscle',
+        '26':  'Paraspinal muscle',
+        '27':  'Right hippocampus'
+
+    },
+    'E20-174': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left peri-Rolandic cortex',
+        '8': 'Cingulate cortex',
+        '9':  'Insular cortex',
+        '10':  'Anterior basal ganglia',
+        '11':  'Posterior basal ganglia',
+        '12':  'Hypothalamus',
+        '13':  'Thalamus, with subthalamic nucleus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17':  'Cerebellum and dentate nucleus',
+        '18':  'Upper spinal cord',
+        '19':  'Mid-level spinal cord',
+        '20':  'Lower spinal cord',
+        '21': 'Dorsal root ganglia'
     },
     'E19-131': {
         '1': 'Hippocampus',
@@ -4429,6 +4677,34 @@ MAP = {
         '19': 'Lower spinal cord',
 
     },
+    'E20-69': {
+        '1':  'Right Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20': 'Mid-level spinal cord',
+        '21':  'Lower spinal cord',
+        '22':  'Dorsal roots',
+        '23':  'Ventral roots',
+        '24':  'Diaphragm',
+        '25':  'Paraspinal muscle',
+        '26':  'Left hippocampus'
+    },
     'E20-71': {
         '1': 'Left Hippocampus',
         '2': 'Amygdala',
@@ -4577,7 +4853,127 @@ MAP = {
 
 
     },
+    'E20-126': {
+        '1':  'Left hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Mid-level spinal cord',
+        '21':  'Lower spinal cord',
+        '22':  'Right hippocampus',
+        '23':  'Dorsal root ganglia',
+        '24':  'Blood vessels from the Circle of Willis',
+    },
+    'E20-127': {
+        '1': 'Hippocampus',
+        '2': 'Amygdala',
+        '3': 'Frontal cortex',
+        '4': 'Temporal cortex',
+        '5': 'Parietal cortex',
+        '6': 'Occipital cortex',
+        '7': 'Left peri-Rolandic cortex',
+        '8': 'Cingulate cortex',
+        '9': 'Insular cortex',
+        '10': 'Anterior basal ganglia',
+        '11':  'Posterior basal ganglia',
+        '12': 'Hypothalamus',
+        '13':  'Thalamus, with subthalamic nucleus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17':  'Cerebellum and dentate nucleus',
+        '18':  'Upper spinal cord',
+        '19':  'Mid-level spinal cord',
+        '20': 'Lower spinal cord',
+        '21': 'Right hippocampus'
+    },
+    'E20-138': {
+        '1': 'Left Hippocampus',
+        '2': 'Amygdala',
+        '3': 'Frontal cortex',
+        '4': 'Temporal cortex',
+        '5': 'Parietal cortex',
+        '6': 'Occipital cortex',
+        '7': 'Left peri-Rolandic cortex',
+        '8': 'Right peri-Rolandic cortex',
+        '9': 'Cingulate cortex',
+        '10': 'Insular cortex',
+        '11': 'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13': 'Hypothalamus',
+        '14':  'Thalamus, with subthalamic nucleus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Mid-level spinal cord',
+        '21': 'Lower spinal cord',
+        '22': 'Dorsal root ganglia',
+        '23': 'Right hippocampus',
+        '24': 'Cerebellar white matter with areas of hemorrhage'
 
+
+    },
+    'E20-139': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8': 'Cingulate cortex',
+        '9':  'Insular cortex',
+        '10':  'Anterior basal ganglia',
+        '11':  'Posterior basal ganglia',
+        '12':  'Hypothalamus',
+        '13':  'Thalamus, with subthalamic nucleus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17':  'Cerebellum and dentate nucleus',
+        '18':  'Upper spinal cord',
+        '19':  'Mid-level spinal cord',
+        '20':  'Lower spinal cord',
+        '21':  'Blood vessels from Circle of WiIlis',
+    },
+    'E20-175': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11':  'Anterior basal ganglia',
+        '12':  'Posterior basal ganglia',
+        '13':  'Hypothalamus',
+        '14':  'Thalamus, with subthalamic nucleus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Right hippocampus'
+    },
     'E21-3': {
         '1':  'Left Hippocampus',
         '2':  'Amygdala',
@@ -4703,7 +5099,95 @@ MAP = {
         '18':  'Lower spinal cord',
         '19':  'Blood vessels from the Circle of Willis',
     },
-
+    'E21-99': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left perirolandic cortex',
+        '8':  'Right perirolandic cortex',
+        '9': 'Cingulate cortex',
+        '10':  'Insular cortex',
+        '11': 'Anterior basal ganglia',
+        '12': 'Posterior basal ganglia',
+        '13': 'Hypothalamus',
+        '14': 'Thalamus, with subthalamic nucleus',
+        '15':  'Midbrain',
+        '16':  'Pons',
+        '17':  'Medulla',
+        '18':  'Cerebellum and dentate nucleus',
+        '19':  'Upper spinal cord',
+        '20':  'Mid-level spinal cord',
+        '21':  'Lower spinal cord',
+        '22':  'Right hippocampus',
+    }, 'E21-84': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7': 'Cingulate cortex',
+        '8':  'Insular cortex',
+        '9': 'Anterior basal ganglia',
+        '10': 'Posterior basal ganglia',
+        '11': 'Hypothalamus',
+        '12': 'Thalamus, with subthalamic nucleus',
+        '13':  'Midbrain',
+        '14':  'Pons',
+        '15':  'Medulla',
+        '16':  'Cerebellum and dentate nucleus',
+        '17':  'Upper spinal cord',
+        '18':  'Lower spinal cord',
+        '19':  'Pituitary',
+    }, 'E21-110': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left periRonaldic cortex',
+        '8': 'Cingulate cortex',
+        '9':  'Insular cortex',
+        '10': 'Anterior basal ganglia',
+        '11': 'Posterior basal ganglia',
+        '12': 'Hypothalamus',
+        '13': 'Thalamus, with subthalamic nucleus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17':  'Cerebellum and dentate nucleus',
+        '18':  'Pituitary',
+        '19':  'Dura with subdural hemorrhage'
+    },
+    'E21-115': {
+        '1':  'Hippocampus',
+        '2':  'Amygdala',
+        '3':  'Frontal cortex',
+        '4':  'Temporal cortex',
+        '5':  'Parietal cortex',
+        '6':  'Occipital cortex',
+        '7':  'Left periRonaldic cortex',
+        '8': 'Cingulate cortex',
+        '9':  'Insular cortex',
+        '10': 'Anterior basal ganglia',
+        '11': 'Posterior basal ganglia',
+        '12': 'Hypothalamus',
+        '13': 'Thalamus',
+        '14':  'Midbrain',
+        '15':  'Pons',
+        '16':  'Medulla',
+        '17':  'Cerebellum and dentate nucleus',
+        '18': 'Upper spinal cord',
+        '19': 'Mid-level spinal cord',
+        '20': 'Lower spinal cord',
+        '21':  'Diaphragm',
+        '22': 'Paraspinal muscle',
+        '23': 'Pituitary'
+    },
 
 }
 

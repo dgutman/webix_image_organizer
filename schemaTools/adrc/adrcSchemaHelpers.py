@@ -38,6 +38,7 @@ def getADRCcollection( gc,rootCollectionName='Emory_ADRC',debug=False):
 
     ## Get the ID for the ADRC Collection
     rawColList = gc.get('collection?text=%s' % rootCollectionName)
+    print(rawColList)
     adrcCollection = [x for x in rawColList if x['name']==rootCollectionName][0]
 
     for yr in gc.listFolder(adrcCollection['_id'],parentFolderType='collection'):
