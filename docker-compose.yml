@@ -57,3 +57,14 @@ services:
         volumes:
             - mongodb_volume:/data/db
         restart: always
+    faceted_search:
+        container_name: dsafs
+        build: 
+            context: ./faceted_search
+            dockerfile: Dockerfile
+        expose:
+            - "8000"
+        ports:
+            - 8000:8000
+        restart: always
+

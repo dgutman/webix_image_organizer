@@ -1,6 +1,5 @@
-#print("YOU STILL DONT REALLY REALLY SUCK")
 import re
-
+import brain_region_maps
 
 ## Go through each year... note I am adding code to ignore folders that are not numeric
 unknownStainTags = [] ### I am making this global so I can access it whenever..
@@ -28,12 +27,18 @@ def evaluateNPSchema( npMeta,debug=False):
             unknownStainTags.append(stain)
         else:
             npMeta['stainID'] = stainAliasDict[stain]   
-    
+
+    caseID = npMeta['caseID'].replace("A","E")  ## I have standardized everything to use an E not an A
+    blockID = npMeta['blockID']
+
+    if caseID in brain_region_maps.MAP:
+        brm = brain_region_maps.MAP[caseID]
+        npMeta['regionName'] = brm.get(blockID,"Not Mapped")
+
     return npMeta
 
 def getADRCcollection( gc,rootCollectionName='Emory_ADRC',debug=False):
     ## Given the collection name, pull all the items
-    ## This is assuming 
     npSlideDict = {}
 
     ## Get the ID for the ADRC Collection
@@ -64,7 +69,7 @@ stainAliasDict = { 'PTDP':'pTDP', 'HE':'HE','AB':'aBeta','AB':'AB','ptdp':'pTDP'
 
 ## For control slides I make the region Control  and also set the controlSlide Flag... not sure what to do about the
 ## slideName..
-def validateSlide( slideInfo, patientId):
+def validateSlide( slideInfo, patientId,debug=False):
     ## This will be a cleanup function that either validates data is meta.npSc,hema is available
     ## or tries to populate it from the existing and likely dirty metadata from either parsing the slide name
     ## or if meta.region or meta.stain are already populated..
@@ -81,7 +86,7 @@ def validateSlide( slideInfo, patientId):
             blockID = meta['region']
             if blockID.startswith('A'):
                 blockID = blockID.replace("A","")
-            print(blockID)
+            if debug: print(blockID)
 
             if 'subject' in meta:
                 subject = meta['subject']
@@ -105,27 +110,32 @@ def validateSlide( slideInfo, patientId):
 adrcNamePattern = re.compile('(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]')    
     
 
-
-
 def scanMetadata(gc,slideList,updateGirder=False,rescanNpSchema=True,debug=False):
     ### Given a list of slides, this will scan through the list of slides, and see if I can add any useful metadata
     ### This will push things to the npSchema key...
+    slidesProcessed = 0
+    slidesToUpdate = 0
+    slidesUpdated = 0
+
     for s in slideList:
         ### See if there's any metadata .. anywhere
+        slidesProcessed+=1
         if rescanNpSchema:
             ### MEans I can add some metadata if I can find any... we haven't set anything yet
             slideName = s['name']
             m=  adrcNamePattern.search(slideName)
             if m:
-                if updateGirder:
-                    validatedNPData = evaluateNPSchema(m.groupdict(),debug=False)
-                    try:
-                        currentNpSchema = s['meta']['npSchema']
-                        if currentNpSchema != validatedNPData:
-                            gc.addMetadataToItem(s['_id'],{'npSchema':validatedNPData})
-                            
-                    except KeyError:
+                validatedNPData = evaluateNPSchema(m.groupdict(),debug=False)
+                try:
+                    currentNpSchema = s['meta']['npSchema']
+                except KeyError:
+                    currentNpSchema = {}
+
+                if currentNpSchema != validatedNPData:
+                    slidesToUpdate +=1
+                    if updateGirder:
                         gc.addMetadataToItem(s['_id'],{'npSchema':validatedNPData})
+                        slidesUpdated+=1  
 
             elif 'CON' in slideName.upper():
                 ###  Probably a control slide!!
@@ -133,5 +143,5 @@ def scanMetadata(gc,slideList,updateGirder=False,rescanNpSchema=True,debug=False
                     gc.addMetadataToItem(s['_id'],{'npSchema':{'controlSlide':'Yes'}})
             else:
                 unmatchedFileNames.append(s['name'])
-                print("This slidename failed to match and is not a control",s['name'])
-                    
+                #print("This slidename failed to match and is not a control",s['name'])
+    return {'Processed':slidesProcessed, 'girderUpdates': slidesUpdated, 'slidesToUpdate':slidesToUpdate}, unmatchedFileNames
