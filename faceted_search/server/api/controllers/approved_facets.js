@@ -56,7 +56,7 @@ const parseDataForServer = (valuesForUpdate, data) => {
 			parseDataForServer(valuesForUpdate, item.data);
 		}
 	});
-	deleteUnnecessaryProperties(valuesForUpdate, ['_id', 'hidden']);
+	deleteUnnecessaryProperties(valuesForUpdate, ['facetId', 'hidden']);
 };
 
 const deleteUnnecessaryProperties = (valuesForUpdate, propsToDisplay) => {
