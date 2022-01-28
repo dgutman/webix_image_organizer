@@ -1,7 +1,7 @@
 Flask==1.0.2
 girder-client==2.4.0
 imutils==0.5.2
-numpy==1.15.2
+numpy==1.21.0
 opencv-python==4.2.0.32
 pyparsing==2.3.0
 pytesseract==0.2.6
