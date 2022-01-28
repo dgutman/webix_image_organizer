@@ -96,10 +96,11 @@ class ApprovedFacet {
 
 	updateApprovedFacetData(valuesForUpdate) {
 		let result = true;
+		
 		valuesForUpdate.forEach(async (newValue) => {
 			try {
 				await approvedFacetModel.updateOne(
-					{"_id": ObjectID(newValue._id)},
+					{"facetId": newValue.facetId},
 					{
 						$set: {"hidden": newValue.hidden}
 					}
