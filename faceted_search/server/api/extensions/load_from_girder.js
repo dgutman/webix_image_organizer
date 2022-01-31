@@ -69,7 +69,7 @@ async function resyncImages(host, token) {
 		};
 		urlParams.append("query", JSON.stringify(mongoQuery));
 
-	const url = `${host}/item/query?${urlParams.toString()}`;
+		const url = `${host}/item/query?${urlParams.toString()}`;
 		const deletedCount = await facetImagesModel.removeImages({host});
 		console.log(`Deleted ${deletedCount} images`);
 		let images = await axios.get(url, options).then((response) => response.data);

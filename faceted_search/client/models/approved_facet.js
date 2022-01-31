@@ -58,10 +58,10 @@ define([
 		approvedFacetsData.forEach((approvedFacetData) => {
 			if(!approvedFacetData.hidden) {
 				approvedFacetsLabels.push(approvedFacetData.facetId.replace(/\|/g, ' \\ '));
-				if(approvedFacetData.data
-					&& approvedFacetData.data.length > 0) {
-					parseForFilter(approvedFacetsLabels, approvedFacetData.data);
-				}
+			}
+			if(approvedFacetData.data
+				&& approvedFacetData.data.length > 0) {
+				parseForFilter(approvedFacetsLabels, approvedFacetData.data);
 			}
 		});
 	};

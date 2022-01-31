@@ -94,22 +94,22 @@ class ApprovedFacet {
 		}
 	}
 
-	updateApprovedFacetData(valuesForUpdate) {
-		let result = true;
-		valuesForUpdate.forEach(async (newValue) => {
+	async updateApprovedFacetData(valuesForUpdate) {
+		const updateResults = await Promise.all(valuesForUpdate.map(async (newValue) => {
 			try {
 				await approvedFacetModel.updateOne(
-					{"_id": ObjectID(newValue._id)},
+					{"facetId": newValue.facetId},
 					{
 						$set: {"hidden": newValue.hidden}
 					}
 				);
+				return true;
 			} catch(e) {
-				result = false;
 				console.error(e);
+				return false;
 			}
-		});
-		return result;
+		}));
+		return updateResults.includes(false) ? false : true;
 	}
 }
 

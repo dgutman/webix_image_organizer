@@ -36,36 +36,52 @@ module.exports = (app) => {
 		}
 	});
 	router.get('/approved-metadata', async (req, res) => {
-		const data = await approvedMetadataController.getApprovedMetadataData();
-		if (data) {
-			res.status(200).send(data);
-		} else {
-			res.status(200).send([]);
+		try {
+			const data = await approvedMetadataController.getApprovedMetadataData();
+			if (data) {
+				res.status(200).send(data);
+			} else {
+				res.status(200).send([]);
+			}
+		} catch(err) {
+			res.status(500).send('Internal Error');
 		}
 	});
 	router.post('/approved-metadata', async (req, res) => {
-		const valuesForUpdate = JSON.parse(req.body.data);
-		const data = await approvedMetadataController.updateApprovedMetadata(valuesForUpdate);
-		if(data) {
-			res.status(200).send(data);
-		} else {
+		try {
+			const valuesForUpdate = JSON.parse(req.body.data);
+			const data = await approvedMetadataController.updateApprovedMetadata(valuesForUpdate);
+			if(data) {
+				res.status(200).send(data);
+			} else {
+				res.status(500).send('Internal error');
+			}
+		} catch (err) {
 			res.status(500).send('Internal error');
 		}
 	});
 	router.get('/approved-facet', async (req, res) => {
-		const data = await approvedFacetController.getApprovedFacetData();
-		if(data) {
-			res.status(200).send(data);
-		} else {
-			res.status(200).send([]);
+		try{
+			const data = await approvedFacetController.getApprovedFacetData();
+			if(data) {
+				res.status(200).send(data);
+			} else {
+				res.status(200).send([]);
+			}
+		} catch (err) {
+			res.status(500).send('Internal error');
 		}
 	});
-	router.post('/approved-facet', (req, res) => {
-		const dataToSave = JSON.parse(req.body.data);
-		const result = approvedFacetController.updateApprovedFacetData(dataToSave);
-		if(result) {
-			res.sendStatus(200);
-		} else {
+	router.post('/approved-facet', async (req, res) => {
+		try{
+			const dataToSave = JSON.parse(req.body.data);
+			const result = await approvedFacetController.updateApprovedFacetData(dataToSave);
+			if(result) {
+				res.sendStatus(200);
+			} else {
+				res.status(500).send('Internal error');
+			}
+		} catch (err) {
 			res.status(500).send('Internal error');
 		}
 	});

@@ -46,6 +46,7 @@ const parseDataForGroupList = (data) => {
 const updateApprovedFacetData = (dataToSave) => {
 	const valuesForUpdate = [];
 	parseDataForServer(valuesForUpdate, dataToSave);
+	deleteUnnecessaryProperties(valuesForUpdate, ['facetId', 'hidden']);
 	return approvedFacetsModel.updateApprovedFacetData(valuesForUpdate);
 };
 
@@ -56,7 +57,6 @@ const parseDataForServer = (valuesForUpdate, data) => {
 			parseDataForServer(valuesForUpdate, item.data);
 		}
 	});
-	deleteUnnecessaryProperties(valuesForUpdate, ['_id', 'hidden']);
 };
 
 const deleteUnnecessaryProperties = (valuesForUpdate, propsToDisplay) => {
