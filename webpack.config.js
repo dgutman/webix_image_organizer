@@ -98,15 +98,8 @@ module.exports = (env) => {
 			}),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: [
-					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "2", value: "ISIC Archive", hostAPI: "https://isic-archive.com/girder/api/v1"},
-					{id: "3", value: "Computablebrain", hostAPI: "http://computablebrain.emory.edu:8080/api/v1"},
-					{id: "4", value: "HTAN", hostAPI: "https://imaging.htan.dev/girder/api/v1"}
-
-//					{id: "4", value: "CanineImaging", hostAPI: "http://canine.imagingdatacommons.info/girder/api/v1"}
-//					{id: "2", value: "Cancer digital slide archive", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"},
-//					{id: "3", value: "Transplant", hostAPI: "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"},
-//					{id: "5", value: "Candygram", hostAPI: "http://candygram.neurology.emory.edu:8080/api/v1"}
+					{id: "1", value: "Computablebrain", hostAPI: "https://computablebrain.emory.edu/girder/api/v1"},
+					{id: "2", value: "Styx", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"}
 				],
 				// ENABLE/DISABLE MODULES (TABS)
 				TABSTATE: {
