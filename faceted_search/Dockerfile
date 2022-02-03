@@ -12,7 +12,7 @@ RUN mkdir -p upload/extract
 
 RUN mkdir -p tmp
 
-RUN cp -p sample_config.js config.js
+#RUN cp -p sample_config.js config.js
 
 RUN npm -v
 

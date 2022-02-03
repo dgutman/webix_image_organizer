@@ -44,7 +44,7 @@ services:
             dockerfile: sources/server/Dockerfile
         expose:
             - "4000"
-        restart: always
+    #    restart: always
     images_organizer:
         container_name: images_organizer
         build: ./
@@ -74,6 +74,6 @@ services:
             context: ./faceted_search/
             dockerfile: ./Dockerfile
         expose:
-            - "80"
+            - "8000"
         ports:
             - 8000:80
