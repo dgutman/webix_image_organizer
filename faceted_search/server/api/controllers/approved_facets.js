@@ -4,7 +4,7 @@ const approvedFacetsModel = require("../models/approved_facet");
 const getApprovedFacetData = async () => {
 	try {
 		let data = await approvedFacetsModel.getApprovedFacetData();
-		if(data && data.length ===0) {
+		if(data && data.length === 0) {
 			await approvedFacetsModel.addApprovedFacetData();
 			data = await approvedFacetsModel.getApprovedFacetData();
 		}

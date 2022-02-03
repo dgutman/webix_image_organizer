@@ -198,6 +198,11 @@ class Approved_metadata {
 		});
 		return flag;
 	}
+
+	async deleteAllDocuments() {
+		const result = await approvedMetadataModel.deleteMany({});
+		return result.ok;
+	}
 }
 
 module.exports = new Approved_metadata();

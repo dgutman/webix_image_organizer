@@ -114,6 +114,11 @@ class FacetImages {
        const res = await facetImagesModel.deleteMany(query);
        return res.deletedCount;
     }
+
+	async deleteAllDocuments() {
+		const result = await facetImagesModel.deleteMany({});
+		return result.ok;
+	}
 }
 
 module.exports = new FacetImages();
