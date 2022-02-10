@@ -8,12 +8,22 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
 
 // ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
+const localEnv = new Dotenv({
+	path: path.resolve(__dirname, ".env") // Path to .env file
+});
 
 module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
 	};
+
+	const serverList = JSON.parse(localEnv.definitions["process.env.SERVER_LIST"], (key, value) => {
+		if (typeof value === "string") {
+			return JSON.parse(value);
+		}
+		return value;
+	});
 
 	const config = {
 		entry: "./sources/app.js",
@@ -97,10 +107,7 @@ module.exports = (env) => {
 				]
 			}),
 			new webpack.EnvironmentPlugin({
-				SERVER_LIST: [
-					{id: "1", value: "Computablebrain", hostAPI: "https://computablebrain.emory.edu/girder/api/v1"},
-					{id: "2", value: "Styx", hostAPI: "https://styx.neurology.emory.edu/girder/api/v1"}
-				],
+				SERVER_LIST: serverList,
 				// ENABLE/DISABLE MODULES (TABS)
 				TABSTATE: {
 					metadata: "enable",
