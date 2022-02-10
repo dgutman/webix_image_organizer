@@ -5,10 +5,11 @@ import AnnotationView from "./annotationWindow/annotation";
 import ApplyFiltersView from "./applyFiltersWindow/applyFilters";
 
 export default class ToolbarView extends JetView {
-	constructor(app, config = {}, imageWindowViewModel) {
+	constructor(app, config = {}, imageWindowViewModel, imageWindowView) {
 		super(app, config);
 
 		this._imageWindowViewModel = imageWindowViewModel;
+		this._imageWindowView = imageWindowView;
 		this._cnf = config;
 	}
 
@@ -362,7 +363,7 @@ export default class ToolbarView extends JetView {
 	}
 
 	organizeButtonsAction(localId) {
-		let drawingToolbar = this._imageWindowViewModel.getRoot().queryView({name: "drawing_buttons_layout"});
+		let drawingToolbar = this._imageWindowView.getRoot().queryView({name: "drawing_buttons_layout"});
 		let buttons = drawingToolbar.getChildViews();
 		if (!localId) {
 			for (let i = 0; i < buttons.length; i++) {
