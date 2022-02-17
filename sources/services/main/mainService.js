@@ -569,7 +569,8 @@ class MainService {
 							});
 					}
 					else {
-						if (!this._finderItem) {
+						if (!this._finderItem 
+							|| this._finderItem && item && this._finderItem._id !== item._id) {
 							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
@@ -704,9 +705,11 @@ class MainService {
 			if (modifiedObjects.count() > 0) {
 				modifiedObjects.getObjects().forEach((obj) => {
 					let itemNode = this._cartList.getItemNode(obj.id);
-					let listTextNode = itemNode.firstChild.children[2];
-					itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
-					listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
+					if (itemNode) {
+						let listTextNode = itemNode.firstChild.children[2];
+						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
+						listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
+					}
 				});
 			}
 		});

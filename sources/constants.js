@@ -22,13 +22,14 @@ export default {
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
 	ID_DATATABLE_IMAGES_TEMPLATE: "datatable-images-template-id",
 
+	// begin context menu for finder view
 	RENAME_CONTEXT_MENU_ID: "Rename folder",
 	LINEAR_CONTEXT_MENU_ID: "Make linear structure",
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 	RUN_RECOGNITION_SERVICE: "Recognition service",
 	UPLOAD_METADATA_MENU_ID: "Upload metadata",
-
+	// end context menu for finder view
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 

@@ -22,7 +22,7 @@ export default class LoginWindowView extends JetView {
 				},
 				{
 					view: "text",
-					css: "text-field",
+					css: "search-field",
 					name: "username",
 					label: "Login or email",
 					placeholder: "Enter login or email",
@@ -95,7 +95,7 @@ export default class LoginWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
-						icon: "far times-circle",
+						icon: "far fa-times-circle",
 						width: 30,
 						align: "right",
 						click: () => this.cancelLogic()
