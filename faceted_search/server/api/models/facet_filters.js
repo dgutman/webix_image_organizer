@@ -29,7 +29,7 @@ class FacetFilters {
     addFilters(req, res) {
         const body = JSON.parse(req.body.data);
         const promises = [];
-        body.forEach(function (requestItem) {
+        body.forEach(function(requestItem) {
             return new Promise((resolve) => {
                 if (requestItem.status === "already_added") {
                     return resolve();
@@ -38,7 +38,7 @@ class FacetFilters {
                     if (filters.length) {
                         filters.forEach((item) => {
                             if (requestItem.status === "modified" || requestItem.status === "added" || requestItem.status === "removed") {
-                                facetFiltersModel.remove({_id: item._id}, function (err) {
+                                facetFiltersModel.remove({_id: item._id}, function(err) {
                                     if (err) return handleError(err);
                                     // removed!
                                 });
@@ -68,8 +68,7 @@ class FacetFilters {
                         (err, filters) => {
                             if (err) {
                                 reject(err);
-                            }
-                            else {
+                            } else {
                                 resolve(filters);
                             }
                         });
@@ -94,6 +93,11 @@ class FacetFilters {
                         });
             });
     }
+
+	async deleteAllDocuments() {
+		const result = await facetFiltersModel.deleteMany({});
+		return result.ok;
+	}
 }
 
 module.exports = new FacetFilters();

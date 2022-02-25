@@ -4,7 +4,7 @@ const approvedFacetsModel = require("../models/approved_facet");
 const getApprovedFacetData = async () => {
 	try {
 		let data = await approvedFacetsModel.getApprovedFacetData();
-		if(data && data.length ===0) {
+		if(data && data.length === 0) {
 			await approvedFacetsModel.addApprovedFacetData();
 			data = await approvedFacetsModel.getApprovedFacetData();
 		}
@@ -46,6 +46,7 @@ const parseDataForGroupList = (data) => {
 const updateApprovedFacetData = (dataToSave) => {
 	const valuesForUpdate = [];
 	parseDataForServer(valuesForUpdate, dataToSave);
+	deleteUnnecessaryProperties(valuesForUpdate, ['facetId', 'hidden']);
 	return approvedFacetsModel.updateApprovedFacetData(valuesForUpdate);
 };
 
@@ -56,7 +57,6 @@ const parseDataForServer = (valuesForUpdate, data) => {
 			parseDataForServer(valuesForUpdate, item.data);
 		}
 	});
-	deleteUnnecessaryProperties(valuesForUpdate, ['facetId', 'hidden']);
 };
 
 const deleteUnnecessaryProperties = (valuesForUpdate, propsToDisplay) => {

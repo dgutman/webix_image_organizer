@@ -54,17 +54,23 @@ class ApprovedFacet {
 			if(approvedFacets) {
 				approvedFacets.forEach((approvedFacetItem) => {
 					lodash.remove(facetIds, (facetId) => {
-						return facetId === approvedFacetItem;
+						return facetId === approvedFacetItem.facetId;
 					});
 				});
+				const facetsToAdd = [];
 				lodash.forEach(facetIds, (facetId) => {
-					this._pushInApprovedFacets(facetIds, facetId, approvedFacets);
+					this._findFacetsToAdd(facetIds, facetId, facetsToAdd);
 				});
 				approvedFacets.forEach((approvedFacetItem) => {
+					lodash.remove(facetsToAdd, (facetToAdd) => {
+						return facetToAdd.facetId === approvedFacetItem.facetId;
+					});
+				});
+				facetsToAdd.forEach((facetToAdd) => {
 					const doc = new approvedFacetModel({
-						facetId: approvedFacetItem.facetId,
-						hidden: approvedFacetItem.hidden,
-						parentId: approvedFacetItem.parentId
+						facetId: facetToAdd.facetId,
+						hidden: facetToAdd.hidden,
+						parentId: facetToAdd.parentId
 					});
 					doc.save();
 				});
@@ -74,7 +80,7 @@ class ApprovedFacet {
 		}
 	}
 
-	_pushInApprovedFacets(facetIds, facetId, approvedFacet) {
+	_findFacetsToAdd(facetIds, facetId, approvedFacet) {
 		let parentId = '';
 		const lastIndexOfSeparator = facetId.lastIndexOf(separator);
 		if(lastIndexOfSeparator > -1) {
@@ -82,7 +88,7 @@ class ApprovedFacet {
 		}
 		const indexOfParentId = lodash.indexOf(facetIds, parentId);
 		if(indexOfParentId === -1 && parentId !== '') {
-			this._pushInApprovedFacets(facetIds, parentId, approvedFacet);
+			this._findFacetsToAdd(facetIds, parentId, approvedFacet);
 		}
 		const countOfApprovedFacets = lodash.filter(approvedFacet, {'facetId': facetId});
 		if(countOfApprovedFacets.length === 0) {
@@ -94,10 +100,8 @@ class ApprovedFacet {
 		}
 	}
 
-	updateApprovedFacetData(valuesForUpdate) {
-		let result = true;
-		
-		valuesForUpdate.forEach(async (newValue) => {
+	async updateApprovedFacetData(valuesForUpdate) {
+		const updateResults = await Promise.all(valuesForUpdate.map(async (newValue) => {
 			try {
 				await approvedFacetModel.updateOne(
 					{"facetId": newValue.facetId},
@@ -105,12 +109,18 @@ class ApprovedFacet {
 						$set: {"hidden": newValue.hidden}
 					}
 				);
+				return true;
 			} catch(e) {
-				result = false;
 				console.error(e);
+				return false;
 			}
-		});
-		return result;
+		}));
+		return updateResults.includes(false) ? false : true;
+	}
+
+	async deleteAllDocuments() {
+		const result = await approvedFacetModel.deleteMany({});
+		return result.ok;
 	}
 }
 
