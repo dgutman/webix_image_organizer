@@ -37,13 +37,12 @@ def evaluateNPSchema( npMeta,debug=False):
 
     return npMeta
 
-def getADRCcollection( gc,rootCollectionName='Emory_ADRC',debug=False):
+def getADRCcollection( gc,rootCollectionName='Emory_ADRC',debug=False,pullSlideList=False):
     ## Given the collection name, pull all the items
     npSlideDict = {}
 
     ## Get the ID for the ADRC Collection
     rawColList = gc.get('collection?text=%s' % rootCollectionName)
-    print(rawColList)
     adrcCollection = [x for x in rawColList if x['name']==rootCollectionName][0]
 
     for yr in gc.listFolder(adrcCollection['_id'],parentFolderType='collection'):
@@ -56,11 +55,17 @@ def getADRCcollection( gc,rootCollectionName='Emory_ADRC',debug=False):
             ### To do.. generate number of slides under each subject
             #### And in the future also validate the metadata!!
             subjItemSet = gc.listResource('resource/%s/items?type=folder' % subj['_id'])
-            slideList = [x for x in subjItemSet if ('svs' in x['name'] or 'ndpi' in  x['name'])]
+            if pullSlideList:
+                slideList = [x for x in subjItemSet if ('svs' in x['name'] or 'ndpi' in  x['name'])]
+            else:
+                slideList = []
             
             if debug: print("\t%s\t%s" % (subj['name'],len(slideList)))
-            npSlideDict["%s_%s" % (year,subj['name'])] = slideList
+            npSlideDict["%s_%s" % (year,subj['name'])] = {'slideList': slideList, 'rootFolderInfo': subj}
+            
     return npSlideDict
+
+
 
 
 
@@ -110,12 +115,15 @@ def validateSlide( slideInfo, patientId,debug=False):
 adrcNamePattern = re.compile('(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]')    
     
 
-def scanMetadata(gc,slideList,updateGirder=False,rescanNpSchema=True,debug=False):
-    ### Given a list of slides, this will scan through the list of slides, and see if I can add any useful metadata
+def scanMetadata(gc,fldrInfo,updateGirder=False,rescanNpSchema=True,debug=False):
+    ### Given a folderID, this will pull all of the slides under it recursively
+    
     ### This will push things to the npSchema key...
     slidesProcessed = 0
     slidesToUpdate = 0
     slidesUpdated = 0
+    subjItemSet = gc.listResource('resource/%s/items?type=folder' % fldrInfo['_id'])
+    slideList = [x for x in subjItemSet if ('svs' in x['name'] or 'ndpi' in  x['name'])]
 
     for s in slideList:
         ### See if there's any metadata .. anywhere
