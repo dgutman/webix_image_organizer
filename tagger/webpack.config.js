@@ -97,9 +97,21 @@ module.exports = (env) => {
 
 			]),
 			new webpack.EnvironmentPlugin({
-				SERVER_LIST: [
-					{id: "1", value: "DermAnnotator", hostAPI: "http://dermannotator.org:8080/api/v1"},
-					{id: "2", value: "ISIC-Archive", hostAPI: "http://isic-archive.com/girder/api/v1"}
+				SERVER_LIST: [{
+		"id": "1",
+		"value": "Computable Brain",
+		"hostAPI": "https://computablebrain.emory.edu/api/v1"
+	},
+	{
+		"id": "2",
+		"value": "Transplant",
+		"hostAPI": "http://transplant.digitalslidearchive.emory.edu:8080/api/v1"
+	},
+	{
+		"id": "3",
+		"value": "STYX",
+		"hostAPI": "https://styx.neurology.emory.edu/girder/api/v1"
+	}
 				],
 				TAGGER_TASKS_COLLECTION_ID: "5e276af412450d0d13e7d361"
 			}),

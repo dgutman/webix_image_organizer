@@ -2,7 +2,7 @@ FROM node:12-alpine3.10
 
 WORKDIR /app/dev
 
-COPY . .
+COPY package.json .
 
 RUN apk add --no-cache git
 
@@ -14,6 +14,8 @@ RUN npm -v
 RUN npm i
 
 RUN npm install pm2 -g
+
+COPY . . 
 
 RUN npm run build
 
