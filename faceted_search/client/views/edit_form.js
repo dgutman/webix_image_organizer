@@ -229,6 +229,7 @@ define([
 
 	const loadApprovedFacetData = function() {
 		const approvedFacetsData = approvedFacetModel.getApprovedFacetsData();
+		$$(constants.FACET_FILTER_GROUPLIST_ID).clearAll();
 		$$(constants.FACET_FILTER_GROUPLIST_ID).parse(approvedFacetsData);
 	};
 

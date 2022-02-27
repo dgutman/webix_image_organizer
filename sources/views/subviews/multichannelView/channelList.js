@@ -51,9 +51,9 @@ export default class ChannelList extends JetView {
 					navigation: false,
 					select: false,
 					drag: "source",
-					template: ({name, id, index}, common) => `${common.checkboxState(id)}
-					<span class="channel-item__name name">${name}</span>
-					<span class="channel-item__index index">(${index})</span>`,
+					template: (obj, common) => `${common.checkboxState(obj.id)}
+					<span class="channel-item__name name">${obj.name}</span>
+					<span class="channel-item__index index">(${obj.index})</span>`,
 					type: {
 						checkboxState: (id) => {
 							const icon = this._selectedChannelsModel.isSelected(id) ? "checked fas fa-check-square" : "unchecked far fa-square";

@@ -28,7 +28,6 @@
     "dotenv-webpack": "^1.7.0",
     "eslint": "5.14.1",
     "eslint-config-import": "0.13.0",
-    "eslint-config-xbsoftware": "git+https://bitbucket.org/xbsltd/eslint.git",
     "eslint-plugin-import": "2.16.0",
     "eslint-plugin-require": "0.0.1",
     "extract-text-webpack-plugin": "^4.0.0-beta.0",

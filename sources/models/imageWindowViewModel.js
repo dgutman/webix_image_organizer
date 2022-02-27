@@ -132,8 +132,8 @@ export default class imageWindowViewModel {
 			view.app.callEvent("annotationTableParse", [tempJSONArray]);
 			view.app.callEvent("changeRichselectData", [model.treeannotations]);
 			model.treeCheckBoxesClicked("", "", null, model.treeannotations);
-			model.updateGirderWithAnnotationData();
 			model.toggleLabel(window.switchLabel);
+			model.updateGirderWithAnnotationData();
 			model.isAnnotationAdd = true;
 		};
 	}
@@ -555,11 +555,7 @@ export default class imageWindowViewModel {
 						const params = JSON.stringify(annotationInfo);
 						await webix.ajax().headers({
 							"Content-type": "application/json"
-						}).del(url);
-						url = `${ajax.getHostApiUrl()}/annotation?itemId=${this.item._id}`;
-						await webix.ajax().headers({
-							"Content-type": "application/json"
-						}).post(url, params);
+						}).put(url, params);
 						webix.message("Changes are successfully saved");
 					}
 					else {

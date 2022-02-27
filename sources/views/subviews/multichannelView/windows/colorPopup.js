@@ -5,9 +5,14 @@ import tilesCollection from "../../../../models/imageTilesCollection";
 import ajaxActions from "../../../../services/ajaxActions";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import TimedOutBehavior from "../../../../utils/timedOutBehavior";
+import constants from "../../../../constants";
+import RangeSwitch from "../../../components/rangeSwitch";
+import HistogramChart from "../../../components/histogramChart";
+import ScaleTypeToggle from "../../../components/scaleTypeToggle";
 
 const FORM_ID = "color-form";
 const HISTOGRAM_CHART_ID = "histogram-chart";
+const HISTOGRAM_FORM_ID = "histogram-form";
 const chartOverlay = "<div class='chart-overlay'></div>";
 
 export default class ColorPickerWindow extends JetView {
@@ -15,66 +20,73 @@ export default class ColorPickerWindow extends JetView {
 		super(app);
 
 		this._colorPicker = new ColorPicker(app, {name: "color", width: 300});
+		const initialMaxEdge = stateStore.bit === constants.EIGHT_BIT ?
+			constants.MAX_EDGE_FOR_8_BIT : constants.MAX_EDGE_FOR_16_BIT;
 		this._rangeSlider = new RangeSlider(app, {}, 65000, 0);
+		this._rangeSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
+		this._rangeSwitch = new RangeSwitch(app, {hidden: true}, initialMaxEdge, this._rangeSlider);
+		this._histogramChart = new HistogramChart(this.app, {width: 330, height: 210, localId: HISTOGRAM_CHART_ID});
+		this._histogramSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
+		this._scaleTypeToggle = new ScaleTypeToggle(
+			app,
+			{value: constants.LINEAR_SCALE_VALUE}
+		);
 	}
 
 	config() {
 		const colorPopup = {
-			view: "popup",
+			view: "window",
 			css: "color-picker-popup",
-			move: false,
-			modal: true,
+			move: true,
+			modal: false,
+			width: 700,
 			height: 850,
 			body: {
-				view: "form",
-				localId: FORM_ID,
-				elements: [
+				cols: [
 					{
-						localId: HISTOGRAM_CHART_ID,
-						view: "chart",
-						height: 160,
-						width: 330,
-						type: "splineArea",
-						scale: "logarithmic",
-						yValue: "#yValue#",
-						color: "#36abee",
-						dynamic: false,
-						yAxis: {
-							template: yValue => (yValue % 50 ? "" : `<span title='${yValue}' class='y-axis-number-item ellipsis-text'>${yValue}</span>`)
-						},
-						xAxis: {
-							start: 0,
-							end: 255,
-							step: 50,
-							template: ({xValue}) => (xValue % 50 ? "" : `<span title='${xValue}'>${xValue}</span>`)
-						}
+						view: "form",
+						localId: HISTOGRAM_FORM_ID,
+						elements: [
+							this._histogramChart,
+							this._histogramSlider,
+							this._scaleTypeToggle
+						]
 					},
-					this._colorPicker,
-					this._rangeSlider,
 					{
-						cols: [
+						view: "form",
+						localId: FORM_ID,
+						elements: [
+							this._colorPicker,
+							this._rangeSlider,
+							this._rangeSwitch,
 							{
-								view: "button",
-								css: "btn-contour",
-								label: "Cancel",
-								click: () => {
-									this.getForm().setValues(this._initValues);
-									this.applyChanges();
-									this.closeWindow();
-								}
-							},
-							{},
-							{
-								view: "button",
-								css: "btn",
-								label: "Apply",
-								click: () => {
-									this.applyChanges();
-									this.closeWindow();
-								}
+								cols: [
+									{
+										view: "button",
+										css: "btn-contour",
+										label: "Cancel",
+										click: () => {
+											this.getForm().setValues(this._initValues);
+											this.applyChanges();
+											this.savePosition();
+											this.closeWindow();
+										}
+									},
+									{},
+									{
+										view: "button",
+										css: "btn",
+										label: "Apply",
+										click: () => {
+											this.applyChanges();
+											this.savePosition();
+											this.closeWindow();
+										}
+									}
+								]
 							}
 						]
-					}
+					},
 				]
 			}
 		};
@@ -83,7 +95,7 @@ export default class ColorPickerWindow extends JetView {
 	}
 
 	ready() {
-		const chart = this._histogramChart;
+		const chart = this._histogramChart.getRoot();
 		webix.extend(chart, webix.OverlayBox);
 
 		const form = this.getForm();
@@ -97,22 +109,62 @@ export default class ColorPickerWindow extends JetView {
 			this.getRoot().callEvent("colorChanged", [values]);
 			debounce.execute(this.updateHistorgamHandler, this);
 		});
+
+		const toggleRangeSwitchVisibility = () => {
+			const rangeSwitchRoot = this._rangeSwitch.getRoot();
+			const isVisible = rangeSwitchRoot.isVisible();
+			if (isVisible) {
+				rangeSwitchRoot.hide();
+			}
+			else {
+				rangeSwitchRoot.show();
+			}
+			return false;
+		};
+		this.on(this.getRoot(), "onShow", () => {
+			webix.UIManager.addHotKey("Shift+S", toggleRangeSwitchVisibility);
+		});
+		this.on(this.getRoot(), "onHide", () => {
+			webix.UIManager.removeHotKey("Shift+S", toggleRangeSwitchVisibility);
+		});
+		const histogramForm = this.getHistogramForm();
+		histogramForm.attachEvent("onChange", async () => {
+			debounce.execute(this.updateHistorgamHandler, this);
+		});
 	}
 
 	showWindow(initValues, node, pos = "left") {
-		this._initValues = webix.copy(initValues);
-		this.getRoot().show(node, {pos});
-		this.getForm().setValues(initValues);
+		try {
+			this._initValues = webix.copy(initValues);
+			const currentWindowPosition = webix.storage.cookie.get("colorPickerWindowPosition");
+			if (currentWindowPosition) {
+				this.getRoot().setPosition(currentWindowPosition.left, currentWindowPosition.top);
+				this.getRoot().show();
+			}
+			else {
+				this.getRoot().show(node, {pos});
+			}
+			this.getForm().setValues(initValues);
 
-		this._histogramChart.showOverlay(chartOverlay);
-		this._getHistogramInfo()
-			.then(([histogram]) => {
-				this.setHistogramValues(histogram);
-				this.setMinAndMaxValuesByHistogram(histogram);
-			})
-			.finally(() => {
-				this._histogramChart.hideOverlay();
-			});
+			this._histogramChart.getRoot().showOverlay(chartOverlay);
+			this._getHistogramInfo()
+				.then(([histogram]) => {
+					this.setHistogramValues(histogram);
+					this.setMinAndMaxValuesByHistogram(histogram);
+				})
+				.finally(() => {
+					this._histogramChart.getRoot().hideOverlay();
+				});
+		}
+		catch (err) {
+			console.error(JSON.stringify(err.stack));
+		}
+	}
+
+	savePosition() {
+		const top = this.getRoot().$view.offsetTop;
+		const left = this.getRoot().$view.offsetLeft;
+		webix.storage.cookie.put("colorPickerWindowPosition", {top, left});
 	}
 
 	closeWindow() {
@@ -126,45 +178,60 @@ export default class ColorPickerWindow extends JetView {
 	}
 
 	updateHistorgamHandler() {
-		this._histogramChart.showOverlay(chartOverlay);
+		this._histogramChart.getRoot().showOverlay(chartOverlay);
 		this._getHistogramInfo().then(([histogram]) => {
 			this.setHistogramValues(histogram);
 		})
 			.finally(() => {
-				this._histogramChart.hideOverlay();
+				this._histogramChart.getRoot().hideOverlay();
 			});
 	}
 
 	setHistogramValues(histogram) {
 		this._histogram = histogram;
-		const chartValues = histogram.hist.map((value, i) => ({xValue: i, yValue: value}));
-		this._histogramChart.clearAll();
-		this._histogramChart.parse(chartValues);
+		const yScale = this._scaleTypeToggle.getValue();
+		const chartValues = histogram.hist.map((value, i) => {
+			// xValue: i, yValue: value
+			const bitMaxEdge = histogram.bin_edges[i+1];
+			const name = typeof bitMaxEdge === "number" ? bitMaxEdge.toFixed(2) : bitMaxEdge;
+			return {value, name};
+		});
+		this._histogramChart.makeChart(chartValues, yScale);
 	}
 
 	setMinAndMaxValuesByHistogram({min, max}) {
 		this._rangeSlider.setEdges(min, max);
+		this._histogramSlider.setEdges(min, max);
+		this._rangeSwitch.setMaxRange(max);
 	}
 
 	async _getHistogramInfo() {
-		const values = this.getForm().getValues();
+		if (!this._image || !this._channel) {
+			return;
+		}
+		const {min, max} = this.getHistogramForm().getValues();
 		const tileInfo = await tilesCollection.getImageTileInfo(this._image);
 		const binSettings = {
 			width: tileInfo.sizeX,
 			height: tileInfo.sizeY,
-			rangeMin: values.min,
-			rangeMax: values.max
+			rangeMin: min,
+			rangeMax: max
 		};
 
-		return ajaxActions.getImageTilesHistogram(this._image._id, this._channel.index, binSettings);
+		return ajaxActions
+			.getImageTilesHistogram(this._image._id, this._channel.index, binSettings);
 	}
 
-	get _histogramChart() {
+	getHistogramChart() {
 		return this.$$(HISTOGRAM_CHART_ID);
 	}
 
 	getForm() {
 		return this.$$(FORM_ID);
+	}
+
+	getHistogramForm() {
+		return this.$$(HISTOGRAM_FORM_ID);
 	}
 
 	get _image() {

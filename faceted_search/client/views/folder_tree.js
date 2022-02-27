@@ -1,4 +1,3 @@
-
 define([
 	"app",
 	"constants",
@@ -9,6 +8,8 @@ define([
 	const uploadButtonId = "upload-btn";
 	const resyncButtonId = "resync-btn";
 	const statusTempateId = "status-template";
+	const deleteButtonId = "delete-btn";
+	const localApi = constants.LOCAL_API;
 
 	const treeView = {
 		view: "tree",
@@ -53,6 +54,12 @@ define([
 		value: "Upload items from folder",
 		disabled: true
 	};
+
+	const deleteButton = {
+		view: "button",
+		id: deleteButtonId,
+		value: "Clear database"
+	};
 	
 	return {
 		$ui: {
@@ -60,10 +67,20 @@ define([
 				treeView,
 				statusTemplate,
 				{
-					cols: [
-						uploadButton,
-						resyncButton
+					rows: [
+						{
+							cols: [
+								uploadButton,
+								resyncButton
+							]
+						},
+						{
+							cols: [
+								deleteButton
+							]
+						}
 					]
+					
 				}
 			]
 		},
@@ -71,6 +88,7 @@ define([
 			const tree = $$(constants.FOLDER_TREE_ID);
 			const uploadButton = $$(uploadButtonId);
 			const resyncButton = $$(resyncButtonId);
+			const deleteButton = $$(deleteButtonId);
 			webix.extend(tree, webix.ProgressBar);
 			tree.showProgress();
 			ajax.getCollection()
@@ -113,6 +131,42 @@ define([
 				tree.showProgress();
 				uploadButton.disable();
 				Upload.getImagesFromGirder(ajax.getHostApiUrl(), folder._id, folder.name, token);
+			});
+
+			deleteButton.attachEvent("onItemClick", async () => {
+				webix.confirm({title: "Clear database", text: "Confirm action"})
+					.then(function(result) {
+						tree.showProgress();
+						const promises = [
+							webix.ajax().del(`${localApi}/facets/approved-facets`),
+							webix.ajax().del(`${localApi}/facets/approved-metadata`),
+							webix.ajax().del(`${localApi}/facets/images`),
+							webix.ajax().del(`${localApi}/facets/filters`)
+						];
+						Promise.all(promises)
+							.then((results) => {
+								let hasAllResults = true;
+								if(results) {
+									results.forEach((result) => {
+										if (!result) {
+											hasAllResults = false;
+										}
+									});
+								} else {
+									hasAllResults = false;
+								}
+								if(hasAllResults) {
+									webix.message({type: "message", text: "Database has been cleared", expire: 10000});
+								} else {
+									webix.message({type: "error", text: `Internal Error`, expire: 10000});
+								}
+								tree.hideProgress();
+							}, (err) => {
+								webix.message({type: "error", text: `${err.responseText}`, expire: 10000});
+								tree.hideProgress();
+							});
+					})
+					.fail(function() {});
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {

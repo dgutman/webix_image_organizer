@@ -6,6 +6,7 @@ function jwt() {
 	const secret = process.env.SECRET_KEY;
 	return expressJwt({
 		secret,
+		algorithms:['HS256'],
 		isRevoked: jwtBlacklist.isRevoked,
 		getToken: req => req.headers["tagger-jwt"]
 	}).unless({
