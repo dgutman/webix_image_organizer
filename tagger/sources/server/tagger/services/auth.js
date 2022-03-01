@@ -1,10 +1,24 @@
+const https = require("https");
 const http = require("http");
 const jwt = require("jsonwebtoken");
 const jwtBlacklist = require("express-jwt-blacklist");
+const { link } = require("fs");
 
 const successStatusCode = 200;
 
+function validateURL(link)
+{
+    if (link.indexOf("http://") === 0) {
+		return http;
+	}
+	else if (link.indexOf("https://") === 0) {
+		return https;
+    }
+	return null;
+}
+
 async function login(hostApi, authHeader) {
+	const requestMethod = validateURL(hostApi);
 	const url = new URL(hostApi);
 	const path = `${url.pathname}/user/authentication`;
 
@@ -20,7 +34,7 @@ async function login(hostApi, authHeader) {
 	};
 
 	return new Promise((resolve, reject) => {
-		const request = http.request(options, (response) => {
+		const request = requestMethod.request(options, (response) => {
 			let body = "";
 			const {statusCode} = response;
 
@@ -57,6 +71,7 @@ async function login(hostApi, authHeader) {
 }
 
 async function logout(host, token, user) {
+	const requestMethod = validateURL(host);
 	const url = new URL(host);
 	const path = `${url.pathname}/user/authentication`;
 
@@ -72,7 +87,7 @@ async function logout(host, token, user) {
 	};
 
 	return new Promise((resolve, reject) => {
-		const request = http.request(options, (response) => {
+		const request = requestMethod.request(options, (response) => {
 			let body = "";
 			const {statusCode} = response;
 			if (statusCode !== successStatusCode) {
