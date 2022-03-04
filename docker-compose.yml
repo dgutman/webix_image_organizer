@@ -44,6 +44,8 @@ services:
             dockerfile: sources/server/Dockerfile
         expose:
             - "4000"
+        ports:
+            - 4000:4000
     #    restart: always
     images_organizer:
         container_name: images_organizer
@@ -59,6 +61,8 @@ services:
             dockerfile: Dockerfile
         expose:
             - "5000"
+        ports:
+            - 5000:5000
         restart: always
     mongodb:
         image: mongo:4.2.6
