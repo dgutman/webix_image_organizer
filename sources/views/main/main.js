@@ -56,7 +56,7 @@ export default class MainView extends JetView {
 		const metadataPanelScrollView = this.getSubMetadataPanelView().getScrollView();
 		const metadataTemplate = this.getSubMetadataPanelView().getTemplateView();
 		const metadataCollapser = this.getSubCollapserView();
-		const cartList = this.getSubCartListView().getCartListView();
+		const cartListView = this.getSubCartListView().getCartListView();
 
 		this._mainService = new MainService(
 			view,
@@ -70,7 +70,7 @@ export default class MainView extends JetView {
 			metadataTemplate,
 			metadataCollapser,
 			metadataPanelScrollView,
-			cartList
+			cartListView
 		);
 	}
 

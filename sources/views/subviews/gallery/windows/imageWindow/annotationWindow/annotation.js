@@ -15,6 +15,7 @@ export default class AnnotationView extends JetView {
 			width: 1050,
 			position: "center",
 			move: true,
+			modal: true,
 			head: {
 				view: "toolbar",
 				borderless: true,

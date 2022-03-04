@@ -26,6 +26,7 @@ export default class Header extends JetView {
 			width: 150,
 			onClick: {
 				"menu-login": () => {
+					this.loginWindow = this.ui(LoginWindow);
 					this.loginWindow.showLoginWindow();
 				}
 			}
@@ -168,7 +169,6 @@ export default class Header extends JetView {
 
 		this.loginPanel = this.getRoot().queryView({name: LOGIN_PANEL_NAME});
 		this.logoutPanel = this.getRoot().queryView({name: LOGOUT_PANEL_NAME});
-		this.loginWindow = this.ui(LoginWindow);
 		this.headerService = new HeaderService(
 			view,
 			this.loginPanel,

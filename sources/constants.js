@@ -4,6 +4,7 @@ const APP_URL_PATH = "app";
 
 export default {
 
+	// TODO: update constants for multichannelview
 	KEY_TOKEN: "girderToken",
 
 	APP_PATHS: {
@@ -22,13 +23,16 @@ export default {
 	ID_GALLERY_RICHSELECT: "gallery-richselect-viewid",
 	ID_DATATABLE_IMAGES_TEMPLATE: "datatable-images-template-id",
 
+	// begin context menu for finder view
 	RENAME_CONTEXT_MENU_ID: "Rename folder",
 	LINEAR_CONTEXT_MENU_ID: "Make linear structure",
+	CASEVIEW_CONTEXT_MENU_ID: "Make case view",
 	RENAME_FILE_CONTEXT_MENU_ID: "Rename file",
 	REFRESH_FOLDER_CONTEXT_MENU_ID: "Refresh folder",
 	RUN_RECOGNITION_SERVICE: "Recognition service",
 	UPLOAD_METADATA_MENU_ID: "Upload metadata",
-
+	SET_OPTIONS: "Set options",
+	// end context menu for finder view
 
 	MAKE_LARGE_IMAGE_CONTEXT_MENU_ID: "Make large image",
 
@@ -63,6 +67,7 @@ export default {
 	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
 
 	LINEAR_STRUCTURE_LIMIT: 2000,
+	CASEVIEW_LIMIT: 2000,
 	FOLDERS_LIMIT: 0,
 
 	MAX_COUNT_IMAGES_SELECTION: 100,
@@ -135,6 +140,7 @@ export default {
 	],
 	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"},
 	MULTICHANNEL_VIEW_OPTION: {id: "multichannelView", value: "Multichannel view"},
+	CASE_VIEW_OPTION: {id: "caseView", value: "Case view"},
 
 	SCENES_VIEW_CHANGE_MODE_EVENT_NAME: "scenesViewerModeChange",
 	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange",
