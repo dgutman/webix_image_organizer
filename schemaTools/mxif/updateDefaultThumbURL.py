@@ -1,27 +1,22 @@
 # This will sync metadata for the MVP image set for the DSA HTAN image portal
 import girder_utils as gu
 import girder_client
-import secrets as s
-import sys
-import os
-import json
-import time
-import tqdm
+import gcSecrets as s
+import sys, os, json, time, tqdm
 import urllib.parse
 # Adding girder_utils path
 
 updateMetadata = False
 
-sys.path.insert(0, "../loadBucketData")
-
 gc = girder_client.GirderClient(apiUrl=s.apiUrl)
-gc.authenticate(apiKey=s.dsaApiKey)
+gc.authenticate(apiKey=s.apiToken)
 
 MVPCollectionId = '604a39fa8dfee73ac067d126'
 
-# source/%s/items?type=folder" % ("604a544f8dfee73ac067d126"))
+VandyTestDataId = '5f5a41a5660f1f265e3a795c'
+
 itemSet = gu.listChildItems(
-    gc, "resource/%s/items?type=collection" % (MVPCollectionId))
+    gc, "resource/%s/items?type=collection" % (VandyTestDataId))
 
 
 def createDefaultThumbUrl(itemInfo):
@@ -36,7 +31,6 @@ def createDefaultThumbUrl(itemInfo):
 
 
 itemData = []
-
 hasThumbnailUrl = 0
 hasGroupSets = 0
 hasBoth = 0
@@ -51,8 +45,6 @@ def createThumbUrlFromDSASceneSet(dsaItem):
         print(len(DSAGroupSet))
 
         styleInfo = {"bands": []}
-        
-        
         if len(DSAGroupSet) > 0:
 
             for c in DSAGroupSet[0]['channels']:
@@ -78,6 +70,11 @@ for i in tqdm.tqdm(itemSet):
     hasDefaultThumb = False
     hasCuratedSceneSet = False
 
+    if 'meta' not in i:
+        continue
+    if 'ioparams' not in i['meta']:
+        continue
+
     if 'thumbnailUrl' in i['meta']['ioparams']:
         # print(i['meta']['ioparams']['thumbnailUrl'])
         hasThumbnailUrl += 1
@@ -85,16 +82,18 @@ for i in tqdm.tqdm(itemSet):
     if 'DSAGroupSet' in i['meta']:
         hasGroupSets += 1
         hasCuratedSceneSet = True
-        print(i['name'], i['meta']['htanMeta']['HTAN_Center'],
-              i['meta']['htanMeta']['Imaging_Assay_Type'])
+        #print(i['name'], i['meta']['htanMeta']['HTAN_Center'],
+	#           i['meta']['htanMeta']['Imaging_Assay_Type'])
 
         #print(urllib.parse.unquote(i['meta']['ioparams']['thumbnailUrl']))
 
     ioparams = i['meta']['ioparams']
 
-    if ('frameCount' in ioparams and ioparams['frameCount'] >= 3):
-        print(hasDefaultThumb, hasCuratedSceneSet,
-              ioparams['frameCount'], i['name'])
+#    if ('frameCount' in ioparams and ioparams['frameCount'] >= 3):
+    if True:
+#('frameCount' in ioparams and ioparams['frameCount'] >= 3):
+        print(hasDefaultThumb, hasCuratedSceneSet)
+#              ioparams['frameCount'], i['name'])
 
         if hasCuratedSceneSet:
             # Going to update the defaultThumbURL because i
@@ -131,23 +130,6 @@ print(hasThumbnailUrl, "has Group Sets", hasGroupSets)
 # 			tileMetadata = gc.get("item/%s/tiles" % i['_id'])
 # #			print(tileMetadata)
 # 			if 'frames' not in tileMetadata:
-# 				ioparams['frameCount'] = 0
-# 			else:
-# 				ioparams['frameCount'] = len(tileMetadata['frames'])
-
-# 			if 'channelmap' in tileMetadata:
-# 				ioparams['channelmap'] = tileMetadata['channelmap']
-
-# #			print("Now trying to get the histogram... for ",i['name'],i['_id'])
-# 			hist = gc.get("item/%s/tiles/histogram?frame=0" % i['_id'])[0]
-# #			print("hist returned")
-
-# 			ioparams['min'] = hist['min']
-# 			ioparams['max'] = hist['max']
-# 			ioparams['range'] = hist['range']
-# 			ioparams['hist'] = hist
-# 			if updateMetadata: gc.addMetadataToItem(i['_id'], {'ioparams': ioparams})
-
 # 		else:
 # 			# So we have an ioparams let's check the default thumburl?
 # 			# print("Found ioparams...")
