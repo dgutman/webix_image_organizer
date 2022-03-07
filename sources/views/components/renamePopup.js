@@ -8,12 +8,12 @@ export default class RenamePopup extends JetView {
 	config() {
 		const renamePopup = {
 			view: "popup",
-			css: "select-field",
+			css: "search-field",
 			width: 300,
 			move: false,
 			body: {
 				view: "text",
-				name: "nameToChangeTextView"
+				name: "nameToChangeTextView",
 			}
 		};
 		return renamePopup;

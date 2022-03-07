@@ -220,6 +220,7 @@ export default class ToolbarView extends JetView {
 					inputWidth: 200,
 					inputHeight: 40,
 					value: 1,
+					css: "layer-combo",
 					options: {
 						body: {
 							template: "#value#",

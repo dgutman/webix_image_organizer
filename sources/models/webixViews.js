@@ -12,6 +12,7 @@ let renamePopup;
 let metadataTemplate;
 let dataviewSearchInput;
 let csvViewerWindow;
+let optionsWindow;
 
 function setMainView(view) {
 	mainView = view;
@@ -125,6 +126,14 @@ function getDataviewSearchInput() {
 	return dataviewSearchInput;
 }
 
+function setOptionsWindow(window) {
+	optionsWindow = window;
+}
+
+function getOptionsWindow() {
+	return optionsWindow;
+}
+
 export default {
 	setGalleryDataview,
 	setMetadataTable,
@@ -153,5 +162,7 @@ export default {
 	setMetadataTemplate,
 	getMetadataTemplate,
 	setDataviewSearchInput,
-	getDataviewSearchInput
+	getDataviewSearchInput,
+	setOptionsWindow,
+	getOptionsWindow
 };

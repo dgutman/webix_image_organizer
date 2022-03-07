@@ -31,6 +31,7 @@ import FilterModel from "../../models/filterModel";
 import editableFoldersModel from "../../models/editableFoldersModel";
 import FolderNav from "../folderNav";
 import ImageThumbnailLoader from "../gallery/imageThumbnailLoader";
+import SetDefaultViewWindow from "../../views/subviews/finder/windows/setDefaultViewWindow";
 
 let contextToFolder;
 let scrollEventId;
@@ -126,6 +127,7 @@ class MainService {
 			this._galleryDataviewRichselectFilter,
 			this._filterTableView
 		);
+		this._optionsWindow = this._view.$scope.ui(SetDefaultViewWindow);
 
 		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
@@ -142,6 +144,7 @@ class MainService {
 		webixViews.setRenamePopup(this._renamePopup);
 		webixViews.setMetadataTemplate(this._metadataTemplate);
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
+		webixViews.setOptionsWindow(this._optionsWindow);
 
 		this._folderNav = new FolderNav(this._view.$scope, this._finder);
 		this._imageTumbnailLoader = new ImageThumbnailLoader(this._galleryDataview);
@@ -438,7 +441,9 @@ class MainService {
 								{$template: "Separator"},
 								constants.RENAME_CONTEXT_MENU_ID,
 								{$template: "Separator"},
-								constants.UPLOAD_METADATA_MENU_ID
+								constants.UPLOAD_METADATA_MENU_ID,
+								{$template: "Separator"},
+								constants.SET_OPTIONS
 							]);
 						}
 						if (authService.getUserInfo() && authService.getUserInfo().admin) {
@@ -543,6 +548,11 @@ class MainService {
 						webix.delay(() => {
 							this._view.$scope.app.show(`${constants.APP_PATHS.UPLOAD_METADATA}/${this._view.$scope.getParam("folders") || ""}`);
 						}, 100);
+						break;
+					}
+					case constants.SET_OPTIONS: {
+						const currentFolder = this._finderFolder;
+						this._optionsWindow.showWindow(currentFolder);
 						break;
 					}
 					default: {
@@ -659,7 +669,7 @@ class MainService {
 			return `<div>
 				<span class='webix_icon fas ${utils.angleIconChange(obj)}' style="color: #6E7480;"></span>
 				<div style='float: right'>${common.deleteButton(obj, common)}</div>
-				<div class='card-list-name'>${obj.name}</div>
+				<div class='card-list-name' title='${obj.name}'>${obj.name}</div>
 				<img src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="cart-image">
 			</div>`;
 		});
@@ -704,9 +714,11 @@ class MainService {
 			if (modifiedObjects.count() > 0) {
 				modifiedObjects.getObjects().forEach((obj) => {
 					let itemNode = this._cartList.getItemNode(obj.id);
-					let listTextNode = itemNode.firstChild.children[2];
-					itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
-					listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
+					if (itemNode) {
+						let listTextNode = itemNode.firstChild.children[2];
+						itemNode.setAttribute("style", "height: 140px !important; color: #0288D1;");
+						listTextNode.setAttribute("style", "margin-left: 17px; width: 110px !important;");
+					}
 				});
 			}
 		});
