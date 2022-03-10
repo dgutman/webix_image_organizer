@@ -39,6 +39,10 @@ services:
         env_file: ./tagger/.env
         environment:
             - MONGODB_HOST=mongodb
+        expose:
+            - "4000"
+        ports:
+            - 4000:4000 
         build:
             context: ./tagger/
             dockerfile: sources/server/Dockerfile
