@@ -61,6 +61,7 @@ class ApprovedFacet {
 				lodash.forEach(facetIds, (facetId) => {
 					this._findFacetsToAdd(facetIds, facetId, facetsToAdd);
 				});
+				await this.deleteAllDocuments();
 				approvedFacets.forEach((approvedFacetItem) => {
 					lodash.remove(facetsToAdd, (facetToAdd) => {
 						return facetToAdd.facetId === approvedFacetItem.facetId;

@@ -352,3 +352,10 @@ body.compact-skin .webix_slider_box .webix_slider_handle {
     width: 60%;
 }
 
+.webix_icon.delbtn {
+    cursor: pointer;
+	color: red;
+}
+.webix_icon.dwnicon {
+    color: green;
+}

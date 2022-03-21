@@ -110,15 +110,16 @@ class FacetImages {
         return folderIds.map(({_id}) => _id);
     }
 
-    async removeImages(query) {
-       const res = await facetImagesModel.deleteMany(query);
-       return res.deletedCount;
+    async removeImages(ids) {
+        const query = ids ? {"data._id": ids} : null;
+        const res = await facetImagesModel.deleteMany(query);
+        return res.deletedCount;
     }
 
-	async deleteAllDocuments() {
-		const result = await facetImagesModel.deleteMany({});
-		return result.ok;
-	}
+    async deleteAllDocuments() {
+        const result = await facetImagesModel.deleteMany({});
+        return result.ok;
+    }
 }
 
 module.exports = new FacetImages();

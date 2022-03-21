@@ -25,7 +25,7 @@ const parse = (arr, host) => {
             mongo_object.filesrc = mongo_object.data.largeImage.src || null;
             mongo_object.filename = null;
             if (host) mongo_object.host = host;
-            await approvedMetadataModel.insertItems(mongo_object);
+            approvedMetadataModel.insertItems(mongo_object);
             insertImagesPromises.push(facetImages.insertImage(mongo_object));
         });
         return Promise.all(insertImagesPromises).then(() => {

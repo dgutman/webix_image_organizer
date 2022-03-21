@@ -53,6 +53,10 @@ define([
         socketStream(socketConnect).emit('resyncUploadedData', {host, token});
     };
 
+	const deleteResource = function(folderId, host, token) {
+		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token});
+	};
+
     socketStream(socketConnect).on("error", (err) => {
         app.callEvent("editForm:finishLoading", [{title: "Error!"}]);
         webix.message({
@@ -64,6 +68,7 @@ define([
     return {
         uploadJSONFile,
         getImagesFromGirder,
-        resyncImagesFromGirder
+        resyncImagesFromGirder,
+		deleteResource
     };
 });

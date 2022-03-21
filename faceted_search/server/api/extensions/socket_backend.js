@@ -26,6 +26,9 @@ class Backend {
             ss(socket).on('resyncUploadedData', (data) => {
                 this.resyncUploadedData(data);
             });
+            ss(socket).on('deleteResource', (data) => {
+                this.deleteResource(data);
+            });
         });
 
         this._message = (msg) => {
@@ -38,7 +41,7 @@ class Backend {
         loadImagesFileFromGirder(data)
             .then((images) => {
                 this._message('[Uploading]: finished');
-                return this._parseData(images, data.host);
+                return this._parseData(images, data.host, data.id);
             });
     }
 
@@ -51,8 +54,29 @@ class Backend {
             });
     }
 
-    async _parseData(images, host) {
+    async deleteResource(data) {
+        this._message('[Looking images]: started');
+        const images = await loadImagesFileFromGirder(data);
+        this._message('[Delete]: started');
+        const ids = [];
+        let imagesCount = 0;
+        images.forEach((image) => {
+            ids.push(image._id);
+            imagesCount++;
+        });
+        const deletedCount = await facetImages.removeImages(ids);
+        if(imagesCount === deletedCount) {
+            this._message('[Delete]: finished successfully');
+            this.socket.emit('finishLoading', {});
+        } else {
+            this._message('[Delete]: something went wrong');
+            this.socket.emit('finishLoading', {});
+        }
+    }
+
+    async _parseData(images, host, id) {
         this._message('[Parse]: started');
+        const resourceId = id;
         return parseImages(images, host, this._message)
             .then((data) => {
                 this._message('[Parse]: finished');
@@ -64,6 +88,7 @@ class Backend {
             .then((convertedData) => fsp.writeFile(IMAGES_PATH, JSON.stringify(convertedData)))
             .then((result) => md5(IMAGES_PATH))
             .then((hash) => serviceData.updateImagesHash(hash))
+            .then(() => serviceData.addResource(resourceId))
             .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => {
                 this.socket.emit('finishLoading', {});

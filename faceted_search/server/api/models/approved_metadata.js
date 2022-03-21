@@ -98,8 +98,6 @@ class Approved_metadata {
 			const newApprovedMetadataData = this.updateApprovedMetadataItems(data, approvedMetadata.data);
 			const approvedMetadataId = approvedMetadata._id.toString();
 			await approvedMetadataModel.updateOne({_id: approvedMetadataId}, {data: newApprovedMetadataData});
-		} else {
-			await this.insert(data);
 		}
 	}
 

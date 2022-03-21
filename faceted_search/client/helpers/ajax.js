@@ -296,6 +296,21 @@ define(["app", "constants"], function(app, constants) {
 				.catch(this._parseError)
 				.then((result) => this._parseData(result));
 		}
+
+		getDownloadedResources() {
+			return this._ajax()
+				.get(`${LOCAL_API}/resources/downloaded-resources`)
+				.fail(this._parseError)
+				.then((result) => this._parseData(result));
+		}
+
+		deleteResource(id) {
+			const promises = [
+				this._ajax().del(`${LOCAL_API}/resources/${id}`)
+			];
+			Promise.all(promises)
+				.then((results) => this._parseData(results));
+		}
 	}
 
 	const instance = new AjaxActions();

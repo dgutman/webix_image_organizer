@@ -10,6 +10,7 @@ define([
 	const statusTempateId = "status-template";
 	const deleteButtonId = "delete-btn";
 	const localApi = constants.LOCAL_API;
+	let downloadedResources = [];
 
 	const treeView = {
 		view: "tree",
@@ -20,7 +21,10 @@ define([
 		type: "lineTree",
 		oncontext: {},
 		template: (obj, common) => {
-			return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span>`;
+			const [downloadedResourceIcon, deleteResourceIcon] = downloadedResources.includes(obj._id)
+				? [`<span class="webix_icon wxi-check dwnicon"></span>`, `<span class="webix_icon wxi-close-circle delbtn"></span>`]
+				: [``, ``];
+			return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
 		},
 		scheme: {
 			$init(obj) {
@@ -91,6 +95,11 @@ define([
 			const deleteButton = $$(deleteButtonId);
 			webix.extend(tree, webix.ProgressBar);
 			tree.showProgress();
+			ajax.getDownloadedResources()
+				.then((data) => {
+					downloadedResources = data;
+				});
+
 			ajax.getCollection()
 				.then((data) => {
 					tree.parse(data);
@@ -141,7 +150,8 @@ define([
 							webix.ajax().del(`${localApi}/facets/approved-facets`),
 							webix.ajax().del(`${localApi}/facets/approved-metadata`),
 							webix.ajax().del(`${localApi}/facets/images`),
-							webix.ajax().del(`${localApi}/facets/filters`)
+							webix.ajax().del(`${localApi}/facets/filters`),
+							webix.ajax().del(`${localApi}/resources/downloaded-resources`)
 						];
 						Promise.all(promises)
 							.then((results) => {
@@ -160,6 +170,11 @@ define([
 								} else {
 									webix.message({type: "error", text: `Internal Error`, expire: 10000});
 								}
+								ajax.getDownloadedResources()
+									.then((data) => {
+									downloadedResources = data;
+								});
+								tree.refresh();
 								tree.hideProgress();
 							}, (err) => {
 								webix.message({type: "error", text: `${err.responseText}`, expire: 10000});
@@ -184,6 +199,13 @@ define([
 				toggleUploadButtonState(selectedItem);
 				resyncButton.enable();
 
+				ajax.getDownloadedResources()
+					.then((data) => {
+						downloadedResources = data;
+					});
+
+				
+				tree.refresh();
 				$$(statusTempateId).setValues(data || {title: "Done!"});
 			});
 
@@ -194,6 +216,19 @@ define([
 			app.attachEvent("uploaderList:clearAfterSave", function() {
 				$$(statusTempateId).setValues({title: "Done!"});
 			});
+
+			app.attachEvent("deleteResource:clearAfterDelete", function() {
+				tree.refresh();
+			});
+
+			tree.on_click.delbtn = function(e, id, trg) {
+				const obj = tree.getItem(id);
+				const token = auth.getToken();
+				const host = ajax.getHostApiUrl();
+				Upload.deleteResource(obj._id, host, token);
+				ajax.deleteResource(obj._id);
+				tree.refresh();
+			};
 		}
     };
 });
