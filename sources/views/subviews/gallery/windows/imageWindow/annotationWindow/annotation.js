@@ -218,7 +218,7 @@ export default class AnnotationView extends JetView {
 					"fa-times-circle": (ev, id) => {
 						if (!this.isDeleteButtonClicked) return false;
 						const curFunc = () => {
-							let table = this.getRoot().queryView({view: "datatableCounter"});
+							let table = this.getTreeTable();
 							let item = table.getItem(id.row);
 							if (item.type === "layer") {
 								let curAnnotationToDeleteID = table.getFirstChildId(item.id);
@@ -256,7 +256,7 @@ export default class AnnotationView extends JetView {
 				},
 				on: {
 					onItemCheck: () => {
-						let table = this.getRoot().queryView({view: "datatableCounter"});
+						let table = this.getTreeTable();
 						this.app.callEvent("treecheckboxesClickedLabelsChecked", [table]);
 					},
 					onBeforeEditStop: (values, editor) => {
@@ -265,13 +265,13 @@ export default class AnnotationView extends JetView {
 						});
 					},
 					onAfterEditStop: (state, editor) => {
-						let table = this.getRoot().queryView({view: "datatableCounter"});
+						let table = this.getTreeTable();
 						let item = table.getItem(editor.row);
 						this.app.callEvent("afterEditStop", [item, editor, state]);
 					},
 					onAfterRender: () => {
 						if (this.getRoot()) {
-							let datatableCounter = this.getRoot().queryView({view: "datatableCounter"});
+							let datatableCounter = this.getTreeTable();
 							const firstRow = datatableCounter.getFirstId();
 							let itemNode;
 							if (firstRow) itemNode = datatableCounter.getItemNode(firstRow);
@@ -294,7 +294,7 @@ export default class AnnotationView extends JetView {
 										if (counterValues[i]) {
 											counterValues[i].addEventListener("change", ((ref) => {
 												return function(event) {
-													let table = ref.getRoot().queryView({view: "datatableCounter"});
+													let table = ref.getTreeTable();
 													let value = event.target.value;
 													const [row, column] = ref.parseInputCounterName(this.name);
 													if (!/^[0-9\.]+$/.test(value) || value > this.max || value < this.min) {
@@ -310,7 +310,17 @@ export default class AnnotationView extends JetView {
 								}
 							}
 						}
+					},
+					onAfterLoad: () => {
+						const table = this.getTreeTable();
+						table.refresh();
 					}
+				},
+				ready:function() {
+					const checkedIds = this.getChecked();
+					checkedIds.forEach((id) => {
+						this.checkItem(id);
+					});
 				}
 			}
 		};
@@ -320,14 +330,20 @@ export default class AnnotationView extends JetView {
 
 	init() {
 		this.on(this.app, "annotationTableParse", (treeannotation) => {
-			const datatableCounter = this.getRoot().queryView({view: "datatableCounter"});
+			const datatableCounter = this.getTreeTable();
 			if (treeannotation) {
 				datatableCounter.clearAll();
 				datatableCounter.parse(treeannotation);
+				const checkedIds = datatableCounter.getChecked();
+				checkedIds.forEach((id) => {
+					const item = datatableCounter.getItem(id);
+					item.checked = false;
+					datatableCounter.checkItem(id);
+				});
 			}
 		});
 		this.on(this.app, "annotationUpdateItem", (item) => {
-			const datatableCounter = this.getRoot().queryView({view: "datatableCounter"});
+			const datatableCounter = this.getTreeTable();
 			if (item) {
 				datatableCounter.updateItem(item.id, item);
 			}
@@ -346,7 +362,8 @@ export default class AnnotationView extends JetView {
 	updateCounterValue(id, operation) {
 		window.showAttentionPopup();
 		const column = id.column;
-		const item = this.getItem(id);
+		const table = this.getTreeTable();
+		const item = table.getItem(id);
 		const oldValue = +item[column];
 		let newValue = null;
 		let value = null;
@@ -388,5 +405,9 @@ export default class AnnotationView extends JetView {
 		const row = name.slice(0, name.indexOf("_"));
 		const column = name.slice(name.indexOf("_") + 1);
 		return [row, column];
+	}
+
+	getTreeTable() {
+		return this.getRoot().queryView({view: "datatableCounter"});
 	}
 }

@@ -600,7 +600,10 @@ export default class imageWindowViewModel {
 			this.selectedData = checkedIds;
 			this.treeannotations.forEach((treeannotation) => {
 				treeannotation.data.forEach((treeannotationItem) => {
-					let annotation = this.layer.annotationById(treeannotationItem.geoid);
+					const annotation = this.layer.annotationById(treeannotationItem.geoid);
+					if (!annotation) {
+						return;
+					}
 					if (checkedIds.includes(treeannotationItem.id)) {
 						treeannotationItem.checked = true;
 						annotation.options("showLabel", labelsBool);

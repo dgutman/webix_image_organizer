@@ -115,7 +115,7 @@ function markWrongMetadata(value, config) {
 	return style;
 }
 
-function getMetadataColumnTemplate(obj, columnId) {
+function getMetadataColumnTemplate(obj, config, columnId) {
 	if (obj.hasOwnProperty("meta")) {
 		// const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
 		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
@@ -305,7 +305,8 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 		const filterType = columnConfigToAdd.filterType;
 		const filterTypeValue = columnConfigToAdd.filterTypeValue;
 		const columnId = columnConfigToAdd.id;
-		let localColumnHeader = columnConfigToAdd.header;
+		const localColumnHeader = columnConfigToAdd.header;
+		const localColumnHeaderArray = [];
 		let placeholder;
 
 		if (filterTypeValue === constants.FILTER_TYPE_DATE) {
@@ -313,13 +314,16 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 		}
 
 		if (!Array.isArray(localColumnHeader)) {
-			localColumnHeader = [localColumnHeader];
+			localColumnHeaderArray.push(localColumnHeader);
+		}
+		else {
+			localColumnHeaderArray.push(...localColumnHeader);
 		}
 
-		let lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
-		if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeader.pop();
+		let lastHeaderItem = localColumnHeaderArray[localColumnHeaderArray.length - 1];
+		if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) localColumnHeaderArray.pop();
 		if (filterType) {
-			localColumnHeader.push({
+			localColumnHeaderArray.push({
 				content: `${filterType}Filter`,
 				options: setSelectFilterOptions(filterType, columnId, columnConfigToAdd.initial),
 				placeholder
@@ -327,32 +331,32 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 		}
 		if (!columnConfigToAdd.initial) {
 			const headerValue = getHeaderTextValue(columnConfigToAdd);
-			lastHeaderItem = localColumnHeader[localColumnHeader.length - 1];
+			lastHeaderItem = localColumnHeaderArray[localColumnHeaderArray.length - 1];
 			const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
 			const headerText = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
 			if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
-				localColumnHeader.splice(-2, 2);
-				localColumnHeader = [...localColumnHeader, headerText, lastHeaderItem];
+				localColumnHeaderArray.splice(-2, 2);
+				localColumnHeaderArray.push(headerText, lastHeaderItem);
 			}
 			else {
-				localColumnHeader.splice(-1, 1);
-				localColumnHeader = [...localColumnHeader, headerText];
+				localColumnHeaderArray.splice(-1, 1);
+				localColumnHeaderArray.push(headerText);
 			}
 			const isPatientColumn = columnConfigToAdd.patientColumn;
 			columnConfigToAdd = {
 				id: columnId,
-				header: localColumnHeader,
+				header: localColumnHeaderArray,
 				fillspace: true,
 				editor: authService.isLoggedIn() ? "text" : false,
 				sort: "text",
 				filterType,
 				minWidth: 180,
-				template: obj => getMetadataColumnTemplate(obj, columnId)
+				template: (obj, common, value, config) => getMetadataColumnTemplate(obj, config, columnId)
 			};
 			if (isPatientColumn) columnConfigToAdd.patientColumn = isPatientColumn;
 		}
 		else {
-			columnConfigToAdd.header = localColumnHeader;
+			columnConfigToAdd.header = localColumnHeaderArray;
 			const initialColumn = initialColumnsConfig
 				.find(initialColumnConfig => initialColumnConfig.id === columnConfigToAdd.id && !columnConfigToAdd.hidden);
 			if (initialColumn && initialColumn.template) columnConfigToAdd.template = initialColumn.template;
