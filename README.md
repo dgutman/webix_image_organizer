@@ -7,9 +7,7 @@ Steps to run application:
 3. Add RECOGNITION_SERVICE and SERVER_LIST to .env. Example:
 ```
 RECOGNITION_SERVICE=http://localhost:4000
-SERVER_LIST=[
-             {"id":"#","value":"A name","hostAPI":"http://servername:8080/api/v1"}
-]
+SERVER_LIST=[{"id":"#","value":"A name","hostAPI":"http://servername:8080/api/v1"}]
 ```
 4. Build with docker compose: ```$ docker compose build```
 5. Run the service: ```$ docker compose up```
