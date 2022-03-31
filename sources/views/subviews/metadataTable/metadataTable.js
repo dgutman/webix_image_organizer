@@ -14,7 +14,6 @@ export default class MetadataTableCellClass extends JetView {
 
 		const itemsDataTable = {
 			view: "datatable",
-			name: "itemsDataTable",
 			select: true,
 			editaction: "custom",
 			editable: true,
@@ -102,7 +101,7 @@ export default class MetadataTableCellClass extends JetView {
 	}
 
 	getDataTableView() {
-		return this.getRoot().queryView({name: "itemsDataTable"});
+		return this.getRoot().queryView({view: "datatable"});
 	}
 
 	getEditColumnButton() {

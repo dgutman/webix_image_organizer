@@ -141,15 +141,6 @@ export default class SettingsWindow extends JetView {
 					},
 					{height: 15}
 				]
-			},
-			on: {
-				onViewMove: () => {
-					const thisWindow = this.getRoot();
-					const richSelects = thisWindow.queryView({view: "richselect"}, "all");
-					richSelects.forEach((richSelect) => {
-						richSelect.getPopup().hide();
-					});
-				}
 			}
 		};
 		return settingsWindow;

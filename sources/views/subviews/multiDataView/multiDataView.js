@@ -4,7 +4,6 @@ import GalleryCell from "../gallery/gallery";
 import Zstack from "../zstackView/zstackView";
 import ScenesView from "../scenesView/scenesView";
 import MultiChannelView from "../multichannelView/multichannelView";
-import NPCaseView from "../npCaseView/npCaseView";
 
 export default class MultiDataviewClass extends JetView {
 	constructor(app) {
@@ -14,7 +13,6 @@ export default class MultiDataviewClass extends JetView {
 		this._zStackViewCell = new Zstack(app);
 		this._scenesViewCell = new ScenesView(app);
 		this._multiChannelView = new MultiChannelView(app);
-		this._npView = new NPCaseView(app);
 	}
 
 	config() {
@@ -26,8 +24,7 @@ export default class MultiDataviewClass extends JetView {
 				this._metadataTableCell,
 				this._zStackViewCell,
 				this._scenesViewCell,
-				this._multiChannelView,
-				this._npView
+				this._multiChannelView
 			]
 		};
 
@@ -57,9 +54,5 @@ export default class MultiDataviewClass extends JetView {
 
 	getMultichannelView() {
 		return this._multiChannelView;
-	}
-
-	getNPView() {
-		return this._npView;
 	}
 }

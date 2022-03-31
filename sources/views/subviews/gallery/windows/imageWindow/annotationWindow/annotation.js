@@ -190,7 +190,7 @@ export default class AnnotationView extends JetView {
 						return `<div class='webix_el_box'>
 							<div role='spinbutton' class='webix_el_group'>
 								<button class='decrease_button'>-</button><!--
-								--><input class='counter_value' type='text' max='0.95' min='0.05' name='${obj.id}_fillOpacity' value='${obj.fillOpacity ? obj.fillOpacity : 0.00}'><!--
+								--><input class='counter_value' type='text' max='0.95' min='0.05' name='${obj.id}_fillOpacity' value='${obj.fillOpacity ? obj.fillOpacity : 0.05}'><!--
 								--><button class='increase_button'>+</button>
 							</div>
 						</div>`;
@@ -370,38 +370,34 @@ export default class AnnotationView extends JetView {
 		let min = null;
 		let max = null;
 		let step = null;
-		let defaultValue = null;
 		if (column === "strokeWidth") {
 			min = 0;
 			max = 3;
 			step = 0.2;
-			defaultValue = 3;
 		}
 		else if (column === "strokeOpacity") {
 			min = 0;
 			max = 1;
 			step = 0.1;
-			defaultValue = 1;
 		}
 		else if (column === "fillOpacity") {
 			min = 0.05;
 			max = 0.95;
-			step = 0.05;
-			defaultValue = 0.05;
+			step = 0.1;
 		}
 		if (operation === "subtraction") {
-			newValue = oldValue || oldValue === 0 ? oldValue - step : defaultValue;
+			newValue = oldValue - step;
 		}
 		else if (operation === "addition") {
-			newValue = oldValue || oldValue === 0 ? oldValue + step : defaultValue;
+			newValue = oldValue + step;
 		}
 		if (!/^[0-9\.]+$/.test(newValue) || newValue > max || newValue < min) {
 			return;
 		}
-		const n = column === "fillOpacity" ? 2 : 1;
-		item[column] = newValue.toFixed(n);
-		value = newValue.toFixed(n);
-
+		else {
+			item[column] = newValue.toFixed(1);
+			value = newValue.toFixed(1);
+		}
 		this.app.callEvent("editFigureParametrs", [item, column, value]);
 	}
 
