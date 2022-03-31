@@ -12,6 +12,7 @@ import selectDataviewItems from "../../models/selectGalleryDataviewItems";
 import constants from "../../constants";
 import FinderModel from "../../models/finderModel";
 import metadataTableModel from "../../models/metadataTableModel";
+import npdataTableModel from "../../models/npdataTableModel";
 import nonImageUrls from "../../models/nonImageUrls";
 import downloadFiles from "../../models/downloadFiles";
 import modifiedObjects from "../../models/modifiedObjects";
@@ -54,7 +55,8 @@ class MainService {
 		metadataTemplate,
 		collapser,
 		metadataPanelScrollView,
-		cartList
+		cartList,
+		npView
 	) {
 		this._view = view;
 		this._hostBox = hostBox;
@@ -68,6 +70,7 @@ class MainService {
 		this._collapser = collapser;
 		this._metadataPanelScrollView = metadataPanelScrollView;
 		this._cartList = cartList;
+		this._npView = npView;
 		this._ready();
 	}
 
@@ -81,6 +84,7 @@ class MainService {
 		const zstackCell = this._view.$scope.getSubZStackView();
 		const scenesViewCell = this._view.$scope.getSubScenesViewCell();
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
+		const npViewCell = this._view.$scope.getSubNPView().getRoot();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
@@ -311,7 +315,8 @@ class MainService {
 			const [
 				thumbnailOption,
 				metadataViewOption,
-				zStackViewOption
+				zStackViewOption,
+				npViewOption
 			] = constants.MAIN_MULTIVIEW_OPTIONS;
 			const scenesOption = constants.SCENES_VIEW_OPTION;
 			const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
@@ -338,6 +343,10 @@ class MainService {
 				case zStackViewOption.id:
 					this._closeThumbnailViewPanels();
 					zstackCell.getRoot().show();
+					break;
+				case npViewOption.id:
+					this._closeThumbnailViewPanels();
+					npViewCell.show();
 					break;
 				case scenesOption.id:
 					this._closeThumbnailViewPanels();
@@ -998,6 +1007,7 @@ class MainService {
 			metadataTableData.push(metadataToAdd);
 		});
 		this._metadataTableDataCollection.parse(metadataTableData);
+		npdataTableModel.setMetadata(metadataTableData);
 
 		const selectionId = utils.getDataviewSelectionId();
 		const datatableState = this._metadataTable.getState();
