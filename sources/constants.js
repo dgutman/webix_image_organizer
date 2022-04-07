@@ -136,7 +136,8 @@ export default {
 	MAIN_MULTIVIEW_OPTIONS: [
 		{id: "thumbnailView", value: "Images thumbnail view"},
 		{id: "metadataView", value: "Metadata table view"},
-		{id: "zstackView", value: "Zstack"}
+		{id: "zstackView", value: "Zstack"},
+		{id: "npView", value: "NP view"}
 	],
 	SCENES_VIEW_OPTION: {id: "scenesView", value: "Scenes view"},
 	MULTICHANNEL_VIEW_OPTION: {id: "multichannelView", value: "Multichannel view"},
