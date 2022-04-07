@@ -129,14 +129,17 @@ export default class FilterModel {
 
 	setItemsByModelType(type) {
 		if (this.modelType !== type) {
-			const parentFolderId = this.finder.getSelectedId();
-			let itemsArray = parentFolderId ? this.finder.data.getBranch(parentFolderId) : this.finder.data.serialize();
-			if (itemsArray.length === 1 && itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
-				itemsArray = this.finder.data.getBranch(itemsArray[0].id);
+			const selectedItem = this.finder.getSelectedItem();
+			if (selectedItem._modelType === "folder") {
+				const parentFolderId = this.finder.getSelectedId();
+				let itemsArray = parentFolderId ? this.finder.data.getBranch(parentFolderId) : this.finder.data.serialize();
+				if (itemsArray.length === 1 && itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+					itemsArray = this.finder.data.getBranch(itemsArray[0].id);
+				}
+				const nestedItems = itemsArray.filter(obj => obj._modelType === type);
+				this.dataCollection.clearAll();
+				this.dataCollection.parse(nestedItems);
 			}
-			const nestedItems = itemsArray.filter(obj => obj._modelType === type);
-			this.dataCollection.clearAll();
-			this.dataCollection.parse(nestedItems);
 			this.modelType = type;
 		}
 	}

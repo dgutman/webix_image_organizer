@@ -57,6 +57,7 @@ export default class MainView extends JetView {
 		const metadataTemplate = this.getSubMetadataPanelView().getTemplateView();
 		const metadataCollapser = this.getSubCollapserView();
 		const cartListView = this.getSubCartListView().getCartListView();
+		const npView = this.getSubNPView().getNPCaseTable();
 
 		this._mainService = new MainService(
 			view,
@@ -70,7 +71,8 @@ export default class MainView extends JetView {
 			metadataTemplate,
 			metadataCollapser,
 			metadataPanelScrollView,
-			cartListView
+			cartListView,
+			npView
 		);
 	}
 
@@ -136,5 +138,9 @@ export default class MainView extends JetView {
 
 	getSubHeaderView() {
 		return this.getRoot().getTopParentView().queryView({name: "headerClass"}).$scope;
+	}
+
+	getSubNPView() {
+		return this._multiview.getNPView();
 	}
 }
