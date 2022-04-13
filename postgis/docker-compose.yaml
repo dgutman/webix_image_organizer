@@ -8,7 +8,7 @@ services:
       - postgis-data:/var/lib/postgresql
     environment:
       # If you need to create multiple database you can add coma separated databases eg gis,data
-      - POSTGRES_DB=gis
+      - POSTGRES_DB=dsagis
       - POSTGRES_USER=docker
       - POSTGRES_PASS=docker
       - ALLOW_IP_RANGE=0.0.0.0/0
@@ -22,8 +22,10 @@ services:
       test: "exit 0"
 
   datascience-notebook:
-      container_name:   dsapostgisnbc
+      container_name:   dsapostgisnb
       build: ./
+      volumes:
+        - ./geonotebooks:/app/geonotebooks
       ports:
         - 8888:8888
       expose: 
