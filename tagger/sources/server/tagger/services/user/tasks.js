@@ -457,18 +457,28 @@ async function getTaskJSON({taskId, userId, isAdmin, hostApi, token}) {
 		}
 	};
 
-	const query = task.imageIds.map(id => ({$oid: id.toString()}));
-	const url = `${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=0&offset=0`;
+	const imagePromises = [];
+	// copy imagesId;
+	const imageIdsArray = [...task.imageIds];
+	while (imageIdsArray.length > 0) {
+		const imageArr = imageIdsArray.splice(0, 50);
+		const query = imageArr.map(id => ({$oid: id.toString()}));
+		const url = encodeURI(`${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=50&offset=0`);
+		imagePromises.push(girderREST.get(url, options));
+	}
+	const imgs = await Promise.all(imagePromises);
+	const images = imgs.reduce((prev, curr) => {
+		if (curr) {
+			prev.push(...curr);
+		}
+		return prev;
+	}, []);
+
 	const promises = [
-		girderREST.get(url, options),
 		tagsService.getTagsWithValuesByTask(taskId, userId)
 	];
-
 	const fieldsToRemove = ["checked_out", "created", "updatedAt", "_modelType", "__v", "creatorId", "userId", "folderIds", "imageIds", "status", "type"];
-
-	if (task.groupId) promises.push(Groups.findById(task.groupId));
-
-	const [images, tags, group] = await Promise.all(promises);
+	
 	if (group) task.group = group.name;
 
 	task.tags = tags.map((tag) => {
