@@ -10,3 +10,4 @@ https://medium.com/nerd-for-tech/docker-compose-with-nodejs-express-and-postgres
 #https://herewecode.io/blog/create-a-postgresql-database-using-docker-compose/
 xhttps://medium.com/greenplum-data-clinics/working-with-geospatial-data-6be87ccd7e03
 https://franckpachot.medium.com/postgresql-and-jupyter-notebook-e7b68cb6427d
+https://scottogletree.com/post/docker/

@@ -16,14 +16,10 @@ services:
       # Add extensions you need to be enabled by default in the DB. Default are the five specified below
       - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting
     ports:
-      - 25432:5432
+      - 5432:5432
     restart: on-failure
     healthcheck:
       test: "exit 0"
-    networks:
-      dsapg:
-        aliases:
-          - postgisdb
 
   datascience-notebook:
       container_name:   dsapostgisnbc
@@ -35,6 +31,3 @@ services:
       depends_on:
         - postgisdb
 
-networks:
-  dsapg:
-  
