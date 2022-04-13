@@ -479,6 +479,10 @@ async function getTaskJSON({taskId, userId, isAdmin, hostApi, token}) {
 	];
 	const fieldsToRemove = ["checked_out", "created", "updatedAt", "_modelType", "__v", "creatorId", "userId", "folderIds", "imageIds", "status", "type"];
 	
+	if (task.groupId) promises.push(Groups.findById(task.groupId));
+
+	const [tags, group] = await Promise.all(promises);
+
 	if (group) task.group = group.name;
 
 	task.tags = tags.map((tag) => {
