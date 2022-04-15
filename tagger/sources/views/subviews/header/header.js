@@ -3,6 +3,8 @@ import HeaderService from "../../../services/header/header";
 import LoginWindow from "../../authWindows/loginWindow";
 import undoFactory from "../../../models/undoModel";
 import constants from "../../../constants";
+import UserPanel from "./parts/userPanel";
+import auth from "../../../services/authentication";
 
 const serverListData = process.env.SERVER_LIST;
 const LOGOUT_PANEL_NAME = "logout-panel";
@@ -26,6 +28,14 @@ export default class TaggerHeaderClass extends JetView {
 			template: "Tagger - Tags manager",
 			css: "main-header-logo",
 			width: 250,
+			borderless: true
+		};
+
+		const headerAdmin = {
+			template: auth.isAdmin() ? "<a><span class='webix_icon wxi-angle-left'></span> Back to Admin Mode</a>" : "",
+			name: "headerAdmin",
+			css: "main-header-admin main-header-logo",
+			width: auth.isAdmin() ? 200 : 10,
 			borderless: true
 		};
 
@@ -66,9 +76,7 @@ export default class TaggerHeaderClass extends JetView {
 			data: [
 				{
 					id: "name",
-					submenu: [
-						{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
-					]
+					submenu: []
 				}
 			],
 			type: {
@@ -113,6 +121,7 @@ export default class TaggerHeaderClass extends JetView {
 			height: constants.HEADER_HEIGHT,
 			css: "main-header",
 			cols: [
+				headerAdmin,
 				undoIcon,
 				{width: 50},
 				headerLogo,
@@ -127,7 +136,7 @@ export default class TaggerHeaderClass extends JetView {
 					]
 				},
 				{width: 50},
-				userPanel
+				{$subview: UserPanel, name: "userPanel"}
 			]
 		};
 
@@ -141,13 +150,14 @@ export default class TaggerHeaderClass extends JetView {
 		};
 	}
 
-	init(view) {
-		this.loginWindow = this.ui(LoginWindow);
+	ready(view) {
+		this.loginWindow = this.getLoginWindow();
 		this.hostBox = this.getHostBox();
 		const undoIcon = this.getUndoButton();
 		this.headerService = new HeaderService(view, this.loginWindow);
 
 		this.undoModel = undoFactory.create("main", undoIcon);
+		document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
 	}
 
 	getHostBox() {
@@ -155,15 +165,19 @@ export default class TaggerHeaderClass extends JetView {
 	}
 
 	getLogoutPanel() {
-		return this.getRoot().queryView({name: LOGOUT_PANEL_NAME});
+		return this.getSubView("userPanel").getLogoutPanel();
 	}
 
 	getLogoutMenu() {
-		return this.getRoot().queryView({name: "logoutMenu"});
+		return this.getSubView("userPanel").getLogoutMenu();
 	}
 
 	getLoginPanel() {
-		return this.getRoot().queryView({name: LOGIN_PANEL_NAME});
+		return this.getSubView("userPanel").getLoginPanel();
+	}
+
+	getLoginWindow() {
+		return this.getSubView("userPanel").getLoginWindow();
 	}
 
 	getUndoButton() {
@@ -172,5 +186,9 @@ export default class TaggerHeaderClass extends JetView {
 
 	getTaskNameTemplate() {
 		return this.getRoot().queryView({name: "taggerTaskName"});
+	}
+
+	getHeaderAdmin() {
+		return this.getRoot().queryView({name: "headerAdmin"});
 	}
 }

@@ -4,6 +4,7 @@ import auth from "../../../services/authentication";
 import DashboardService from "../../../services/dashboard/dashboardService";
 import templates from "../../templates";
 import taskUsers from "../../../models/taskUsers";
+import UserPanel from "../header/parts/userPanel";
 
 export default class TaggerDashboard extends JetView {
 	config() {
@@ -38,8 +39,8 @@ export default class TaggerDashboard extends JetView {
 						{}
 					]
 				},
-				headerTemplate,
-				{}
+				{$subview: UserPanel, name: "userPanel"},
+				{width: 50}
 			]
 		};
 
