@@ -357,10 +357,6 @@ export default class TaggerUserView extends JetView {
 	}
 
 	ready(view) {
-		if (auth.isAdmin()) {
-			this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
-		}
-
 		this.dataview = this.getUserDataview();
 		this.dataviewIcons = new UserDataviewTagIcons(this.getTagSelect(), this.getValueSelect());
 		this.userViewService = new UserViewService(view, this.dataviewIcons);

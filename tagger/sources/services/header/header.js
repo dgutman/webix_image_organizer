@@ -1,6 +1,6 @@
 import authService from "../authentication";
 import ajaxService from "../ajaxActions";
-import notificationsModel from "../../models/notificationsModel";
+import NotificationsModel from "../../models/notificationsModel";
 import constants from "../../constants";
 
 export default class TaggerHeaderService {
@@ -24,18 +24,15 @@ export default class TaggerHeaderService {
 
 		this._setValueAndParseData();
 
-		if (authService.isLoggedIn()) {
-			this._showLogoutPanel();
-			this._setUserName();
-			if (!authService.isAdmin()) {
-				notificationsModel.collection.waitData
-					.then(() => {
-						this._updateNotificationsBadge();
-					});
-				this._view.$scope.on(notificationsModel.collection.data, "onStoreUpdated", () => {
+		if (authService.isLoggedIn() && !authService.isAdmin()) {
+			const notificationsModel = NotificationsModel.getInstance();
+			notificationsModel.collection.waitData
+				.then(() => {
 					this._updateNotificationsBadge();
 				});
-			}
+			this._view.$scope.on(notificationsModel.collection.data, "onStoreUpdated", () => {
+				this._updateNotificationsBadge();
+			});
 		}
 
 		this._view.$scope.on(this._view.$scope.app, "OnTaskSelect", (task) => {
@@ -49,7 +46,6 @@ export default class TaggerHeaderService {
 		});
 
 		this._attachHostBoxEvent();
-		this._attachLogoutPanelEvent();
 		this._rebuildHeaderUIForUser();
 	}
 
@@ -79,27 +75,6 @@ export default class TaggerHeaderService {
 		});
 	}
 
-	_attachLogoutPanelEvent() {
-		this._logoutMenu.attachEvent("onMenuItemClick", (id) => {
-			switch (id) {
-				case "logout": {
-					authService.logout();
-					break;
-				}
-				case "notifications": {
-					this._view.$scope.app.show(constants.APP_PATHS.TAGGER_USER_NOTIFICATIONS);
-					break;
-				}
-				case "dashboard": {
-					this._view.$scope.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
-					break;
-				}
-				default: {
-					break;
-				}
-			}
-		});
-	}
 
 	_putValuesAfterHostChange(hostId) {
 		const hostBoxItem = this._hostBox.getList().getItem(hostId);
@@ -115,40 +90,6 @@ export default class TaggerHeaderService {
 		const hostId = localStorageHostId || firstHostItemId;
 		this._putValuesAfterHostChange(hostId);
 		this._hostBox.setValue(hostId);
-	}
-
-	_showLogoutPanel() {
-		this._logoutPanel.show(false, false);
-	}
-
-	_setUserName() {
-		const user = authService.getUserInfo();
-		const userMenuItem = this._logoutMenu.getItem("name");
-		const subMenu = this._logoutMenu.getSubMenu("name");
-
-		let subItem = {
-			id: "notifications",
-			value: "<span class='fas fa-bell'></span> Notifications"
-		};
-
-		if (authService.isAdmin()) {
-			subItem = {
-				id: "dashboard",
-				value: "<span class='fas fa-table'></span> Dashboard"
-			};
-		}
-		subMenu.add(subItem, 0);
-
-		if (!userMenuItem.value) {
-			const name = `${user.firstName} ${user.lastName}`;
-			userMenuItem.value = `<span style="width: ${this._calcUserMenuWidth(name)}px;">${name}</span>`;
-			this._logoutMenu.define("tooltip", name);
-			this._logoutMenu.refresh();
-		}
-	}
-
-	_calcUserMenuWidth(str) {
-		return str && str.length ? str.length * 14 : 1;
 	}
 
 	_parseCollectionData() {
@@ -171,12 +112,13 @@ export default class TaggerHeaderService {
 	}
 
 	_updateNotificationsBadge() {
-		const newItems = notificationsModel
+		const newItems = NotificationsModel.getInstance()
 			.collection.data
 			.serialize()
 			.filter(not => !not.isRead);
 
 		const subMenu = this._logoutMenu.getSubMenu("name");
+		this._logoutMenu.updateItem("name", {badge: newItems.length});
 		subMenu.updateItem("notifications", {badge: newItems.length});
 	}
 }

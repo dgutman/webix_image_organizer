@@ -94,29 +94,37 @@ function parseTagsAndValues(image, collectionId) {
 async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
-	const query = imageIds.map(id => ({$oid: id.toString()}));
 
-	const url = `${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
-	return girderREST.get(url)
-		.then(async (data) => {
-			// remove all existing images for that task
-			await Images.deleteMany({
-				mainId: {$in: imageIds},
-				taskId: mongoose.Types.ObjectId(taskId),
-				userId
-			});
+	const imagePromises = [];
+	// copy imagesId;
+	const imageIdsArray = [...task.imageIds];
+	while (imageIdsArray.length > 0) {
+		const imageArr = imageIdsArray.splice(0, 50);
+		const query = imageArr.map(id => ({$oid: id.toString()}));
+		const url = encodeURI(`${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=50&offset=0`);
+		imagePromises.push(girderREST.get(url, options));
+	}
+	const imgs = await Promise.all(imagePromises);
+	const data = imgs.reduce((prev, curr) => {
+		if (curr) {
+			prev.push(...curr);
+		}
+		return prev;
+	}, []);
 
-			// add new images
-			let images = data.map((image) => {
-				image.taskId = taskId;
-				image.userId = userId;
-				image.mainId = image._id;
-				delete image._id;
-				return image;
-			});
-
-			return Images.insertMany(images);
-		});
+	await Images.deleteMany({
+		mainId: {$in: imageIds},
+		taskId: mongoose.Types.ObjectId(taskId),
+		userId
+	});
+	let images = data.map((image) => {
+		image.taskId = taskId;
+		image.userId = userId;
+		image.mainId = image._id;
+		delete image._id;
+		return image;
+	});
+	return Images.insertMany(images);
 }
 
 async function getResourceImages({collectionId, hostApi, token, userId, type, taskId, nested}) {

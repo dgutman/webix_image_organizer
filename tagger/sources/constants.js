@@ -49,7 +49,8 @@ export default {
 	DATAVIEW_IMAGE_MULTIPLIERS: new Map([
 		["Small", 1],
 		["Medium", 1.75],
-		["Big", 2.5]
+		["Big", 2.5],
+		["Single image", "single"]
 	]),
 
 	TAG_TYPES: {
@@ -66,7 +67,7 @@ export default {
 
 	DATAVIEW_TAG_ICON_WRAP_SIZE: 28,
 
-	TAGGER_TASKS_COLLECTION_ID:  process.env.TAGGER_TASKS_COLLECTION_ID,
+	TAGGER_TASKS_COLLECTION_ID: process.env.TAGGER_TASKS_COLLECTION_ID,
 
 	TAGGER_NO_VALUE_FILTER: "&lt;no value&gt;",
 
@@ -82,5 +83,45 @@ export default {
 	},
 
 	CREATE_TASK_BUTTON_ID: "task-creation:create-task",
-	EDIT_TASK_BUTTON_ID: "task-creation:edit-task"
+	EDIT_TASK_BUTTON_ID: "task-creation:edit-task",
+
+	DEFAULT_COLORS: [
+		"#ef9a9a",
+		"#9fa8da",
+		"#80deea",
+		"#a5d6a7",
+		"#fff59d",
+		"#ffcc80",
+		"#ce93d8",
+		"#bcaaa4",
+		"#f48fb1",
+		"#546e7a"
+	],
+
+	DEFAULT_HOT_KEYS: [
+		"1",
+		"2",
+		"3",
+		"4",
+		"5",
+		"6",
+		"7",
+		"8",
+		"9",
+		"0"
+	],
+
+	USER_MENU_ITEMS: {
+		ADMIN: [
+			{id: "dashboard", value: "<span class='fas fa-table'></span> Dashboard"},
+			{id: "task_tool", value: "<span class='fas fa-toolbox'></span> Create"},
+			{id: "user_view", value: "<span class='fas fas fa-columns'></span> User View"}
+		],
+		USER: [
+			{id: "notifications", value: "<span class='fas fa-bell'></span> Notifications"}
+		],
+		BOTH: [
+			{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
+		]
+	},
 };
