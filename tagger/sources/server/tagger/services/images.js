@@ -97,7 +97,7 @@ async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) 
 
 	const imagePromises = [];
 	// copy imagesId;
-	const imageIdsArray = [...task.imageIds];
+	const imageIdsArray = [...imageIds];
 	while (imageIdsArray.length > 0) {
 		const imageArr = imageIdsArray.splice(0, 50);
 		const query = imageArr.map(id => ({$oid: id.toString()}));
