@@ -21,7 +21,7 @@ webix.ready(() => {
 	const appSettings = {
 		id: "",
 		version: "",
-		start: constants.APP_PATHS.TAGGER_ADMIN,
+		start: constants.APP_PATHS.TAGGER_USER,
 		views: {
 			[constants.APP_PATHS.TAGGER]: taggerView,
 			admin: taggerAdminView,
@@ -35,8 +35,7 @@ webix.ready(() => {
 			"/admin": constants.APP_PATHS.TAGGER_ADMIN,
 			"/user": constants.APP_PATHS.TAGGER_USER,
 			"/task_tool": constants.APP_PATHS.TAGGER_TASK_TOOL
-		},
-		debug: true
+		}
 	};
 
 	const app = new JetApp(appSettings);

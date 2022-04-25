@@ -37,7 +37,7 @@ export default class CollectionListColumn extends JetView {
 	}
 
 	init() {
-		this.defineListTemplate();
+		// this.defineListTemplate();
 	}
 
 	getCollectionListColumn() {
