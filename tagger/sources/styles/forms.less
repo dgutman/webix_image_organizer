@@ -120,6 +120,13 @@
     }
   }
   .select-field {
+    &.webix_invalid {
+      .webix_inp_static,
+      input, select {
+        border-color: @lines-color-invalid;
+        background: @invalid-input-bg;
+      }
+    }
     .webix_inp_static,
     input, select {
       border-color: @lines-color;
@@ -227,6 +234,30 @@
 
       .webix_input_icon {
         color: @main-color-light;
+      }
+    }
+  }
+
+  /*datefield*/
+  .date-field {
+    &.webix_invalid.webix_el_datepicker {
+      .webix_inp_static {
+        border-color: @lines-color-invalid;
+      }
+    }
+    &.webix_el_datepicker {
+      .webix_inp_static {
+        border-color: @lines-color;
+        .border-radius(0);
+
+        &:focus {
+          border-color: @lines-color;
+          .box-shadow(none);
+        }
+      }
+      .webix_input_icon {
+        color: @main-color-light;
+        background-color: inherit;
       }
     }
   }
@@ -444,6 +475,16 @@
     display: flex;
     align-items: center;
   }
+
+  .webix_calendar .webix_cal_row {
+        clear: none;
+  }
+
+  .webix_el_colorpicker .webix_input_icon {
+    top: 5px;
+    border: 1px solid @btn;
+  }
+
 }
 
 .flatStylesForm() {

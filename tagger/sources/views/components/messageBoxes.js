@@ -7,6 +7,14 @@ function confirmDelete(str) {
 	});
 }
 
+function confirmMessage(message) {
+	return webix.confirm({
+		text: message || "",
+		ok: "Yes",
+		cancel: "No"
+	});
+}
+
 const validationPopup = webix.ui({
 	view: "popup",
 	autofocus: false,
@@ -33,6 +41,7 @@ function hideValidationPopup() {
 
 export default {
 	confirmDelete,
+	confirmMessage,
 	showValidationPopup,
 	hideValidationPopup
 };

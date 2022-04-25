@@ -1,4 +1,3 @@
-
 import templates from "../../views/templates";
 import constants from "../../constants";
 
@@ -7,6 +6,7 @@ export default class DataviewService {
 		this.dataview = dataview;
 		this.pager = pager;
 		this.initOverlay();
+		this.multiplier = 1;
 
 		this.pager.attachEvent("onAfterRender", () => {
 			this.onAfterPagerRender();
@@ -39,6 +39,8 @@ export default class DataviewService {
 	}
 
 	getVisibleRange() {
+		const single = this.multiplier === "single";
+
 		const state = this.dataview.getScrollState();
 		const top = Math.max(0, state.y);
 		const width = this.dataview._content_width;
@@ -51,16 +53,20 @@ export default class DataviewService {
 		const t = this.dataview.type;
 		let dx = Math.floor(width / t.width) || 1; // at least single item per row
 
-		const xReminder = nodeWidth - (t.width * dx);
+		if (single) dx = 1;
+
+		const xReminder = nodeWidth - t.width * dx;
 
 		let min = Math.floor(top / t.height); // index of first visible row
 
-		let dy = Math.ceil((height + top) / t.height) - 1; // index of last visible row
+		let dy = Math.ceil((height + top) / t.height) - 1 || 1; // index of last visible row
 		// total count of items, paging can affect this math
+		if (single) dy = 1;
 
-		const yReminder = nodeHeight - (t.height * dy);
+		const yReminder = nodeHeight - t.height * dy;
 
-		let count = this.dataview.data.$max ? this.dataview.data.$max - this.dataview.data.$min : this.dataview.count();
+		let count = this.dataview.data.$max ?
+			this.dataview.data.$max - this.dataview.data.$min : this.dataview.count();
 		let max = Math.ceil(count / dx) * t.height; // size of view in rows
 
 		return {
@@ -100,7 +106,7 @@ export default class DataviewService {
 			}
 		});
 
-		pagerInputNode.addEventListener("input", (e) => {
+		pagerInputNode.addEventListener("input", () => {
 			const regexp = /[0-9]+/g;
 			const value = pagerInputNode.value;
 			const validValue = value.match(regexp) ? value.match(regexp).join("") : "";
@@ -125,6 +131,9 @@ export default class DataviewService {
 	}
 
 	onResizeDataview() {
+		if (this.multiplier === "single") {
+			this.setImageSize(1, this.multiplier);
+		}
 		const index = this.getFirstItemIndexOnPage();
 		this.setImagesRange();
 		const page = this.getCurrentPageByItemIndex(index);
@@ -142,12 +151,19 @@ export default class DataviewService {
 	}
 
 	getDataviewTypeObject(multiplier) {
+		multiplier = multiplier || 1;
 		let width = constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 		let height = constants.DATAVIEW_IMAGE_SIZE.HEIGHT;
-		if (multiplier) {
-			width = constants.DATAVIEW_IMAGE_SIZE.WIDTH * multiplier;
-			height = constants.DATAVIEW_IMAGE_SIZE.HEIGHT * multiplier;
+		if (multiplier === "single") {
+			const dataviewNode = this.dataview.getNode();
+			const nodeWidth = dataviewNode.offsetWidth;
+			const nodeHeight = dataviewNode.offsetHeight;
+			const widthMultiplier = Math.floor(nodeWidth / width);
+			const heightMultiplier = Math.floor(nodeHeight / height);
+			multiplier = Math.min(widthMultiplier, heightMultiplier) - 1;
 		}
+		width *= multiplier;
+		height *= multiplier;
 		return {
 			width,
 			height
@@ -167,8 +183,9 @@ export default class DataviewService {
 		return {index, pageIndex, limit};
 	}
 
-	setImageSize(id) {
-		const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(id);
+	setImageSize(id, multi) {
+		const multiplier = multi || constants.DATAVIEW_IMAGE_MULTIPLIERS.get(id);
+		this.multiplier = multiplier;
 		const dataviewTypeObj = this.dataview.config.type;
 		const itemSizes = this.getDataviewTypeObject(multiplier);
 		Object.assign(dataviewTypeObj, itemSizes);

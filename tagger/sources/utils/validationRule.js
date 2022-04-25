@@ -9,7 +9,10 @@ function hasConsecutiveCharacters(str, maxLength) {
 		let nextChar = str.charAt(i + 1).toUpperCase();
 		let currentCharPosInReferenceStr = referenceString.indexOf(currentChar);
 		let nextCharPosInReferenceStr = referenceString.indexOf(nextChar);
-		if (currentCharPosInReferenceStr !== -1 && currentCharPosInReferenceStr + 1 === nextCharPosInReferenceStr) {
+		if (
+			currentCharPosInReferenceStr !== -1 &&
+			currentCharPosInReferenceStr + 1 === nextCharPosInReferenceStr
+		) {
 			length++;
 		}
 		else {

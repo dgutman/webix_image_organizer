@@ -37,6 +37,8 @@ const keys = [
 	"z"
 ];
 
-export default new webix.DataCollection({
+const collection = new webix.DataCollection({
 	data: keys
 });
+
+export default collection;

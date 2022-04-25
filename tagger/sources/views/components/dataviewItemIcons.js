@@ -1,11 +1,19 @@
 import constants from "../../constants";
+import IconTemplate from "./iconTemplate";
 
-export default class UserDataviewTagIcons {
-	constructor(tagRichselect, valueRichselect) {
+const {
+	PER_VALUE,
+	BADGE,
+	BADGE_COLOR
+} = constants.TAG_ICON_TYPES;
+
+class UserDataviewTagIcons {
+	constructor(tagRichselect, valueRichselect, dataview) {
 		this.tagSelect = tagRichselect;
 		this.tagList = this.tagSelect.getList();
 		this.valueSelect = valueRichselect;
 		this.valueList = this.valueSelect.getList();
+		this.dataview = dataview;
 
 		this.tagList.attachEvent("onAfterLoad", () => {
 			this.tagsWithIcons = {};
@@ -15,10 +23,44 @@ export default class UserDataviewTagIcons {
 
 		this.valueSelect.attachEvent("onChange", (id) => {
 			this.sortIconListBySelectedValue(id);
+			if (id) {
+				dataview.refresh();
+			}
 		});
 
 		this.tagsWithIcons = {};
 		this.iconsList = [];
+		this.ignoreDefault = false;
+	}
+
+	sortIconListBySelectedValue(valueId) {
+		const selectedTagId = this.tagSelect.getValue();
+		const selectedTag = this.tagList.getItem(selectedTagId);
+		if (selectedTag) {
+			// find icon related to selected tag-value dependency (mainIcon)
+			let mainIcon;
+			const tagWithIcon = this.tagsWithIcons[selectedTag.name];
+			mainIcon = tagWithIcon ? tagWithIcon.icon : null;
+
+			if (tagWithIcon && tagWithIcon.type === PER_VALUE && valueId) {
+				const selectedValue = this.valueList.getItem(valueId);
+				mainIcon = tagWithIcon.values[selectedValue.name].icon;
+			}
+
+			// put mainIcon to the beginning of the array
+			if (mainIcon) {
+				const index = this.iconsList.findIndex((icon) => {
+					if (Array.isArray(icon) && icon.includes(mainIcon)) {
+						return icon;
+					}
+					return icon === mainIcon;
+				});
+				if (index !== -1) {
+					const main = this.iconsList.splice(index, 1);
+					this.iconsList = main.concat(this.iconsList);
+				}
+			}
+		}
 	}
 
 	parseTagIcons() {
@@ -43,7 +85,8 @@ export default class UserDataviewTagIcons {
 			values[val.name] = {
 				icon: val.icon,
 				badgevalue: val.badgevalue,
-				badgecolor: val.badgecolor
+				badgecolor: val.badgecolor,
+				default: val.default
 			}; // val.icon || val.badgevalue || val.badgecolor || null;
 			if (val.icon) icons.push(val.icon);
 		});
@@ -60,34 +103,34 @@ export default class UserDataviewTagIcons {
 			const iconTagNames = Object.keys(this.tagsWithIcons);
 			iconTagNames.forEach((tagWithIconName) => {
 				if (tags.hasOwnProperty(tagWithIconName)) {
-					const tagWithIcon = this.tagsWithIcons[tagWithIconName];
+					const tagWithIcon = webix.copy(this.tagsWithIcons[tagWithIconName]);
+
+					if (this.ignoreDefault) {
+						Object.keys(tagWithIcon.values).forEach((valueName) => {
+							const valObj = tagWithIcon.values[valueName];
+							if (valObj.default) {
+								delete tagWithIcon.values[valueName];
+							}
+						});
+					}
+
 					const itemTag = tags[tagWithIconName];
-					if (tagWithIcon.type === "pervalue") {
-						itemTag.forEach((valObj) => {
-							const curValue = tagWithIcon.values[valObj.value];
-							if (curValue.icon) {
-								icons[curValue.icon] = this.getSingleIconTemplate(curValue.icon, null, curValue.badgecolor);
-							}
-						});
+
+					let newIcons;
+					switch (tagWithIcon.type) {
+						case PER_VALUE:
+							newIcons = this.getPerValueIcons(itemTag, tagWithIcon);
+							break;
+						case BADGE:
+							newIcons = this.getBadgeIcons(itemTag, tagWithIcon);
+							break;
+						case BADGE_COLOR:
+							newIcons = this.getColorIcons(itemTag, tagWithIcon);
+							break;
+						default:
+							break;
 					}
-					else if (tagWithIcon.type === "badge") {
-						let tagIcon = null;
-						itemTag.forEach((valObj) => {
-							if (tagWithIcon.values.hasOwnProperty(valObj.value)) {
-								const curValue = tagWithIcon.values[valObj.value];
-								tagIcon = this.getSingleIconTemplate(tagWithIcon.icon, curValue.badgevalue, curValue.badgecolor);
-							}
-						});
-						if (tagIcon) icons[tagWithIcon.icon] = tagIcon;
-					}
-					else if (tagWithIcon.type === "badgecolor" && itemTag.length) {
-						const colors = itemTag
-							.filter(valObj => tagWithIcon.values.hasOwnProperty(valObj.value) && tagWithIcon.values[valObj.value].hasOwnProperty("badgecolor"))
-							.map(valObj => tagWithIcon.values[valObj.value].badgecolor);
-						if (tagWithIcon.icon) {
-							icons[tagWithIcon.icon] = this.getSingleIconTemplate(tagWithIcon.icon, null, colors.sort());
-						}
-					}
+					Object.assign(icons, newIcons);
 				}
 			});
 		}
@@ -96,28 +139,54 @@ export default class UserDataviewTagIcons {
 		return `<div class='item-tag-related-icons'>${sortedIcons.join("")}</div>`;
 	}
 
-	getSingleIconTemplate(icon, badge, colors) {
-		const badgeTemplate = badge ? `<span class='icon-badge'>${badge}</span>` : "";
-		let iconTemplate = "";
-		let gradient = "";
-		let isBGColorized = colors ? "colorized" : "";
-		if (colors) {
-			gradient = this.getColorsGradientString(colors);
-		}
-		if (icon) {
-			iconTemplate = `<div style='${gradient} width: ${constants.DATAVIEW_TAG_ICON_WRAP_SIZE}px; height: ${constants.DATAVIEW_TAG_ICON_WRAP_SIZE}px;' class='item-tag-related-icon ${isBGColorized}'>
-				<i class='fas ${icon}'>${badgeTemplate}</i>
-			</div>`;
-		}
-		return iconTemplate;
+	getPerValueIcons(itemTag, tagWithIcon) {
+		return itemTag.reduce((acc, valObj) => {
+			const curValue = tagWithIcon.values[valObj.value];
+			if (curValue?.icon) {
+				Object.assign(acc, {
+					[curValue.icon]: IconTemplate.getSingleIconTemplate(
+						curValue.icon,
+						null,
+						curValue.badgecolor
+					)
+				});
+			}
+			return acc;
+		}, {});
 	}
 
-	getColorsGradientString(colors) {
-		if (typeof colors === "string") return `background-color: ${colors};`;
-		const fullCircleDegrees = 360;
-		const singleColorRange = Math.round(fullCircleDegrees / colors.length);
-		const colorGradient = colors.map((color, i) => `${color} 0 ${singleColorRange * (i + 1)}deg`);
-		return `background: conic-gradient(${colorGradient.join(", ")});`;
+	getBadgeIcons(itemTag, tagWithIcon) {
+		return itemTag.reduce((acc, valObj) => {
+			if (tagWithIcon.values.hasOwnProperty(valObj.value)) {
+				const curValue = tagWithIcon.values[valObj.value];
+				acc[tagWithIcon.icon] = IconTemplate.getSingleIconTemplate(
+					tagWithIcon.icon,
+					curValue.badgevalue,
+					curValue.badgecolor
+				);
+				return acc;
+			}
+		}, {});
+	}
+
+	getColorIcons(itemTag, tagWithIcon) {
+		let iconHolder = {};
+		const colors = itemTag
+			.filter(valObj => tagWithIcon.values.hasOwnProperty(valObj.value) &&
+				tagWithIcon.values[valObj.value].hasOwnProperty(BADGE_COLOR))
+			.map(valObj => tagWithIcon.values[valObj.value].badgecolor);
+		if (tagWithIcon.icon && colors.length) {
+			iconHolder[tagWithIcon.icon] = IconTemplate.getSingleIconTemplate(
+				tagWithIcon.icon,
+				null,
+				colors.sort()
+			);
+		}
+		return iconHolder;
+	}
+
+	getSingleIconTemplate(...args) {
+		return IconTemplate.getSingleIconTemplate(...args);
 	}
 
 	getSortedIcons(icons) {
@@ -138,38 +207,14 @@ export default class UserDataviewTagIcons {
 		return iconsCuttedArray;
 	}
 
-	sortIconListBySelectedValue(valueId) {
-		const selectedTagId = this.tagSelect.getValue();
-		const selectedTag = this.tagList.getItem(selectedTagId);
-
-		if (selectedTag) {
-			// find icon related to selected tag-value dependency (mainIcon)
-			let mainIcon;
-			const tagWithIcon = this.tagsWithIcons[selectedTag.name];
-			mainIcon = tagWithIcon ? tagWithIcon.icon : null;
-
-			if (tagWithIcon && tagWithIcon.type === "pervalue" && valueId) {
-				const selectedValue = this.valueList.getItem(valueId);
-				mainIcon = tagWithIcon.values[selectedValue.name].icon;
-			}
-
-			// put mainIcon to the beginning of the array
-			if (mainIcon) {
-				const index = this.iconsList.findIndex((icon) => {
-					if (Array.isArray(icon) && icon.includes(mainIcon)) {
-						return icon;
-					}
-					return icon === mainIcon;
-				});
-				if (index !== -1) {
-					const main = this.iconsList.splice(index, 1);
-					this.iconsList = main.concat(this.iconsList);
-				}
-			}
-		}
-	}
-
 	getExtraIconsTemplate(iconName) {
 		return `<div class='dataview-item-dots-icon'><i class='fas ${iconName}'></i></div>`;
 	}
+
+	changeIgnoreDefaultState(ignore) {
+		this.ignoreDefault = ignore;
+		this.dataview.refresh();
+	}
 }
+
+export default UserDataviewTagIcons;

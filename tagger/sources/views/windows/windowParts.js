@@ -63,6 +63,7 @@ function searchImagesByName(searchInput, dataView) {
 					return lowerCaseName.includes(lowerCaseSearchValue);
 				}
 			}
+			return false;
 		});
 	}
 	else {
@@ -205,8 +206,9 @@ function getDataviewOnClickObject(ref) {
 }
 
 function getDataviewTypeObject(multiplier, dataview) {
-	const width = (constants.DATAVIEW_IMAGE_SIZE.WIDTH * multiplier) || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
-	const height = (constants.DATAVIEW_IMAGE_SIZE.HEIGHT * multiplier) || constants.DATAVIEW_IMAGE_SIZE.HEIGHT;
+	const {WIDTH, HEIGHT} = constants.DATAVIEW_IMAGE_SIZE;
+	const width = WIDTH * multiplier || WIDTH;
+	const height = HEIGHT * multiplier || HEIGHT;
 	return {
 		width,
 		height,

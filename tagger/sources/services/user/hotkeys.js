@@ -88,7 +88,7 @@ class HotkeysService {
 			}
 		);
 		hotkeysJS("enter", {keyup: true, scope: this.currentScope}, (event) => {
-			if (event.type === "keydown") {
+			if (event.type === "keyup") {
 				this.handleEnter();
 			}
 		});
@@ -135,16 +135,15 @@ class HotkeysService {
 				item => item.id === itemToSelect.id
 			);
 
+			const drLength = dataRange.length;
 			switch (button) {
 				case "up": {
-					const itemToSelectRow =	currentItemRow > 0 ? currentItemRow - 1 : _dy - 1;
-					itemToSelect =
-						(dataMatrix[itemToSelectRow] && dataMatrix[itemToSelectRow][currentItemCol]) ||
-						itemToSelect;
+					const itemToSelectRow = currentItemRow > 0 ? currentItemRow - 1 : _dy - 1;
+					itemToSelect = dataMatrix[itemToSelectRow][currentItemCol] || itemToSelect;
 					break;
 				}
 				case "right": {
-					if (itemToSelect.id ===	dataRange[dataRange.length - 1].id && nextPage !== pager.data.page) {
+					if (itemToSelect.id === dataRange[drLength - 1].id && nextPage !== pager.data.page) {
 						pager.select(nextPage);
 						const areItemsLoaded = this.dataview.data.getRange().every(item => item);
 						if (areItemsLoaded) {
@@ -159,25 +158,19 @@ class HotkeysService {
 						return;
 					}
 
-					itemToSelect =
-						(dataMatrix[currentItemRow] && dataMatrix[currentItemRow][currentItemCol + 1]) ||
-						(dataMatrix[currentItemRow + 1] && dataMatrix[currentItemRow + 1][0]) ||
-						itemToSelect;
+					itemToSelect = dataMatrix?.[currentItemRow]?.[currentItemCol + 1] ||
+						dataMatrix?.[currentItemRow + 1]?.[0] || itemToSelect;
 					break;
 				}
 				case "down": {
-					const itemToSelectRow =	currentItemRow < _dy - 1 ? currentItemRow + 1 : 0;
-					itemToSelect =
-						(dataMatrix[itemToSelectRow] && dataMatrix[itemToSelectRow][currentItemCol]) ||
-						itemToSelect;
+					const itemToSelectRow = currentItemRow < _dy - 1 ? currentItemRow + 1 : 0;
+					itemToSelect = dataMatrix[itemToSelectRow][currentItemCol] || itemToSelect;
 					break;
 				}
 				case "left": {
 					if (itemToSelect.id === dataRange[0].id && prevPage !== pager.data.page) {
 						pager.select(prevPage);
-						const areItemsLoaded = this.dataview.data
-							.getRange()
-							.every(item => item);
+						const areItemsLoaded = this.dataview.data.getRange().every(item => item);
 						if (areItemsLoaded) {
 							this.handleNavigation(button);
 						}
@@ -191,9 +184,8 @@ class HotkeysService {
 						return;
 					}
 
-					itemToSelect =
-						(dataMatrix[currentItemRow] && dataMatrix[currentItemRow][currentItemCol - 1]) ||
-						(dataMatrix[currentItemRow - 1] && dataMatrix[currentItemRow - 1][dataMatrix[currentItemRow - 1].length - 1]) ||
+					itemToSelect = dataMatrix?.[currentItemRow]?.[currentItemCol - 1] ||
+						dataMatrix?.[currentItemRow - 1]?.[dataMatrix[currentItemRow - 1].length - 1] ||
 						itemToSelect;
 					break;
 				}
@@ -218,13 +210,11 @@ class HotkeysService {
 		this.hotkeysObj = hotkeyObject;
 
 		const hotkeys = Object.keys(hotkeyObject);
-		hotkeysJS(hotkeys.join(", "),
-			{keyup: true, scope: this.currentScope},
-			(event, handler) => {
-				if (event.type === "keyup") {
-					this.handleHotkeyPress(handler.key);
-				}
-			});
+		hotkeysJS(hotkeys.join(", "), {keyup: true, scope: this.currentScope}, (event, handler) => {
+			if (event.type === "keyup") {
+				this.handleHotkeyPress(handler.key);
+			}
+		});
 		this.attachNavButtons();
 	}
 
@@ -239,10 +229,7 @@ class HotkeysService {
 		const [tagName, valueName] = this.hotkeysObj[key];
 
 		const currentTag = tagList.find(tag => tag.name === tagName, true);
-		const currentValue = currentTag.values.find(
-			value => value.name === valueName,
-			true
-		);
+		const currentValue = currentTag.values.find(value => value.name === valueName, true);
 
 		if (currentValue) {
 			if (this.image) {
@@ -267,6 +254,7 @@ class HotkeysFactory {
 	}
 
 	createService(...args) {
+		// TODO: check text and select
 		const focusedViews = ["combo", "richselect"];
 		this.removeOldService();
 		this.focusEventId = webix.attachEvent("onFocusChange", (currView) => {

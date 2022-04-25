@@ -43,6 +43,7 @@ async function getTagTemplatesWithValues(userId) {
 
 async function createTagTemplates(tags) {
 	tags = tags.map((tag) => {
+		tag.iden = tag._id;
 		delete tag._id;
 		tag.values = Object.keys(tag.values).map((key) => {
 			const value = tag.values[key];

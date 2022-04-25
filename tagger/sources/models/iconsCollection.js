@@ -966,6 +966,8 @@ const icons = [
 	"yin-yang"
 ];
 
-export default new webix.DataCollection({
+const collection = new webix.DataCollection({
 	data: icons.map(str => ({id: `fa-${str}`, value: str}))
 });
+
+export default collection;

@@ -16,18 +16,27 @@ export default class DataviewFilters {
 		const tree = this.filtersTree;
 		this.filtersTree.attachEvent("onItemClick", (id) => {
 			const item = tree.getItem(id);
+			const branch = item.$parent;
 			if (tree.isSelected(id)) {
 				if (item.$count) {
 					const childs = tree.find(obj => obj.$parent === item.id);
 					childs.forEach(child => tree.unselect(child.id));
 				}
 				tree.unselect(id);
-			}
-			else {
-				if (item.$parent && !tree.isSelected(item.$parent)) {
-					tree.select(item.$parent, true);
+			} else {
+				if (branch && !tree.isSelected(branch)) {
+					tree.select(branch, true);
 				}
+				if (tree.isBranch(id)) {
+					const childs = tree.find(obj => obj.$parent === item.id);
+					childs.forEach(child => tree.select(child.id, true));
+				} 
 				tree.select(id, true);
+			} 		
+			if (branch && tree.isSelected(branch) && !tree.isSelected(id)) {
+					const childs = tree.find(obj => obj.$parent === branch);
+					const selected = childs.find(item => tree.isSelected(item.id))
+					if(!selected) tree.unselect(branch);
 			}
 		});
 

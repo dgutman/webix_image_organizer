@@ -1,14 +1,23 @@
 import {JetView} from "webix-jet";
 import FiltersView from "./filtersView";
 import ImagesView from "./imagesView";
-import TaskCreationForm from "./taskCreationForm";
+import TaskCreationForm from "./taskCreationForm/taskCreationForm";
+import PreviewTaskView from "./previewTaskView";
 import constants from "../../../constants";
 import auth from "../../../services/authentication";
 import TaskToolService from "../../../services/taskTool/taskToolService";
 
 export default class TaggerTaskTool extends JetView {
+	constructor(app) {
+		super(app);
+		this._taskCreationForm = new TaskCreationForm(app);
+		this._filtersView = new FiltersView(app);
+		this._imagesView = new ImagesView(app);
+	}
+
 	config() {
-		const ui = {
+		const taskToolUI = {
+			id: "task_tool",
 			rows: [
 				{
 					view: "accordion",
@@ -18,20 +27,27 @@ export default class TaggerTaskTool extends JetView {
 					cols: [
 						{
 							header: "Filters",
-							body: FiltersView,
+							body: this._filtersView,
 							gravity: 1
 						},
 						{
-							// header: "Images",
-							body: ImagesView,
+							body: this._imagesView,
 							gravity: 3
 						},
 						{
-							body: TaskCreationForm,
+							body: this._taskCreationForm,
 							gravity: 2
 						}
 					]
 				}
+			]
+		};
+
+		const ui = {
+			animate: false,
+			cells: [
+				taskToolUI,
+				PreviewTaskView
 			]
 		};
 
@@ -76,7 +92,7 @@ export default class TaggerTaskTool extends JetView {
 	}
 
 	get taskCreationForm() {
-		return this.getRoot().queryView({name: "taskCreationForm"});
+		return this._taskCreationForm.getRoot();
 	}
 
 	get addNewTagButton() {
@@ -91,12 +107,24 @@ export default class TaggerTaskTool extends JetView {
 		return this.imagesLayout.queryView({name: "showSelectedButton"});
 	}
 
+	get showImageName() {
+		return this.imagesLayout.queryView({name: "showImageName"});
+	}
+
+	get showMeta() {
+		return this.imagesLayout.queryView({name: "showMeta"});
+	}
+
 	get tagsForm() {
-		return this.taskCreationForm.queryView({name: "tagsForm"});
+		return this._taskCreationForm.tagsForm;
 	}
 
 	get createTaskButton() {
 		return this.taskCreationForm.$scope.$$(constants.CREATE_TASK_BUTTON_ID);
+	}
+
+	get publishTaskButton() {
+		return this.taskCreationForm.$scope.$$(constants.PUBLISH_TASK_BUTTON_ID);
 	}
 
 	get editTaskButton() {

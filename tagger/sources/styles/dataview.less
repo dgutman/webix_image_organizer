@@ -155,6 +155,18 @@
       width: auto;
       height: 100%;
     }
+    .img-container {
+      position: relative;
+      overflow: hidden;
+    }
+    .roi-image-rect {
+      position: absolute;
+      box-sizing: border-box;
+      border: 2px solid red;
+      &:hover {
+        opacity: .1;
+      }
+    }
   }
 
   .large-image-name {
@@ -328,4 +340,12 @@
       background: rgba(0, 0, 0, .4);
     }
   }
+}
+
+.hide-names .dataview-images-name {
+  display: none;
+}
+
+.hide-meta .dataview-show-metadata-icon {
+  display: none;
 }

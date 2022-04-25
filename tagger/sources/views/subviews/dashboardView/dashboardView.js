@@ -5,24 +5,11 @@ import DashboardService from "../../../services/dashboard/dashboardService";
 import templates from "../../templates";
 import taskUsers from "../../../models/taskUsers";
 import UserPanel from "../header/parts/userPanel";
+import ResultsView from "./resultsView";
+import NotificationsView from "./notificationsView";
 
 export default class TaggerDashboard extends JetView {
 	config() {
-		const backButton = {
-			view: "button",
-			name: "backButton",
-			css: "btn",
-			label: "Back to main view",
-			type: "icon",
-			icon: "fas fa-arrow-left",
-			inputWidth: 200,
-			height: 30,
-			width: 200,
-			click: () => {
-				this.app.show(constants.APP_PATHS.TAGGER_ADMIN);
-			}
-		};
-
 		const headerTemplate = {
 			template: "Table of users and tasks progress",
 			css: "dashboard-header",
@@ -33,12 +20,9 @@ export default class TaggerDashboard extends JetView {
 			css: "global-header",
 			height: constants.HEADER_HEIGHT,
 			cols: [
-				{
-					cols: [
-						backButton,
-						{}
-					]
-				},
+				{},
+				headerTemplate,
+				{},
 				{$subview: UserPanel, name: "userPanel"},
 				{width: 50}
 			]
@@ -71,7 +55,7 @@ export default class TaggerDashboard extends JetView {
 			editable: true,
 			css: "tagger-dashboard",
 			resizeColumn: false,
-			drag: true,
+			drag: false,
 			scheme: {
 				$change: (obj) => {
 					if (obj._modelType === "task_group") {
@@ -80,7 +64,7 @@ export default class TaggerDashboard extends JetView {
 
 					obj.progress = `${obj.reviewed}/${obj.count}`;
 					const format = webix.Date.dateToStr("%d.%m.%Y %H:%i");
-					obj._latest = obj.latest ? format(new Date(obj.latest)) : "no info";
+					obj._latest = obj.latest ? format(new Date(obj.latest)) : "";
 					obj._created = format(new Date(obj.created));
 
 					if (obj.deadline) {
@@ -89,7 +73,7 @@ export default class TaggerDashboard extends JetView {
 						else obj.remaining = `${days} days ${hours} h ${minutes} min`;
 					}
 					else {
-						obj.remaining = "no info";
+						obj.remaining = "";
 					}
 				}
 			},
@@ -107,14 +91,18 @@ export default class TaggerDashboard extends JetView {
 					id: "status",
 					header: ["Status", {content: "selectFilter"}],
 					tooltip: obj => obj.status || "",
+					template: ({status}) => (status ? status.replace(/_/gi, " ") : ""),
 					sort: "text",
 					fillspace: 1,
 					minWidth: 50,
 					editor: "richselect",
 					editaction: "custom",
-					options: [
-						"created", "published", "canceled", "in_progress", "finished"
-					]
+					options: constants.TASK_STATUSES,
+					suggest: {
+						body: {
+							template: ({value}) => value.replace(/_/gi, " ")
+						}
+					}
 				},
 				{
 					id: "created",
@@ -187,8 +175,9 @@ export default class TaggerDashboard extends JetView {
 						});
 
 						if (columnConf.node.offsetWidth - 10 <= userTemplates.length * 15) {
-							userTemplates = userTemplates.slice(0, Math.floor((columnConf.node.offsetWidth - 10) / 15) - 1);
-							userTemplates.push("<div class='dashboard-user-dots-icon'><i class='fas fa-ellipsis-h'></i></div>");
+							userTemplates = userTemplates
+								.slice(0, Math.floor((columnConf.node.offsetWidth - 10) / 15) - 1);
+							userTemplates.push("<div class='user-dots-icon'><i class='fas fa-ellipsis-h'></i></div>");
 						}
 
 						return userTemplates.join("");
@@ -204,109 +193,6 @@ export default class TaggerDashboard extends JetView {
 				}
 			},
 			data: []
-		};
-
-		const notificationTextarea = {
-			view: "textarea",
-			css: "textarea-field",
-			name: "textarea",
-			height: 120,
-			inputHeight: 120,
-			borderless: true,
-			attributes: {maxlength: 500},
-			value: constants.DEFAULT_NOTIFICATION_TEXT,
-			invalidMessage: "The text of the message can't be empty",
-			validate: value => value && webix.rules.isNotEmpty(value.trim())
-		};
-
-		const notificationForm = {
-			view: "form",
-			css: "textarea-field",
-			value: "Dear Colleague",
-			type: "form",
-			borderless: true,
-			width: 260,
-			elements: [
-				{},
-				{
-					cols: [
-						{},
-						{
-							view: "multiCombo",
-							name: "usersMultiCombo",
-							width: 200,
-							css: "search-field",
-							placeholder: "Please, select the users"
-						},
-						{}
-					]
-				},
-				{},
-				{
-					cols: [
-						{},
-						{
-							view: "button",
-							css: "btn",
-							width: 100,
-							name: "sendNotificationBtn",
-							disabled: true,
-							value: "Send"
-						},
-						{}
-					]
-				}
-			]
-		};
-
-		const notificationsLayout = {
-			height: 170,
-			cols: [
-				{
-					view: "form",
-					type: "form",
-					elements: [
-						{cols: [
-							notificationTextarea,
-							notificationForm
-						]}
-					]
-				}
-			]
-		};
-
-		const resultsLayout = {
-			css: "results-layout",
-			width: 300,
-			scroll: "auto",
-			rows: [
-				{
-					name: "resultsTemplate",
-					template: obj => templates.getUserProgressTemplate(obj),
-					borderless: true,
-					autoheight: true
-				},
-				{height: 10},
-				{
-					view: "richselect",
-					css: "select-field",
-					name: "resultsRichselect",
-					options: {
-						data: taskUsers,
-						body: {
-							template: obj => obj.name
-						}
-					}
-				},
-				{height: 10},
-				{
-					name: "tagStatisticTemplate",
-					template: obj => templates.getTagsStatisticTemplate(obj),
-					borderless: true,
-					autoheight: true
-				},
-				{}
-			]
 		};
 
 		const accordion = {
@@ -335,19 +221,16 @@ export default class TaggerDashboard extends JetView {
 								}
 							]
 						},
-						{
-							header: "Results",
-							css: "tagger-accordion-item",
-							body: resultsLayout,
-							collapsed: true
-						}
+						{$subview: ResultsView, name: "resultsView"}
 					]
 				},
 				{
 					header: "Notification text",
 					css: "tagger-accordion-item",
 					collapsed: true,
-					body: notificationsLayout
+					disabled: true,
+					name: "notificationAccordionItem",
+					body: {$subview: NotificationsView, name: "notificationsView"}
 				}
 			]
 		};
@@ -367,8 +250,9 @@ export default class TaggerDashboard extends JetView {
 		if (!auth.isAdmin()) {
 			this.app.show(constants.APP_PATHS.TAGGER_USER);
 		}
-
-		this._dashboardService = new DashboardService(view);
+		else {
+			this._dashboardService = new DashboardService(view);
+		}
 	}
 
 	get tagTemplatesLink() {
@@ -379,28 +263,40 @@ export default class TaggerDashboard extends JetView {
 		return this.getRoot().queryView({name: "treetable"});
 	}
 
+	get notificationAccordionItem() {
+		return this.getRoot().queryView({name: "notificationAccordionItem"});
+	}
+
 	get textarea() {
-		return this.getRoot().queryView({view: "textarea"});
-	}
-
-	get sendButton() {
-		return this.getRoot().queryView({name: "sendNotificationBtn"});
-	}
-
-	get resultsTemplate() {
-		return this.getRoot().queryView({name: "resultsTemplate"});
-	}
-
-	get resultsRichselect() {
-		return this.getRoot().queryView({name: "resultsRichselect"});
-	}
-
-	get tagStatisticTemplate() {
-		return this.getRoot().queryView({name: "tagStatisticTemplate"});
+		return this.getSubView("notificationsView").textarea;
 	}
 
 	get usersMultiCombo() {
-		return this.getRoot().queryView({name: "usersMultiCombo"});
+		return this.getSubView("notificationsView").usersMultiCombo;
+	}
+
+	get usersCardTemplate() {
+		return this.getSubView("notificationsView").usersCardTemplate;
+	}
+
+	get sendButton() {
+		return this.getSubView("notificationsView").sendButton;
+	}
+
+	get resultsTemplate() {
+		return this.getSubView("resultsView").resultsTemplate;
+	}
+
+	get resultsRichselect() {
+		return this.getSubView("resultsView").resultsRichselect;
+	}
+
+	get resultsAccordionItem() {
+		return this.getSubView("resultsView").resultsAccordionItem;
+	}
+
+	get tagStatisticTemplate() {
+		return this.getSubView("resultsView").tagStatisticTemplate;
 	}
 
 	getTimeRemaining(endtime) {

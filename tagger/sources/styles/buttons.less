@@ -44,13 +44,13 @@
   }
 
 
-  .btn,
-  .btn-contour,
-  .btn-disabled {
+  .btn.webix_secondary,
+  .btn-contour.webix_secondary,
+  .btn-disabled.webix_secondary {
     .webix_el_box {
       padding: 0;
     }
-    .webixtype_base, .webix_button {
+    .webixtype_base, .webix_button, .webix_el_button {
       display: inline-block;
       vertical-align: top;
       outline: none;
@@ -78,8 +78,8 @@
     }
   }
 
-  .btn  {
-    .webixtype_base, .webix_button {
+  .btn.webix_secondary  {
+    .webixtype_base, .webix_button, .webix_el_button {
       color:rgba(255,255,255,.90);
       background: @btn;
 
@@ -94,8 +94,8 @@
     }
   }
 
-  .btn-contour {
-    .webixtype_base, .webix_button {
+  .btn-contour.webix_secondary {
+    .webixtype_base, .webix_button, .webix_el_button {
       background: transparent;
       color: @btn;
 
@@ -109,8 +109,8 @@
     }
   }
 
-  .btn-disabled{
-    .webixtype_base, .webix_button {
+  .btn-disabled.webix_secondary {
+    .webixtype_base, .webix_button, .webix_el_button {
       background: @disabled-color;
       color: #494949;
       cursor: default;
@@ -291,7 +291,7 @@
     background-color: rgba(0,0,0,0.8);
   }
 
-  .transparent-button .webixtype_base, .transparent-button .webix_button {
+  .transparent-button .webixtype_base, .transparent-button .webix_button, .transparent-button .webix_el_button {
     border: 1px solid @lines-color;
     background: @main-bg;
     color: @main-color;
@@ -336,7 +336,7 @@
   }
 
   .image-tag-window-form-icon-button {
-    .webixtype_base, .webix_button {
+    .webixtype_base, .webix_button, .webix_el_button {
       padding-bottom: 1px;
       background: #606060;
       border: 1px solid #606060;
@@ -362,8 +362,8 @@
       padding: 0;
     }
   }
-  .btn  {
-    .webixtype_base, .webix_button {
+  .btn.webix_secondary  {
+    .webixtype_base, .webix_button, .webix_el_button {
       color:rgba(255,255,255,.90);
       background: @btn;
 

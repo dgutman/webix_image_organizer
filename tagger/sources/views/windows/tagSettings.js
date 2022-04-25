@@ -1,8 +1,87 @@
 import {JetView} from "webix-jet";
 
-export default class TagSettingsWindow extends JetView {
+class TagSettingsWindow extends JetView {
 	config() {
-		const form = {
+		const form = this._getFormViewConfig();
+
+		const window = {
+			view: "window",
+			name: "tagSettings",
+			css: "tagger-window",
+			position: "center",
+			modal: true,
+			width: 500,
+			height: 700,
+			type: "clean",
+			head: {
+				cols: [
+					{
+						template: "Tag settings",
+						name: "header",
+						css: "main-subtitle2 ellipsis-text",
+						borderless: true
+					},
+					{
+						view: "button",
+						name: "closeButton",
+						type: "icon",
+						css: "btn webix_transparent",
+						icon: "fas fa-times",
+						hotkey: "esc",
+						width: 30,
+						height: 30,
+						click: () => this.close()
+					}
+				]
+			},
+			body: form
+		};
+
+		return window;
+	}
+
+	init(view) {
+		this._view = view;
+
+		this.saveButton.attachEvent("onItemClick", () => {
+			view.callEvent("saveButtonClick", [this.form.getValues(), this.form.isDirty()]);
+
+			this.close();
+		});
+	}
+
+	showWindow(tagForm) {
+		this.tagForm = tagForm;
+		this.getRoot().show();
+
+		this.form.setValues(tagForm.config.tagSettings);
+	}
+
+	get form() {
+		return this.getRoot().queryView({name: "tagSettingsForm"});
+	}
+
+	get saveButton() {
+		return this.form.queryView({name: "saveButton"});
+	}
+
+	get closeButton() {
+		return this.getRoot().queryView({name: "closeButton"});
+	}
+
+	close() {
+		this.tagForm = null;
+		this.getRoot().hide();
+	}
+
+	_getFormViewConfig() {
+		return {};
+	}
+}
+
+class GirderTagSettingsWindow extends TagSettingsWindow {
+	_getFormViewConfig() {
+		return {
 			view: "form",
 			name: "tagSettingsForm",
 			borderless: true,
@@ -59,73 +138,7 @@ export default class TagSettingsWindow extends JetView {
 				}
 			]
 		};
-
-		const window = {
-			view: "window",
-			name: "tagSettings",
-			css: "tagger-window",
-			position: "center",
-			modal: true,
-			width: 500,
-			height: 700,
-			type: "clean",
-			head: {
-				cols: [
-					{
-						template: "Tag settings",
-						name: "header",
-						css: "main-subtitle2 ellipsis-text",
-						borderless: true
-					},
-					{
-						view: "button",
-						name: "closeButton",
-						type: "icon",
-						icon: "fas fa-times",
-						hotkey: "esc",
-						width: 30,
-						height: 30,
-						click: () => this.close()
-					}
-				]
-			},
-			body: form
-		};
-
-		return window;
-	}
-
-	init(view) {
-		this._view = view;
-
-		this.saveButton.attachEvent("onItemClick", () => {
-			view.callEvent("saveButtonClick", [this.form.getValues(), this.form.isDirty()]);
-
-			this.close();
-		});
-	}
-
-	showWindow(tagForm) {
-		this.tagForm = tagForm;
-		this.getRoot().show();
-
-		this.form.setValues(tagForm.config.tagSettings);
-	}
-
-	get form() {
-		return this.getRoot().queryView({name: "tagSettingsForm"});
-	}
-
-	get saveButton() {
-		return this.form.queryView({name: "saveButton"});
-	}
-
-	get closeButton() {
-		return this.getRoot().queryView({name: "closeButton"});
-	}
-
-	close() {
-		this.tagForm = null;
-		this.getRoot().hide();
 	}
 }
+
+export default GirderTagSettingsWindow;

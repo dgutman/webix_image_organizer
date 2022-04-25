@@ -1,6 +1,6 @@
-
 export default class SelectImagesModel {
 	constructor(dataView) {
+		this.showSelected = false;
 		this.dataView = dataView || new webix.DataCollection();
 		this.selectedImages = {};
 		this.dataView.isCustomSelected = this.isSelected.bind(this);
@@ -40,7 +40,8 @@ export default class SelectImagesModel {
 			const values = {
 				amount: pData.count,
 				start: pData.count ? pData.page * pData.size : 0,
-				end: pData.page + 1 === pData.limit || !pData.count ? pData.count : (pData.page + 1) * pData.size
+				end: pData.page + 1 === pData.limit ||
+					!pData.count ? pData.count : (pData.page + 1) * pData.size
 			};
 			visibleData = visibleData.slice(values.start, values.end);
 		}
@@ -64,10 +65,14 @@ export default class SelectImagesModel {
 	getNewSelectedItems(item, lastUnselected) {
 		const lastSelectedItem = this.lastSelectedItem || item;
 		const indexOfCurrentItem = this.dataView.getIndexById(item.id);
-		const dataViewLastSelectedItem = lastUnselected || this.dataView.find(image => image._id === lastSelectedItem._id, true);
-		const indexOfLastSelectedItem = dataViewLastSelectedItem ? this.dataView.getIndexById(dataViewLastSelectedItem.id) : indexOfCurrentItem;
-		const start = indexOfLastSelectedItem > indexOfCurrentItem ? indexOfCurrentItem : indexOfLastSelectedItem;
-		const end = indexOfLastSelectedItem > indexOfCurrentItem ? indexOfLastSelectedItem : indexOfCurrentItem;
+		const dataViewLastSelectedItem = lastUnselected ||
+			this.dataView.find(image => image._id === lastSelectedItem._id, true);
+		const indexOfLastSelectedItem = dataViewLastSelectedItem ?
+			this.dataView.getIndexById(dataViewLastSelectedItem.id) : indexOfCurrentItem;
+		const start = indexOfLastSelectedItem > indexOfCurrentItem ?
+			indexOfCurrentItem : indexOfLastSelectedItem;
+		const end = indexOfLastSelectedItem > indexOfCurrentItem ?
+			indexOfLastSelectedItem : indexOfCurrentItem;
 		const newSelectedItems = this.dataView.data.serialize().slice(start, end + 1);
 		return newSelectedItems;
 	}
@@ -99,6 +104,11 @@ export default class SelectImagesModel {
 			acc[val._id] = val;
 			return acc;
 		}, {});
+	}
+
+	selectImages(images) {
+		this.add(images);
+		this.dataView.callEvent("customSelectChange", [this.getSelectedItems()]);
 	}
 
 	add(images) {

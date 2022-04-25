@@ -1,8 +1,6 @@
 import {JetView} from "webix-jet";
 import header from "./subviews/header/header";
 import undoFactory from "../models/undoModel";
-import auth from "../services/authentication";
-import constants from "../constants";
 
 export default class TaggerMainClass extends JetView {
 	config() {

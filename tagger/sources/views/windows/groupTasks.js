@@ -25,6 +25,7 @@ export default class GroupTasksWindow extends JetView {
 						view: "button",
 						name: "closeButton",
 						type: "icon",
+						css: "btn webix_transparent",
 						icon: "fas fa-times",
 						hotkey: "esc",
 						width: 30,

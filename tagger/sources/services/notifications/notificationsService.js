@@ -1,4 +1,4 @@
-import notificationsModel from "../../models/notificationsModel";
+import NotificationsModel from "../../models/notificationsModel";
 import transitionalAjax from "../transitionalAjaxService";
 
 export default class TaggerNotificationsService {
@@ -8,6 +8,7 @@ export default class TaggerNotificationsService {
 	}
 
 	_ready() {
+		const notificationsModel = NotificationsModel.getInstance();
 		webix.extend(this._view, webix.ProgressBar);
 		// child views
 		const scope = this._view.$scope;
@@ -29,10 +30,12 @@ export default class TaggerNotificationsService {
 						this._notificationsCollection.remove(id);
 					})
 					.catch(() => {
-						this._notificationsCollection.updateItem(id, {_pending: false});
+						if (this.collection.exists(item.id)) {
+							this._notificationsCollection.updateItem(id, {_pending: false});
+						}
 					});
 				return false;
 			}
-		})
+		});
 	}
 }

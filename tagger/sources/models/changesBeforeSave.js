@@ -1,5 +1,6 @@
 function removeItemFromArray(item, arr) {
-	const arrItemIndex = arr.findIndex(obj => item.id == obj.id || (item._id && item._id === obj._id));
+	const arrItemIndex = arr
+		.findIndex(obj => item.id == obj.id || (item._id && item._id === obj._id));
 	if (arrItemIndex !== -1) {
 		return arr.splice(arrItemIndex, 1);
 	}
@@ -56,7 +57,7 @@ export default class ChangesBeforeSave {
 		const types = Object.keys(this.dataArrays);
 		types.forEach((type) => {
 			const foundedItemIndex = this.dataArrays[type]
-				.findIndex(existedItem => item.id === existedItem.id || (item._id && item._id === existedItem._id));
+				.findIndex(obj => item.id === obj.id || (item._id && item._id === obj._id));
 			if (foundedItemIndex !== -1) {
 				this.dataArrays[type].splice(foundedItemIndex, 1);
 			}

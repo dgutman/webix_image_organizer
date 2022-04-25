@@ -132,6 +132,7 @@ export default class TagTemplatesService {
 					this._changesTagsModel.removeItem(tag);
 				}
 				this._tagListStore.removeItem(id);
+				this._valuesListStore.clearAll();
 				return false;
 			}
 		});
@@ -355,7 +356,7 @@ export default class TagTemplatesService {
 	_searchByName(list, searchField) {
 		const value = searchField.getValue();
 		if (value) {
-			list.filter(obj => obj.name.includes(value));
+			list.filter(obj => obj.value? obj.value.includes(value) : obj.name.includes(value));
 		}
 		else {
 			list.filter();

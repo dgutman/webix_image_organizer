@@ -1,13 +1,18 @@
 import {JetView} from "webix-jet";
-import TaskCreationService from "../../../services/taskTool/taskCreationService";
-import templates from "../../templates";
-import constants from "../../../constants";
-import auth from "../../../services/authentication";
+import TaskCreationService from "../../../../services/taskTool/taskCreationService";
+import templates from "../../../templates";
+import constants from "../../../../constants";
+import auth from "../../../../services/authentication";
+import UsersSelect from "../../../components/usersSelect";
+import taskUsers from "../../../../models/taskUsers";
+import TagsForm from "./tagsForm";
 
 const CLEAR_ALL_ID = "task-creation:clear-all";
 const CREATE_TASK_ID = constants.CREATE_TASK_BUTTON_ID;
 const EDIT_TASK_ID = constants.EDIT_TASK_BUTTON_ID;
+const PUBLISH_TASK_ID = constants.PUBLISH_TASK_BUTTON_ID;
 const LOAD_JSON_BTN_ID = "task-creation:load-json";
+const ADD_NEW_TAG_BTN_ID = "task-creation:add-new-tag";
 
 function getTextTemplate(text) {
 	return {
@@ -17,34 +22,16 @@ function getTextTemplate(text) {
 	};
 }
 
-function getUsersTemplate(name) {
-	return {
-		borderless: true,
-		name,
-		css: "users-cards-template",
-		height: 40,
-		hidden: true,
-		template: (obj) => {
-			const users = obj.users || [];
-			return users
-				.map(user => templates.getUsersCard(user.name, user.id))
-				.join("");
-		}
-	};
-}
+class TaskCreationForm extends JetView {
+	constructor(app) {
+		super(app);
 
-function getUsersMultiCombo(name) {
-	return {
-		view: "multiCombo",
-		name,
-		css: "search-field",
-		placeholder: "Please, select the users",
-		invalidMessage: "Please, select the users",
-		inputHeight: 34
-	};
-}
 
-export default class TaskCreationForm extends JetView {
+		this._tagsForm = new TagsForm(this.app);
+		this._usersSelect = new UsersSelect(this.app, taskUsers, {name: "user"});
+		this._creatorsSelect = new UsersSelect(this.app, taskUsers, {name: "creator"});
+	}
+
 	config() {
 		const headerTemplate = {
 			height: 40,
@@ -60,7 +47,6 @@ export default class TaskCreationForm extends JetView {
 			label: "Task name",
 			labelPosition: "top",
 			invalidMessage: "Please, specify the task name",
-			width: 250,
 			inputHeight: 34
 		};
 
@@ -71,26 +57,17 @@ export default class TaskCreationForm extends JetView {
 			placeholder: "Task group",
 			label: "Task group",
 			labelPosition: "top",
-			width: 250,
+			invalidMessage: "Please, enter the valid group name",
 			inputHeight: 34
 		};
 
 		const tagsAndValuesHeader = getTextTemplate("Tags and values");
 
-		const tagsForm = {
-			view: "form",
-			name: "tagsForm",
-			hidden: true,
-			type: "line",
-			css: "task-creation-tags-form",
-			scroll: "y",
-			elements: []
-		};
-
 		const addNewTag = {
-			template: () => "<a class='add-new-tag'><i class='fas fa-plus-circle'></i> Add new tag </a>",
-			id: "task-creation:add-new-tag",
+			template: () => templates.getPlusButtonTemplate("Add new tag", "add-new-tag"),
+			localId: ADD_NEW_TAG_BTN_ID,
 			height: 25,
+			width: 130,
 			borderless: true
 		};
 
@@ -115,16 +92,14 @@ export default class TaskCreationForm extends JetView {
 		const assignUsersLayout = {
 			rows: [
 				getTextTemplate("Assign to"),
-				getUsersTemplate("assignUsersTemplate"),
-				getUsersMultiCombo("user")
+				this._usersSelect
 			]
 		};
 
 		const creatorsLayout = {
 			rows: [
 				getTextTemplate("Share with creators"),
-				getUsersTemplate("creatorsTemplate"),
-				getUsersMultiCombo("creator")
+				this._creatorsSelect
 			]
 		};
 
@@ -141,8 +116,16 @@ export default class TaskCreationForm extends JetView {
 				{},
 				{
 					view: "button",
-					value: "Publish the task",
+					value: "Save the task",
 					id: CREATE_TASK_ID,
+					width: 150,
+					css: "btn"
+				},
+				{
+					view: "button",
+					value: "Publish the task",
+					id: PUBLISH_TASK_ID,
+					hidden: true,
 					width: 150,
 					css: "btn"
 				},
@@ -157,6 +140,18 @@ export default class TaskCreationForm extends JetView {
 			]
 		};
 
+		const deadlineDate = {
+			view: "datepicker",
+			name: "deadline",
+			css: "date-field",
+			value: new Date(),
+			label: "Task deadline",
+			timepicker: true,
+			width: 350,
+			labelWidth: 120,
+			inputHeight: 34
+		};
+
 		const ui = {
 			view: "form",
 			name: "taskCreationForm",
@@ -166,7 +161,11 @@ export default class TaskCreationForm extends JetView {
 			minWidth: 700,
 			padding: 10,
 			rules: {
-				name: webix.rules.isNotEmpty,
+				name: value => webix.rules.isNotEmpty(value.trim()),
+				group: value => {
+					const groupValue = !(value === "") && (value.trim()  === "");
+					return !groupValue;
+				},
 				user: arr => arr.length,
 				creator: arr => arr.length
 			},
@@ -178,18 +177,20 @@ export default class TaskCreationForm extends JetView {
 							borderless: true,
 							cols: [
 								nameInput,
-								{},
+								{width: 10},
 								groupInput
 							]
 						},
 						tagsAndValuesHeader,
-						tagsForm,
+						this._tagsForm,
 						addNewTag,
 						loadJSONLayout,
 						{height: 10},
 						assignUsersLayout,
 						{height: 10},
 						creatorsLayout,
+						{height: 10},
+						deadlineDate,
 						{},
 						bottomButtons
 					]
@@ -204,45 +205,47 @@ export default class TaskCreationForm extends JetView {
 		if (auth.isAdmin()) {
 			this._taskCreationService = new TaskCreationService(view);
 		}
+		document.querySelector('.main-header-admin a').innerHTML = '<span class="webix_icon wxi-angle-left"></span> Cancel';
 	}
 
 	get addNewTagTemplateButton() {
-		return this.$$("task-creation:add-new-tag");
+		return this.$$(ADD_NEW_TAG_BTN_ID);
 	}
 
 	get taskCreationForm() {
-		return this.getRoot().queryView({name: "taskCreationForm"});
+		return this.getRoot();
 	}
 
-	get assignUsersTemplate() {
-		return this.getRoot().queryView({name: "assignUsersTemplate"});
+	get tagsForm() {
+		return this._tagsForm;
 	}
 
-	get assignUsersMultiCombo() {
-		return this.getRoot().queryView({name: "user"});
-	}
-
-	get creatorsTemplate() {
-		return this.getRoot().queryView({name: "creatorsTemplate"});
-	}
-
-	get creatorsMultiCombo() {
-		return this.getRoot().queryView({name: "creator"});
+	get clearAllButton() {
+		return this.$$(CLEAR_ALL_ID);
 	}
 
 	get taskGroupCombo() {
 		return this.getRoot().queryView({name: "group"});
 	}
 
-	get tagsForm() {
-		return this.getRoot().queryView({name: "tagsForm"});
-	}
-
 	get uploadJSONButton() {
 		return this.$$(LOAD_JSON_BTN_ID);
 	}
 
-	get clearAllButton() {
-		return this.$$(CLEAR_ALL_ID);
+	get usersSelect() {
+		return this._usersSelect;
+	}
+
+	get creatorsSelect() {
+		return this._creatorsSelect;
+	}
+
+	collectFormData() {
+		const task = this.taskCreationForm.getValues();
+		const tags = this._tagsForm.collectTagsData();
+		task.tags = tags;
+		return task;
 	}
 }
+
+export default TaskCreationForm;
