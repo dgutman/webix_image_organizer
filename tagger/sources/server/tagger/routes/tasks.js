@@ -87,6 +87,16 @@ function editTask(req, res, next) {
 		.catch(err => next(err));
 }
 
+function changeTaskStatus(req, res, next) {
+	const taskId = req.params.id;
+	const status = req.body.status;
+	const userId = req.user ? req.user.sub : null;
+
+	tasksService.changeTaskStatus(taskId, status, userId)
+		.then(task => res.json({message: "Task status was successfully updated", task}))
+		.catch(err => next(err));
+}
+
 function getTaskJSON(req, res, next) {
 	const taskId = req.params.id;
 	const userId = req.user ? req.user.sub : null;
@@ -116,6 +126,7 @@ router.get("/results/:id", getTaskResults);
 router.put("/check/:id", checkTask);
 router.put("/group", groupTasks);
 router.put("/edit/:id", editTask);
+router.put("/status/:id", changeTaskStatus);
 router.post("/", createTask);
 router.delete("/:id", deleteTask);
 

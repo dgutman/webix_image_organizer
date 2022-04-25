@@ -1,12 +1,13 @@
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import {JetApp, plugins} from "webix-jet";
+import "./utils/polyfills";
 import "./styles/app.less";
 import state from "./models/state";
 import constants from "./constants";
 import helpers from "./services/helpers";
 import taggerView from "./views/taggerMain";
 import taggerAdminView from "./views/subviews/adminView";
-import taggerUserView from "./views/subviews/userView";
+import taggerUserView from "./views/subviews/userView/userView";
 import taggerDashboard from "./views/subviews/dashboardView/dashboardView";
 import taggerNotifications from "./views/subviews/notificationsView";
 import taggerTaskTool from "./views/subviews/taskTool/taskTool";
@@ -16,13 +17,11 @@ import "./views/components/multiCombo";
 import "./views/components/formTemplate";
 import "./views/components/editableList";
 
-import "./utils/polyfills";
-
 webix.ready(() => {
 	const appSettings = {
 		id: "",
 		version: "",
-		start: constants.APP_PATHS.TAGGER_ADMIN,
+		start: constants.APP_PATHS.TAGGER_USER,
 		views: {
 			[constants.APP_PATHS.TAGGER]: taggerView,
 			admin: taggerAdminView,

@@ -1,4 +1,4 @@
-import tagTemplates from "../../models/tagTemplates"; 
+import tagTemplates from "../../models/tagTemplates";
 
 webix.protoUI({
 	name: "customSuggest",
@@ -17,10 +17,19 @@ webix.protoUI({
 					master.$setValueHere(data.value);
 				}
 				else if (node) {
-					if (master.options_setter) text = this.getItemText(data.id);
-					else if (data.value) text = master._get_visible_text ? master._get_visible_text(data.value) : data.value.toString();
-					if (typeof node.value === "undefined") node.innerHTML = text;
-					else node.value = text.replace(/<[^>]*>/g, "");
+					if (master.options_setter) {
+						text = this.getItemText(data.id);
+					}
+					else if (data.value) {
+						text = master._get_visible_text ?
+							master._get_visible_text(data.value) : data.value.toString();
+					}
+					if (typeof node.value === "undefined") {
+						node.innerHTML = text;
+					}
+					else {
+						node.value = text.replace(/<[^>]*>/g, "");
+					}
 				}
 			}
 		}
@@ -164,13 +173,13 @@ webix.protoUI({
 
 		list.attachEvent("onAfterSelect", (id) => {
 			const item = list.getItem(id);
-			this.setValue("");
 			this.setValue(item.name);
 		});
 
 		list.attachEvent("onItemClick", (id) => {
 			list.select(id);
 			this._handleEnter();
+			return false;
 		});
 	},
 

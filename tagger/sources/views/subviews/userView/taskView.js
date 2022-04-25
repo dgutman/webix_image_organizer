@@ -1,22 +1,22 @@
 import {JetView} from "webix-jet";
 import dot from "dot-object";
-import galleryImageUrl from "../../models/galleryImageUrls";
-import nonImageUrls from "../../models/nonImageUrls";
-import ajaxService from "../../services/ajaxActions";
-import auth from "../../services/authentication";
-import constants from "../../constants";
-import UserViewService from "../../services/user/userService";
-import UserDataviewTagIcons from "../components/dataviewItemIcons";
+import galleryImageUrl from "../../../models/galleryImageUrls";
+import nonImageUrls from "../../../models/nonImageUrls";
+import ajaxService from "../../../services/ajaxActions";
+import transitionalAjax from "../../../services/transitionalAjaxService";
+import constants from "../../../constants";
+import UserDataviewTagIcons from "../../components/dataviewItemIcons";
+
 
 const PAGER_ID = "user-dataview-pager";
 const imageSizeMultipliersKeys = Array.from(constants.DATAVIEW_IMAGE_MULTIPLIERS.keys());
 
-export default class TaggerUserView extends JetView {
+export default class TaggerUserTaskView extends JetView {
 	config() {
 		const imageSizeSelect = {
 			view: "richselect",
 			label: "Image size:",
-			width: 210,
+			width: 230,
 			labelWidth: 90,
 			name: "userSelectImageSize",
 			css: "select-field",
@@ -37,9 +37,9 @@ export default class TaggerUserView extends JetView {
 			css: "select-field ellipsis-text",
 			options: {
 				body: {
-					css: "ellipsis-text",
+					css: "ellipsis-text tag-list",
 					tooltip: "#name#",
-					template: "#name#"
+					template: obj => `<div class='tag-name'>${obj.name}</div>`
 				}
 			}
 		};
@@ -100,21 +100,38 @@ export default class TaggerUserView extends JetView {
 			pager: PAGER_ID,
 			borderless: true,
 			template: (obj, common) => {
+				const thisDataview = this.getUserDataview();
+				const HEIGHT = 553;
+				const WIDTH = 750;
+				const sizeSelect = this.getSelectImageSize();
+				const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(sizeSelect.getValue());
+				const sizesObject = {};
+				let getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
+				let setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
+
+				if (multiplier === "single" ) {
+					sizesObject.width = common.width || WIDTH;
+					sizesObject.height = common.height || HEIGHT;
+
+					getPreviewUrl = galleryImageUrl.getNormalImageUrl;
+					setPreviewUrl = galleryImageUrl.setNormalImageUrl;
+				}
+
 				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
 				// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
-				const getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
-				const setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
+
 				const highlightState = obj.isUpdated ? "highlighted" : "";
 
 				if (typeof getPreviewUrl(obj._id) === "undefined") {
 					setPreviewUrl(obj._id, "");
-					// to prevent sending query more than 1 times
-					ajaxService.getImage(obj.mainId, "thumbnail")
+					let thumbnailPromise;
+					thumbnailPromise = ajaxService.getImage(obj.mainId, "thumbnail", sizesObject);
+					thumbnailPromise
 						.then((data) => {
 							if (data.type === "image/jpeg") {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
-								if (this.dataview.exists(obj.id)) {
-									this.dataview.render(obj.id, obj, "update"); // to call item render, not whole dataview
+								if (thisDataview.exists(obj.id)) {
+									thisDataview.render(obj.id, obj, "update"); // to call item render, not whole dataview
 								}
 							}
 						});
@@ -157,8 +174,8 @@ export default class TaggerUserView extends JetView {
 					}
 					return str;
 				},
-				tagIcons: (obj, common) => this.dataviewIcons.getItemIconsTemplate(obj, common.width),
-				templateLoading: () => "<div class='dataview-item-loading-overlay'>Loading...</div>"
+				tagIcons: (obj, common) => this._dataviewIcons.getItemIconsTemplate(obj, common.width),
+				templateLoading: () => "<div class='dataview-item-loading-overlay'>Loading...</div>",
 			}
 		};
 
@@ -172,17 +189,6 @@ export default class TaggerUserView extends JetView {
 				return "";
 			},
 			borderless: true
-		};
-
-		const taskList = {
-			view: "list",
-			name: "userTasksList",
-			css: "ellipsis-text user-collection-list",
-			borderless: true,
-			select: true,
-			scroll: "auto",
-			tooltip: obj => obj.name,
-			template: obj => `<div class='ellipsis-text' onmousedown='return false' onselectstart='return false'><i class='icon-btn fas fa-folder'></i> <span class='item-name'>${obj.name}</span></div>`
 		};
 
 		const buttons = {
@@ -210,156 +216,84 @@ export default class TaggerUserView extends JetView {
 					selector: "hidden_view",
 					hidden: true,
 					value: "Submit"
+				},
+				{
+					view: "button",
+					css: "btn",
+					width: 180,
+					name: "completeButton",
+					hidden: true,
+					value: "Finalize the task"
 				}
 			]
 		};
 
-		const selectAllFiltersTemplate = {
-			name: "selectAllFiltersTemplate",
-			height: 50,
-			css: "select-dataview-filters-template",
-			template: () => "<div><a class='select-all'>Select all</a></div> <div><a class='unselect-all'>Unselect all</a></div>",
-			borderless: true
-		};
-
-		const filtersTree = {
-			view: "tree",
-			name: "filtersTree",
-			type: "lineTree",
-			scroll: "auto",
-			css: "dataview-filters-tree",
-			template: (obj, common) => {
-				const tree = this.getFiltersTree();
-				const checkboxState = tree.isSelected(obj.id) ? "checked fas fa-check-square" : "unchecked far fa-square";
-				return `<span onmousedown='return false' onselectstart='return false'>${common.icon(obj, common)} <i class='tree-checkbox ${checkboxState}'></i> <span>${obj.name}</span></span>`;
-			}
-		};
-
-		const applyFiltersBtn = {
-			view: "button",
-			css: "btn",
-			width: 80,
-			name: "applyFiltersBtn",
-			value: "Apply"
-		};
-
 		const ui = {
+			gravity: 3,
 			rows: [
 				{
-					view: "scrollview",
-					scroll: false,
-					css: {"overflow-x": "auto"},
+					selector: "task_dropdowns",
+					hidden: true,
+					padding: {
+						top: 10, bottom: 0, left: 10, right: 10
+					},
+					cols: [
+						{gravity: 0.1},
+						{
+							rows: [
+								tagsDropDown,
+								tagInfoTemplate
+							]
+						},
+						{width: 50},
+						{
+							rows: [
+								valuesDropDown,
+								hotkeysInfoTemplate
+							]
+						},
+						{gravity: 0.1}
+					]
+				},
+				{
+					selector: "hidden_view",
+					hidden: true,
 					padding: 10,
-					margin: 10,
-					body: {
-						view: "accordion",
-						type: "clean",
-						multi: true,
-						cols: [
-							{
-								header: "Tasks",
-								name: "tasksAccordionItem",
-								css: "tagger-accordion-item",
-								collapsed: true,
-								disabled: true,
-								headerAltHeight: 44,
-								minWidth: 230,
-								body: {
-									css: "tagger-tasks-accordion-items-body",
-									paddingX: 1,
-									rows: [taskList]
-								}
-							},
-							{
-								gravity: 3,
-								rows: [
-									{
-										selector: "task_dropdowns",
-										hidden: true,
-										padding: {
-											top: 10, bottom: 0, left: 10, right: 10
-										},
-										cols: [
-											{gravity: 0.1},
-											{
-												rows: [
-													tagsDropDown,
-													tagInfoTemplate
-												]
-											},
-											{width: 50},
-											{
-												rows: [
-													valuesDropDown,
-													hotkeysInfoTemplate
-												]
-											},
-											{gravity: 0.1}
-										]
-									},
-									{
-										selector: "hidden_view",
-										hidden: true,
-										padding: 10,
-										cols: [
-											{},
-											pager,
-											{
-												cols: [
-													{},
-													imageSizeSelect
-												]
-											}
-										]
-									},
-									{hidden: true, selector: "dataview_y_spacer"},
-									{
-										cols: [
-											{hidden: true, selector: "dataview_x_spacer"},
-											dataview
-										]
-									},
-									buttons
-								]
-							},
-							{
-								header: "Filters (0)",
-								name: "filtersAccordionItem",
-								css: "tagger-accordion-item",
-								collapsed: true,
-								disabled: true,
-								headerAltHeight: 44,
-								minWidth: 230,
-								body: {
-									css: "tagger-filters-accordion-item-body",
-									padding: 1,
-									rows: [
-										selectAllFiltersTemplate,
-										filtersTree,
-										{
-											padding: 15,
-											height: 70,
-											cols: [
-												{},
-												applyFiltersBtn
-											]
-										}
-									]
-								}
-							}
-						]
-					}
-				}
+					cols: [
+						{},
+						pager,
+						{
+							cols: [
+								{},
+								imageSizeSelect
+							]
+						}
+					]
+				},
+				{hidden: true, selector: "dataview_y_spacer"},
+				{
+					cols: [
+						{hidden: true, selector: "dataview_x_spacer"},
+						dataview
+					]
+				},
+				buttons
 			]
 		};
 
 		return ui;
 	}
 
-	ready(view) {
-		this.dataview = this.getUserDataview();
-		this.dataviewIcons = new UserDataviewTagIcons(this.getTagSelect(), this.getValueSelect());
-		this.userViewService = new UserViewService(view, this.dataviewIcons);
+	ready() {
+		this._dataviewIcons = new UserDataviewTagIcons(
+			this.getTagSelect(),
+			this.getValueSelect(),
+			this.getUserDataview()
+		);
+	}
+
+	getDataviewIcons() {
+		return this._dataviewIcons;
 	}
 
 	getInfoViewConfig(name, icon) {
@@ -386,18 +320,6 @@ export default class TaggerUserView extends JetView {
 		return this.getRoot().queryView({name: "userDataview"});
 	}
 
-	getAccordion() {
-		return this.getRoot().queryView({view: "accordion"});
-	}
-
-	getTaskAccordionItem() {
-		return this.getRoot().queryView({name: "tasksAccordionItem"});
-	}
-
-	getTaskList() {
-		return this.getRoot().queryView({name: "userTasksList"});
-	}
-
 	getTagSelect() {
 		return this.getRoot().queryView({name: "userTagSelect"});
 	}
@@ -418,6 +340,10 @@ export default class TaggerUserView extends JetView {
 		return this.getRoot().queryView({name: "backButton"});
 	}
 
+	getCompleteButton() {
+		return this.getRoot().queryView({name: "completeButton"});
+	}
+
 	getSelectImageSize() {
 		return this.getRoot().queryView({name: "userSelectImageSize"});
 	}
@@ -432,21 +358,5 @@ export default class TaggerUserView extends JetView {
 
 	getItemsCountTemplate() {
 		return this.getRoot().queryView({name: "itemsCountTemplate"});
-	}
-
-	getFiltersAccordionItem() {
-		return this.getRoot().queryView({name: "filtersAccordionItem"});
-	}
-
-	getFiltersTree() {
-		return this.getRoot().queryView({name: "filtersTree"});
-	}
-
-	getSelectAllFiltersTemplate() {
-		return this.getRoot().queryView({name: "selectAllFiltersTemplate"});
-	}
-
-	getApplyFiltersButton() {
-		return this.getRoot().queryView({name: "applyFiltersBtn"});
 	}
 }

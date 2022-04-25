@@ -96,6 +96,10 @@ strong, b {
   padding: 2px 4px;
 }
 
+.unselectable-block {
+  .user-select(none);
+}
+
 
 .mainStylesCommons() {
 
@@ -469,6 +473,26 @@ strong, b {
     input, select {
       font-family: @main-font;
     }
+  }
+
+  .webix_view.overflow_visible {
+    overflow: visible;
+  }
+
+  .webix_view .webix_list_item.webix_disabled {
+    position: relative;
+    color: @disabled-color;
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #b8b8b83b;
+      cursor: not-allowed;
+    }
+    
   }
 }
 

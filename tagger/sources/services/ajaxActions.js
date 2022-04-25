@@ -2,9 +2,9 @@ import authService from "./authentication";
 import constants from "../constants";
 import AjaxClass from "./ajaxClass";
 
-const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
+const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PATH;
 
-webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, promise) => {
+webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers) => {
 	let toSearchInUrl = "cdn.webix.com";
 	let searchedInUrl = url.search(toSearchInUrl);
 	if (searchedInUrl === -1) {
@@ -91,7 +91,14 @@ class AjaxActions extends AjaxClass {
 	}
 
 	getImage(imageId, imageType, params) {
-		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params);
+		return webix.ajax().response("blob").get(`${this.getHostApiUrl()}/item/${imageId}/tiles/${imageType}`, params)
+			.fail(this._parseError);
+	}
+
+	getImageSizes(imageId, imageType, params) {
+		return webix.ajax().get(`${this.getHostApiUrl()}/item/${imageId}/tiles`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
 	}
 
 	updateFolderMetadata(folderId, metadata) {

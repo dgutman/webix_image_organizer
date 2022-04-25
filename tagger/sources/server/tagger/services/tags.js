@@ -41,6 +41,8 @@ async function create(tags, collectionIds) {
 
 		if (values.length) {
 			const tagIds = existedTag ? [existedTag._id] : [createdTag._id];
+			tag._id = tag.iden;
+			delete tag.iden;
 			await valuesService.create(values, tagIds);
 		}
 

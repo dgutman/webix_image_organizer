@@ -129,6 +129,7 @@ export default class ConnectTagToImageWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
+						css: "btn webix_transparent",
 						icon: "fas fa-times",
 						width: 30,
 						height: 30,
@@ -231,7 +232,8 @@ export default class ConnectTagToImageWindow extends JetView {
 		const idsToAdd = this.connectedImagesModel.getImagesIdsForAdding();
 
 		if (idsToRemove.length || idsToAdd.length) {
-			return transitionalAjax.updateImages(idsToAdd, idsToRemove, this.currentTag._id, this.currentValue._id);
+			return transitionalAjax
+				.updateImages(idsToAdd, idsToRemove, this.currentTag._id, this.currentValue._id);
 		}
 		return Promise.resolve(false);
 	}

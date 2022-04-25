@@ -1,5 +1,6 @@
 .mainTaggerStyles() {
     .tagger-app, .tagger-window {
+        @import "dashboard.less";
         .webix_dt_editor {
             background: unset;
             display: flex;
@@ -7,7 +8,7 @@
             flex-direction: column;
         }
         .webix_overlay {
-            background-color: @main-bg;
+            // background-color: @main-bg;
             width: 100%;
             height: 100%;
         }
@@ -27,7 +28,7 @@
         .images-select-template .webix_template {
             display: flex;
             justify-content: space-between;
-            .first-column {
+            .first-column, .second-column {
                 display: flex;
                 justify-content: space-between;
                 flex-direction: column;
@@ -137,7 +138,7 @@
                 height: 22px;
             }
         }
-          .user-dataview, .tagger-hotkeys-list {
+        .user-dataview, .tagger-hotkeys-list, .tag-list {
             .item-tag-related-icon {
                 position: relative;
                 flex: 0 0 auto;
@@ -161,6 +162,11 @@
                     min-width: 18px;
                     width: max-content;
                     height: 18px;
+                }
+                .numbered-icon {
+                    font-family: @main-font;
+                    font-size: 18px;
+                    font-weight: 600;
                 }
             }
         }
@@ -197,41 +203,44 @@
             box-sizing: border-box;
         }
 
-        .users-cards-template .webix_template {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            justify-content: flex-start;
-            align-items: center;
-            padding-left: 20px;
-            .user-card {
-                margin-left: -7px;
-                .preview-info:hover {
-                    .delete-icon {
-                        display: flex;
+        .users-cards-template.webix_view {
+            overflow: visible;
+            .webix_template {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                overflow: visible;
+                justify-content: flex-start;
+                align-items: center;
+                padding-left: 20px;
+                .user-card {
+                    margin-left: -7px;
+                    .preview-info:hover {
+                        .delete-icon {
+                            display: flex;
+                        }
                     }
-                }
-                .delete-icon {
-                    font-size: 22px;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    z-index: 4;
-                    margin-left: -15px;
-                    margin-top: -15px;
-                    width: 30px;
-                    height: 30px;
-                    display: none;
-                    justify-content: center;
-                    align-items: center;
-                    background-color: #0808085e;
-                    border-radius: 50%;
-                    color: @select-color;
-                    cursor: pointer;
+                    .delete-icon {
+                        font-size: 22px;
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        z-index: 4;
+                        margin-left: -15px;
+                        margin-top: -15px;
+                        width: 30px;
+                        height: 30px;
+                        display: none;
+                        justify-content: center;
+                        align-items: center;
+                        background-color: #0808085e;
+                        border-radius: 50%;
+                        color: @select-color;
+                        cursor: pointer;
+                    }
                 }
             }
         }
-
         .user-card {
             position: relative;
             display: flex;
@@ -271,7 +280,7 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 z-index: 1;
-                padding: 0 10px;
+                padding: 0 20px 0 10px;
                 margin-left: -5px;
                 display: none;
                 background-color: #efebe9;
@@ -282,7 +291,31 @@
             }
         }
 
-        @import "dashboard.less";
+        .notification-users-cards {
+            .user-card .hidden-info {
+                transform: translateX(-110%);
+                border-radius: 12px 5px 5px 12px;
+            }
+        }
+
+        .notification-users-form, .notification-users-form .webix_scroll_cont {
+            overflow: visible;
+        }
+
+        .user-dots-icon {
+            z-index: 2;
+            flex: 0 0 22px;
+            margin-left: -11px;
+            font-size: 14px;
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 50%;
+            background: @selected-bg;
+            color: @select-color;
+            border: 1px solid @selected-bg;
+        }
     }
 
     .tagger-window {
@@ -374,6 +407,7 @@
                 .border-radius(3px);
                 text-align: center;
                 .dataview-image {
+                    object-fit: contain;
                     display: inline-block;
                 }
             }
@@ -455,6 +489,10 @@
             .webix_scroll_cont {
                 text-align: end;
             }
+            .webix_list_item .webix_badge {
+                position: absolute;
+                margin: 3px 2px 0 10px;
+            }
         }
         .edit-mode .note-item {
             .delete-note {
@@ -507,8 +545,16 @@
                         content: '\F002';
                     }
                 }
+
+                &.right > .webix_accordionitem_header .webix_accordionitem_button {
+                    transform: rotate(180deg);
+                }
                 &.collapsed > .webix_accordionitem_header .webix_accordionitem_button {
                     transform: rotate(90deg);
+                }
+
+                &.collapsed.right > .webix_accordionitem_header .webix_accordionitem_button {
+                    transform: rotate(270deg);
                 }
             }
             &.vertical {
@@ -650,10 +696,12 @@
                 .border-radius(3px);
                 text-align: center;
                 .dataview-image {
-                    transition: all 0.3s ease;
+                    // TODO Uncomment to add feature: The images are jumping upon hoovering over them
+                    // transition: all 0.3s ease;
                     height: 100%;
                     width: auto;
                     display: inline-block;
+                    object-fit: contain;
                 }
             }
         }
@@ -789,14 +837,40 @@
             box-shadow: 0 0 1px #3498db inset
         }
     }
-}
-
-body.focused {
-    .tagger-app .user-dataview {
-        .dataview-item.selected {
-            .dataview-image {
-                transform: scale(0.85);
-            }
+    .tag-list {
+        .webix_list_item {
+            position: relative;
+            padding-right: 18px;
         }
+        .tag-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-tag-related-icon {
+            position: absolute;
+            top: 9px;
+            right: 5px;
+            border: 2px solid @dark-main-bg;
+            width: 16px;
+            height: 16px;
+            font-size: 14px;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+        
+    }
+
+    .webix_inp_static .tag-name {
+        overflow: hidden;
     }
 }
+// TODO: Uncomment to add feature: The images are jumping upon hoovering over them
+// body.focused {
+//     .tagger-app .user-dataview {
+//         .dataview-item.selected {
+//             .dataview-image {
+//                transform: scale(0.85);
+//             }
+//         }
+//     }
+// }

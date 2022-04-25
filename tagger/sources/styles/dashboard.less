@@ -1,11 +1,17 @@
 .dashboard-action-buttons {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     height: 100%;
     align-items: center;
     .dashboard-button {
         padding: 2px 5px;
+        border: 1px solid @btn;
+        background-color: @btn;
+        color: @select-color;
         cursor: pointer;
+        &:hover {
+            background-color: @btn-hover;
+        }
     }
     .icon-button:hover {
         color: @btn-hover;
@@ -27,30 +33,17 @@
     .delete-icon {
         display: none;
     }
-    .dashboard-user-dots-icon {
-        z-index: 2;
-        flex: 0 0 22px;
-        margin-left: -11px;
-        font-size: 14px;
-        width: 22px;
-        height: 22px;
-        line-height: 22px;
-        text-align: center;
-        border-radius: 50%;
-        background: @selected-bg;
-        color: @select-color;
-        border: 1px solid @selected-bg;
-    }
 }
 
 .users-list {
     .user-item:hover {
-        .checkbox {
-            color: @btn-hover;
-            cursor: pointer;
+        .enabled {
+            .checkbox {
+                color: @btn-hover;
+                cursor: pointer;
+            }
         }
     }
-
 }
 
 .results-layout {
@@ -79,7 +72,7 @@
                     position: relative;
                 }
                 .progress {
-                    height: 100%;
+                    height: 101%;
                     background-color: #75b800;
                 }
                 .progress-text {

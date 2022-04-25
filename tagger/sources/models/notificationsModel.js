@@ -3,8 +3,14 @@ import authService from "../services/authentication";
 
 class NotificationModel {
 	constructor() {
-		this.collection = new webix.DataCollection();
-		this.getNotifications();
+		if (!NotificationModel._instance) {
+			NotificationModel._instance = this;
+			this.collection = new webix.DataCollection();
+			this.getNotifications();
+		}
+		else {
+			throw new Error("Instantiation failed: use NotificationModel.getInstance() instead of new.");
+		}
 	}
 
 	getNotifications() {
@@ -31,6 +37,17 @@ class NotificationModel {
 					}, 2000);
 				});
 		}
+	}
+
+	getInstance() {
+		const userId = authService.getUserId();
+		if (userId === NotificationModel._userId) {
+			return NotificationModel._instance;
+		}
+		NotificationModel._userId = userId;
+		NotificationModel._instance = null;
+		NotificationModel._instance = new NotificationModel();
+		return NotificationModel._instance;
 	}
 }
 
