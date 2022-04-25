@@ -23,7 +23,7 @@ export default {
 	PATTERN_VALUES: "[A-Za-z0-9&_]+",
 	PATTERN_NOTES: "[A-Za-z0-9_\\/\\|\\\\@#,.+&:;\"'<>*!?%№()$ \\r\\n^=\\{\\}\\[\\]`~-]+",
 
-	TRANSITIONAL_TAGGER_SERVER_PARH: process.env.TAGGER_API_PATH,
+	TRANSITIONAL_TAGGER_SERVER_PATH: process.env.TAGGER_API_PATH,
 
 	RESOURCE_IMAGES_LIMIT: 50,
 
@@ -84,6 +84,7 @@ export default {
 
 	CREATE_TASK_BUTTON_ID: "task-creation:create-task",
 	EDIT_TASK_BUTTON_ID: "task-creation:edit-task",
+	PUBLISH_TASK_BUTTON_ID: "task-creation:publish-task",
 
 	DEFAULT_COLORS: [
 		"#ef9a9a",
@@ -124,4 +125,12 @@ export default {
 			{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
 		]
 	},
+
+	TASK_STATUSES: ["created", "published", "in_progress", "canceled", "finished"],
+
+	TAG_ICON_TYPES: {
+		PER_VALUE: "pervalue",
+		BADGE: "badge",
+		BADGE_COLOR: "badgecolor"
+	}
 };

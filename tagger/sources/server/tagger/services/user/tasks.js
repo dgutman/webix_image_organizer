@@ -165,6 +165,18 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 	return task.save();
 }
 
+async function changeTaskStatus(id, status, userId) {
+	// validation
+	if (!userId) generateError({name: "UnauthorizedError"});
+	const task = await Tasks.findById(id);
+	if (!task) generateError({message: "Task not found"});
+	if (task.status === "canceled" || (status !== "canceled" && !["created", "published"].includes(status))) generateError({message: "Task can't be editted"});
+
+	task.status = status;
+
+	return task.save();
+}
+
 async function deleteUncheckedTasks(userId, isAdmin) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"}
@@ -518,6 +530,7 @@ module.exports = {
 	createTask,
 	deleteTask,
 	editTask,
+	changeTaskStatus,
 	getTaskJSON,
 	getTaskResults
 };

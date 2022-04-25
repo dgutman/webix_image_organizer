@@ -8,7 +8,7 @@ export default class TaggerNotifications extends JetView {
 		const backButton = {
 			view: "button",
 			name: "backButton",
-			css: "btn",
+			css: "btn webix_transparent",
 			label: "Back to tasks",
 			type: "icon",
 			icon: "fas fa-arrow-left",

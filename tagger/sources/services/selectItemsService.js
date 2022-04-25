@@ -71,7 +71,8 @@ export default class SelectItemsService {
 			const values = {
 				amount: pData.count,
 				start: pData.count ? pData.page * pData.size : 0,
-				end: pData.page + 1 === pData.limit || !pData.count ? pData.count : (pData.page + 1) * pData.size
+				end: pData.page + 1 === pData.limit ||
+					!pData.count ? pData.count : (pData.page + 1) * pData.size
 			};
 			visibleData = visibleData.slice(values.start, values.end);
 		}
@@ -96,10 +97,14 @@ export default class SelectItemsService {
 		const selectedArray = this.selectModel.getArrayOfSelectedItems();
 		const lastSelectedItem = selectedArray.pop() || item;
 		const indexOfCurrentItem = this.dataView.getIndexById(item.id);
-		const dataViewLastSelectedItem = lastUnselected || this.dataView.find(image => image._id === lastSelectedItem._id, true);
-		const indexOfLastSelectedItem = dataViewLastSelectedItem ? this.dataView.getIndexById(dataViewLastSelectedItem.id) : indexOfCurrentItem;
-		const start = indexOfLastSelectedItem > indexOfCurrentItem ? indexOfCurrentItem : indexOfLastSelectedItem;
-		const end = indexOfLastSelectedItem > indexOfCurrentItem ? indexOfLastSelectedItem : indexOfCurrentItem;
+		const dataViewLastSelectedItem = lastUnselected ||
+			this.dataView.find(image => image._id === lastSelectedItem._id, true);
+		const indexOfLastSelectedItem = dataViewLastSelectedItem ?
+			this.dataView.getIndexById(dataViewLastSelectedItem.id) : indexOfCurrentItem;
+		const start = indexOfLastSelectedItem > indexOfCurrentItem ?
+			indexOfCurrentItem : indexOfLastSelectedItem;
+		const end = indexOfLastSelectedItem > indexOfCurrentItem ?
+			indexOfLastSelectedItem : indexOfCurrentItem;
 		const newSelectedItems = this.dataView.data.serialize().slice(start, end + 1);
 		return newSelectedItems;
 	}

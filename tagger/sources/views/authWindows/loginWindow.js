@@ -95,6 +95,7 @@ export default class LoginWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
+						css: "btn webix_transparent",
 						icon: "fas fa-times",
 						hotkey: "esc",
 						width: 30,

@@ -4,7 +4,8 @@ function getNonImageUrl(obj) {
 	let srcForImage;
 	if (obj._modelType === "folder") {
 		srcForImage = "sources/images/folder.png";
-	} else {
+	}
+	else {
 		let fileType = utils.searchForFileType(obj);
 		switch (fileType) {
 			case "pdf": {

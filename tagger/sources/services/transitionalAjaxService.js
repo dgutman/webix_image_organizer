@@ -1,7 +1,7 @@
 import constants from "../constants";
 import AjaxClass from "./ajaxClass";
 
-const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PARH;
+const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PATH;
 
 class TransitionalAjaxService extends AjaxClass {
 	login(sourceParams) {
@@ -305,13 +305,14 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	getTaskData(collectionId, group) {
+	getTaskData(collectionId, group, type) {
+		const defaultType = "default";
 		const hostApi = this.getHostApiUrl();
 		const params = {
 			collectionId: collectionId || constants.TAGGER_TASKS_COLLECTION_ID,
 			group,
 			host: hostApi,
-			type: "default" // to filter girder tasks
+			type: type || defaultType
 		};
 
 		return this._ajax().get(`${TRANSITIONAL_API}/tasks/data`, params)
@@ -365,6 +366,17 @@ class TransitionalAjaxService extends AjaxClass {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/tasks/edit/${id}?host=${host}`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	changeTaskStatus(id, status) {
+		const host = this.getHostApiUrl();
+		const params = {
+			status
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/tasks/status/${id}?host=${host}`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

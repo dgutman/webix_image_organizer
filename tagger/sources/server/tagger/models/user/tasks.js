@@ -50,6 +50,14 @@ const tasksSchema = new Schema({
 		enum: ["created", "published", "in_progress", "canceled", "finished"],
 		default: "created"
 	},
+	imgNames: {
+		type: Boolean,
+		default: false
+	},
+	showMeta: {
+		type: Boolean,
+		default: false
+	},
 	type: {
 		type: String,
 		required: true,

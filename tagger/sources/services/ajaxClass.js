@@ -21,7 +21,7 @@ export default class AjaxClass {
 		return data ? data.json() : data;
 	}
 
-	_parseError(xhr) {
+	async _parseError(xhr) {
 		let message;
 		switch (xhr.status) {
 			case 404: {
@@ -31,7 +31,11 @@ export default class AjaxClass {
 			}
 			default: {
 				try {
-					let response = JSON.parse(xhr.response);
+					let jsonResponse = xhr.response;
+					if (xhr.response instanceof Blob) {
+						jsonResponse = await xhr.response.text();
+					}
+					let response = JSON.parse(jsonResponse);
 					message = response.message;
 				}
 				catch (e) {

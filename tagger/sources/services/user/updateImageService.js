@@ -1,6 +1,9 @@
 import dot from "dot-object";
 import constants from "../../constants";
 
+const DEFAULT_COLORS = constants.DEFAULT_COLORS;
+const DEFAULT_HOT_KEYS = constants.DEFAULT_HOT_KEYS;
+
 export default class UpdatedImagesService {
 	constructor(dataveiw, dataviewStore, tagSelect, valueSelect) {
 		this.dataveiw = dataveiw;
@@ -110,6 +113,48 @@ export default class UpdatedImagesService {
 				}
 			});
 		});
+	}
+
+	collectDefaultValueHotkeys(tagId) {
+		const tagList = this.tagSelect.getList();
+		const tags = tagList.data.serialize();
+		tags.forEach((obj, i) => {
+			this.hotkeys[`q+${DEFAULT_HOT_KEYS[i]}`] = [obj.name];
+		});
+
+		const tag = tagList.getItem(tagId);
+		const tagIndex = tagList.getIndexById(tag.id);
+		const values = tag.values;
+		values.forEach((value, i) => {
+			let hotkey = DEFAULT_HOT_KEYS[i];
+			if (tag.type === "binary") {
+				hotkey = value.name[0];
+				this.hotkeyIcons[hotkey] = [this.getBinaryValueIcon(value.name), null, DEFAULT_COLORS[tagIndex]];
+			}
+			else {
+				this.hotkeyIcons[hotkey] = [null, hotkey, DEFAULT_COLORS[tagIndex]];
+			}
+			this.hotkeys[hotkey] = [tag.name, value.name];
+		});
+	}
+
+	getBinaryValueIcon(valName) {
+		const keys = Object.keys(constants.BINARY_ICONS_FOR_VALUES);
+		return keys.reduce((icon, key) => {
+			if (constants.BINARY_ICONS_FOR_VALUES[key].includes(valName.toLowerCase())) {
+				switch (key) {
+					case "YES":
+						icon = "fa-check";
+						break;
+					case "NO":
+						icon = "fa-times";
+						break;
+					default:
+						break;
+				}
+			}
+			return icon;
+		}, null);
 	}
 
 	updateImage(image) {

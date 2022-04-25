@@ -20,9 +20,10 @@ export default class UsersPopup extends JetView {
 				tooltip: obj => obj.name,
 				type: {
 					item: (obj) => {
-						let checkbox = "<div class='ellipsis-text user-item unchecked'><i class='checkbox unchecked far fa-square'>";
+						const enabledClass = this.task.checked_out ? "" : "enabled";
+						let checkbox = `<div class='${enabledClass} ellipsis-text unchecked'><i class='checkbox unchecked far fa-square'>`;
 						if (this.included.find(id => obj._id === id)) {
-							checkbox = "<div class='ellipsis-text user-item checked'><i class='checkbox checked fas fa-check-square'>";
+							checkbox = `<div class='${enabledClass} ellipsis-text checked'><i class='checkbox checked fas fa-check-square'>`;
 						}
 						return `${checkbox}</i> ${obj.name}</div>`;
 					}
@@ -49,7 +50,8 @@ export default class UsersPopup extends JetView {
 		this.columnId = columnId;
 		this.included = task[columnId] || [];
 		this.getRoot().show(node, {pos});
-		this.getList().refresh();
+		const list = this.getList();
+		list.refresh();
 	}
 
 	getPopup() {

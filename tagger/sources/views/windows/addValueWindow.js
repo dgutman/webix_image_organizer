@@ -138,6 +138,7 @@ export default class AddValueWindow extends JetView {
 					{
 						view: "button",
 						type: "icon",
+						css: "btn webix_transparent",
 						icon: "fas fa-times",
 						width: 30,
 						height: 30,
@@ -251,6 +252,7 @@ export default class AddValueWindow extends JetView {
 						{
 							view: "button",
 							type: "icon",
+							css: "btn webix_transparent",
 							icon: "fas fa-times",
 							width: 25,
 							height: 25,

@@ -1,19 +1,33 @@
 import {JetView} from "webix-jet";
 import HeaderService from "../../../services/header/header";
-import LoginWindow from "../../authWindows/loginWindow";
 import undoFactory from "../../../models/undoModel";
 import constants from "../../../constants";
 import UserPanel from "./parts/userPanel";
 import auth from "../../../services/authentication";
 
 const serverListData = process.env.SERVER_LIST;
-const LOGOUT_PANEL_NAME = "logout-panel";
-const LOGIN_PANEL_NAME = "login-panel";
 
 export default class TaggerHeaderClass extends JetView {
 	config() {
+		const backButton = {
+			view: "button",
+			name: "backButton",
+			hidden: true,
+			css: "btn webix_transparent",
+			label: "Back",
+			type: "icon",
+			icon: "fas fa-arrow-left",
+			inputWidth: 90,
+			height: 30,
+			width: 90,
+			click: () => {
+				this.app.callEvent("BackButtonClick");
+			}
+		};
+
 		const undoIcon = {
 			view: "icon",
+			hidden: true,
 			css: "btn undo-btn disabled",
 			name: "taggerUndoIcon",
 			icon: "fas fa-undo-alt",
@@ -54,62 +68,6 @@ export default class TaggerHeaderClass extends JetView {
 			}
 		};
 
-		const loginMenu = {
-			name: "loginMenu",
-			template: "<span class='menu-login login-menu-item'>Login</span>",
-			css: "login-menu",
-			borderless: true,
-			// width: 150,
-			onClick: {
-				"menu-login": () => {
-					this.loginWindow.showLoginWindow();
-				}
-			}
-		};
-
-		const logoutMenu = {
-			view: "menu",
-			name: "logoutMenu",
-			css: "logout-menu",
-			openAction: "click",
-			autowidth: true,
-			data: [
-				{
-					id: "name",
-					submenu: []
-				}
-			],
-			type: {
-				subsign: true
-			}
-		};
-
-		const loginPanel = {
-			name: LOGIN_PANEL_NAME,
-			cols: [
-				loginMenu
-			]
-		};
-
-		const logoutPanel = {
-			name: LOGOUT_PANEL_NAME,
-			rows: [
-				{},
-				logoutMenu,
-				{}
-			]
-		};
-
-		const userPanel = {
-			view: "multiview",
-			css: "userbar",
-			width: 150,
-			cells: [
-				loginPanel,
-				logoutPanel
-			]
-		};
-
 		const taskNameTemplate = {
 			name: "taggerTaskName",
 			borderless: true,
@@ -122,6 +80,7 @@ export default class TaggerHeaderClass extends JetView {
 			css: "main-header",
 			cols: [
 				headerAdmin,
+				backButton,
 				undoIcon,
 				{width: 50},
 				headerLogo,
@@ -157,7 +116,20 @@ export default class TaggerHeaderClass extends JetView {
 		this.headerService = new HeaderService(view, this.loginWindow);
 
 		this.undoModel = undoFactory.create("main", undoIcon);
-		document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
+
+		this.on(this.app, "toggleVisibilityOfBackButton", (show) => {
+			const button = this.getBackButton();
+			if (show) {
+				button.show();
+			}
+			else {
+				button.hide();
+			}
+		});
+
+		if ( auth.isAdmin()) {
+			document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
+		}
 	}
 
 	getHostBox() {
@@ -186,6 +158,10 @@ export default class TaggerHeaderClass extends JetView {
 
 	getTaskNameTemplate() {
 		return this.getRoot().queryView({name: "taggerTaskName"});
+	}
+
+	getBackButton() {
+		return this.getRoot().queryView({name: "backButton"});
 	}
 
 	getHeaderAdmin() {

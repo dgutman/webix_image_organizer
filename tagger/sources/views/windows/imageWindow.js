@@ -21,7 +21,7 @@ export default class ImageWindowView extends JetView {
 					if (typeof getPreviewUrl(obj._id) === "undefined") {
 						this.view.showProgress();
 						setPreviewUrl(obj._id, "");
-						ajaxService.getImage(obj.mainId, imageType, {height: HEIGHT, width: WIDTH})
+						ajaxService.getImage(obj.mainId || obj._id, imageType, {height: HEIGHT, width: WIDTH})
 							.then((data) => {
 								setPreviewUrl(obj._id, URL.createObjectURL(data));
 								this.view.hideProgress();
@@ -30,22 +30,22 @@ export default class ImageWindowView extends JetView {
 								this.view.hideProgress();
 							});
 					}
-					return `<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">`;
-				} return "<div></div>";
+					return `<div class='img-container'><img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}"></div>`;
+				}
+				return "<div></div>";
 			},
 			borderless: true
 		};
 
 		const windowBody = {
 			view: "window",
-			css: "metadata-window-body",
+			css: "metadata-window-body unselectable-block",
 			paddingX: 35,
 			width: WIDTH,
 			height: HEIGHT,
 			modal: true,
 			position: "center",
 			type: "clean",
-			resize: true,
 			head: {
 				cols: [
 					{
@@ -58,6 +58,7 @@ export default class ImageWindowView extends JetView {
 					{
 						view: "button",
 						type: "icon",
+						css: "btn webix_transparent",
 						icon: "fas fa-times",
 						hotkey: "esc",
 						width: 30,
@@ -96,7 +97,6 @@ export default class ImageWindowView extends JetView {
 	}
 
 	showWindow(obj) {
-		// define when to init Seadragon
 		this.getHeaderTemplateView().parse(obj);
 		this.getLargeTemplateView().parse(obj);
 		this.getLargeTemplateView().define("scroll", "false");
