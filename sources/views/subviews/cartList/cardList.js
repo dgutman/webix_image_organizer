@@ -70,6 +70,7 @@ export default class CartView extends JetView {
 						item.imageShown = false;
 						modifiedObjects.remove(item);
 					}
+					this.refresh();
 				}
 			}
 		};

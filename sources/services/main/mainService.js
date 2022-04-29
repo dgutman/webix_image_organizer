@@ -84,7 +84,6 @@ class MainService {
 		const zstackCell = this._view.$scope.getSubZStackView();
 		const scenesViewCell = this._view.$scope.getSubScenesViewCell();
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
-		const npViewCell = this._view.$scope.getSubNPView().getRoot();
 
 		this._imageWindow = this._view.$scope.ui(ImageWindow);
 		this._selectImagesTemplate = this._view.$scope.getSubGalleryView().getSelectImagesTemplate();
@@ -120,6 +119,7 @@ class MainService {
 		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._metadataTableDataCollection = metadataTableModel.getMetadataTableDataCollection();
+		this._npSliderDataCollection = npdataTableModel.getNPDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
 		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
 		this._recognitionProgressTemplate = this._view.$scope
@@ -131,7 +131,6 @@ class MainService {
 			this._galleryDataviewRichselectFilter,
 			this._filterTableView
 		);
-		this._optionsWindow = this._view.$scope.ui(SetDefaultViewWindow);
 
 		this._finderModel = new FinderModel(this._view, this._finder, this._itemsModel);
 
@@ -148,7 +147,6 @@ class MainService {
 		webixViews.setRenamePopup(this._renamePopup);
 		webixViews.setMetadataTemplate(this._metadataTemplate);
 		webixViews.setDataviewSearchInput(this._galleryDataviewSearch);
-		webixViews.setOptionsWindow(this._optionsWindow);
 
 		this._folderNav = new FolderNav(this._view.$scope, this._finder);
 		this._imageTumbnailLoader = new ImageThumbnailLoader(this._galleryDataview);
@@ -159,6 +157,7 @@ class MainService {
 		this._metadataTable.sync(this._metadataTableDataCollection);
 		zstackCell.setCollection(this._itemsDataCollection);
 		scenesViewCell.syncSlider(this._itemsDataCollection);
+		this._npView.syncSlider(this._itemsDataCollection);
 
 		this._itemsDataCollection.define("scheme", {
 			$init: (obj) => {
@@ -346,7 +345,7 @@ class MainService {
 					break;
 				case npViewOption.id:
 					this._closeThumbnailViewPanels();
-					npViewCell.show();
+					this._npView.getRoot().show();
 					break;
 				case scenesOption.id:
 					this._closeThumbnailViewPanels();
@@ -561,7 +560,8 @@ class MainService {
 					}
 					case constants.SET_OPTIONS: {
 						const currentFolder = this._finderFolder;
-						this._optionsWindow.showWindow(currentFolder);
+						const _optionsWindow = this._view.$scope.ui(SetDefaultViewWindow);
+						_optionsWindow.showWindow(currentFolder);
 						break;
 					}
 					default: {
@@ -588,7 +588,8 @@ class MainService {
 							});
 					}
 					else {
-						if (!this._finderItem) {
+						if (!this._finderItem 
+							|| this._finderItem && item && this._finderItem._id !== item._id) {
 							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
@@ -602,8 +603,7 @@ class MainService {
 
 								if (cartListItem) {
 									this._cartList.updateItem(cartListItem.id, updatedItem);
-									const cartData = this._cartList.serialize(true);
-									utils.putSelectedItemsToLocalStorage(cartData);
+									selectDataviewItems.putSelectedImagesToLocalStorage();
 								}
 								const selectedItem = this._galleryDataview.getSelectedItem();
 								if (selectedItem) {
@@ -851,7 +851,7 @@ class MainService {
 			this._updateMetadataTableData();
 		});
 
-		patientsDataCollection.attachEvent("onAfterLoad", ()=> {
+		patientsDataCollection.attachEvent("onAfterLoad", () => {
 			this._updateMetadataTableData();
 		});
 
@@ -1375,9 +1375,8 @@ class MainService {
 		return ajaxActions.getLinearStucture(folder._id, sourceParams)
 			.then((data) => {
 				if (data.length === 0) {
-					this._finder.parse({
-						name: "Nothing to display", parent: folderId
-					});
+					folder.linear = null;
+					this._itemsModel.updateItems(this._finderFolder);
 				}
 				else if (folder.linear) {
 					const copy = webix.copy(data);

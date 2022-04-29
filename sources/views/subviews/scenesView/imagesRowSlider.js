@@ -13,7 +13,9 @@ export default class ImagesRowSlider extends JetView {
 		super(app, config);
 
 		this._cnf = config || {};
-
+		this._sliderId = `${SLIDER_ID}-${webix.uid()}`;
+		this._nextBtnId = `${NEXT_BTN_ID}-${webix.uid()}`;
+		this._prevBtnId = `${PREV_BTN_ID}-${webix.uid()}`;
 		this._isSingle = true;
 		this._highlightedId = null;
 	}
@@ -36,7 +38,7 @@ export default class ImagesRowSlider extends JetView {
 				},
 				{
 					...navButtonConfig,
-					localId: PREV_BTN_ID,
+					localId: this._prevBtnId,
 					icon: "fas fa-angle-left"
 				},
 				{
@@ -44,7 +46,7 @@ export default class ImagesRowSlider extends JetView {
 					layout: "x",
 					scroll: "auto",
 					autoheight: true,
-					localId: SLIDER_ID,
+					localId: this._sliderId,
 					css: "images-row-slider",
 					select: true,
 					template: (obj, common) => {
@@ -103,7 +105,7 @@ export default class ImagesRowSlider extends JetView {
 				},
 				{
 					...navButtonConfig,
-					localId: NEXT_BTN_ID,
+					localId: this._nextBtnId,
 					icon: "fas fa-angle-right"
 				},
 				{
@@ -123,7 +125,7 @@ export default class ImagesRowSlider extends JetView {
 	}
 
 	$sliderList() {
-		this._sliderList = this._sliderList || this.$$(SLIDER_ID);
+		this._sliderList = this._sliderList || this.$$(this._sliderId);
 		return this._sliderList;
 	}
 
@@ -146,8 +148,8 @@ export default class ImagesRowSlider extends JetView {
 	}
 
 	_attachNavButtonsEvents() {
-		const nextBtn = this.$$(NEXT_BTN_ID);
-		const prevBtn = this.$$(PREV_BTN_ID);
+		const nextBtn = this.$$(this._nextBtnId);
+		const prevBtn = this.$$(this._prevBtnId);
 
 		this.on(nextBtn, "onItemClick", () => {
 			this._handleNav("next");
@@ -213,7 +215,7 @@ export default class ImagesRowSlider extends JetView {
 	}
 
 	_countSliderContainerMaxWidth() {
-		const prevButton = this.$$(PREV_BTN_ID);
+		const prevButton = this.$$(this._prevBtnId);
 		const navButtonsWidth = (prevButton.$width || prevButton.config.width) * 2;
 		const rootWidth = this._getRootOrParentWidth(this.getRoot());
 

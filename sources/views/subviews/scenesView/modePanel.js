@@ -15,6 +15,11 @@ export default class ModePanelView extends JetView {
 		super(app, config);
 
 		this._cnf = config;
+		this._modePanelId = `${MODE_PANEL_ID}-${webix.uid()}`;
+		this._modeRadioButtonId = `${MODE_RADIO_BUTTON_ID}-${webix.uid()}`;
+		this._combineControlId = `${COMBINE_CONTROL_ID}-${webix.uid()}`;
+		this._syncControlId = `${SYNC_CONTROL_ID}-${webix.uid()}`;
+		this._pointsRadioButtonId = `${POINTS_RADIO_BUTTON_ID}-${webix.uid()}`;
 	}
 
 	config() {
@@ -26,7 +31,7 @@ export default class ModePanelView extends JetView {
 			cols: [
 				{
 					view: "radio",
-					localId: MODE_RADIO_BUTTON_ID,
+					localId: this._modeRadioButtonId,
 					label: "Mode:",
 					labelWidth: 50,
 					width: 210,
@@ -40,20 +45,20 @@ export default class ModePanelView extends JetView {
 					label: "Combine",
 					labelWidth: 70,
 					width: 90,
-					localId: COMBINE_CONTROL_ID,
+					localId: this._combineControlId,
 					hidden: true
 				}),
 				this._createCheckbox({
 					label: "Sync",
 					labelWidth: 40,
 					width: 60,
-					localId: SYNC_CONTROL_ID,
+					localId: this._syncControlId,
 					hidden: true
 				}),
 				{width: 15},
 				{
 					view: "radio",
-					localId: POINTS_RADIO_BUTTON_ID,
+					localId: this._pointsRadioButtonId,
 					label: "Points:",
 					labelWidth: 60,
 					width: 300,
@@ -171,22 +176,22 @@ export default class ModePanelView extends JetView {
 	}
 
 	$modeRadioButton() {
-		return this.$$(MODE_RADIO_BUTTON_ID);
+		return this.$$(this._modeRadioButtonId);
 	}
 
 	$combineCheckbox() {
-		return this.$$(COMBINE_CONTROL_ID);
+		return this.$$(this._combineControlId);
 	}
 
 	$syncCheckbox() {
-		return this.$$(SYNC_CONTROL_ID);
+		return this.$$(this._syncControlId);
 	}
 
 	$pointsRadio() {
-		return this.$$(POINTS_RADIO_BUTTON_ID);
+		return this.$$(this._pointsRadioButtonId);
 	}
 
 	$modePanel() {
-		return this.$$(MODE_PANEL_ID);
+		return this.$$(this._modePanelId);
 	}
 }

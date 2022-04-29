@@ -11,6 +11,7 @@ export default class ScenesViewerWithControls extends JetView {
 		super(app, config);
 
 		this._cnf = config || {};
+		this._containerViewId = `${CONTAINER_VIEW_ID}-${webix.uid()}`;
 
 		this._currentSlideView = new SingleSlideView(app, config);
 		this._viewFilters = new OrganizerFilters();
@@ -22,7 +23,7 @@ export default class ScenesViewerWithControls extends JetView {
 		return {
 			...this._cnf,
 			name: "scenesViewerContainer",
-			localId: CONTAINER_VIEW_ID,
+			localId: this._containerViewId,
 			margin: 8,
 			rows: [
 				this._currentSlideView
