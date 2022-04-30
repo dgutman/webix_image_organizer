@@ -1,5 +1,5 @@
 FROM python:3.8
-RUN pip install ipython-sql sqlalchemy psycopg2-binary jupyter pgspecial pandas geopandas matplotlib
+RUN pip install ipython-sql sqlalchemy psycopg2-binary jupyter pgspecial pandas geopandas matplotlib geopandas
 EXPOSE 8888
 RUN mkdir /app
 WORKDIR /app

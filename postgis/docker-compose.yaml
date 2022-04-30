@@ -32,4 +32,14 @@ services:
         - "8888"
       depends_on:
         - postgisdb
+  pgadmin4:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    ports:
+      - '5050:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dsagis@dsagis.io
+      PGADMIN_DEFAULT_PASSWORD: dsagis
+    links:
+      - postgisdb
 
