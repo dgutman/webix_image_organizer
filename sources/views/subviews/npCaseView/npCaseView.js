@@ -50,41 +50,39 @@ export default class NPCaseViewClass extends ScenesView {
 			const items = webix.copy(this.dataCollection.data.pull);
 			const itemsKeys = Object.keys(items);
 			itemsKeys.forEach((key) => {
-				if (items[key].meta
-					&& items[key].meta.npSchema
-					&& items[key].meta.npSchema.stainID
+				if (items[key].meta?.npSchema?.stainID
 					&& !stainArray.includes(items[key].meta.npSchema.stainID)) {
 					stainArray.push(items[key].meta.npSchema.stainID);
 				}
 			});
 			const clickButtonHandler = function (id) {
 				sliderCollection.filter((obj) => {
-					return obj.meta
-						&& obj.meta.npSchema
-						&& obj.meta.npSchema.stainID
-						&& $$(id)
-						&& $$(id).config
+					return obj.meta?.npSchema?.stainID
+						&& ($$(id))?.config
 						? obj.meta.npSchema.stainID === $$(id).config.value
 						: false;
 				});
+				npPanel.getNpPanelView().getChildViews().forEach((button) => {
+					const buttonNode = button.getNode();
+					buttonNode.classList.remove("np_button_active");
+					buttonNode.classList.add("np_button");
+				})
+				$$(id).getNode().classList.remove("np_button");
+				$$(id).getNode().classList.add("np_button_active");
 			};
 			if (stainArray.length > 0) {
 				npPanel.setButtons(stainArray, clickButtonHandler);
 			}
 
 			const foundItems = sliderCollection.find((obj) => {
-				return obj.meta
-					&& obj.meta.npSchema
-					&& obj.meta.npSchema.stainID
+				return obj.meta?.npSchema?.stainID
 					? obj.meta.npSchema.stainID === "HE"
 					: false;
 			});
 
 			if (foundItems.length > 0) {
 				sliderCollection.filter((obj) => {
-					return obj.meta
-						&& obj.meta.npSchema
-						&& obj.meta.npSchema.stainID
+					return obj.meta?.npSchema?.stainID
 						? obj.meta.npSchema.stainID === "HE"
 						: false;
 				});
@@ -100,9 +98,7 @@ export default class NPCaseViewClass extends ScenesView {
 		this.dataCollection.sync(dataCollection);
 		this.sliderCollection.sync(dataCollection);
 		this.sliderCollection.filter((obj) => {
-			return obj.meta
-				&& obj.meta.npSchema
-				&& obj.meta.npSchema.stainID
+			return obj.meta?.npSchema?.stainID
 				? obj.meta.npSchema.stainID === "HE"
 				: false;
 		});

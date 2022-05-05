@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 import npButton from "./parts/button";
 
-const NP_PANEL_ID = "np-toolbar-id";
+const NP_PANEL_ID = `np-toolbar-id-${webix.uid()}`;
 
 export default class NpPanel extends JetView {
 	constructor(app, config = {}) {
@@ -29,7 +29,7 @@ export default class NpPanel extends JetView {
 	}
 
 	removeButtons() {
-		const npPanel = this.getNpPanel();
+		const npPanel = this.getNpPanelView();
 		const buttons = npPanel.getChildViews();
 		const buttonsIds = [];
 		buttons.forEach((view) => {
@@ -41,7 +41,7 @@ export default class NpPanel extends JetView {
 	}
 
 	setButtons(stainArray, clickButtonHandler) {
-		const npPanel = this.getNpPanel();
+		const npPanelView = this.getNpPanelView();
 		this.removeButtons();
 		stainArray.forEach((stain) => {
 			if (stain) {
@@ -51,17 +51,17 @@ export default class NpPanel extends JetView {
 					id: `${stain}_button`,
 					click: clickButtonHandler
 				});
-				npPanel.addView(buttonConfig);
+				npPanelView.addView(buttonConfig);
 			}
 		});
 	}
 
 	getButtons() {
-		const npPanel = this.getNpPanel();
+		const npPanel = this.getNpPanelView();
 		return npPanel.getChildViews();
 	}
 
-	getNpPanel() {
+	getNpPanelView() {
 		return this.$$(NP_PANEL_ID);
 	}
 }
