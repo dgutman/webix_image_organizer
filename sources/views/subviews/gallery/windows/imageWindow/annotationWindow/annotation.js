@@ -261,7 +261,7 @@ export default class AnnotationView extends JetView {
 					},
 					onBeforeEditStop: (values, editor) => {
 						window.showAttentionPopup(() => {
-							if (editor.column === "value" && values.value === "") values.value = values.old;
+							if (editor.column === "value" && values.value.trim() === "") values.value = values.old;
 						});
 					},
 					onAfterEditStop: (state, editor) => {
@@ -316,7 +316,7 @@ export default class AnnotationView extends JetView {
 						table.refresh();
 					}
 				},
-				ready:function() {
+				ready: function() {
 					const checkedIds = this.getChecked();
 					checkedIds.forEach((id) => {
 						this.checkItem(id);

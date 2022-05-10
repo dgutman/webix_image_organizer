@@ -57,7 +57,7 @@ export default class MainView extends JetView {
 		const metadataTemplate = this.getSubMetadataPanelView().getTemplateView();
 		const metadataCollapser = this.getSubCollapserView();
 		const cartListView = this.getSubCartListView().getCartListView();
-		const npView = this.getSubNPView().getNPCaseTable();
+		const npView = this.getSubNPView();
 
 		this._mainService = new MainService(
 			view,

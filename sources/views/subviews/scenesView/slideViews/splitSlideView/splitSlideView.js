@@ -4,7 +4,7 @@ import SlideEventsService from "../../../../../services/scenesView/slidesService
 import MarkersService from "../../../../../services/scenesView/markersService";
 
 
-const METADATA_PANEL_ID = "scenes-view-metadata-panel";
+const METADATA_PANEL_ID = `scenes-view-metadata-panel-${webix.uid()}}`;
 
 export default class SplitSlideView extends BaseSlideView {
 	constructor(app, config) {

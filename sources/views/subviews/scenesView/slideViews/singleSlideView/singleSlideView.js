@@ -9,13 +9,14 @@ export default class SingleSlideView extends BaseSlideView {
 		super(app, config);
 
 		this._cnf = config || {};
+		this._metadataPanelId = `${METADATA_PANEL_ID}-${webix.uid()}`;
 		this._osdViewer = this.createOsdViewer();
 		this._controlsView = this.createControlsView();
 		this._metadataPanel = this.createMetadataPanel();
 	}
 
 	config() {
-		const collapserView = collapser.getConfig(METADATA_PANEL_ID, {closed: false, type: "right"}, "metadataPanelCollapser");
+		const collapserView = collapser.getConfig(this._metadataPanelId, {closed: false, type: "right"}, "metadataPanelCollapser");
 
 		return {
 			...this._cnf,
@@ -33,7 +34,7 @@ export default class SingleSlideView extends BaseSlideView {
 						},
 						collapserView,
 						{
-							id: METADATA_PANEL_ID,
+							id: this._metadataPanelId,
 							rows: [
 								this._metadataPanel
 							]

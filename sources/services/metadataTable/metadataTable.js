@@ -150,7 +150,7 @@ class MetadataTableService {
 				const columnId = obj.column;
 				const rowId = obj.row;
 				const metadataToEdit = this._metadataTable.getItem(rowId);
-				const isPatientColumn = obj.config.patientColumn;
+				const isPatientColumn = obj.config ? obj.config.patientColumn : null;
 				if (isPatientColumn) {
 					const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
 					const patientToEdit = patientsDataCollection.find(patient => patient.name === metadataToEdit["patient-name"], true);
@@ -185,20 +185,22 @@ class MetadataTableService {
 					itemKeys.forEach((itemKey) => {
 						itemToEdit[itemKey] = metadataToEdit[itemKey];
 					});
-					const copyOfAnItemToEdit = webix.copy(itemToEdit);
+					const copyItemToEdit = webix.copy(itemToEdit);
 					try {
 						// insert new metadata value or edit already existed
-						utils.setObjectProperty(copyOfAnItemToEdit, `meta.${columnId}`, values.value);
+						utils.setObjectProperty(copyItemToEdit, `meta.${columnId}`, values.value);
 					}
 					catch (err) {
-						webix.message(`Can't define ${columnId} property for ${copyOfAnItemToEdit.name} item`);
+						webix.message(`Can't define ${columnId} property for ${copyItemToEdit.name} item`);
 						return true;
 					}
-					itemsDataCollection.parse(copyOfAnItemToEdit);
+					copyItemToEdit.highlightedValues = [];
+					copyItemToEdit.highlightedValues = itemsModel.findHighlightedValues(copyItemToEdit);
+					itemsDataCollection.parse(copyItemToEdit);
 					this._view.showProgress();
-					ajaxActions.updateItemMetadata(itemToEdit._id, copyOfAnItemToEdit.meta, itemToEdit._modelType)
+					ajaxActions.updateItemMetadata(itemToEdit._id, copyItemToEdit.meta, itemToEdit._modelType)
 						.then(() => {
-							this._metadataTable.updateItem(rowId, copyOfAnItemToEdit);
+							this._metadataTable.updateItem(rowId, copyItemToEdit);
 							this._view.hideProgress();
 						})
 						.catch(() => {
