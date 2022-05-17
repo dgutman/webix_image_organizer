@@ -127,9 +127,18 @@ export default class TaggerHeaderClass extends JetView {
 			}
 		});
 
-		if ( auth.isAdmin()) {
-			document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
-		}
+		this.on(this.app, "toggleVisibilityOfCancelButton", (show) => {
+			const button = this.getHeaderAdmin();
+			if (show) {
+				button.show();
+				if (document.querySelector(".main-header-admin a")) document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
+			}
+			else {
+				button.hide();
+			}
+		});
+
+		if (document.querySelector(".main-header-admin a")) document.querySelector(".main-header-admin a").onclick = () => this.app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
 	}
 
 	getHostBox() {

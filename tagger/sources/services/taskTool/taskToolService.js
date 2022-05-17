@@ -70,6 +70,7 @@ class TaskToolService {
 		this._showSelectedButton.attachEvent("onItemClick", () => {
 			if (this._showSelected) {
 				this._setNormalDataviewState();
+				this._selectDataviewTemplate.show();
 			}
 			else {
 				this._setShowSelectedState();
@@ -97,6 +98,7 @@ class TaskToolService {
 					return transitionalAjax.getTagTemplatesWithValues();
 				})
 				.then((data) => {
+					tagTemplates.tagsWithValues.clearAll();
 					tagTemplates.tagsWithValues.parse(data);
 					this._view.hideProgress();
 				})
@@ -150,6 +152,17 @@ class TaskToolService {
 				const selectedItems = this._selectedImagesModel.getSelectedItems();
 				const previewView = $$("preview_task");
 				const previewPageService = previewView.$scope.previewPageService;
+				const parentNode = previewView.getNode();
+				if (!taskData.imgNames) {
+					parentNode.classList.add("hide-names");
+				} else {
+					parentNode.classList.remove("hide-names");
+				}
+				if (!taskData.showMeta) {
+					parentNode.classList.add("hide-meta");
+				} else {
+					parentNode.classList.remove("hide-meta");
+				}
 				previewPageService.parseTagsAndValues(taskData);
 				previewPageService.parseImages(selectedItems);
 				this._view.setValue("preview_task");
@@ -295,10 +308,36 @@ class TaskToolService {
 	}
 
 	_validateTaskByJSONValidator(taskData) {
+		if (!taskData) return false;
+		const iconValid = taskData.tags.reduce((sum, current) => {
+			let iconVal = !((current.icontype === "badge" || current.icontype === "badgecolor") && current.icon === "");
+			return sum && iconVal;
+		}, true);
+		if (!iconValid) {
+			webix.message("Please, select icon");
+		}
+
+		const hasDefault = taskData.tags.filter((tag) => {
+			if (tag.type === "multiple_with_default") return true;
+		});
+		let validDefault = hasDefault.length === 0;
+		if (!validDefault) {
+			let defaultsArr = hasDefault.filter((tag) => {
+				let values = tag.values;
+				for (let key in values) {
+					if (values[key].default === true) return true;
+				}
+			});
+			validDefault = defaultsArr.length === hasDefault.length;
+		}
+		if (!validDefault) {
+			webix.message("Please, select default value");
+		}
+
 		const isTaskValid = validateTask({task: taskData});
 		const selectedItems = this._selectedImagesModel.getSelectedItems();
 
-		const condition = selectedItems.length && isTaskValid && taskData;
+		const condition = selectedItems.length && isTaskValid && taskData && iconValid && validDefault;
 		if (!condition) {
 			if (!selectedItems.length) {
 				webix.message("Please, select images");

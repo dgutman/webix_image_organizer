@@ -63,7 +63,7 @@ function getUserProgressTemplate(obj) {
 		return `<div class='results-template'>
 			<b class='task-name strong-font'>${obj.name}</b>
 			<div>
-				<b class='strong-font'>Task completion:</b>
+				<b class='strong-font'>Tag values assigned:</b>
 			</div>
 			${userTemplate}
 		</div>`;

@@ -224,6 +224,15 @@ export default class UserViewService {
 			this._getImagesQueue.addJobToQueue();
 		});
 
+		this._dataview.attachEvent("onMouseMoving", (ev) => {
+			let tooltip = webix.TooltipControl.getTooltip();
+			if (ev.target.classList.contains("dataview-images-icons") && tooltip) {
+				let coords = ev.target.getBoundingClientRect();
+				tooltip._settings.dy = coords.y - ev.clientY + coords.height - 30;
+				tooltip._settings.dx = coords.x - ev.clientX + coords.width - 30;
+			}
+		});
+
 		this._deviationFilterDropdown.attachEvent("onChange", (id) => {
 			const ignore = id === "deviations";
 			this._iconsTemplateService.changeIgnoreDefaultState(ignore);
@@ -292,10 +301,6 @@ export default class UserViewService {
 				text: "Are you sure that you are ready to finalize the task? Please, note further changes to the task will not be available.",
 				ok: "Yes",
 				cancel: "No"
-			}).then(() => {
-				this._completeButton.hide();
-				const task = this._taskList.getSelectedItem(true);
-				if (task.userId.length === task.checked_out.length) transitionalAjax.changeTaskStatus(task[0]._id, "finished");
 			});
 		});
 
@@ -521,7 +526,6 @@ export default class UserViewService {
 					this._view.hideProgress();
 					return processedImages;
 				}
-				this._view.hideProgress();
 				return false;
 			})
 			.catch(() => {
@@ -569,6 +573,12 @@ export default class UserViewService {
 			}
 			else if (e.target.classList.contains("checked") && e.target.classList.contains("enabled")) {
 				this._updatedImagesService.removeSelectedTagValueFromImage(id);
+				// Remove the border highlight on the image when changing a tag
+				const selector = "[webix_l_id=\'" + id + "\'] .dataview-item";
+				const parent = document.querySelector(selector);
+				parent.classList.remove("highlighted");
+				// Add round underline for icons instead of red frame
+				parent.querySelector(".item-tag-related-icons").classList.add("underline-icons");
 				return false;
 			}
 			else if (e.target.classList.contains("show-metadata")) {
@@ -665,12 +675,6 @@ export default class UserViewService {
 		}
 		else {
 			this._backButton.hide();
-		}
-		if (!unfilteredCount && totalCount) {
-			this._completeButton.show();
-		}
-		else {
-			this._completeButton.hide();
 		}
 
 		if (this._taskList.getSelectedItem(true)[0].status === "finished") {

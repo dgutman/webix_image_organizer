@@ -22,7 +22,7 @@ async function collectTaskData({taskData, userId, imageIds, taskId, groupId}) {
 	let taskUsers = taskData.user || taskData.userId;
 	if (taskUsers && !Array.isArray(taskUsers)) {
 		taskUsers = [taskUsers];
-		taskUsers = taskUsers.map(user => (typeof user === "string" ? user : user._id));
+		taskUsers = taskUsers.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
 	}
 	let taskCreators = taskData.creator || taskData.creatorId;
 	if (taskCreators && !Array.isArray(taskCreators)) {
@@ -102,7 +102,8 @@ async function createTask(taskData, imageIds, userId, hostApi, token) {
 
 	const userIDs = data.taskUsers.concat(data.taskCreators).unique();
 	await Promise.all(
-		data.taskData.folderIds.map(id => folderService.giveReadAccessRightsToUsers(id, userIDs, hostApi, token))
+		data.taskData.folderIds
+			.map(id => folderService.giveReadAccessRights(id, userIDs, hostApi, token))
 	);
 
 	return task;
@@ -137,7 +138,13 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 		if (!validImageIds) throw {name: "ValidationError", message: "Image ids are not specified"};
 	}
 
-	const data = await collectTaskData({taskData, userId, imageIds, taskId: task._id, groupId: task.groupId});
+	const data = await collectTaskData({
+		taskData,
+		userId,
+		imageIds,
+		taskId: task._id,
+		groupId: task.groupId
+	});
 
 	const oldUsers = [...task.userId, ...task.creatorId];
 	const newUsers = [...data.taskUsers || [], ...data.taskCreators || []]
@@ -145,7 +152,8 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 
 	if (newUsers.length && data.taskData.folderIds) {
 		await Promise.all(
-			data.taskData.folderIds.map(folderId => folderService.giveReadAccessRightsToUsers(folderId, newUsers, hostApi, token))
+			data.taskData.folderIds
+				.map(folderId => folderService.giveReadAccessRights(folderId, newUsers, hostApi, token))
 		);
 	}
 	if (data.tags.length) {
@@ -177,11 +185,15 @@ async function changeTaskStatus(id, status, userId) {
 	return task.save();
 }
 
-async function deleteUncheckedTasks(userId, isAdmin) {
+async function deleteUncheckedTasks(userId, isAdmin, type) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"}
 
-	const tasksToDeleteQuery = isAdmin ? {checked_out: [], type: "girder"} : {userId, checked_out: [], type: "girder"};
+	const taskType = type || "girder";
+
+	const tasksToDeleteQuery = isAdmin ?
+		{checked_out: [], type: taskType} : {userId, checked_out: [], type: taskType};
+
 	const tasksToDelete = await Tasks.find(tasksToDeleteQuery);
 	const taskIdsToDelete = tasksToDelete.map(task => task._id);
 	const tagsToDelete = await Tags.find({taskId: {$in: taskIdsToDelete}});
@@ -218,70 +230,73 @@ async function getNewTasksFromGirder(collectionId, host, token, userId, isAdmin)
 		.filter((folder) => {
 			const taggerMetadata = dot.pick("meta.taggerMetadata", folder) || {};
 			const valid = ajvSchemas.validate("task", taggerMetadata);
+
 			if (!valid) {
 				return false;
 			}
 			const taskData = taggerMetadata.task;
-
 			let taskUsers = dot.pick("user", taskData || {});
 			if (!Array.isArray(taskData.user)) {
 				taskUsers = [taskUsers];
 			}
 			const checkOwner = isAdmin ? true : taskUsers.find(user => (typeof user === "string" ? userId === user : userId === user._id));
-			return checkOwner && !existingTasks.find(task => (task.checked_out.length && task.folderId === folder._id));
-		})
-		.map((folder) => {
-			const task = folder.meta.taggerMetadata.task;
-			const existedTask = existingTasks.find(exTask => exTask.name === task.name && exTask.folderId === folder._id);
-
-			let taskUsers = task.user;
-			if (!Array.isArray(taskUsers)) {
-				taskUsers = [taskUsers];
-			}
-			let taskCreators = task.creator || folder.creatorId;
-			if (!Array.isArray(taskCreators)) {
-				taskCreators = [taskCreators];
-			}
-
-			taskUsers = taskUsers.map(user => (typeof user === "string" ? user : user._id));
-			taskCreators = taskCreators.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
-
-			const taskProps = {
-				_id: existedTask ? existedTask._id : new ObjectID(),
-				folderId: folder._id,
-				baseParentId: folder.baseParentId,
-				userId: taskUsers,
-				groupId: existedTask ? existedTask.groupId : null,
-				type: "girder",
-				status: "published",
-				checked_out: []
-			};
-
-			if (taskCreators.length) taskProps.creatorId = taskCreators;
-
-			// parse TAGS to add to DB
-			const tasksTags = task.tags.map((tag) => {
-				const tagId = new ObjectID();
-				tag.taskId = taskProps._id;
-				tag._id = tagId;
-
-				// parse VALUES to add to DB
-				const tasksValues = Object.keys(tag.values).map((key) => {
-					const value = tag.values[key];
-					value.name = key;
-					value._id = new ObjectID();
-					value.tagId = tagId;
-					if (value.default) tag.default = value.name;
-					return value;
-				});
-				values = values.concat(tasksValues);
-
-				return tag;
-			});
-			tags = tags.concat(tasksTags);
-
-			return Object.assign(task, taskProps);
+			return checkOwner && !existingTasks
+				.find(task => task.checked_out.length && task.folderId === folder._id);
 		});
+
+	newTasks = newTasks.map((folder) => {
+		const task = folder.meta.taggerMetadata.task;
+		const existedTask = existingTasks
+			.find(exTask => exTask.name === task.name && exTask.folderId === folder._id);
+
+		let taskUsers = task.user;
+		if (!Array.isArray(taskUsers)) {
+			taskUsers = [taskUsers];
+		}
+		let taskCreators = task.creator || folder.creatorId;
+		if (!Array.isArray(taskCreators)) {
+			taskCreators = [taskCreators];
+		}
+
+		taskUsers = taskUsers.map(user => (typeof user === "string" ? user : user._id));
+		taskCreators = taskCreators.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
+
+		const taskProps = {
+			_id: existedTask ? existedTask._id : new ObjectID(),
+			folderId: folder._id,
+			baseParentId: folder.baseParentId,
+			userId: taskUsers,
+			groupId: existedTask ? existedTask.groupId : null,
+			type: "girder",
+			status: "published",
+			checked_out: []
+		};
+
+		if (taskCreators.length) taskProps.creatorId = taskCreators;
+
+		// parse TAGS to add to DB
+		const tasksTags = task.tags.map((tag) => {
+			const tagId = new ObjectID();
+			tag.taskId = taskProps._id;
+			tag._id = tagId;
+
+			// parse VALUES to add to DB
+			const tasksValues = Object.keys(tag.values).map((key) => {
+				const value = tag.values[key];
+				value.name = key;
+				value._id = new ObjectID();
+				value.tagId = tagId;
+				if (value.default) tag.default = value.name;
+				return value;
+			});
+			values = values.concat(tasksValues);
+
+			return tag;
+		});
+		tags = tags.concat(tasksTags);
+
+		return Object.assign(task, taskProps);
+	});
 
 	// delete old unchecked tasks with tags and values
 	await deleteUncheckedTasks(userId, isAdmin);
@@ -300,6 +315,7 @@ async function getTasks(collectionId, host, token, userId) {
 	if (!collectionId) throw "Field \"collectionId\" should be set";
 
 	await getNewTasksFromGirder(collectionId, host, token, userId);
+
 	return Tasks.aggregate([
 		{$match: {userId: mongoose.Types.ObjectId(userId), status: {$nin: ["canceled", "created"]}}},
 		{
@@ -490,7 +506,7 @@ async function getTaskJSON({taskId, userId, isAdmin, hostApi, token}) {
 		tagsService.getTagsWithValuesByTask(taskId, userId)
 	];
 	const fieldsToRemove = ["checked_out", "created", "updatedAt", "_modelType", "__v", "creatorId", "userId", "folderIds", "imageIds", "status", "type"];
-	
+
 	if (task.groupId) promises.push(Groups.findById(task.groupId));
 
 	const [tags, group] = await Promise.all(promises);

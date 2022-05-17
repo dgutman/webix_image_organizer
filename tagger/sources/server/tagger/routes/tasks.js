@@ -67,7 +67,7 @@ function deleteTask(req, res, next) {
 	const userId = req.user ? req.user.sub : null;
 	const taskId = req.params.id;
 	const isAdmin = req.user ? req.user.prms : false;
-	const force = req.query.force;
+	const force = req.body.force;
 
 	tasksService.deleteTask(taskId, userId, isAdmin, force)
 		.then(data => res.json({message: "Task succesfully removed", data}))
@@ -129,6 +129,5 @@ router.put("/edit/:id", editTask);
 router.put("/status/:id", changeTaskStatus);
 router.post("/", createTask);
 router.delete("/:id", deleteTask);
-
 
 module.exports = router;

@@ -92,7 +92,8 @@ export default class TaggerPreviewTask extends JetView {
 					html += "<br /><div>";
 					const tagKeys = Object.keys(tags);
 					tagKeys.sort().forEach((tagKey) => {
-						const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
+						let valuesNames = tags[tagKey].map(valueObject => valueObject.value);
+						valuesNames = valuesNames.filter((item, pos, arr) => !pos || item !== arr[pos - 1]);
 						const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
 						html += `${tagKey}: ${displayedValue}<br />`;
 					});
@@ -169,7 +170,7 @@ export default class TaggerPreviewTask extends JetView {
 
 					const imageTag = dot.pick(`meta.tags.${selectedTag.name}`, obj);
 
-					if (imageTag && imageTag.find(valueObject => valueObject.value === selectedValue.name)) {
+					if (imageTag && selectedValue && imageTag.find(valueObject => valueObject.value === selectedValue.name)) {
 						const disabledState = selectedValue.default ? "disabled" : "enabled";
 						str = `checked fas fa-check-square ${disabledState}`;
 					}

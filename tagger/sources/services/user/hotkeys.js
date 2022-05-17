@@ -31,9 +31,7 @@ class HotkeysService {
 		const dataviewNode = this.dataview.getNode();
 		this.mouseOutEventId = webix.event(dataviewNode, "mouseout", (ev) => {
 			// to avoid mouseout event in child nodes
-			if (!this.imageNode || this.imageNode.contains(ev.relatedTarget)) {
-				return;
-			}
+			if (!this.imageNode || this.imageNode.contains(ev.relatedTarget)) return;
 			this.unselectItem();
 		});
 
@@ -42,9 +40,7 @@ class HotkeysService {
 
 			const target = ev.target.closest(".dataview-item");
 			if (target && target !== this.imageNode) {
-				const id = target
-					.closest(".webix_dataview_item")
-					.getAttribute("webix_l_id");
+				const id = target.closest(".webix_dataview_item").getAttribute("webix_l_id");
 				this.image = this.dataviewStore.getItemById(id);
 				this.imageNode = target;
 				this.markSelectedImage();
@@ -72,21 +68,15 @@ class HotkeysService {
 
 	markSelectedImage() {
 		const pager = this.dataview.getPager();
-		if (this.imageNode && pager.data.size > 1 && !this.imageNode.classList.contains("selected")) {
-			this.imageNode.classList.add("selected");
-		}
+		if (this.imageNode && pager.data.size > 1 && !this.imageNode.classList.contains("selected")) this.imageNode.classList.add("selected");
 	}
 
 	attachNavButtons() {
-		hotkeysJS(
-			"up, down, left, right",
-			{keyup: true, scope: this.currentScope},
-			(event, handler) => {
-				if (event.type === "keydown") {
-					this.handleNavigation(handler.key);
-				}
+		hotkeysJS("up, down, left, right", {keyup: true, scope: this.currentScope}, (event, handler) => {
+			if (event.type === "keydown") {
+				this.handleNavigation(handler.key);
 			}
-		);
+		});
 		hotkeysJS("enter", {keyup: true, scope: this.currentScope}, (event) => {
 			if (event.type === "keyup") {
 				this.handleEnter();
@@ -127,13 +117,11 @@ class HotkeysService {
 		this.unselectItem();
 
 		if (itemToSelect) {
-			const currentItemRow = Math.max(
-				Math.floor(dataRange.findIndex(item => item.id === itemToSelect.id) / _dx),
-				0
-			);
-			const currentItemCol = dataMatrix[currentItemRow].findIndex(
-				item => item.id === itemToSelect.id
-			);
+			const currentItemRow = Math.max(Math.floor(
+				dataRange.findIndex(item => item.id === itemToSelect.id) / _dx
+			), 0);
+			const currentItemCol = dataMatrix[currentItemRow]
+				.findIndex(item => item.id === itemToSelect.id);
 
 			const drLength = dataRange.length;
 			switch (button) {
@@ -268,7 +256,7 @@ class HotkeysFactory {
 				});
 				hotkeysJS.setScope("$webix_scope");
 			}
-			else if (this.hotKeysService && this.hotKeysService.currentScope) {
+			else if (this?.hotKeysService?.currentScope) {
 				hotkeysJS.setScope(this.hotKeysService.currentScope);
 			}
 		});

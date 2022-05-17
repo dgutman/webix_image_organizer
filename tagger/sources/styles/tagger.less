@@ -639,11 +639,16 @@
                         }
                     }
                 }
+
+                .icons-spacer {
+                    height: 20px;
+                }
+
                 .dataview-icons-bottom {
                     position: absolute;
-                    bottom: 0;
+                    bottom: -35px;
                     display: flex;
-                    justify-content: space-between;
+                    justify-content: center;
                     align-items: center;
                     padding: 3px;
                     width: 100%;
@@ -653,6 +658,7 @@
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
+                        color: black;
                         .dataview-item-dots-icon {
                             font-size: 14px;
                             width: 22px;
@@ -681,9 +687,12 @@
                     }
                     .dataview-show-metadata-icon {
                         font-size: 20px;
+                        position: absolute;
+                        top: -30px;
+                        right: 0px;
                         &:hover {
                             color: @btn-hover;
-                        }
+                        };
                     }
                 }
             }
@@ -697,12 +706,16 @@
                 text-align: center;
                 .dataview-image {
                     // TODO Uncomment to add feature: The images are jumping upon hoovering over them
-                    // transition: all 0.3s ease;
+                    transition: all 0.3s ease;
                     height: 100%;
                     width: auto;
                     display: inline-block;
                     object-fit: contain;
                 }
+            }
+
+            .underline-icons .item-tag-related-icon {
+                border-bottom-color: black;
             }
         }
 
@@ -865,12 +878,12 @@
     }
 }
 // TODO: Uncomment to add feature: The images are jumping upon hoovering over them
-// body.focused {
-//     .tagger-app .user-dataview {
-//         .dataview-item.selected {
-//             .dataview-image {
-//                transform: scale(0.85);
-//             }
-//         }
-//     }
-// }
+body.focused {
+    .tagger-app .user-dataview {
+        .dataview-item.selected {
+            .dataview-image {
+               transform: scale(0.85);
+            }
+        }
+    }
+}
