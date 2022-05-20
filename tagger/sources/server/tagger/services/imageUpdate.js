@@ -74,7 +74,8 @@ async function updateImagesByValue(oldValue, newValue, newTagIds) {
 					});
 				}
 				else if (tag.name === tagName) {
-					image.meta.tags[tagName] = image.meta.tags[tagName].filter(val => val.value !== oldValue.value);
+					image.meta.tags[tagName] = image.meta.tags[tagName]
+						.filter(val => val.value !== oldValue.value);
 				}
 			});
 			image.meta.tags[tagName].filter(val => val.value === oldValue.value);

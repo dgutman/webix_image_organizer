@@ -6,7 +6,8 @@ const Images = require("../models/images");
 const Folders = require("../models/folders");
 
 async function getNestedFolderIds(resArr, ids) {
-	const childFolders = await Folders.find({parentId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}});
+	const childFolders = await Folders
+		.find({parentId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}});
 	const childIds = childFolders.map(folder => folder.id);
 	resArr = resArr.concat(childIds);
 	if (childIds.length) {

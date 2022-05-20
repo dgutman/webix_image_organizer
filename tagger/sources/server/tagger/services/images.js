@@ -50,6 +50,7 @@ function parseTagsAndValues(image, collectionId) {
 								else if (typeof value !== "object") {
 									return value;
 								}
+								return null;
 							}) // transform values to lower case and make objects
 							.map((value) => {
 								if (!Array.isArray(value) && typeof value === "object") {
@@ -262,7 +263,17 @@ async function getCollectionsImages({tag, collectionIds, offset, limit, value, c
 	};
 }
 
-async function getFoldersImages({tag, folderIds, offset, limit, value, confidence, latest, name, userId}) {
+async function getFoldersImages({
+	tag,
+	folderIds,
+	offset,
+	limit,
+	value,
+	confidence,
+	latest,
+	name,
+	userId
+}) {
 	// validation
 	if (!Array.isArray(folderIds)) throw {message: "Query \"folderIds\" should be an array", name: "ValidationError"};
 	if (!userId) throw {name: "UnauthorizedError"};
@@ -404,7 +415,8 @@ async function getTaskImages({ids, offset, limit, userId, filters}) {
 		unfilteredCount = await Images.countDocuments(searchParams);
 	}
 
-	const totalCount = await Images.countDocuments({taskId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}, userId});
+	const totalCount = await Images
+		.countDocuments({taskId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}, userId});
 
 	return {
 		data,
@@ -429,7 +441,10 @@ async function updateImage(imageId, tag, action, value, confidence) {
 			}
 			let existedValue = image.meta.tags[tag.name].find(item => item.value === value.value);
 			if (existedValue) {
-				Object.assign(existedValue, {value: value.value, confidence: confidence || defaultConfidence});
+				Object.assign(
+					existedValue,
+					{value: value.value, confidence: confidence || defaultConfidence}
+				);
 			}
 			else {
 				image.meta.tags[tag.name].push({
@@ -448,7 +463,8 @@ async function updateImage(imageId, tag, action, value, confidence) {
 	else if (image.meta.hasOwnProperty("tags") && image.meta.tags.hasOwnProperty(tag.name)) {
 		if (!value) delete image.meta.tags[tag.name];
 		else if (value && !confidence) {
-			image.meta.tags[tag.name] = image.meta.tags[tag.name].filter(tagValue => tagValue.value !== value.value);
+			image.meta.tags[tag.name] = image.meta.tags[tag.name]
+				.filter(tagValue => tagValue.value !== value.value);
 		}
 		else {
 			const deletedConfidence = defaultConfidence === confidence ? "NULL" : confidence;
@@ -531,13 +547,26 @@ async function reviewImages(images, taskIds, userId, preliminarily) {
 	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
 	await Tasks.validateByUserId(taskIds, userId);
 
-	const reviewedImages = await Promise.all(images.map(image => reviewImage(image._id, image.tags, taskIds, userId, preliminarily, image.isUpdated)));
+	const reviewedImages = await Promise.all(
+		images.map(image => reviewImage(
+			image._id,
+			image.tags,
+			taskIds,
+			userId,
+			preliminarily,
+			image.isUpdated
+		))
+	);
 	// update task status by reviewed images
 	await Promise.all(
 		taskIds.map(async (id) => {
 			const {reviewedCount, allCount} = await countImagesByTask(id, userId);
 			if (allCount === reviewedCount) {
-				return Tasks.findByIdAndUpdate(id, {$set: {status: "finished"}});
+				const task = await Tasks.findById(id);
+				if (task.userId.length === task.checked_out.length) {
+					task.status = "finished";
+					return task.save();
+				}
 			}
 			return Promise.resolve(false);
 		})

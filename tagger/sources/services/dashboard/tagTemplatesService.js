@@ -66,14 +66,18 @@ export default class TagTemplatesService {
 		return true;
 	}
 
-	attachTagListEvents() {
-		const {list, saveButton, addButton} = this._tagColControls;
-		list.sync(tagTemplatesModel.tagsWithValues);
+	getNewTagsData() {
 		transitionalAjax.getTagTemplatesWithValues()
 			.then((data) => {
 				this._tagListStore.clearAll();
 				this._tagListStore.parseItems(data);
 			});
+	}
+
+	attachTagListEvents() {
+		const {list, saveButton, addButton} = this._tagColControls;
+		list.sync(tagTemplatesModel.tagsWithValues);
+		this.getNewTagsData();
 
 		addButton.attachEvent("onItemClick", () => {
 			this._tagListStore.addItem({name: "", selection: "single"});
@@ -217,7 +221,7 @@ export default class TagTemplatesService {
 
 	attachValueListEvents() {
 		const {list, saveButton, addButton} = this._valueColControls;
-
+		this.getNewTagsData();
 		addButton.attachEvent("onItemClick", () => {
 			const selectedTag = this._tagColControls.list.getSelectedItem();
 			if (selectedTag) {
@@ -301,6 +305,7 @@ export default class TagTemplatesService {
 				.finally(() => {
 					this._view.hideProgress();
 				});
+			this.getNewTagsData();
 		});
 	}
 
@@ -356,7 +361,7 @@ export default class TagTemplatesService {
 	_searchByName(list, searchField) {
 		const value = searchField.getValue();
 		if (value) {
-			list.filter(obj => obj.value? obj.value.includes(value) : obj.name.includes(value));
+			list.filter(obj => (obj.value ? obj.value.includes(value) : obj.name.includes(value)));
 		}
 		else {
 			list.filter();

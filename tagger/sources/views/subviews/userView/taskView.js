@@ -76,32 +76,39 @@ export default class TaggerUserTaskView extends JetView {
 				<span class='pager-amount'>of ${obj.limit}</span> ${common.next()} ${common.last()}</div>`
 		};
 
+		webix.protoUI({
+			name: "imageTooltip"
+		}, webix.ui.tooltip);
+
 		const dataview = {
 			view: "dataview",
 			css: "user-dataview",
 			name: "userDataview",
 			minWidth: 350,
-			minHeight: 290,
-			tooltip: (obj) => {
-				let html = `<div class='webix_strong'>${obj.name}</div>`;
-				const tags = dot.pick("meta.tags", obj);
-				if (tags) {
-					html += "<br /><div>";
-					const tagKeys = Object.keys(tags);
-					tagKeys.sort().forEach((tagKey) => {
-						const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
-						const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
-						html += `${tagKey}: ${displayedValue}<br />`;
-					});
-					html += "</div>";
+			minHeight: 330,
+			tooltip: {
+				view: "imageTooltip",
+				template: (obj) => {
+					let html = "";
+					const tags = dot.pick("meta.tags", obj);
+					if (tags) {
+						html += "<div class='webix_strong image-tooltip'>";
+						const tagKeys = Object.keys(tags);
+						tagKeys.sort().forEach((tagKey) => {
+							const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
+							const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
+							html += `${tagKey}: ${displayedValue}<br />`;
+						});
+						html += "</div>";
+					}
+					return html;
 				}
-				return html;
 			},
 			pager: PAGER_ID,
 			borderless: true,
 			template: (obj, common) => {
 				const thisDataview = this.getUserDataview();
-				const HEIGHT = 553;
+				const HEIGHT = 603;
 				const WIDTH = 750;
 				const sizeSelect = this.getSelectImageSize();
 				const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(sizeSelect.getValue());
@@ -117,7 +124,7 @@ export default class TaggerUserTaskView extends JetView {
 					setPreviewUrl = galleryImageUrl.setNormalImageUrl;
 				}
 
-				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
+				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 50;
 				// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 
 				const highlightState = obj.isUpdated ? "highlighted" : "";
@@ -150,12 +157,13 @@ export default class TaggerUserTaskView extends JetView {
 								</div>
 								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image">
 							</div>
+							<div class="icons-spacer"></div>
 							<div class="dataview-images-name ellipsis-text">${obj.name}</div>
 						</div>`;
 			},
 			type: {
 				width: 150,
-				height: 135,
+				height: 155,
 				checkboxState: (obj) => {
 					let str = "unchecked far fa-square enabled";
 					const tagSelect = this.getTagSelect();
@@ -205,7 +213,7 @@ export default class TaggerUserTaskView extends JetView {
 					width: 80,
 					name: "backButton",
 					hidden: true,
-					value: "Show reviewed"
+					value: "Unsubmit all"
 				},
 				{width: 20},
 				{
@@ -294,6 +302,28 @@ export default class TaggerUserTaskView extends JetView {
 
 	getDataviewIcons() {
 		return this._dataviewIcons;
+	}
+
+	async _getRoiThumbnail(image) {
+		let thumbnail;
+		if (!image.sizeX && !image.sizeY) {
+			thumbnail = await transitionalAjax.getROIsThumbnail(image._id);
+		}
+		else {
+			const {top, bottom, left, right} = this.countROICoords(image);
+			thumbnail = await ajaxService.getImage(image.mainId, "region", {top, bottom, left, right});
+		}
+		return thumbnail;
+	}
+
+	countROICoords(roi) {
+		const coords = {
+			left: Math.max(roi.left, 0),
+			top: Math.max(roi.top, 0),
+			right: Math.min(roi.right, roi.sizeX),
+			bottom: Math.min(roi.bottom, roi.sizeY)
+		};
+		return coords;
 	}
 
 	getInfoViewConfig(name, icon) {

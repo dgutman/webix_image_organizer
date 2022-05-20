@@ -11,9 +11,7 @@ function create(req, res, next) {
 	const userId = req.user ? req.user.sub : null;
 
 	notesService.create(content, created, userId)
-		.then((data) => {
-			return res.json({message: "Note was successfully created", data});
-		})
+		.then(data => res.json({message: "Note was successfully created", data}))
 		.catch(err => next(err));
 }
 

@@ -52,6 +52,8 @@ class TaskCreationService {
 			this._tagsForm.removeTagForms();
 			this._tagsForm.redefineFormSize();
 			this._view.clear();
+			const deadline = new Date();
+			this._view.setValues({deadline});
 		});
 	}
 

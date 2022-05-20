@@ -271,7 +271,9 @@ export default class TagForm extends JetView {
 					thisForm.config.tagSettings = newSettings;
 					const values = thisForm.getValues();
 					const tagValues = this.getTagValues();
-
+					if (thisForm.config.tagSettings.type !== "multiple_with_default") {
+						tagValues.forEach((tag) => tag.default = false);
+					}
 					const index = parentForm.getChildViews()
 						.findIndex(view => view === thisForm);
 

@@ -4,7 +4,7 @@ import AjaxClass from "./ajaxClass";
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PATH;
 
 class TransitionalAjaxService extends AjaxClass {
-	login(sourceParams) {
+		login(sourceParams) {
 		const params = sourceParams ? {
 			username: sourceParams.username || 0,
 			password: sourceParams.password || 0
