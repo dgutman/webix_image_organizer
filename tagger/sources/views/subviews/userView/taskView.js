@@ -66,6 +66,27 @@ export default class TaggerUserTaskView extends JetView {
 			}
 		};
 
+		const showReviewed = {
+			name: "showReviewed",
+			height: 40,
+			right: 0,
+			template: () => `<div class='show-reviewed-links'>
+									<a class='show-all'>Hide all</a>
+									<a class='show-reviewed'>Hide reviewed</a>
+									<a class='show-unreviewed'>Hide unreviewed</a>
+								</div>`,
+			borderless: true
+		};
+
+		const hideAnimationBtn = {
+			view: "button",
+			css: "btn-contour",
+			width: 80,
+			height: 40,
+			name: "hideAnimation",
+			value: "Hide animation"
+		};
+
 		const pager = {
 			view: "pager",
 			id: PAGER_ID,
@@ -116,7 +137,7 @@ export default class TaggerUserTaskView extends JetView {
 				let getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 				let setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 
-				if (multiplier === "single" ) {
+				if (multiplier === "single") {
 					sizesObject.width = common.width || WIDTH;
 					sizesObject.height = common.height || HEIGHT;
 
@@ -209,6 +230,15 @@ export default class TaggerUserTaskView extends JetView {
 				{},
 				{
 					view: "button",
+					css: "btn",
+					width: 80,
+					name: "undoButton",
+					hidden: false,
+					value: "Undo last change"
+				},
+				{width: 20},
+				{
+					view: "button",
 					css: "btn-contour",
 					width: 80,
 					name: "backButton",
@@ -276,6 +306,14 @@ export default class TaggerUserTaskView extends JetView {
 								imageSizeSelect
 							]
 						}
+					]
+				},
+				{
+					cols: [
+						{width: 40},
+						hideAnimationBtn,
+						{gravity: 2},
+						showReviewed
 					]
 				},
 				{hidden: true, selector: "dataview_y_spacer"},
@@ -362,6 +400,10 @@ export default class TaggerUserTaskView extends JetView {
 		return this.$$(PAGER_ID);
 	}
 
+	getUndoButton() {
+		return this.getRoot().queryView({name: "undoButton"});
+	}
+
 	getNextButton() {
 		return this.getRoot().queryView({name: "nextButton"});
 	}
@@ -388,5 +430,13 @@ export default class TaggerUserTaskView extends JetView {
 
 	getItemsCountTemplate() {
 		return this.getRoot().queryView({name: "itemsCountTemplate"});
+	}
+
+	getShowReviewTemplate() {
+		return this.getRoot().queryView({name: "showReviewed"});
+	}
+
+	getAnimationButton() {
+		return this.getRoot().queryView({name: "hideAnimation"});
 	}
 }

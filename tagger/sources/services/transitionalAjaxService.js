@@ -429,6 +429,12 @@ class TransitionalAjaxService extends AjaxClass {
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
+
+	undoLastChange() {
+		return this._ajax().put(`${TRANSITIONAL_API}/images/undo`)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
 }
 
 const instance = new TransitionalAjaxService();
