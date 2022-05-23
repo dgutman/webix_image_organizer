@@ -662,7 +662,7 @@ async function setTagsByTask(images, defaultTagValues) {
 
 async function undoLastChange(userId) {
 	const lastModifiedByUser =
-		(await ImagesModifiedByUserModel.find({userId}, null, {sort: {updatedDate: -1}}))[0];
+		(await ImagesModifiedByUserModel.find({userId}, null, {sort: {updatedAt: -1}}))[0];
 	await ImagesModifiedByUserModel.findByIdAndDelete(lastModifiedByUser._id);
 	const imagesToUndo = await Promise
 		.all(lastModifiedByUser.imagesIds
