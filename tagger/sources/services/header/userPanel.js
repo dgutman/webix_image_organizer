@@ -55,7 +55,7 @@ export default class UserPanelService {
 					this._view.$scope.app.show(constants.APP_PATHS.TAGGER_TASK_TOOL);
 					break;
 				}
-				case "user_view": {
+				case "user": {
 					this._view.$scope.app.show(constants.APP_PATHS.TAGGER_USER);
 					break;
 				}

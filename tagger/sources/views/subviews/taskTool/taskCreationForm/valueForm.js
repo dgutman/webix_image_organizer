@@ -93,7 +93,7 @@ export default class ValueForm extends JetView {
 							placeholder: "Enter value",
 							label: `Value ${order + 1}`,
 							name: "name",
-							invalidMessage: "Values should not be empty",
+							invalidMessage: "Use unique and not empty values",
 							gravity: 2.5,
 							inputHeight: 36,
 							on: {

@@ -84,12 +84,12 @@ export default class TaggerPreviewTask extends JetView {
 			css: "user-dataview",
 			name: "userDataview",
 			minWidth: 350,
-			minHeight: 290,
+			minHeight: 330,
 			tooltip: (obj) => {
-				let html = `<div class='webix_strong'>${obj.name}</div>`;
+				let html = "";
 				const tags = dot.pick("meta.tags", obj);
 				if (tags) {
-					html += "<br /><div>";
+					html += "<div class='webix_strong image-tooltip'>";
 					const tagKeys = Object.keys(tags);
 					tagKeys.sort().forEach((tagKey) => {
 						let valuesNames = tags[tagKey].map(valueObject => valueObject.value);
@@ -104,7 +104,7 @@ export default class TaggerPreviewTask extends JetView {
 			pager: PAGER_ID,
 			borderless: true,
 			template: (obj, common) => {
-				const HEIGHT = 553;
+				const HEIGHT = 603;
 				const WIDTH = 750;
 				const sizeSelect = this.getSelectImageSize();
 				const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(sizeSelect.getValue());
@@ -121,7 +121,7 @@ export default class TaggerPreviewTask extends JetView {
 					setPreviewUrl = galleryImageUrl.setNormalImageUrl;
 				}
 
-				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
+				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 50;
 
 				const highlightState = obj.isUpdated ? "highlighted" : "";
 
@@ -152,12 +152,13 @@ export default class TaggerPreviewTask extends JetView {
 								</div>
 								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image">
 							</div>
+							<div class="icons-spacer"></div>
 							<div class="dataview-images-name ellipsis-text">${obj.name}</div>
 						</div>`;
 			},
 			type: {
 				width: 150,
-				height: 135,
+				height: 155,
 				checkboxState: (obj) => {
 					let str = "unchecked far fa-square enabled";
 					const tagSelect = this.getTagSelect();
