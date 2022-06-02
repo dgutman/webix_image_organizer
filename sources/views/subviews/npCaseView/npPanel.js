@@ -13,10 +13,11 @@ export default class NpPanel extends JetView {
 	config() {
 		return {
 			...this._config,
+			id: NP_PANEL_ID,
 			localId: NP_PANEL_ID,
 			view: "toolbar",
-			height: 90,
-			cols: []
+			height: 80,
+			cols: [] // init in npCaseView
 		};
 	}
 
@@ -40,18 +41,20 @@ export default class NpPanel extends JetView {
 		});
 	}
 
-	setButtons(stainArray, clickButtonHandler) {
+	setButtons(npSchemaPropertiesArray, clickButtonHandler) {
 		const npPanelView = this.getNpPanelView();
 		this.removeButtons();
-		stainArray.forEach((stain) => {
-			if (stain) {
+		npPanelView.addView({});
+		npSchemaPropertiesArray.forEach((property) => {
+			if (property) {
 				const buttonConfig = npButton.getConfig({
-					value: stain,
+					value: property,
 					css: "np_button",
-					id: `${stain}_button`,
+					id: `${property}_button`,
 					click: clickButtonHandler
 				});
 				npPanelView.addView(buttonConfig);
+				npPanelView.addView({});
 			}
 		});
 	}
@@ -63,5 +66,9 @@ export default class NpPanel extends JetView {
 
 	getNpPanelView() {
 		return this.$$(NP_PANEL_ID);
+	}
+
+	getNpPanelId() {
+		return NP_PANEL_ID;
 	}
 }

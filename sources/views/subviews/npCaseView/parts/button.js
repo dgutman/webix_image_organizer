@@ -4,7 +4,9 @@ function getConfig(config) {
 	}
 	return {
 		...config,
-		view: "button"
+		view: "button",
+		width: 100,
+		inputHeight: 70
 	};
 }
 
