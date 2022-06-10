@@ -1,0 +1,40 @@
+version: "3"
+
+volumes:
+    mongodb_volume:
+
+services:
+    tagger_client:
+        container_name: tagger_client
+        env_file: ./.env
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        expose:
+            - "80"
+        ports:
+            - 2000:80
+    tagger_backend:
+        container_name: tagger_backend
+        env_file: ./.env
+        environment:
+            - MONGODB_HOST=mongodb
+        build:
+            context: .
+            dockerfile: sources/server/Dockerfile
+        expose:
+            - "4000"
+        ports:
+            - 4000:4000
+    #    restart: always
+    mongodb:
+        image: mongo:4.2.6
+        volumes:
+            - mongodb_volume:/data/db
+        restart: always
+        expose:
+            - "27017"
+        ports:
+            - 27017:27017
+
+
