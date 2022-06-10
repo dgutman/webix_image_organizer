@@ -58,6 +58,7 @@ export default class previewService extends UserService {
 
 		this._view.attachEvent("onViewShow", () => {
 			state.app.callEvent("toggleVisibilityOfBackButton", [true]);
+			state.app.callEvent("toggleVisibilityOfCancelButton", [false]);
 			const sizeValue = this._imageSizeSelect.getValue();
 			this._dataviewService.changeImageSize(sizeValue);
 			setTimeout(() => {
@@ -70,6 +71,8 @@ export default class previewService extends UserService {
 			this._tagInfoPopup.closeWindow();
 			this._itemMetadataPopup.closeWindow();
 			this._view.getParentView().back();
+			state.app.callEvent("toggleVisibilityOfCancelButton", [true]);
+			document.querySelector('.main-header-admin a').innerHTML = '<span class="webix_icon wxi-angle-left"></span> Cancel';
 			state.app.callEvent("toggleVisibilityOfBackButton", [false]);
 		});
 	}

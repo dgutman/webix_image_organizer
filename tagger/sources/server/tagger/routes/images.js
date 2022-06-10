@@ -123,8 +123,18 @@ function unreviewTaskImages(req, res, next) {
 
 	imagesService.unreviewTaskImages(taskIds, userId)
 		.then((data) => {
-			const correctString = data.nModified === 1 ? "image was" : "images were";
-			return res.send({message: `${data.nModified} ${correctString} succesfully updated`, data});
+			const correctString = data.modifiedCount === 1 ? "image was" : "images were";
+			return res.send({message: `${data.modifiedCount} ${correctString} succesfully updated`, data});
+		})
+		.catch(err => next(err));
+}
+
+function undoLastChange(req, res, next) {
+	const userId = req.user ? req.user.sub : null;
+	imagesService.undoLastChange(userId)
+		.then((data) => {
+			const correctString = data.length === 1 ? "image was" : "images were";
+			return res.send({message: `${data.length} ${correctString} successfully undo`});
 		})
 		.catch(err => next(err));
 }
@@ -137,5 +147,6 @@ router.put("/many", updateMany);
 router.put("/review", reviewImages);
 router.put("/unreview", unreviewTaskImages);
 router.post("/resource", getResourceImages);
+router.put("/undo", undoLastChange);
 
 module.exports = router;

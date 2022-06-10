@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
 import "../components/passwordInput";
 import authService from "../../services/authentication";
+import constants from "../../constants";
 
 export default class LoginWindowView extends JetView {
 	config() {
@@ -141,8 +142,12 @@ export default class LoginWindowView extends JetView {
 	loginButtonClick() {
 		this.view.showProgress();
 		if (this.form.validate()) {
+			const app = this.app;
 			authService.login(this.form.getValues())
 				.then(() => {
+					if (authService.isAdmin()) {
+						app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
+					}
 					this.form.clear();
 					this.form.elements["error-label"].hide();
 					this.view.hideProgress();

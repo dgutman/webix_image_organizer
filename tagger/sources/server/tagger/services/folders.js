@@ -18,7 +18,8 @@ function getById(id) {
 }
 
 async function getNestedFolderIds(resArr, ids) {
-	const childFolders = await Folders.find({parentId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}});
+	const childFolders = await Folders
+		.find({parentId: {$in: ids.map(id => mongoose.Types.ObjectId(id))}});
 	const childIds = childFolders.map(folder => folder.id);
 	resArr = resArr.concat(childIds);
 	if (childIds.length) {

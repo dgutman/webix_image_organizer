@@ -6,6 +6,7 @@ export default class CustomDataPull {
 
 	parseItems(dataArray, position, totalCount) {
 		const newDataPull = {};
+		if (!dataArray) dataArray = [];
 		dataArray.forEach((item) => {
 			const id = item.id || webix.uid();
 			item.id = id;

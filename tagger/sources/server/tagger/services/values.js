@@ -21,7 +21,7 @@ async function create(values, createdTagIds) {
 		const existedValue = await Values.findOne({value});
 
 		if (existedValue) {
-			valueObj.tagIds = existedValue.tagIds.map(id => id.toString());
+			valueObj.tagIds = existedValue.tagIds.map((id) => {if (id) id.toString()});
 			valueObj.tagIds = existedValue.tagIds.concat(tagIds).unique();
 
 			Object.assign(existedValue, valueObj);
@@ -30,7 +30,8 @@ async function create(values, createdTagIds) {
 
 		const newValue = new Values(valueObj);
 		newValue.tagIds = tagIds;
-		return newValue.save();
+		const result = await newValue.save();
+		return result;
 	}));
 }
 
@@ -43,7 +44,8 @@ async function getByTags(tagIds) {
 	// validation
 	if (!Array.isArray(tagIds)) throw "Field \"tagIds\" should be an array";
 
-	const values = await Values.find({tagIds: {$in: tagIds.map(id => mongoose.Types.ObjectId(id))}}).sort({value: 1});
+	const values = await Values
+		.find({tagIds: {$in: tagIds.map(id => mongoose.Types.ObjectId(id))}}).sort({value: 1});
 	return values;
 }
 
@@ -68,7 +70,9 @@ async function updateValue(item, onlyValue) {
 			await Values.deleteOne({_id: value._id});
 
 			// update images which linked with this value
-			if (!onlyValue) await imageUpdateService.updateImagesByValue(oldValue, item, existedValue.tagIds);
+			if (!onlyValue) {
+				await imageUpdateService.updateImagesByValue(oldValue, item, existedValue.tagIds);
+			}
 
 			return existedValue.save();
 		}

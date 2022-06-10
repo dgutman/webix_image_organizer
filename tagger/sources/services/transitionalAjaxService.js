@@ -4,7 +4,7 @@ import AjaxClass from "./ajaxClass";
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PATH;
 
 class TransitionalAjaxService extends AjaxClass {
-	login(sourceParams) {
+		login(sourceParams) {
 		const params = sourceParams ? {
 			username: sourceParams.username || 0,
 			password: sourceParams.password || 0
@@ -426,6 +426,12 @@ class TransitionalAjaxService extends AjaxClass {
 		};
 
 		return this._ajax().post(`${TRANSITIONAL_API}/groups`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	undoLastChange() {
+		return this._ajax().put(`${TRANSITIONAL_API}/images/undo`)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

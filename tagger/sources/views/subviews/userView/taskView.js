@@ -66,6 +66,27 @@ export default class TaggerUserTaskView extends JetView {
 			}
 		};
 
+		const showReviewed = {
+			name: "showReviewed",
+			height: 40,
+			right: 0,
+			template: () => `<div class='show-reviewed-links'>
+									<a class='show-all'>Hide all</a>
+									<a class='show-reviewed'>Hide reviewed</a>
+									<a class='show-unreviewed'>Hide unreviewed</a>
+								</div>`,
+			borderless: true
+		};
+
+		const hideAnimationBtn = {
+			view: "button",
+			css: "btn-contour",
+			width: 80,
+			height: 40,
+			name: "hideAnimation",
+			value: "Hide animation"
+		};
+
 		const pager = {
 			view: "pager",
 			id: PAGER_ID,
@@ -76,32 +97,39 @@ export default class TaggerUserTaskView extends JetView {
 				<span class='pager-amount'>of ${obj.limit}</span> ${common.next()} ${common.last()}</div>`
 		};
 
+		webix.protoUI({
+			name: "imageTooltip"
+		}, webix.ui.tooltip);
+
 		const dataview = {
 			view: "dataview",
 			css: "user-dataview",
 			name: "userDataview",
 			minWidth: 350,
-			minHeight: 290,
-			tooltip: (obj) => {
-				let html = `<div class='webix_strong'>${obj.name}</div>`;
-				const tags = dot.pick("meta.tags", obj);
-				if (tags) {
-					html += "<br /><div>";
-					const tagKeys = Object.keys(tags);
-					tagKeys.sort().forEach((tagKey) => {
-						const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
-						const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
-						html += `${tagKey}: ${displayedValue}<br />`;
-					});
-					html += "</div>";
+			minHeight: 330,
+			tooltip: {
+				view: "imageTooltip",
+				template: (obj) => {
+					let html = "";
+					const tags = dot.pick("meta.tags", obj);
+					if (tags) {
+						html += "<div class='webix_strong image-tooltip'>";
+						const tagKeys = Object.keys(tags);
+						tagKeys.sort().forEach((tagKey) => {
+							const valuesNames = tags[tagKey].map(valueObject => valueObject.value);
+							const displayedValue = tags[tagKey].length ? `${valuesNames.sort().join(", ")}` : "<span class='half-opacity'>&lt;none&gt;</span>";
+							html += `${tagKey}: ${displayedValue}<br />`;
+						});
+						html += "</div>";
+					}
+					return html;
 				}
-				return html;
 			},
 			pager: PAGER_ID,
 			borderless: true,
 			template: (obj, common) => {
 				const thisDataview = this.getUserDataview();
-				const HEIGHT = 553;
+				const HEIGHT = 603;
 				const WIDTH = 750;
 				const sizeSelect = this.getSelectImageSize();
 				const multiplier = constants.DATAVIEW_IMAGE_MULTIPLIERS.get(sizeSelect.getValue());
@@ -109,7 +137,7 @@ export default class TaggerUserTaskView extends JetView {
 				let getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 				let setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 
-				if (multiplier === "single" ) {
+				if (multiplier === "single") {
 					sizesObject.width = common.width || WIDTH;
 					sizesObject.height = common.height || HEIGHT;
 
@@ -117,7 +145,7 @@ export default class TaggerUserTaskView extends JetView {
 					setPreviewUrl = galleryImageUrl.setNormalImageUrl;
 				}
 
-				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 30;
+				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 50;
 				// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
 
 				const highlightState = obj.isUpdated ? "highlighted" : "";
@@ -150,12 +178,13 @@ export default class TaggerUserTaskView extends JetView {
 								</div>
 								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image">
 							</div>
+							<div class="icons-spacer"></div>
 							<div class="dataview-images-name ellipsis-text">${obj.name}</div>
 						</div>`;
 			},
 			type: {
 				width: 150,
-				height: 135,
+				height: 155,
 				checkboxState: (obj) => {
 					let str = "unchecked far fa-square enabled";
 					const tagSelect = this.getTagSelect();
@@ -201,11 +230,20 @@ export default class TaggerUserTaskView extends JetView {
 				{},
 				{
 					view: "button",
+					css: "btn",
+					width: 80,
+					name: "undoButton",
+					hidden: false,
+					value: "Undo last change"
+				},
+				{width: 20},
+				{
+					view: "button",
 					css: "btn-contour",
 					width: 80,
 					name: "backButton",
 					hidden: true,
-					value: "Show reviewed"
+					value: "Unsubmit all"
 				},
 				{width: 20},
 				{
@@ -270,6 +308,14 @@ export default class TaggerUserTaskView extends JetView {
 						}
 					]
 				},
+				{
+					cols: [
+						{width: 40},
+						hideAnimationBtn,
+						{gravity: 2},
+						showReviewed
+					]
+				},
 				{hidden: true, selector: "dataview_y_spacer"},
 				{
 					cols: [
@@ -294,6 +340,28 @@ export default class TaggerUserTaskView extends JetView {
 
 	getDataviewIcons() {
 		return this._dataviewIcons;
+	}
+
+	async _getRoiThumbnail(image) {
+		let thumbnail;
+		if (!image.sizeX && !image.sizeY) {
+			thumbnail = await transitionalAjax.getROIsThumbnail(image._id);
+		}
+		else {
+			const {top, bottom, left, right} = this.countROICoords(image);
+			thumbnail = await ajaxService.getImage(image.mainId, "region", {top, bottom, left, right});
+		}
+		return thumbnail;
+	}
+
+	countROICoords(roi) {
+		const coords = {
+			left: Math.max(roi.left, 0),
+			top: Math.max(roi.top, 0),
+			right: Math.min(roi.right, roi.sizeX),
+			bottom: Math.min(roi.bottom, roi.sizeY)
+		};
+		return coords;
 	}
 
 	getInfoViewConfig(name, icon) {
@@ -332,6 +400,10 @@ export default class TaggerUserTaskView extends JetView {
 		return this.$$(PAGER_ID);
 	}
 
+	getUndoButton() {
+		return this.getRoot().queryView({name: "undoButton"});
+	}
+
 	getNextButton() {
 		return this.getRoot().queryView({name: "nextButton"});
 	}
@@ -358,5 +430,13 @@ export default class TaggerUserTaskView extends JetView {
 
 	getItemsCountTemplate() {
 		return this.getRoot().queryView({name: "itemsCountTemplate"});
+	}
+
+	getShowReviewTemplate() {
+		return this.getRoot().queryView({name: "showReviewed"});
+	}
+
+	getAnimationButton() {
+		return this.getRoot().queryView({name: "hideAnimation"});
 	}
 }

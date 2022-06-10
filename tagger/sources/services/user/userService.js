@@ -11,6 +11,7 @@ import InfoPopup from "../../views/windows/infoPopup";
 import hotkeysFactory from "./hotkeys";
 import AsyncQueue from "../asyncQueue";
 import NotificationsModel from "../../models/notificationsModel";
+import messageBoxes from "../../views/components/messageBoxes";
 
 export default class UserViewService {
 	constructor(view, iconsTemplateService) {
@@ -36,6 +37,7 @@ export default class UserViewService {
 		this._itemsCountTemplate = scope.getItemsCountTemplate();
 		this._nextButton = scope.getNextButton();
 		this._backButton = scope.getBackButton();
+		this._undoButton = scope.getUndoButton();
 		this._completeButton = scope.getCompleteButton();
 		this._imageWindow = scope.ui(imageWindow);
 		this._tagInfoTemplate = scope.getTagInfoTemplate();
@@ -48,6 +50,8 @@ export default class UserViewService {
 		this._hotkeysInfoPopup = scope.ui(new InfoPopup(scope.app, "hotkeys", "Hot-keys"));
 		this._itemMetadataPopup = scope.ui(new InfoPopup(scope.app, "metadata", "Metadata", true));
 		this._deviationFilterDropdown = scope.getDeviationFilterDropdown();
+		this._showReview = scope.getShowReviewTemplate();
+		this._animationButton = scope.getAnimationButton();
 
 		this._dataviewService = new DataviewService(
 			this._dataview,
@@ -113,6 +117,64 @@ export default class UserViewService {
 		const sizeValue = this._imageSizeSelect.getValue();
 		this._dataviewService.changeImageSize(sizeValue);
 		this._resizeDataview();
+
+		this._showReview.define("onClick", {
+			"show-all": (ev) => {
+				if (ev.target.innerHTML === "Hide all") {
+					this._dataviewStore.clearAll();
+					ev.target.innerHTML = "Show all";
+					document.querySelector(".show-unreviewed").classList.add("disable-link");
+					document.querySelector(".show-reviewed").classList.add("disable-link");
+				}
+				else {
+					this._getImages();
+					ev.target.innerHTML = "Hide all";
+					document.querySelector(".show-unreviewed").classList.remove("disable-link");
+					document.querySelector(".show-reviewed").classList.remove("disable-link");
+				}
+			},
+			"show-reviewed": (ev) => {
+				if (ev.target.innerHTML === "Hide reviewed") {
+					this._dataview.filter(item => item && !item.isUpdated);
+					ev.target.innerHTML = "Show reviewed";
+					document.querySelector(".show-unreviewed").classList.add("disable-link");
+					document.querySelector(".show-all").classList.add("disable-link");
+				}
+				else {
+					ev.target.innerHTML = "Hide reviewed";
+					document.querySelector(".show-unreviewed").classList.remove("disable-link");
+					document.querySelector(".show-all").classList.remove("disable-link");
+					this._getImages();
+				}
+			},
+			"show-unreviewed": (ev) => {
+				if (ev.target.innerHTML === "Hide unreviewed") {
+					ev.target.innerHTML = "Show unreviewed";
+					this._dataview.filter(item => item && item.isUpdated);
+					document.querySelector(".show-reviewed").classList.add("disable-link");
+					document.querySelector(".show-all").classList.add("disable-link");
+				}
+				else {
+					ev.target.innerHTML = "Hide unreviewed";
+					document.querySelector(".show-reviewed").classList.remove("disable-link");
+					document.querySelector(".show-all").classList.remove("disable-link");
+					this._getImages();
+				}
+			}
+		});
+
+		this._animationButton.attachEvent("onItemClick", () => {
+			const btnView = this._animationButton.$view;
+			const btn = btnView.querySelector(".webix_button");
+			if (btn.innerHTML === "Hide animation") {
+				btn.innerHTML = "Show animation";
+				this._dataview.$view.classList.add("hide-animation");
+			}
+			else {
+				btn.innerHTML = "Hide animation";
+				this._dataview.$view.classList.remove("hide-animation");
+			}
+		});
 	}
 
 	_loggedInUserService() {
@@ -136,7 +198,7 @@ export default class UserViewService {
 						this._taskList.select(taskId);
 						return false;
 					})
-					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then(result => result ? this._saveUnsavedImages() : false)
 					.then((response) => {
 						if (response) {
 							webix.message(response.message);
@@ -209,6 +271,15 @@ export default class UserViewService {
 		});
 
 		this._valueSelect.attachEvent("onChange", (id, oldId) => {
+			// Remove the border highlight on the image when changing a tag
+			const items = document.querySelectorAll(".dataview-item");
+			items.forEach((item) => {
+				if (item.classList.contains("highlighted") && !item.querySelector(".checked")) {
+					item.classList.remove("highlighted");
+					// Add round underline for icons instead of red frame
+					item.querySelector(".item-tag-related-icons").classList.add("underline-icons");
+				}
+			});
 			if (id && id !== oldId && !this._hotkeysService.image) {
 				const selectedValue = valuesList.getItem(id);
 				if (this.currentValue && this.currentValue !== selectedValue.name) {
@@ -222,6 +293,15 @@ export default class UserViewService {
 
 		this._dataview.attachEvent("onDataRequest", () => {
 			this._getImagesQueue.addJobToQueue();
+		});
+
+		this._dataview.attachEvent("onMouseMoving", (ev) => {
+			let tooltip = webix.TooltipControl.getTooltip();
+			if (ev.target.classList.contains("dataview-images-icons") && tooltip) {
+				let coords = ev.target.getBoundingClientRect();
+				tooltip._settings.dy = coords.y - ev.clientY + coords.height - 30;
+				tooltip._settings.dx = coords.x - ev.clientX + coords.width - 30;
+			}
 		});
 
 		this._deviationFilterDropdown.attachEvent("onChange", (id) => {
@@ -247,8 +327,18 @@ export default class UserViewService {
 			});
 
 			if (dataToUpdate.length) {
+				for (let i = 0; i < dataToUpdate.length; i++) {
+					let item = dataToUpdate[i];
+					if (item.isUpdated && item.tags) {
+						let isReviewed = false;
+						for (let key in item.tags) {
+							if (item.tags[key].length > 0) isReviewed = true;
+						}
+						item.isReviewed = isReviewed;
+					}
+				}
 				this._view.showProgress();
-				const reviewPromise = 
+				const reviewPromise =
 					transitionalAjax.reviewImages(dataToUpdate, taskIds);
 				reviewPromise
 					.then((response) => {
@@ -268,20 +358,44 @@ export default class UserViewService {
 			}
 		});
 
-		this._backButton.attachEvent("onItemClick", () => {
-			const tasks = this._taskList.getSelectedItem(true);
-			const taskIds = tasks.map(task => task._id);
-
+		this._undoButton.attachEvent("onItemClick", () => {
 			this._view.showProgress();
-			const unreviewPromise = transitionalAjax.unreviewImages(taskIds);
-			unreviewPromise
+			// TODO: check undo on roi
+			const undoPromise = transitionalAjax.undoLastChange();
+			undoPromise
 				.then((response) => {
 					webix.message(response.message);
 					this._view.hideProgress();
-
 					this._dataviewStore.clearAll();
 					this._getImages();
 				})
+				.catch(() => {
+					this._view.hideProgress();
+				});
+		});
+
+		this._backButton.attachEvent("onItemClick", () => {
+			let confirmPromise = Promise.resolve();
+			confirmPromise = messageBoxes.confirmMessage("Are you sure you want to unsubmit the task?");
+			confirmPromise.then(() => {
+				const tasks = this._taskList.getSelectedItem(true);
+				const taskIds = tasks.map(task => task._id);
+
+				this._view.showProgress();
+				const unreviewPromise =
+					transitionalAjax.unreviewImages(taskIds);
+				unreviewPromise
+					.then((response) => {
+						webix.message(response.message);
+						this._view.hideProgress();
+
+						this._dataviewStore.clearAll();
+						this._getImages();
+					})
+					.catch(() => {
+						this._view.hideProgress();
+					});
+			})
 				.catch(() => {
 					this._view.hideProgress();
 				});
@@ -292,10 +406,6 @@ export default class UserViewService {
 				text: "Are you sure that you are ready to finalize the task? Please, note further changes to the task will not be available.",
 				ok: "Yes",
 				cancel: "No"
-			}).then(() => {
-				this._completeButton.hide();
-				const task = this._taskList.getSelectedItem(true);
-				if (task.userId.length === task.checked_out.length) transitionalAjax.changeTaskStatus(task[0]._id, "finished");
 			});
 		});
 
@@ -521,7 +631,6 @@ export default class UserViewService {
 					this._view.hideProgress();
 					return processedImages;
 				}
-				this._view.hideProgress();
 				return false;
 			})
 			.catch(() => {
@@ -569,6 +678,12 @@ export default class UserViewService {
 			}
 			else if (e.target.classList.contains("checked") && e.target.classList.contains("enabled")) {
 				this._updatedImagesService.removeSelectedTagValueFromImage(id);
+				// Remove the border highlight on the image when changing a tag
+				const selector = `[webix_l_id='${id}'] .dataview-item`;
+				const parent = document.querySelector(selector);
+				parent.classList.remove("highlighted");
+				// Add round underline for icons instead of red frame
+				parent.querySelector(".item-tag-related-icons").classList.add("underline-icons");
 				return false;
 			}
 			else if (e.target.classList.contains("show-metadata")) {
@@ -666,12 +781,6 @@ export default class UserViewService {
 		else {
 			this._backButton.hide();
 		}
-		if (!unfilteredCount && totalCount) {
-			this._completeButton.show();
-		}
-		else {
-			this._completeButton.hide();
-		}
 
 		if (this._taskList.getSelectedItem(true)[0].status === "finished") {
 			this._completeButton.hide();
@@ -723,5 +832,20 @@ export default class UserViewService {
 		return `<span class='strong-font ellipsis-text'>${notification.taskName}</span>
 				<br>
 				<span>${text}</span>`;
+	}
+
+	_tagsAreSet(data) {
+		if (data.length) {
+			for (let i = 0; i < data.length; i++) {
+				let item = data[i];
+				if (item.isUpdated && item.tags) {
+					let isReviewed = false;
+					for (let key in item.tags) {
+						if (item.tags[key].length > 0) isReviewed = true;
+					}
+					item.isReviewed = isReviewed;
+				}
+			}
+		}
 	}
 }

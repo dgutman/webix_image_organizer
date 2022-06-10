@@ -60,6 +60,10 @@ export default class TaggerUserView extends JetView {
 	}
 
 	ready(view) {
+		if (auth.isAdmin()) {
+			document.querySelector('.main-header-admin a').innerHTML = '<span class="webix_icon wxi-angle-left"></span> Back to Admin Mode';
+		}
+
 		const dataviewIcons = this._taskView.getDataviewIcons();
 		this.userViewService = new UserViewService(view, dataviewIcons);
 	}
@@ -100,6 +104,10 @@ export default class TaggerUserView extends JetView {
 		return this._taskView.getNextButton();
 	}
 
+	getUndoButton() {
+		return this._taskView.getUndoButton();
+	}
+
 	getBackButton() {
 		return this._taskView.getBackButton();
 	}
@@ -122,6 +130,14 @@ export default class TaggerUserView extends JetView {
 
 	getItemsCountTemplate() {
 		return this._taskView.getItemsCountTemplate();
+	}
+
+	getShowReviewTemplate() {
+		return this._taskView.getShowReviewTemplate();
+	}
+
+	getAnimationButton() {
+		return this._taskView.getAnimationButton();
 	}
 
 	getFiltersAccordionItem() {
