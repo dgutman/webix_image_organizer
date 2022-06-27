@@ -208,10 +208,13 @@ export default class ImageTemplateEventsService {
 			this._imageWindowViewModel.layouts = treeannotation;
 			let richselect = this._imageWindowView.getRoot().queryView({view: "richselect"});
 			let list = richselect.getList();
+			const currentLayer = richselect.getText();
 			list.clearAll();
 			list.parse(this._imageWindowViewModel.layouts);
-			richselect.setValue(list.getFirstId());
-			richselect.refresh();
+			if(!currentLayer) {
+				richselect.setValue(list.getFirstId());
+				richselect.refresh();
+			}
 		});
 
 		this._imageWindowView.on(this._imageWindowView.app, "setLayer", (layerId) => {

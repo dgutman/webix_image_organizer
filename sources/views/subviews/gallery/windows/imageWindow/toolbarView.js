@@ -17,6 +17,7 @@ export default class ToolbarView extends JetView {
 		const topToolbar = {
 			view: "toolbar",
 			name: "top_toolbar",
+			hidden: true,
 			cols: [
 				{
 					view: "button",
@@ -51,7 +52,8 @@ export default class ToolbarView extends JetView {
 				{view: "button", value: "Aperio Annotations", name: "aperioAnnotations"}
 			],
 			borderless: true,
-			disabled: true
+			disabled: true,
+			hidden: true
 		};
 
 		const drawingToolbar = {
@@ -252,8 +254,7 @@ export default class ToolbarView extends JetView {
 			],
 			css: "drawing_toolbar",
 			height: 60,
-			borderless: true,
-			disabled: true
+			borderless: true
 		};
 		return {
 			rows: [
@@ -279,13 +280,8 @@ export default class ToolbarView extends JetView {
 		this._applyFiltersPopup = this.ui(ApplyFiltersView);
 
 		this._pathologyReportButton = this.getRoot().queryView({name: "pathologyReport"});
-		webix.extend(this._pathologyReportButton, webix.ProgressBar);
-
-		let buttonLayout = this.getRoot().queryView({name: "drawing_buttons_layout"}).getChildViews();
-		for (let i = 0; i < buttonLayout.length; i++) {
-			if (buttonLayout[i].isEnabled()) {
-				buttonLayout[i].disable();
-			}
+		if (this._pathologyReportButton) {
+			webix.extend(this._pathologyReportButton, webix.ProgressBar);
 		}
 	}
 

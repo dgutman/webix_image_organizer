@@ -2,6 +2,10 @@ import {DataCollection} from "webix";
 import ScenesView from "../scenesView/scenesView";
 import NpPanel from "./npPanel";
 import NPTableView from "./npTableView";
+import collapser from "../../components/collapser";
+
+const npPanelCollapserName = 'npPanelCollapser';
+const toggleStainAndRegionId = 'toggleStainAndRegionId';
 
 export default class NPCaseViewClass extends ScenesView {
 	constructor(app, config) {
@@ -11,6 +15,23 @@ export default class NPCaseViewClass extends ScenesView {
 	}
 
 	config() {
+		const panelCollapser = collapser.getConfig(this._npPanel.getNpPanelId(), {type: "top", closed: false}, npPanelCollapserName);
+		const toggleButton = {
+			id: toggleStainAndRegionId,
+			view: "switch",
+			name: "toggleType",
+			css: "toggleStainAndRegion",
+			offLabel: "Region",
+			onLabel: "Stain",
+			width: 100,
+			value: 1
+		}
+		const modePanel = {
+			cols: [
+				toggleButton,
+				this._modePanelView
+			]
+		}
 		return {
 			name: "npViewCell",
 			css: "scenes-view",
@@ -18,7 +39,8 @@ export default class NPCaseViewClass extends ScenesView {
 			rows: [
 				this._imagesSlider,
 				this._npPanel,
-				this._modePanelView,
+				panelCollapser,
+				modePanel,
 				this._slideViewContainer
 			]
 		};
@@ -45,33 +67,60 @@ export default class NPCaseViewClass extends ScenesView {
 
 		const npPanel = this._npPanel;
 		const sliderCollection = this.sliderCollection;
-		this.on(this.sliderCollection.data, "onSyncApply", () => {
-			const stainArray = [];
+		const switcherView = this.getSwitcherView();
+		const updateView = () => {
+			const npSchemaProperties = [];
 			const items = webix.copy(this.dataCollection.data.pull);
 			const itemsKeys = Object.keys(items);
-			itemsKeys.forEach((key) => {
-				if (items[key].meta?.npSchema?.stainID
-					&& !stainArray.includes(items[key].meta.npSchema.stainID)) {
-					stainArray.push(items[key].meta.npSchema.stainID);
-				}
-			});
+			if (switcherView.getValue()) {
+				itemsKeys.forEach((key) => {
+					if (items[key].meta?.npSchema?.stainID
+						&& !npSchemaProperties.includes(items[key].meta.npSchema.stainID)) {
+						npSchemaProperties.push(items[key].meta.npSchema.stainID);
+					}
+				});	
+			} else {
+				itemsKeys.forEach((key) => {
+					if (items[key].meta?.npSchema?.regionName
+						&& !npSchemaProperties.includes(items[key].meta.npSchema.regionName)) {
+						npSchemaProperties.push(items[key].meta.npSchema.regionName);
+					}
+				});	
+			}
 			const clickButtonHandler = function (id) {
-				sliderCollection.filter((obj) => {
-					return obj.meta?.npSchema?.stainID
-						&& ($$(id))?.config
-						? obj.meta.npSchema.stainID === $$(id).config.value
-						: false;
-				});
-				npPanel.getNpPanelView().getChildViews().forEach((button) => {
-					const buttonNode = button.getNode();
-					buttonNode.classList.remove("np_button_active");
-					buttonNode.classList.add("np_button");
-				})
-				$$(id).getNode().classList.remove("np_button");
-				$$(id).getNode().classList.add("np_button_active");
+				if (switcherView.getValue()) {
+					sliderCollection.filter((obj) => {
+						return obj.meta?.npSchema?.stainID
+							&& ($$(id))?.config
+							? obj.meta.npSchema.stainID === $$(id).config.value
+							: false;
+					});
+					npPanel.getNpPanelView().getChildViews().forEach((button) => {
+						const buttonNode = button.getNode();
+						buttonNode.classList.remove("np_button_active");
+						buttonNode.classList.add("np_button");
+					})
+					$$(id).getNode().classList.remove("np_button");
+					$$(id).getNode().classList.add("np_button_active");	
+				} else {
+					sliderCollection.filter((obj) => {
+						return obj.meta?.npSchema?.regionName
+							&& ($$(id))?.config
+							? obj.meta.npSchema.regionName === $$(id).config.value
+							: false;
+					});
+					npPanel.getNpPanelView().getChildViews().forEach((button) => {
+						const buttonNode = button.getNode();
+						buttonNode.classList.remove("np_button_active");
+						buttonNode.classList.add("np_button");
+					})
+					$$(id).getNode().classList.remove("np_button");
+					$$(id).getNode().classList.add("np_button_active");	
+				}
 			};
-			if (stainArray.length > 0) {
-				npPanel.setButtons(stainArray, clickButtonHandler);
+
+			if (npSchemaProperties.length > 0) {
+				npPanel.setButtons(npSchemaProperties, clickButtonHandler);
 			}
 
 			const foundItems = sliderCollection.find((obj) => {
@@ -87,11 +136,14 @@ export default class NPCaseViewClass extends ScenesView {
 						: false;
 				});
 			}
-		});
+		};
+		this.on(this.sliderCollection.data, "onSyncApply", updateView);
 
 		this.on(listSlider, "onSelectChange", async () => {
 			this._setSelectedImagesToViewer();
 		});
+
+		this.on(switcherView, "onChange", updateView)
 	}
 
 	syncSlider(dataCollection) {
@@ -103,5 +155,9 @@ export default class NPCaseViewClass extends ScenesView {
 				: false;
 		});
 		this._imagesSlider.syncSlider(this.sliderCollection);
+	}
+
+	getSwitcherView() {
+		return this.$$(toggleStainAndRegionId);
 	}
 }

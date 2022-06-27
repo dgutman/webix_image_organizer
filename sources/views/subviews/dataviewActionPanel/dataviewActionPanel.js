@@ -234,6 +234,15 @@ export default class DataviewActionPanelClass extends JetView {
 		}
 	}
 
+	caseViewOptionToggle(item) {
+		const imagesCollection = ItemsModel.getInstanceModel();
+		const caseViewOption = constants.CASE_VIEW_OPTION;
+		const folder = item._modelType === "folder" ? item : imagesCollection.findItem(item.$parent);
+		if (folder.caseview) {
+			this.setNewViewOption(caseViewOption);
+		}
+	}
+
 	removeViewOption(viewOption) {
 		const switcherList = this._switcherView.getList();
 		const isOptionExists = switcherList.exists(viewOption.id);
