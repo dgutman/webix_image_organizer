@@ -1,3 +1,4 @@
+/*eslint-disable*/
 if (!String.prototype.splice) {
 	/**
 	 * {JSDoc}

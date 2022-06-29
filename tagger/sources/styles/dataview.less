@@ -159,14 +159,21 @@
       position: relative;
       overflow: hidden;
     }
-    .roi-image-rect {
-      position: absolute;
-      box-sizing: border-box;
-      border: 2px solid red;
-      &:hover {
-        opacity: .1;
-      }
+    
+  }
+
+  .roi-image-rect {
+    position: absolute;
+    box-sizing: border-box;
+    border: 3px solid green;
+    z-index: 10;
+    &:hover {
+      opacity: .5;
     }
+  }
+
+  .hide-border .roi-image-rect {
+    display: none;
   }
 
   .large-image-name {
@@ -358,4 +365,8 @@
 body.theme-flat .tagger-app .user-dataview.hide-animation .selected .dataview-images-container .dataview-image {
   transform: none;
   transition: none;
+}
+
+.hide-roi {
+  display: none;
 }

@@ -140,6 +140,10 @@ export default class TaggerUserView extends JetView {
 		return this._taskView.getAnimationButton();
 	}
 
+	getROIBorderButton() {
+		return this._taskView.getROIBorderButton();
+	}
+
 	getFiltersAccordionItem() {
 		return this.getRoot().queryView({name: "filtersAccordionItem"});
 	}

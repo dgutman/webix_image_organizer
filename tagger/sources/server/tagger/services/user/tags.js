@@ -1,7 +1,7 @@
 const UserTags = require("../../models/user/tags");
 const Tags = require("../../models/tags");
 const mongoose = require("mongoose");
-const tagsService = require("../tags"); 
+const tagsService = require("../tags");
 
 async function getTagsWithValuesByTask(taskId, userId) {
 	// validation

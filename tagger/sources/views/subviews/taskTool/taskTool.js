@@ -115,6 +115,14 @@ export default class TaggerTaskTool extends JetView {
 		return this.imagesLayout.queryView({name: "showMeta"});
 	}
 
+	get showROI() {
+		return this.imagesLayout.queryView({name: "showROI"});
+	}
+
+	get showROIBorders() {
+		return this.imagesLayout.queryView({name: "showROIBorders"});
+	}
+
 	get tagsForm() {
 		return this._taskCreationForm.tagsForm;
 	}

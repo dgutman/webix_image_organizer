@@ -55,6 +55,13 @@ async function getAll() {
 	return tags;
 }
 
+async function _delete(tagId) {
+	await Fields.deleteMany({tag: tagId});
+	await Values.updateMany({tagIds: tagId}, {$pull: {tagIds: tagId}});
+	await Values.deleteOne({tagIds: {$size: 0}});
+	return Tags.findOneAndDelete({_id: tagId});
+}
+
 async function getByCollection(collectionIds) {
 	// validation
 	if (!Array.isArray(collectionIds)) throw "Field \"collectionIds\" should be an array";
@@ -118,13 +125,6 @@ async function updateMany(tags, onlyTags) {
 	if (!Array.isArray(tags)) throw "Field \"tags\" should be an array";
 
 	return Promise.all(tags.map(async item => updateTag(item, onlyTags)));
-}
-
-async function _delete(tagId) {
-	await Fields.deleteMany({tag: tagId});
-	await Values.updateMany({tagIds: tagId}, {$pull: {tagIds: tagId}});
-	await Values.deleteOne({tagIds: {$size: 0}});
-	return Tags.findOneAndDelete({_id: tagId});
 }
 
 async function deleteMany(tagIds) {

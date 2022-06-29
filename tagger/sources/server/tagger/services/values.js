@@ -49,6 +49,11 @@ async function getByTags(tagIds) {
 	return values;
 }
 
+async function _delete(valueId) {
+	const result = await Values.findOneAndDelete({_id: valueId});
+	return result;
+}
+
 async function updateValue(item, onlyValue) {
 	const value = await Values.findById(item._id);
 
@@ -98,10 +103,6 @@ async function updateMany(values, onlyValues) {
 	if (!Array.isArray(values)) throw "Field \"values\" should be an array";
 
 	return Promise.all(values.map(async value => updateValue(value, onlyValues)));
-}
-
-async function _delete(valueId) {
-	return Values.findOneAndDelete({_id: valueId});
 }
 
 async function deleteMany(valueIds) {

@@ -5,10 +5,12 @@ const Tags = require("../../models/user/tags");
 const Values = require("../../models/user/values");
 const Groups = require("../../models/user/task_groups");
 const Images = require("../../models/images");
+const Rois = require("../../models/user/rois");
 const groupService = require("./task_groups");
 const folderService = require("../folders");
 const imagesService = require("../images");
 const tagsService = require("./tags");
+const roisService = require("./rois");
 const girderREST = require("../girderServerRequest");
 
 const ajvSchemas = require("../../etc/json-validation-schemas");
@@ -22,12 +24,12 @@ async function collectTaskData({taskData, userId, imageIds, taskId, groupId}) {
 	let taskUsers = taskData.user || taskData.userId;
 	if (taskUsers && !Array.isArray(taskUsers)) {
 		taskUsers = [taskUsers];
-		taskUsers = taskUsers.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
+		taskUsers = taskUsers.filter(user => user).map(user => typeof user === "string" ? user : user._id);
 	}
 	let taskCreators = taskData.creator || taskData.creatorId;
 	if (taskCreators && !Array.isArray(taskCreators)) {
 		taskCreators = [taskCreators];
-		taskCreators = taskCreators.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
+		taskCreators = taskCreators.filter(user => user).map(user => typeof user === "string" ? user : user._id);
 	}
 
 	if (taskData.group) {
@@ -83,8 +85,9 @@ async function collectTaskData({taskData, userId, imageIds, taskId, groupId}) {
 	return {taskData, tags, values, taskUsers, taskCreators};
 }
 
-async function createTask(taskData, imageIds, userId, hostApi, token) {
+async function createTask(taskData, imageIds, selectedImages, userId, hostApi, token) {
 	// validation
+	if (imageIds.undefined) imageIds = imageIds.undefined;
 	const valid = ajvSchemas.validate("task", {task: taskData});
 	if (!valid) throw {name: "ValidationError", message: ajvSchemas.errors};
 	if (!userId) throw {name: "UnauthorizedError"};
@@ -93,12 +96,44 @@ async function createTask(taskData, imageIds, userId, hostApi, token) {
 	if (!validImageIds) throw {name: "ValidationError", message: "Image ids are not specified"};
 
 	const data = await collectTaskData({taskData, userId, imageIds});
+	data.taskData.owner = userId;
 
-	const [task] = await Promise.all([
+	const promisesArr = [
 		Tasks.create(data.taskData),
 		Tags.insertMany(data.tags),
 		Values.insertMany(data.values)
-	]);
+	];
+	if (taskData.fromROI && selectedImages) {
+		let roiImgs = [];
+		selectedImages.forEach((img) => {
+			let roiImg = {
+				taskId: taskData._id,
+				name: img.name,
+				mainId: img.mainId,
+				imageId: img._id,
+				_id: img._id,
+				left: img.left || 20,
+				top: img.top || 20,
+				right: img.right || 200,
+				bottom: img.bottom || 200,
+				meta: img.meta,
+				boxColor: img.boxColor,
+				style: {
+					boxLeft: img.boxLeft || 20,
+					boxTop: img.boxTop || 20,
+					boxWidth: img.boxWidth || 200,
+					boxHeight: img.boxLeft || 200
+				},
+				roi: true,
+				apiUrl: img.apiUrl
+			};
+			roiImgs.push(roiImg);
+		});
+
+		promisesArr.push(Rois.create(roiImgs));
+	}
+
+	const [task] = await Promise.all(promisesArr);
 
 	const userIDs = data.taskUsers.concat(data.taskCreators).unique();
 	await Promise.all(
@@ -122,8 +157,17 @@ async function deleteTask(id, userId, isAdmin, force) {
 		Tasks.deleteMany({_id: taskToDelete._id}),
 		Tags.deleteMany({_id: {$in: tagIdsToDelete}}),
 		Values.deleteMany({tagId: {$in: tagIdsToDelete}}),
-		Images.deleteMany({taskId: taskToDelete._id})
+		taskToDelete.fromROI === true ? Rois.deleteMany({taskId: taskToDelete._id}) : Images.deleteMany({taskId: taskToDelete._id})
 	]);
+
+	if (force) {
+		const notificationText = `The task "${taskToDelete.name}" has been deleted`;
+		const ids = {
+			[taskToDelete._id]: taskToDelete.checked_out
+		};
+
+		notificationsService.sendNotifications(notificationText, ids, isAdmin);
+	}
 }
 
 async function editTask(id, taskData, imageIds, userId, hostApi, token) {
@@ -217,13 +261,19 @@ async function getNewTasksFromGirder(collectionId, host, token, userId, isAdmin)
 
 	const existingTasksQuery = isAdmin ? {} : {userId: mongoose.Types.ObjectId(userId)};
 	const existingTasks = await Tasks.find(existingTasksQuery);
-	let taskFolders = await girderREST.get(url, {
-		headers: {
-			"Girder-Token": token
-		}
-	});
 
-	// taskFolders.unshift(testData);
+	let taskFolders;
+
+	try {
+		taskFolders = await girderREST.get(url, {
+			headers: {
+				"Girder-Token": token
+			}
+		});
+	}
+	catch (err) {
+		taskFolders = [];
+	}
 
 	// filter new tasks
 	let newTasks = taskFolders
@@ -239,7 +289,7 @@ async function getNewTasksFromGirder(collectionId, host, token, userId, isAdmin)
 			if (!Array.isArray(taskData.user)) {
 				taskUsers = [taskUsers];
 			}
-			const checkOwner = isAdmin ? true : taskUsers.find(user => (typeof user === "string" ? userId === user : userId === user._id));
+			const checkOwner = isAdmin ? true : taskUsers.find(user => typeof user === "string" ? userId === user : userId === user._id);
 			return checkOwner && !existingTasks
 				.find(task => task.checked_out.length && task.folderId === folder._id);
 		});
@@ -258,8 +308,8 @@ async function getNewTasksFromGirder(collectionId, host, token, userId, isAdmin)
 			taskCreators = [taskCreators];
 		}
 
-		taskUsers = taskUsers.map(user => (typeof user === "string" ? user : user._id));
-		taskCreators = taskCreators.filter(user => user).map(user => (typeof user === "string" ? user : user._id));
+		taskUsers = taskUsers.map(user => typeof user === "string" ? user : user._id);
+		taskCreators = taskCreators.filter(user => user).map(user => typeof user === "string" ? user : user._id);
 
 		const taskProps = {
 			_id: existedTask ? existedTask._id : new ObjectID(),
@@ -269,7 +319,8 @@ async function getNewTasksFromGirder(collectionId, host, token, userId, isAdmin)
 			groupId: existedTask ? existedTask.groupId : null,
 			type: "girder",
 			status: "published",
-			checked_out: []
+			checked_out: [],
+			owner: taskCreators[0]
 		};
 
 		if (taskCreators.length) taskProps.creatorId = taskCreators;
@@ -365,7 +416,7 @@ async function checkTask(taskId, hostApi, token, userId) {
 	}
 
 	const defaultTagValues = await Tags.collectDefaultValues(taskId);
-	await imagesService.setTagsByTask(images, defaultTagValues);
+	task.fromROI ? await roisService.setTagsByTask(images, defaultTagValues) : await imagesService.setTagsByTask(images, defaultTagValues);
 
 	task.checked_out.push(userId);
 	task.status = "in_progress";
@@ -378,9 +429,13 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 	if (!isAdmin) throw {name: "UnauthorizedError"};
 	if (!collectionId) throw "Field \"collectionId\" should be set";
 
-	if (!groupId && type !== "girder") await getNewTasksFromGirder(collectionId, host, token, userId, isAdmin);
+	if (!groupId && type === "girder") await getNewTasksFromGirder(collectionId, host, token, userId, isAdmin);
 
-	const searchParams = {groupId: groupId ? new ObjectID(groupId) : null};
+	const searchParams = {
+		groupId: groupId ? new ObjectID(groupId) : null,
+		creatorId: mongoose.Types.ObjectId(userId)
+	};
+
 	if (type) searchParams.type = type;
 
 	const aggregatePipeline = [
@@ -406,6 +461,7 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 				latest: {$max: "$images.updatedDate"},
 				groupId: 1,
 				_modelType: 1,
+				owner: 1,
 				count: {
 					$divide: [{$size: "$images"}, {$max: [{$size: "$checked_out"}, 1]}]
 				}
@@ -422,6 +478,7 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 				created: 1,
 				creatorId: 1,
 				latest: 1,
+				owner: 1,
 				count: 1,
 				groupId: 1,
 				_modelType: 1
@@ -546,7 +603,7 @@ module.exports = {
 	createTask,
 	deleteTask,
 	editTask,
-	changeTaskStatus,
 	getTaskJSON,
-	getTaskResults
+	getTaskResults,
+	changeTaskStatus
 };

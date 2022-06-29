@@ -51,7 +51,7 @@ export default class CustomDataPull {
 	removeItem(id, baseId) {
 		let item = this.getItemById(id, baseId);
 
-		if (item) {
+		if (!(Object.keys(item).length === 0)) {
 			this.dataStoreView.remove(item.id);
 			delete this.customDataPull[item._id];
 			delete this.customDataPull[item.id];

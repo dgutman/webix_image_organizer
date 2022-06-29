@@ -19,7 +19,9 @@ const tagsSchema = new Schema({
 		type: String
 	},
 	type: {
-		type: String, default: "multiple"
+		type: String,
+		default: "multiple",
+		enum: ["multiple", "multiple_with_default", "binary"]
 	},
 	default: {
 		type: String,
@@ -35,6 +37,10 @@ const tagsSchema = new Schema({
 		required() {
 			return this.icontype === "badge" || this.icontype === "badgecolor";
 		}
+	},
+	roi: {
+		type: Boolean,
+		default: false
 	}
 });
 

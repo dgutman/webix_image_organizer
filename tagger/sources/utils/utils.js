@@ -32,6 +32,7 @@ function searchForFileType(obj) {
 }
 
 function isObjectEmpty(obj) {
+	// eslint-disable-next-line no-restricted-syntax
 	for (let prop in obj) {
 		if (obj.hasOwnProperty(prop)) { return false; }
 	}
@@ -104,19 +105,6 @@ function isElement(o) {
 	);
 }
 
-function once(fn, context) {
-	let result;
-
-	return function () {
-		if (fn) {
-			result = fn.apply(context || this, arguments);
-			fn = null;
-		}
-
-		return result;
-	};
-}
-
 export default {
 	openInNewTab,
 	escapeHTML,
@@ -126,6 +114,5 @@ export default {
 	setObjectProperty,
 	isNode,
 	isElement,
-	once,
 	transformToArray
 };

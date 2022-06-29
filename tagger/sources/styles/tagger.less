@@ -353,6 +353,7 @@
                     overflow: hidden;
                     white-space: nowrap;
                     text-overflow: ellipsis;
+                    margin: 12px;
                 }
                 .dataview-images-icons {
                     position: absolute;
@@ -578,6 +579,10 @@
                     color: @btn-hover;
                 }
             }
+
+            &.webix_dataview .dataview-item .dataview-images-name {
+                margin: 0;
+            }
         }
 
         .user-dataview, .task-tool-dataview {
@@ -609,6 +614,7 @@
                     overflow: hidden;
                     white-space: nowrap;
                     text-overflow: ellipsis;
+                    margin: 12px;
                 }
                 .dataview-images-icons {
                     position: absolute;
@@ -641,7 +647,7 @@
                 }
 
                 .icons-spacer {
-                    height: 20px;
+                    height: 15px;
                 }
 
                 .dataview-icons-bottom {
@@ -705,7 +711,6 @@
                 .border-radius(3px);
                 text-align: center;
                 .dataview-image {
-                    // TODO Uncomment to add feature: The images are jumping upon hoovering over them
                     transition: all 0.3s ease;
                     height: 100%;
                     width: auto;
@@ -877,7 +882,7 @@
         overflow: hidden;
     }
 }
-// TODO: Uncomment to add feature: The images are jumping upon hoovering over them
+
 body.focused {
     .tagger-app .user-dataview {
         .dataview-item.selected {

@@ -13,20 +13,19 @@ const foldersService = require("./folders");
 const imageFilters = require("./imageFilters");
 const Tasks = require("../models/user/tasks");
 const girderREST = require("./girderServerRequest");
+const generateError = require("../etc/errorGenerator");
 
 function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
 }
 
-async function countImagesByTask(taskId, userId) {
+async function countImagesByTask(taskId) {
 	const reviewedCount = await Images.countDocuments({
 		taskId: mongoose.Types.ObjectId(taskId),
-		userId,
 		isReviewed: true
 	});
 	const allCount = await Images.countDocuments({
-		taskId: mongoose.Types.ObjectId(taskId),
-		userId
+		taskId: mongoose.Types.ObjectId(taskId)
 	});
 	return {reviewedCount, allCount};
 }
@@ -108,24 +107,27 @@ async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) 
 	// copy imagesId;
 	const imageIdsArray = [...imageIds];
 	while (imageIdsArray.length > 0) {
-		const imageArr = imageIdsArray.splice(0, 50);
-		const query = imageArr.map(id => ({$oid: id.toString()}));
-		const url = encodeURI(`${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=50&offset=0`);
-		imagePromises.push(girderREST.get(url, options));
+		const imagesSlice = imageIdsArray.splice(0, 50);
+		const query = imagesSlice.map(id => ({$oid: id.toString()}));
+		const url = `${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=0&offset=0${setTokenIntoUrl(token, "&")}`;
+		imagePromises.push(girderREST.get(url));
 	}
-	const imgs = await Promise.all(imagePromises);
-	const data = imgs.reduce((prev, curr) => {
+
+	const imgsData = await Promise.all(imagePromises);
+	const data = imgsData.reduce((prev, curr) => {
 		if (curr) {
 			prev.push(...curr);
 		}
 		return prev;
 	}, []);
-
+	// remove all existing images for that task
 	await Images.deleteMany({
 		mainId: {$in: imageIds},
 		taskId: mongoose.Types.ObjectId(taskId),
 		userId
 	});
+
+	// add new images
 	let images = data.map((image) => {
 		image.taskId = taskId;
 		image.userId = userId;
@@ -133,6 +135,7 @@ async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) 
 		delete image._id;
 		return image;
 	});
+
 	return Images.insertMany(images);
 }
 
@@ -407,7 +410,8 @@ async function getTaskImages({ids, offset, limit, userId, filters}) {
 				parentId: 1,
 				mainId: 1,
 				isReviewed: 1,
-				isUpdated: 1
+				isUpdated: 1,
+				taskId: 1
 			}
 		},
 		{$sort: {name: 1, _id: 1}},
@@ -530,34 +534,35 @@ async function updateMany(addIds, removeIds, tagId, valueId, confidence, userId)
 	return Promise.all([addPromises, removePromises]);
 }
 
-async function saveLastState(imagesIds, userId, taskIds) {
-	const imagesToInsert = await Promise.all(imagesIds.map(async (imageId) => {
-		const image = await Images.findOne({_id: mongoose.Types.ObjectId(imageId)});
+async function saveLastState(imagesToReview, userId, taskIds) {
+	const imagesToInsert = await Promise.all(imagesToReview.map(async (imageToReview) => {
+		const image = await Images.findOne({_id: mongoose.Types.ObjectId(imageToReview.id)});
 		const imageToInsert = {
 			changedByUser: userId,
 			imageId: image._id,
-			name: image.name,
-			meta: image.meta,
-			oldMeta: image.oldMeta,
-			baseParentId: image.baseParentId,
-			folderId: image.folderId,
 			userId: image.userId,
-			mainId: image.mainId,
-			taskId: image.taskId,
 			isReviewed: image.isReviewed,
-			isUpdated: image.isUpdated
+			taskId: imageToReview.taskId
 		};
 		return imageToInsert;
 	}));
 
 	const res = await ImagesReviewHistoryModel.insertMany(imagesToInsert);
-	const imagesStateIds = res.map(image => image._id);
-	const imagesModifiedByUser = new ImagesModifiedByUserModel({
-		userId,
-		imagesIds: imagesStateIds,
-		taskIds
+	taskIds.forEach(async (taskId) => {
+		const imagesStates = res.filter(imageState => imageState.taskId === taskId);
+		const imagesIds = imagesStates.map(imageState => imageState._id);
+		const imagesModifiedByUser = new ImagesModifiedByUserModel({
+			userId,
+			imagesIds,
+			taskId
+		});
+		await imagesModifiedByUser.save();
 	});
-	await imagesModifiedByUser.save();
+}
+
+async function deleteTaskHistory(imagesIds, userId, taskIds) {
+	await ImagesReviewHistoryModel.deleteMany({taskId: {$in: taskIds}});
+	await ImagesModifiedByUserModel.deleteMany({taskId: {$in: taskIds}});
 }
 
 async function reviewImage(id, tags, taskIds, userId, preliminarily, isUpdated) {
@@ -571,9 +576,11 @@ async function reviewImage(id, tags, taskIds, userId, preliminarily, isUpdated) 
 	if (!image) throw "Image not found";
 
 	image.meta = image.meta || {};
-	image.meta.tags = image.meta.tags || {};
+	if (image.meta) {
+		image.meta.tags = image?.meta?.tags || {};
+	}
 
-	Object.assign(image.meta.tags, tags);
+	Object.assign(image?.meta?.tags, tags);
 	image.isReviewed = !preliminarily;
 	image.isUpdated = isUpdated;
 	image.updatedDate = imageUpdatedDate.getDate();
@@ -590,8 +597,8 @@ async function reviewImages(images, taskIds, userId, preliminarily) {
 	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
 	await Tasks.validateByUserId(taskIds, userId);
 
-	const reviewedImagesIds = images.map(image => image._id);
-	saveLastState(reviewedImagesIds, userId, taskIds);
+	const imagesToReview = images.map(image => ({id: image._id, taskId: image.taskId}));
+	saveLastState(imagesToReview, userId, taskIds);
 
 	const reviewedImages = await Promise.all(
 		images.map(image => reviewImage(
@@ -626,18 +633,18 @@ async function unreviewTaskImages(taskIds, userId) {
 	if (!Array.isArray(taskIds)) throw "Field \"taskIds\" should be an array";
 	await Tasks.validateByUserId(taskIds, userId);
 
-	const filter = {
+	const imagesFilter = {
 		userId: mongoose.Types.ObjectId(userId),
 		isReviewed: true,
 		taskId: {$in: taskIds.map(id => mongoose.Types.ObjectId(id))}
 	};
 
-	const unreviewedImages = await Images.find(filter);
+	const unreviewedImages = await Images.find(imagesFilter);
 	const unreviewedImagesIds = unreviewedImages.map(image => image._id.toString());
-	saveLastState(unreviewedImagesIds, userId, taskIds);
+	deleteTaskHistory(unreviewedImagesIds, userId, taskIds);
 
 	const imagesData = await Images.updateMany(
-		filter,
+		imagesFilter,
 		{$set: { // updated fields
 			isReviewed: false,
 			updatedDate: imageUpdatedDate.getDate()
@@ -660,37 +667,35 @@ async function setTagsByTask(images, defaultTagValues) {
 	}));
 }
 
-async function undoLastChange(userId) {
-	const lastModifiedByUser =
-		(await ImagesModifiedByUserModel.find({userId}, null, {sort: {updatedAt: -1}}))[0];
-	await ImagesModifiedByUserModel.findByIdAndDelete(lastModifiedByUser._id);
-	const imagesToUndo = await Promise
-		.all(lastModifiedByUser.imagesIds
-			.map(async imageId => ImagesReviewHistoryModel.findOneAndDelete(imageId)));
-	const imagesIdsAndUpdate = imagesToUndo.map((image) => {
-		const id = image.imageId;
-		const update = {
-			$set: {
-				name: image.name,
-				meta: image.meta,
-				oldMeta: image.oldMeta,
-				baseParentId: image.baseParentId,
-				folderId: image.folderId,
-				userId: image.userId,
-				mainId: image.mainId,
-				taskId: image.taskId,
-				isReviewed: image.isReviewed,
-				isUpdated: image.isUpdated
-			}
-		};
-		return {id, update};
-	});
+async function undoLastSubmit(taskIds, userId) {
+	const imagesModifiedByUser = await ImagesModifiedByUserModel.find(
+		{userId, taskId: {$in: taskIds}}, // filter
+		null,
+		{sort: {updatedAt: -1}}
+	);
+	const lastModifiedByUser = imagesModifiedByUser.length ? imagesModifiedByUser[0] : null;
+	if (lastModifiedByUser) {
+		await ImagesModifiedByUserModel.findByIdAndDelete(lastModifiedByUser._id);
+		const imagesToUndo = await Promise
+			.all(lastModifiedByUser.imagesIds
+				.map(async imageId => ImagesReviewHistoryModel
+					.findByIdAndDelete(imageId)));
+		const imagesToUpdate = imagesToUndo.map((image) => {
+			const id = image.imageId;
+			const update = {
+				$set: {
+					isReviewed: image.isReviewed
+				}
+			};
+			return {id, update};
+		});
 
-	const res = await Promise.all(imagesIdsAndUpdate.map(async idAndUpdate => Images.updateOne(
-		{_id: idAndUpdate.id},
-		idAndUpdate.update
-	)));
-	return res;
+		const res = await Promise.all(imagesToUpdate.map(async idAndUpdate => Images.updateOne(
+			{_id: idAndUpdate.id},
+			idAndUpdate.update
+		)));
+		return res;
+	}
 }
 
 module.exports = {
@@ -703,5 +708,5 @@ module.exports = {
 	setTagsByTask,
 	unreviewTaskImages,
 	getDefaultTaskImages,
-	undoLastChange
+	undoLastSubmit
 };

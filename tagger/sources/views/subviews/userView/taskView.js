@@ -3,9 +3,10 @@ import dot from "dot-object";
 import galleryImageUrl from "../../../models/galleryImageUrls";
 import nonImageUrls from "../../../models/nonImageUrls";
 import ajaxService from "../../../services/ajaxActions";
-import transitionalAjax from "../../../services/transitionalAjaxService";
 import constants from "../../../constants";
 import UserDataviewTagIcons from "../../components/dataviewItemIcons";
+import auth from "../../../services/authentication";
+import roiCoordsCalculator from "../../../services/roiCoordsCalculator";
 
 
 const PAGER_ID = "user-dataview-pager";
@@ -87,6 +88,16 @@ export default class TaggerUserTaskView extends JetView {
 			value: "Hide animation"
 		};
 
+		const showROIborders = {
+			view: "button",
+			name: "showROIBorders",
+			value: "Hide ROI Borders",
+			css: "btn-contour",
+			height: 40,
+			width: 80,
+			hidden: true
+		};
+
 		const pager = {
 			view: "pager",
 			id: PAGER_ID,
@@ -137,7 +148,7 @@ export default class TaggerUserTaskView extends JetView {
 				let getPreviewUrl = galleryImageUrl.getPreviewImageUrl;
 				let setPreviewUrl = galleryImageUrl.setPreviewImageUrl;
 
-				if (multiplier === "single") {
+				if (multiplier === "single" && !common.roi()) {
 					sizesObject.width = common.width || WIDTH;
 					sizesObject.height = common.height || HEIGHT;
 
@@ -146,14 +157,23 @@ export default class TaggerUserTaskView extends JetView {
 				}
 
 				const IMAGE_HEIGHT = (common.height || constants.DATAVIEW_IMAGE_SIZE.HEIGHT) - 50;
-				// const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH;
+				const IMAGE_WIDTH = common.width || constants.DATAVIEW_IMAGE_SIZE.WIDTH - 50;
 
 				const highlightState = obj.isUpdated ? "highlighted" : "";
+				let roiRect = "";
 
+				if (obj.roi) {
+					roiRect = roiCoordsCalculator(obj, IMAGE_HEIGHT, IMAGE_WIDTH, "userSmall");
+				}
 				if (typeof getPreviewUrl(obj._id) === "undefined") {
 					setPreviewUrl(obj._id, "");
 					let thumbnailPromise;
-					thumbnailPromise = ajaxService.getImage(obj.mainId, "thumbnail", sizesObject);
+					if (obj.roi || obj.taggerMode === "ROI") {
+						thumbnailPromise = this._getRoiThumbnail(obj);
+					}
+					else {
+						thumbnailPromise = ajaxService.getImage(obj.mainId, "thumbnail", sizesObject);
+					}
 					thumbnailPromise
 						.then((data) => {
 							if (data.type === "image/jpeg") {
@@ -176,7 +196,13 @@ export default class TaggerUserTaskView extends JetView {
 										<i webix_tooltip='Show metadata' class='dataview-show-metadata-icon show-metadata fas fa-info-circle'></i>
 									</div>
 								</div>
+								<div style = "padding: 0; margin: 0; position: relative; height: 100%">
+
+								<div style = "padding: 0; margin: 0; position: relative; height: 100%">
+								${roiRect}
 								<img src="${getPreviewUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}" class="dataview-image">
+								</div>
+								</div>
 							</div>
 							<div class="icons-spacer"></div>
 							<div class="dataview-images-name ellipsis-text">${obj.name}</div>
@@ -205,6 +231,7 @@ export default class TaggerUserTaskView extends JetView {
 				},
 				tagIcons: (obj, common) => this._dataviewIcons.getItemIconsTemplate(obj, common.width),
 				templateLoading: () => "<div class='dataview-item-loading-overlay'>Loading...</div>",
+				roi: () => this.getUserDataview().config.roiMode
 			}
 		};
 
@@ -220,6 +247,15 @@ export default class TaggerUserTaskView extends JetView {
 			borderless: true
 		};
 
+		const undoButton = {
+			view: "button",
+			css: "btn",
+			width: 80,
+			name: "undoButton",
+			hidden: false,
+			value: "Undo last submit"
+		};
+
 		const buttons = {
 			margin: 5,
 			padding: 15,
@@ -228,14 +264,7 @@ export default class TaggerUserTaskView extends JetView {
 			cols: [
 				itemsCountTemplate,
 				{},
-				{
-					view: "button",
-					css: "btn",
-					width: 80,
-					name: "undoButton",
-					hidden: false,
-					value: "Undo last change"
-				},
+				auth.isLoggedIn() ? undoButton : {},
 				{width: 20},
 				{
 					view: "button",
@@ -311,9 +340,21 @@ export default class TaggerUserTaskView extends JetView {
 				{
 					cols: [
 						{width: 40},
-						hideAnimationBtn,
+						{
+							rows: [
+								auth.isLoggedIn() ? hideAnimationBtn : {},
+								{height: 5}]
+
+						},
+						{width: 5},
+						{
+							rows: [
+								showROIborders,
+								{height: 5}]
+
+						},
 						{gravity: 2},
-						showReviewed
+						auth.isLoggedIn() ? showReviewed : {}
 					]
 				},
 				{hidden: true, selector: "dataview_y_spacer"},
@@ -344,13 +385,27 @@ export default class TaggerUserTaskView extends JetView {
 
 	async _getRoiThumbnail(image) {
 		let thumbnail;
-		if (!image.sizeX && !image.sizeY) {
-			thumbnail = await transitionalAjax.getROIsThumbnail(image._id);
+		let coords = {
+			left: 20,
+			top: 20,
+			right: 100,
+			bottom: 100
+		};
+		if (image.width) coords.width = image.width;
+		if (image.left) coords.left = image.left;
+		if (image.top) {
+			coords.top = image.top;
 		}
-		else {
-			const {top, bottom, left, right} = this.countROICoords(image);
-			thumbnail = await ajaxService.getImage(image.mainId, "region", {top, bottom, left, right});
+		else if (image.bottom && image.height) coords.top = image.bottom - image.height;
+		if (image.left && image.width) coords.right = image.left + image.width;
+		if (image.bottom) {
+			coords.bottom = image.bottom;
 		}
+		else if (image.top && image.height) coords.bottom = image.top + image.height;
+		let id = image.mainId || image._id;
+		let url = image.apiUrl || false;
+		thumbnail = ajaxService.getRoiImage(id, coords, url);
+
 		return thumbnail;
 	}
 
@@ -438,5 +493,9 @@ export default class TaggerUserTaskView extends JetView {
 
 	getAnimationButton() {
 		return this.getRoot().queryView({name: "hideAnimation"});
+	}
+
+	getROIBorderButton() {
+		return this.getRoot().queryView({name: "showROIBorders"});
 	}
 }
