@@ -18,6 +18,10 @@ const tasksSchema = new Schema({
 		type: [Schema.Types.ObjectId],
 		required: true
 	},
+	owner: {
+		type: Schema.Types.ObjectId,
+		required: true
+	},
 	groupId: {
 		type: Schema.Types.ObjectId
 	},
@@ -49,6 +53,14 @@ const tasksSchema = new Schema({
 		required: true,
 		enum: ["created", "published", "in_progress", "canceled", "finished"],
 		default: "created"
+	},
+	fromROI: {
+		type: Boolean,
+		default: false
+	},
+	showROIBorders: {
+		type: Boolean,
+		default: false
 	},
 	imgNames: {
 		type: Boolean,

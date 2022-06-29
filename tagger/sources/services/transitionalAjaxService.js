@@ -4,7 +4,7 @@ import AjaxClass from "./ajaxClass";
 const TRANSITIONAL_API = constants.TRANSITIONAL_TAGGER_SERVER_PATH;
 
 class TransitionalAjaxService extends AjaxClass {
-		login(sourceParams) {
+	login(sourceParams) {
 		const params = sourceParams ? {
 			username: sourceParams.username || 0,
 			password: sourceParams.password || 0
@@ -282,10 +282,11 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	createTask(taskData, imageIds) {
+	createTask(taskData, imageIds, selectedImages) {
 		const params = {
 			task: taskData,
 			imageIds,
+			selectedImages,
 			hostApi: this.getHostApiUrl()
 		};
 
@@ -430,8 +431,54 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	undoLastChange() {
-		return this._ajax().put(`${TRANSITIONAL_API}/images/undo`)
+	getROIsThumbnail(id) {
+		const params = {
+			host: this.getHostApiUrl()
+		};
+
+		return this._ajax().response("blob").get(`${TRANSITIONAL_API}/rois/thumbnail/${id}`, params)
+			.fail(this._parseError);
+	}
+
+	getTaskROIs({id, offset, limit, filters}) {
+		const params = {
+			offset: offset || 0,
+			limit: limit || 50
+		};
+		if (filters) params.filters = filters;
+
+		return this._ajax().get(`${TRANSITIONAL_API}/rois/task/${id}`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	reviewROIs(rois, taskId, preliminarily) {
+		const params = {
+			rois: rois || [],
+			taskId,
+			preliminarily
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/rois/review`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	unreviewROIs(taskId) {
+		const params = {
+			taskId
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/rois/unreview`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	undoLastSubmit(taskIds) {
+		const params = {
+			taskIds: taskIds || []
+		};
+		return this._ajax().put(`${TRANSITIONAL_API}/images/undo`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

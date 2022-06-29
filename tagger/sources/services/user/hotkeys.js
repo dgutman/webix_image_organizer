@@ -88,9 +88,7 @@ class HotkeysService {
 		if (this.submitButton) {
 			this.submitButton.callEvent("onItemClick");
 			const eventId = this.dataview.attachEvent("onAfterLoad", () => {
-				if (this.dataview.count()) {
-					this.handleNavigation("right");
-				}
+				this.handleNavigation("right");
 				this.dataview.detachEvent(eventId);
 			});
 		}

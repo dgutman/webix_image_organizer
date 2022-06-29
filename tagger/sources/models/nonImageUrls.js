@@ -1,6 +1,7 @@
 import utils from "../utils/utils";
 
 function getNonImageUrl(obj) {
+	if (!obj.name) return;
 	let srcForImage;
 	if (obj._modelType === "folder") {
 		srcForImage = "sources/images/folder.png";

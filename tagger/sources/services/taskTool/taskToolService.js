@@ -10,6 +10,9 @@ import TagTemplatesPopup from "../../views/windows/tagTemplates";
 import tagTemplates from "../../models/tagTemplates";
 import InfoPopup from "../../views/windows/infoPopup";
 import validateTask from "../taskValidator";
+import imageWindow from "../../views/windows/imageWindow";
+
+const mongoose = require("mongoose");
 
 const SELECTION_LIMIT = 1000;
 
@@ -23,7 +26,6 @@ class TaskToolService {
 
 	_ready() {
 		const scope = this._view.$scope;
-
 		this._accordion = scope.accordion;
 		this._foldersList = scope.foldersGroupList;
 		this._dataview = scope.dataview;
@@ -32,6 +34,8 @@ class TaskToolService {
 		this._showSelectedButton = scope.showSelectedButton;
 		this._showImageName = scope.showImageName;
 		this._showMeta = scope.showMeta;
+		this._showROI = scope.showROI;
+		this._showROIBorders = scope.showROIBorders;
 		this._tagsForm = scope.tagsForm;
 		this._taskCreationForm = scope.taskCreationForm;
 		this._createTaskButton = scope.createTaskButton;
@@ -39,6 +43,11 @@ class TaskToolService {
 		this._editTaskButton = scope.editTaskButton;
 		this._tagTemplatesPopup = scope.ui(new TagTemplatesPopup(scope.app));
 		this._itemMetadataPopup = scope.ui(new InfoPopup(scope.app, "metadata", "Metadata", true));
+		this._imageWindow = scope.ui(imageWindow);
+
+		// images collections for ROI
+		this._imagesCollection = new webix.DataCollection();
+		this._roisCollection = new webix.DataCollection();
 
 		this._dataviewStore = new CustomDataPull(this._dataview);
 		this._selectedImagesModel = new SelectedImagesModel(this._dataview);
@@ -62,6 +71,20 @@ class TaskToolService {
 		this._setImageNames();
 		this._setShowMeta();
 
+		// "Hide ROI borders" button initiation
+		this._setShowROIBorder();
+
+		// for ROI by pattern
+		let jsonColl = taskJSONCollection.get();
+		this._showROIBorders.hide();
+		if (jsonColl) {
+			this._parseROI(jsonColl.images);
+			this._setShowROI();
+		}
+		else {
+			this._roisCollection.clearAll();
+		}
+
 		transitionalAjax.getTagTemplatesWithValues()
 			.then((data) => {
 				tagTemplates.tagsWithValues.parse(data);
@@ -80,8 +103,15 @@ class TaskToolService {
 		// Show/hide image names
 		this._showImageName.attachEvent("onItemClick", () => this._setImageNames());
 
+		this._dataview.attachEvent("onItemDblClick", (id, e) => {
+			const item = this._dataviewStore.getItemById(id);
+			this._imageWindow.showWindow(item, this.fromROI, this.showROIBorders, "creatorLarge");
+		});
+
 		// Show/hide metadata
 		this._showMeta.attachEvent("onItemClick", () => this._setShowMeta());
+		this._showROI.attachEvent("onItemClick", () => this._setShowROI());
+		this._showROIBorders.attachEvent("onItemClick", () => this._setShowROIBorder());
 
 		this._editTaskButton.attachEvent("onItemClick", () => {
 			const taskData = this._collectTaskFormData();
@@ -155,12 +185,14 @@ class TaskToolService {
 				const parentNode = previewView.getNode();
 				if (!taskData.imgNames) {
 					parentNode.classList.add("hide-names");
-				} else {
+				}
+				else {
 					parentNode.classList.remove("hide-names");
 				}
 				if (!taskData.showMeta) {
 					parentNode.classList.add("hide-meta");
-				} else {
+				}
+				else {
 					parentNode.classList.remove("hide-meta");
 				}
 				previewPageService.parseTagsAndValues(taskData);
@@ -177,9 +209,10 @@ class TaskToolService {
 			this._publishTaskButton.show();
 			this._createTaskButton.hide();
 			const imageIds = this._selectedImagesModel.getSelectedIds();
+			const selectedImages = this._selectedImagesModel.getSelectedItems();
 			if (taskData) {
 				this._view.showProgress();
-				transitionalAjax.createTask(taskData, imageIds)
+				transitionalAjax.createTask(taskData, imageIds, selectedImages)
 					.then((data) => {
 						webix.message(data.message);
 						this._view.hideProgress();
@@ -202,15 +235,16 @@ class TaskToolService {
 			const taskId = this.createdTaskId;
 			if (taskData && taskId) {
 				this._view.showProgress();
-				transitionalAjax.deleteTask(taskId, true);
-				transitionalAjax.createTask(taskData, imageIds)
-					.then((data) => {
-						webix.message("Data published");
-						this._view.hideProgress();
-					})
-					.catch(() => {
-						this._view.hideProgress();
-					});
+				const selectedImages = this._selectedImagesModel.getSelectedItems();
+				transitionalAjax.deleteTask(taskId, true)
+					.then(() => transitionalAjax.createTask(taskData, imageIds, selectedImages)
+						.then((data) => {
+							webix.message("Data published");
+							this._view.hideProgress();
+						})
+						.catch(() => {
+							this._view.hideProgress();
+						}));
 			}
 			this._view.$scope.app.show("/dashboard");
 		});
@@ -333,11 +367,22 @@ class TaskToolService {
 		if (!validDefault) {
 			webix.message("Please, select default value");
 		}
+		const validDate = !!taskData.deadline;
+		if (!validDate) {
+			taskData.deadline = new Date().toString();
+			document.querySelector(".webix_el_datepicker").classList.add("webix_invalid");
+			webix.message("Please, select the deadline");
+		}
+		else {
+			document.querySelector(".webix_el_datepicker").classList.remove("webix_invalid");
+		}
 
 		const isTaskValid = validateTask({task: taskData});
 		const selectedItems = this._selectedImagesModel.getSelectedItems();
 
-		const condition = selectedItems.length && isTaskValid && taskData && iconValid && validDefault;
+		const validFields = iconValid && validDefault && validDate;
+		const condition = selectedItems.length && isTaskValid && taskData && validFields;
+
 		if (!condition) {
 			if (!selectedItems.length) {
 				webix.message("Please, select images");
@@ -355,11 +400,12 @@ class TaskToolService {
 
 	_collectTaskFormData() {
 		const tagForms = this._tagsForm.getFormChilds();
-
 		const task = this._taskCreationForm.$scope.collectFormData();
 		if (task.deadline) task.deadline = task.deadline.toString();
 		task.imgNames = this.imgNames || false;
 		task.showMeta = this.showMeta || false;
+		task.fromROI = this.fromROI || false;
+		task.showROIBorders = this.showROIBorders || false;
 
 		task.user = this.getIdsFromObjects(task.user).unique();
 		task.creator = [auth.getUserId(), ...this.getIdsFromObjects(task.creator || [])].unique();
@@ -372,7 +418,6 @@ class TaskToolService {
 		const creatorInputId = taskService._creatorsSelect._multiCombo.data.id;
 		const creatorInput = document.querySelector(`[view_id="${creatorInputId}"] input`);
 		creatorInput.value = "";
-
 		const tagsValidation = tagForms.reduce((acc, form) => {
 			if (!form.validate()) {
 				acc = false;
@@ -390,6 +435,13 @@ class TaskToolService {
 
 			return acc;
 		}, true);
+
+		this.invalidInputs = document.querySelectorAll(".webix_invalid input[id]");
+		this.invalidInputs.forEach((input) => {
+			input.addEventListener("blur", () => {
+				this._collectTaskFormData();
+			});
+		});
 		return tagsValidation && taskValidation ? task : null;
 	}
 
@@ -398,6 +450,7 @@ class TaskToolService {
 	}
 
 	_getCollections() {
+		this._setShowROI(false);
 		this._foldersList.showProgress();
 		ajaxService.getCollection()
 			.then((data) => {
@@ -412,6 +465,7 @@ class TaskToolService {
 	}
 
 	_getFolders(parent) {
+		this._setShowROI(false);
 		return ajaxService.getFolder(parent._modelType, parent._id)
 			.then((data) => {
 				data = data.map((obj) => {
@@ -425,6 +479,10 @@ class TaskToolService {
 	}
 
 	_getItems(folderId) {
+		this._setShowROI(false);
+		document.querySelector(".roi-button").classList.add("hide-roi");
+		this._roisCollection.clearAll();
+		this._imagesCollection.clearAll();
 		const item = this._foldersList.getItem(folderId);
 		if (item._modelType === "folder") {
 			if (!this._showSelected) {
@@ -446,6 +504,8 @@ class TaskToolService {
 					}
 					this._toggleVisibilityOfHiddenViews(data.length);
 					this._dataviewStore.parseItems(data, 0, item._count);
+					this._imagesCollection.parse(data);
+					this._parseROI(data);
 					this._dataview.hideProgress();
 				})
 				.catch(() => {
@@ -524,7 +584,8 @@ class TaskToolService {
 			this.imgNames = false;
 			this._showImageName.setValue("Show image name");
 			parentNode.classList.add("hide-names");
-		} else {
+		}
+		else {
 			this.imgNames = true;
 			parentNode.classList.remove("hide-names");
 			this._showImageName.setValue("Hide image name");
@@ -537,11 +598,101 @@ class TaskToolService {
 			this.showMeta = false;
 			this._showMeta.setValue("Show metadata");
 			parentNode.classList.add("hide-meta");
-		} else {
+		}
+		else {
 			this.showMeta = true;
 			parentNode.classList.remove("hide-meta");
 			this._showMeta.setValue("Hide metadata");
 		}
+	}
+
+	_setShowROI(isRoi = true) {
+		if (!isRoi || this.fromROI) {
+			this.fromROI = false;
+			this._showROI.setValue("Switch on ROI mode");
+			this._showROIBorders.hide();
+			this._dataviewStore.clearAll();
+			let imgCollection = this._imagesCollection.serialize();
+			imgCollection = imgCollection.map(img => img = {...img, roi: false, normal: true});
+			this._dataviewStore.parseItems(imgCollection);
+		}
+		else {
+			this.fromROI = true;
+			this._showROI.setValue("Switch off ROI mode");
+			this._showROIBorders.show();
+			this._dataviewStore.clearAll();
+			let roiCollection = this._roisCollection.serialize();
+			roiCollection = roiCollection.map(img => img = {...img, roi: true});
+			this._dataviewStore.parseItems(roiCollection);
+		}
+	}
+
+	_setShowROIBorder() {
+		if (this.showROIBorders) {
+			this.showROIBorders = false;
+			this._showROIBorders.setValue("Show ROI Borders");
+			this._dataview.$view.classList.add("hide-border");
+		}
+		else {
+			this.showROIBorders = true;
+			this._showROIBorders.setValue("Hide ROI Borders");
+			this._dataview.$view.classList.remove("hide-border");
+		}
+	}
+
+	_parseROI(data) {
+		let roiFilter = data.filter((item) => {
+			if (!item || !item.meta) return false;
+			let imageIsROI = item.meta.roiList || item.taggerMode === "ROI" || (item.meta.roi_left || item.meta.roi_right);
+			return imageIsROI;
+		});
+		let roiArr = [];
+		roiFilter.forEach((item) => {
+			if (item.meta.roiList) {
+				let imgArr = this._collectionFromROIImage(item);
+				roiArr = roiArr.concat(imgArr);
+			}
+			else {
+				roiArr.push(item);
+			}
+		});
+		this._roisCollection.parse(roiArr);
+	}
+
+	_collectionFromROIImage(img) {
+		let roilist = [];
+		if (img.meta.roiList) {
+			img.meta.roiList.forEach((item) => {
+				let roi = {...item};
+				roi.mainId = img._id;
+				roi.allRoi = img.meta.roiList;
+				roi.roi = true;
+				roi.folderId = img.folderId;
+				roi.name = `${img.name}_roi`;
+				roi._id = mongoose.Types.ObjectId().toString();
+				roi.roiImg = true;
+				if (item.apiUrl) {
+					let coords = this._getRoiFromUrl(item.apiUrl);
+					roi.left = coords.left;
+					roi.top = coords.top;
+					roi.right = coords.left + coords.width;
+					roi.bottom = coords.left + coords.height;
+				}
+				roilist.push(roi);
+			});
+		}
+		return roilist;
+	}
+
+	_getRoiFromUrl(url) {
+		let urlObj = new URL(url);
+		let urlParams = new URLSearchParams(urlObj.search);
+		let urlCoords = {};
+		urlCoords.left = +urlParams.get("left");
+		urlCoords.top = +urlParams.get("top");
+		urlCoords.width = +urlParams.get("regionWidth");
+		urlCoords.height = +urlParams.get("regionHeight");
+		return urlCoords;
 	}
 }
 

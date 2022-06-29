@@ -52,6 +52,7 @@ export default class UserViewService {
 		this._deviationFilterDropdown = scope.getDeviationFilterDropdown();
 		this._showReview = scope.getShowReviewTemplate();
 		this._animationButton = scope.getAnimationButton();
+		this._roiBorderButton = scope.getROIBorderButton();
 
 		this._dataviewService = new DataviewService(
 			this._dataview,
@@ -175,6 +176,19 @@ export default class UserViewService {
 				this._dataview.$view.classList.remove("hide-animation");
 			}
 		});
+
+		this._roiBorderButton.attachEvent("onItemClick", () => {
+			const btnView = this._roiBorderButton.$view;
+			const btn = btnView.querySelector(".webix_button");
+			if (btn.innerHTML === "Hide ROI Borders") {
+				btn.innerHTML = "Show ROI Borders";
+				this._dataview.$view.classList.add("hide-border");
+			}
+			else {
+				btn.innerHTML = "Hide ROI Borders";
+				this._dataview.$view.classList.remove("hide-border");
+			}
+		});
 	}
 
 	_loggedInUserService() {
@@ -198,7 +212,7 @@ export default class UserViewService {
 						this._taskList.select(taskId);
 						return false;
 					})
-					.then(result => result ? this._saveUnsavedImages() : false)
+					.then(result => (result ? this._saveUnsavedImages() : false))
 					.then((response) => {
 						if (response) {
 							webix.message(response.message);
@@ -244,6 +258,14 @@ export default class UserViewService {
 				this._toggleVisibilityOfDropdowns();
 			}
 			this._view.$scope.app.callEvent("OnTaskSelect", [task || {}]);
+			if (task.fromROI) {
+				this._roiBorderButton.show();
+				const btn = document.querySelector(".show-borders");
+				if (btn) task.showROIBorders ? btn.innerHTML = "Hide ROI Borders" : btn.innerHTML = "Show ROI Borders";
+			}
+			else {
+				this._roiBorderButton.hide();
+			}
 		});
 
 		this._tagSelect.attachEvent("onChange", (id, oldId, preselectedValue) => {
@@ -280,7 +302,7 @@ export default class UserViewService {
 					item.querySelector(".item-tag-related-icons").classList.add("underline-icons");
 				}
 			});
-			if (id && id !== oldId && !this._hotkeysService.image) {
+			if (id && id !== oldId && !this._hotkeysService.image && this.roiMode) {
 				const selectedValue = valuesList.getItem(id);
 				if (this.currentValue && this.currentValue !== selectedValue.name) {
 					this.currentValue = selectedValue.name;
@@ -320,6 +342,7 @@ export default class UserViewService {
 				if (item.meta && item.meta.hasOwnProperty("tags")) {
 					dataToUpdate.push({
 						_id: item._id,
+						taskId: item.taskId,
 						tags: item.meta.tags,
 						isUpdated: item.isUpdated || changedItems.hasOwnProperty(item._id)
 					});
@@ -338,7 +361,8 @@ export default class UserViewService {
 					}
 				}
 				this._view.showProgress();
-				const reviewPromise =
+				const reviewPromise = this.roiMode ?
+					transitionalAjax.reviewROIs(dataToUpdate, taskIds[0]) :
 					transitionalAjax.reviewImages(dataToUpdate, taskIds);
 				reviewPromise
 					.then((response) => {
@@ -361,7 +385,9 @@ export default class UserViewService {
 		this._undoButton.attachEvent("onItemClick", () => {
 			this._view.showProgress();
 			// TODO: check undo on roi
-			const undoPromise = transitionalAjax.undoLastChange();
+			const tasks = this._taskList.getSelectedItem(true);
+			const taskIds = tasks.map(task => task._id);
+			const undoPromise = transitionalAjax.undoLastSubmit(taskIds);
 			undoPromise
 				.then((response) => {
 					webix.message(response.message);
@@ -382,7 +408,8 @@ export default class UserViewService {
 				const taskIds = tasks.map(task => task._id);
 
 				this._view.showProgress();
-				const unreviewPromise =
+				const unreviewPromise = this.roiMode ?
+					transitionalAjax.unreviewROIs(taskIds[0]) :
 					transitionalAjax.unreviewImages(taskIds);
 				unreviewPromise
 					.then((response) => {
@@ -543,6 +570,7 @@ export default class UserViewService {
 	}
 
 	_selectTask(task) {
+		this._toggleROIMode(task);
 		this._updatedImagesService.clearChangedItems();
 		this._updatedImagesService.hotkeys = {};
 		this._updatedImagesService.hotkeyIcons = {};
@@ -608,14 +636,22 @@ export default class UserViewService {
 		this._view.showProgress();
 		let promise = Promise.resolve(false);
 		const params = this._getParamsForImages(startWith, limit);
-		if (params.ids.length) {
+		if (task && task.fromROI) {
+			params.id = task._id;
+
+			promise = transitionalAjax.getTaskROIs(params);
+		}
+		else if (params.ids.length) {
 			promise = transitionalAjax.getImagesByTask(params);
 		}
 		return promise
 			.then((images) => {
 				if (images) {
 					// define tags with changed values to images
-					const processedImages = this._updatedImagesService.presetChangedValues(images.data);
+					let processedImages = this._updatedImagesService.presetChangedValues(images.data);
+					if (task.fromROI) {
+						processedImages = processedImages.map(img => img = {...img, roi: true});
+					}
 					this._dataviewStore.parseItems(processedImages, params.offset, images.count);
 
 					const templateValues = {
@@ -666,7 +702,7 @@ export default class UserViewService {
 		this._dataview.attachEvent("onItemDblClick", (id, e) => {
 			if (!e.target.classList.contains("checkbox")) {
 				const item = this._dataviewStore.getItemById(id);
-				this._imageWindow.showWindow(item);
+				this._imageWindow.showWindow(item, this.roiMode, this.roiBorders, "userLarge");
 			}
 		});
 
@@ -687,12 +723,16 @@ export default class UserViewService {
 				return false;
 			}
 			else if (e.target.classList.contains("show-metadata")) {
-				if (!this._itemMetadataPopup.isVisible() || !this._itemMetadataPopup._wasMoved) {
+				if (!this._itemMetadataPopup.isVisible() && !this.isPreview) {
+					// fix for Preview mode
+					if (document.querySelector("[view_id='preview_task']")) this.isPreview = !this.isPreview;
 					this._itemMetadataPopup.showWindow(e.target, {pos: "bottom"}, item, true);
+					return false;
 				}
-				else {
-					this._itemMetadataPopup.createJSONViewer(item);
+				if (this._itemMetadataPopup.isVisible() && !this.isPreview) {
+					this._itemMetadataPopup.closeWindow();
 				}
+				if (document.querySelector("[view_id='preview_task']")) this.isPreview = !this.isPreview;
 				return false;
 			}
 		});
@@ -801,7 +841,9 @@ export default class UserViewService {
 		});
 		const tasks = this._taskList.getSelectedItem(true);
 		const taskIds = tasks.map(task => task._id);
-		const reviewPromise = transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
+		const reviewPromise = this.roiMode ?
+			transitionalAjax.reviewROIs(dataToUpdate, taskIds[0], true) :
+			transitionalAjax.reviewImages(dataToUpdate, taskIds, true);
 		return reviewPromise;
 	}
 
@@ -832,6 +874,12 @@ export default class UserViewService {
 		return `<span class='strong-font ellipsis-text'>${notification.taskName}</span>
 				<br>
 				<span>${text}</span>`;
+	}
+
+	_toggleROIMode(task) {
+		this._dataview.define("roiMode", task.fromROI);
+		this.roiMode = task.fromROI;
+		this.roiBorders = task.showROIBorders;
 	}
 
 	_tagsAreSet(data) {

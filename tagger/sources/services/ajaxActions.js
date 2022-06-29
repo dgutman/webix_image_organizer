@@ -95,8 +95,16 @@ class AjaxActions extends AjaxClass {
 			.fail(this._parseError);
 	}
 
-	getImageSizes(imageId, imageType, params) {
-		return webix.ajax().get(`${this.getHostApiUrl()}/item/${imageId}/tiles`, params)
+	getRoiImage(imageId, params, url) {
+		const {left, top, right, bottom} = params;
+		const width = params.width || 512;
+		let getUrl = url || `${this.getHostApiUrl()}/item/${imageId}/tiles/region?left=${left}&top=${top}&right=${right}&bottom=${bottom}&units=base_pixels&width=${width}&exact=false&encoding=JPEG&jpegQuality=95&jpegSubsampling=0`;
+		return webix.ajax().response("blob").get(getUrl)
+			.fail(this._parseError);
+	}
+
+	getImageSizes(imageId) {
+		return webix.ajax().get(`${this.getHostApiUrl()}/item/${imageId}/tiles`)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

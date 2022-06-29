@@ -11,9 +11,10 @@ function getResourceImages(req, res, next) {
 	const hostApi = req.body.hostApi;
 	const token = req.headers["girder-token"];
 	const userId = req.user ? req.user.sub : null;
+	const nested = type === "collection";
 
 
-	imagesService.getResourceImages({collectionId, hostApi, token, userId, type})
+	imagesService.getResourceImages({collectionId, hostApi, token, userId, type, nested})
 		.then((data) => {
 			if (data) res.json({message: "Images received"});
 			else res.sendStatus(notFoundStatuts);
@@ -129,12 +130,16 @@ function unreviewTaskImages(req, res, next) {
 		.catch(err => next(err));
 }
 
-function undoLastChange(req, res, next) {
+function undoLastSubmit(req, res, next) {
+	const taskIds = JSON.parse(req.body.taskIds);
 	const userId = req.user ? req.user.sub : null;
-	imagesService.undoLastChange(userId)
+	imagesService.undoLastSubmit(taskIds, userId)
 		.then((data) => {
-			const correctString = data.length === 1 ? "image was" : "images were";
-			return res.send({message: `${data.length} ${correctString} successfully undo`});
+			if (data) {
+				const correctString = data.length === 1 ? "image was" : "images were";
+				return res.send({message: `${data.length} ${correctString} successfully undo`});
+			}
+			res.send({message: "No records to undo"});
 		})
 		.catch(err => next(err));
 }
@@ -147,6 +152,6 @@ router.put("/many", updateMany);
 router.put("/review", reviewImages);
 router.put("/unreview", unreviewTaskImages);
 router.post("/resource", getResourceImages);
-router.put("/undo", undoLastChange);
+router.put("/undo", undoLastSubmit);
 
 module.exports = router;

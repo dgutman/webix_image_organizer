@@ -10,7 +10,11 @@ const imagesModifiedByUserSchema = new Schema({
 	imagesIds: [{
 		type: Schema.Types.ObjectId,
 		required: true
-	}]
+	}],
+	taskId: {
+		type: String,
+		required: true
+	}
 }, {timestamps: true});
 
 const imagesModifiedByUserModel = mongoose.model("images_modified_by_user", imagesModifiedByUserSchema);

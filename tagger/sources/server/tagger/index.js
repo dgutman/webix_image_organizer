@@ -6,11 +6,10 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("./etc/jwt");
 const errorHandler = require("./etc/errorHandler");
-const config = require("./etc/config");
 const dotenv = require("dotenv");
-
 // load process env constants
-dotenv.load();
+dotenv.config();
+const config = require("./etc/config");
 
 require("./db");
 require("../../utils/polyfills");
@@ -24,9 +23,10 @@ const foldersRoutes = require("./routes/folders");
 const tasksRoutes = require("./routes/tasks");
 const notificationsRoutes = require("./routes/notifications");
 const groupsRoutes = require("./routes/task_groups");
+const roisRoutes = require("./routes/rois");
 
-app.use(bodyParser.urlencoded({limit: "10mb", extended: false}));
-app.use(bodyParser.json({limit: "10mb"}));
+app.use(bodyParser.urlencoded({limit: "100mb", extended: false}));
+app.use(bodyParser.json({limit: "100mb"}));
 app.use(cors());
 // use JWT auth to secure the api
 app.use(jwt());
@@ -41,6 +41,7 @@ app.use("/api/folders", foldersRoutes);
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/groups", groupsRoutes);
+app.use("/api/rois", roisRoutes);
 app.use("/api/auth", authRoutes);
 
 // global error handler

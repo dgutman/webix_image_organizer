@@ -8,11 +8,12 @@ const notFoundStatus = 404;
 function createTask(req, res, next) {
 	const taskData = JSON.parse(req.body.task);
 	const imageIds = JSON.parse(req.body.imageIds);
+	const selectedImages = JSON.parse(req.body.selectedImages);
 	const hostApi = req.body.hostApi;
 	const userId = req.user ? req.user.sub : null;
 	const token = req.headers["girder-token"];
 
-	tasksService.createTask(taskData, imageIds, userId, hostApi, token)
+	tasksService.createTask(taskData, imageIds, selectedImages, userId, hostApi, token)
 		.then(data => res.json({message: "Task was successfully created", data}))
 		.catch(err => next(err));
 }

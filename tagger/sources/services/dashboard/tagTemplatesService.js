@@ -87,6 +87,7 @@ export default class TagTemplatesService {
 		list.attachEvent("onAfterEditStop", (state, editor) => {
 			const item = this._tagListStore.getItemById(editor.id);
 			// validation
+			state.value = state.value.trim();
 			if (state.value && state.value === state.old) {
 				return true;
 			}
@@ -233,6 +234,7 @@ export default class TagTemplatesService {
 		list.attachEvent("onAfterEditStop", (state, editor) => {
 			const item = this._valuesListStore.getItemById(editor.id);
 			// validation
+			state.value = state.value.trim();
 			if (state.value && state.value === state.old) {
 				return true;
 			}
