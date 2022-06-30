@@ -24,7 +24,6 @@
     "css-loader": "^3.4.2",
     "dotenv-webpack": "^1.7.0",
     "eslint": "5.14.1",
-    "eslint-config-import": "0.13.0",
     "eslint-config-xbsoftware": "git+https://bitbucket.org/xbsltd/eslint.git#v3.0.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-require": "0.0.1",
@@ -42,7 +41,6 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "PubSub": "^3.4.0",
     "ajv": "8.0.5",
     "codemirror": "^5.39.2",
     "d3": "^6.7.0",
@@ -56,6 +54,7 @@
     "openseadragon-filtering": "^1.0.0",
     "papaparse": "^5.2.0",
     "path": "^0.12.7",
+    "PubSub": "^3.4.0",
     "vanilla-picker": "^2.9.2",
     "webix": "6.2.0",
     "webix-jet": "^2.0.0",

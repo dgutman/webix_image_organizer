@@ -1,11 +1,11 @@
-FROM node:12-alpine3.10
+FROM node:16-alpine3.16
 
 # Set the working directory to /app
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --only=production
+RUN npm ci --only=production
 
 COPY sources/server/tagger ./server/tagger
 
