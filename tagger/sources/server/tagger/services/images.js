@@ -13,7 +13,6 @@ const foldersService = require("./folders");
 const imageFilters = require("./imageFilters");
 const Tasks = require("../models/user/tasks");
 const girderREST = require("./girderServerRequest");
-const generateError = require("../etc/errorGenerator");
 
 function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";

@@ -9,7 +9,6 @@ const Tasks = require("../../models/user/tasks");
 const Images = require("../../models/images");
 const girderREST = require("../girderServerRequest");
 const imageFilters = require("../imageFilters");
-const generateError = require("../../etc/errorGenerator");
 
 const roiThumbnailCache = new NodeCache();
 
@@ -19,11 +18,11 @@ function setTokenIntoUrl(token, symbol) {
 
 async function getCroppedImage(roiId, userId, hostAPI, token) {
 	// validation
-	if (!userId) generateError({name: "UnauthorizedError"});
-	if (!roiId) generateError({message: "Field \"id\" should be set"});
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!roiId) throw {message: "Field \"id\" should be set"};
 
 	const roi = await Rois.findById(mongoose.Types.ObjectId(roiId));
-	if (!roi) generateError({message: "Image not found"});
+	if (!roi) throw {message: "Image not found"};
 
 	if (roi && (!roi.sizeX || !roi.sizeY)) {
 		const sizes = await girderREST.get(`${hostAPI}/item/${roiId}/tiles/region${setTokenIntoUrl(token, "&")}`, {
@@ -89,9 +88,9 @@ async function create(images) {
 
 async function getTaskROIs({id, offset, limit, userId, filters}) {
 	// validation
-	if (!userId) generateError({name: "UnauthorizedError"});
-	if (!id) generateError({message: "Query \"id\" should be set"});
-	if (filters && (typeof filters !== "object" || Array.isArray(filters))) generateError({message: "Query \"filters\" should be an JSON hash"});
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!id) throw {message: "Query \"id\" should be set"};
+	if (filters && (typeof filters !== "object" || Array.isArray(filters))) throw {message: "Query \"filters\" should be an JSON hash"};
 
 	const images = await Rois.find({taskId: mongoose.Types.ObjectId(id), userId});
 	const imageIds = images.map(image => image._id);
@@ -168,11 +167,11 @@ async function countROIsByTask(taskId, userId) {
 
 async function reviewROI(id, tags, preliminarily, isUpdated) {
 	// validation
-	if (typeof tags !== "object" || Array.isArray(tags)) generateError("Field \"tags\" in image should be an hash");
+	if (typeof tags !== "object" || Array.isArray(tags)) throw "Field \"tags\" in image should be an hash";
 
 	const roi = await Rois.findOne({_id: mongoose.Types.ObjectId(id), isReviewed: false});
 
-	if (!roi) generateError("Region of interest not found");
+	if (!roi) throw "Region of interest not found";
 
 	if (roi) {
 		roi.meta = roi.meta || {};
@@ -231,9 +230,9 @@ async function deleteTaskHistory(roisIds, userId, taskIds) {
 
 async function reviewROIs(rois, taskId, userId, preliminarily) {
 	// validation
-	if (!userId) generateError({name: "UnauthorizedError"});
-	if (!Array.isArray(rois)) generateError("Field \"images\" should be an array");
-	if (!taskId) generateError("Field \"taskId\" should be set");
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!Array.isArray(rois)) throw "Field \"images\" should be an array";
+	if (!taskId) throw "Field \"taskId\" should be set";
 	await Tasks.validateByUserId([taskId], userId);
 
 	const reviewedROIs = await Promise
@@ -250,8 +249,8 @@ async function reviewROIs(rois, taskId, userId, preliminarily) {
 
 async function unreviewROIs(taskId, userId) {
 	// validation
-	if (!userId) generateError({name: "UnauthorizedError"});
-	if (!taskId) generateError("Field \"taskIds\" should be set");
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!taskId) throw "Field \"taskIds\" should be set";
 	await Tasks.validateByUserId([taskId], userId);
 
 	const images = await Images

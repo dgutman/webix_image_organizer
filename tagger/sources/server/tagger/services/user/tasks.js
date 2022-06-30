@@ -219,10 +219,10 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 
 async function changeTaskStatus(id, status, userId) {
 	// validation
-	if (!userId) generateError({name: "UnauthorizedError"});
+	if (!userId) throw {name: "UnauthorizedError"};
 	const task = await Tasks.findById(id);
-	if (!task) generateError({message: "Task not found"});
-	if (task.status === "canceled" || (status !== "canceled" && !["created", "published"].includes(status))) generateError({message: "Task can't be editted"});
+	if (!task) throw {message: "Task not found"};
+	if (task.status === "canceled" || (status !== "canceled" && !["created", "published"].includes(status))) throw {message: "Task can't be editted"};
 
 	task.status = status;
 
