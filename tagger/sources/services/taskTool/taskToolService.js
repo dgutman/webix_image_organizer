@@ -93,7 +93,7 @@ class TaskToolService {
 		this._showSelectedButton.attachEvent("onItemClick", () => {
 			if (this._showSelected) {
 				this._setNormalDataviewState();
-				this._selectDataviewTemplate.show();
+				if (this._dataview.serialize().length > 0) this._selectDataviewTemplate.show();
 			}
 			else {
 				this._setShowSelectedState();
@@ -669,6 +669,7 @@ class TaskToolService {
 				roi.roi = true;
 				roi.folderId = img.folderId;
 				roi.name = `${img.name}_roi`;
+				roi.meta = {};
 				roi._id = mongoose.Types.ObjectId().toString();
 				roi.roiImg = true;
 				if (item.apiUrl) {

@@ -96,12 +96,6 @@ async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) 
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
 
-	const options = {
-		headers: {
-			"Girder-Token": token
-		}
-	};
-
 	const imagePromises = [];
 	// copy imagesId;
 	const imageIdsArray = [...imageIds];

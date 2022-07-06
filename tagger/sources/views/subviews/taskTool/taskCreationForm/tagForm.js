@@ -106,7 +106,7 @@ export default class TagForm extends JetView {
 							name: "addNewValueButton",
 							height: 35,
 							css: "add-new-button",
-							width: 130,
+							width: 150,
 							borderless: true,
 							onClick: {
 								"add-new-value": () => {

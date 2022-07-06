@@ -66,10 +66,25 @@ function unreviewROIs(req, res, next) {
 		.catch(err => next(err));
 }
 
+function undoLastSubmit(req, res, next) {
+	const taskIds = JSON.parse(req.body.taskIds);
+	const userId = req.user ? req.user.sub : null;
+	roisService.undoLastSubmit(taskIds, userId)
+		.then((data) => {
+			if (data) {
+				const correctString = data.length === 1 ? "image was" : "images were";
+				return res.send({message: `${data.length} ${correctString} successfully undo`});
+			}
+			res.send({message: "No records to undo"});
+		})
+		.catch(err => next(err));
+}
+
 // routes
 router.get("/thumbnail/:id", getCroppedImage);
 router.get("/task/:id", getTaskROIs);
 router.put("/review", reviewROIs);
 router.put("/unreview", unreviewROIs);
+router.put("/undo", undoLastSubmit);
 
 module.exports = router;

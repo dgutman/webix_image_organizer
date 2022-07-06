@@ -11,6 +11,7 @@ const folderService = require("../folders");
 const imagesService = require("../images");
 const tagsService = require("./tags");
 const roisService = require("./rois");
+const notificationsService = require("../notifications");
 const girderREST = require("../girderServerRequest");
 
 const ajvSchemas = require("../../etc/json-validation-schemas");
@@ -104,6 +105,20 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 		Values.insertMany(data.values)
 	];
 	if (taskData.fromROI && selectedImages) {
+		let tags = {};
+		data.tags.forEach((tag) => {
+			let tagKey = tag.name;
+			let valueDefault = [];
+			let values = Object.values(tag.values);
+			if (values) {
+				values.forEach((val) => {
+					let defVal = {value: val.name};
+					if (val.default) valueDefault.push(defVal);
+				});
+			}
+			tags[tagKey] = valueDefault || "";
+		});
+
 		let roiImgs = [];
 		selectedImages.forEach((img) => {
 			let roiImg = {
@@ -116,7 +131,7 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 				top: img.top || 20,
 				right: img.right || 200,
 				bottom: img.bottom || 200,
-				meta: img.meta,
+				meta: {...img.meta, tags},
 				boxColor: img.boxColor,
 				style: {
 					boxLeft: img.boxLeft || 20,
@@ -138,7 +153,7 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 	const userIDs = data.taskUsers.concat(data.taskCreators).unique();
 	await Promise.all(
 		data.taskData.folderIds
-			.map(id => folderService.giveReadAccessRights(id, userIDs, hostApi, token))
+			.map(id => folderService.giveReadAccessRightsToUsers(id, userIDs, hostApi, token))
 	);
 
 	return task;
@@ -176,6 +191,9 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 	if (!task) throw {name: "ValidationError", message: "Task not found"};
 	if (!["created", "published"].includes(task.status)) throw {name: "ValidationError", message: "Task can't be editted"};
 	if (!userId) throw {name: "UnauthorizedError"};
+	if (taskData.creatorId && userId !== task.owner.toString()) throw {message: "Creators changing is not allowed"};
+	if (taskData.creatorId && !taskData.creatorId.includes(task.owner.toString())) throw {name: "AccessError", message: "Can't remove the owner of the task"};
+	if (taskData.userId && !taskData.userId.length) throw {message: "At least one user should exist"};
 	if (imageIds) {
 		const folderImageIds = Object.values(imageIds);
 		const validImageIds = folderImageIds.every(ids => ids.length);
@@ -197,7 +215,7 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 	if (newUsers.length && data.taskData.folderIds) {
 		await Promise.all(
 			data.taskData.folderIds
-				.map(folderId => folderService.giveReadAccessRights(folderId, newUsers, hostApi, token))
+				.map(folderId => folderService.giveReadAccessRightsToUsers(folderId, newUsers, hostApi, token))
 		);
 	}
 	if (data.tags.length) {
