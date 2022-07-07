@@ -29,6 +29,10 @@ services:
     #    restart: always
     mongodb:
         image: mongo:4.2.6
+        environment:
+      # provide your credentials here
+            - MONGO_INITDB_ROOT_USERNAME=taggeradmin
+            - MONGO_INITDB_ROOT_PASSWORD=xbsxbs
         volumes:
             - mongodb_volume:/data/db
         restart: always
