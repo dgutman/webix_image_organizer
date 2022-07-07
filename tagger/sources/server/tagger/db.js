@@ -14,10 +14,7 @@ const joiSchema = Joi.object({
 
 const result = joiSchema.validate({username: CONFIG.db.username, pwd: CONFIG.db.pwd});
 if (result.error) {
-	mongoose.connect(`mongodb://${CONFIG.db.host}:${CONFIG.db.port}/${CONFIG.db.name}`, {
-		useUnifiedTopology: true,
-		useNewUrlParser: true
-	});
+	throw {name: "AccessError", message: "Access denied"};
 }
 else {
 	mongoose.connect(`mongodb://${CONFIG.db.username}:${CONFIG.db.pwd}@${CONFIG.db.host}:${CONFIG.db.port}/${CONFIG.db.name}`, {
