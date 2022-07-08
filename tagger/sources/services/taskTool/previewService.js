@@ -114,7 +114,7 @@ export default class previewService extends UserService {
 
 				let preselectedId = preselectedValue ? preselectedValue.id : valuesList.getFirstId();
 				if (!preselectedValue && tag.type === constants.TAG_TYPES.MULTI_WITH_DEFAULT) {
-					const defaultValue = valuesList.find(value => value.name === tag.default, true);
+					const defaultValue = valuesList.find(value => value.default, true);
 					preselectedId = defaultValue ? defaultValue.id : preselectedId;
 					valuesList.updateItem(preselectedId, {default: true});
 				}

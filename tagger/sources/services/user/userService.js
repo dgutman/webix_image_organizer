@@ -53,6 +53,7 @@ export default class UserViewService {
 		this._showReview = scope.getShowReviewTemplate();
 		this._animationButton = scope.getAnimationButton();
 		this._roiBorderButton = scope.getROIBorderButton();
+		this._roiBorderColorpicker = scope.getROIBorderColorpicker();
 
 		this._dataviewService = new DataviewService(
 			this._dataview,
@@ -140,6 +141,10 @@ export default class UserViewService {
 					ev.target.innerHTML = "Show reviewed";
 					document.querySelector(".show-unreviewed").classList.add("disable-link");
 					document.querySelector(".show-all").classList.add("disable-link");
+					if (this.borderColor) {
+						let rects = document.querySelectorAll(".roi-image-rect");
+						rects.forEach(item => item.style.borderColor = this.borderColor);
+					}
 				}
 				else {
 					ev.target.innerHTML = "Hide reviewed";
@@ -154,6 +159,10 @@ export default class UserViewService {
 					this._dataview.filter(item => item && item.isUpdated);
 					document.querySelector(".show-reviewed").classList.add("disable-link");
 					document.querySelector(".show-all").classList.add("disable-link");
+					if (this.borderColor) {
+						let rects = document.querySelectorAll(".roi-image-rect");
+						rects.forEach(item => item.style.borderColor = this.borderColor);
+					}
 				}
 				else {
 					ev.target.innerHTML = "Hide unreviewed";
@@ -183,11 +192,20 @@ export default class UserViewService {
 			if (btn.innerHTML === "Hide ROI Borders") {
 				btn.innerHTML = "Show ROI Borders";
 				this._dataview.$view.classList.add("hide-border");
+				this._roiBorderColorpicker.hide();
 			}
 			else {
 				btn.innerHTML = "Hide ROI Borders";
 				this._dataview.$view.classList.remove("hide-border");
+				this._roiBorderColorpicker.show();
 			}
+		});
+
+		this._roiBorderColorpicker.attachEvent("onChange", () => {
+			let color = this._roiBorderColorpicker.getValue();
+			let rects = document.querySelectorAll(".roi-image-rect");
+			rects.forEach(item => item.style.borderColor = color);
+			this.borderColor = color;
 		});
 	}
 
@@ -260,11 +278,13 @@ export default class UserViewService {
 			this._view.$scope.app.callEvent("OnTaskSelect", [task || {}]);
 			if (task.fromROI) {
 				this._roiBorderButton.show();
+				this._roiBorderColorpicker.show();
 				const btn = document.querySelector(".show-borders");
 				if (btn) task.showROIBorders ? btn.innerHTML = "Hide ROI Borders" : btn.innerHTML = "Show ROI Borders";
 			}
 			else {
 				this._roiBorderButton.hide();
+				this._roiBorderColorpicker.hide();
 			}
 		});
 
@@ -337,6 +357,7 @@ export default class UserViewService {
 			const changedItems = this._updatedImagesService.changedItems;
 			const tasks = this._taskList.getSelectedItem(true);
 			const taskIds = tasks.map(task => task._id);
+			this.borderColor = "";
 
 			pageItems.each((item) => {
 				if (item.meta && item.meta.hasOwnProperty("tags")) {
@@ -387,7 +408,7 @@ export default class UserViewService {
 			// TODO: check undo on roi
 			const tasks = this._taskList.getSelectedItem(true);
 			const taskIds = tasks.map(task => task._id);
-			const undoPromise = transitionalAjax.undoLastSubmit(taskIds);
+			const undoPromise = transitionalAjax.undoLastSubmit(taskIds, this.roiMode);
 			undoPromise
 				.then((response) => {
 					webix.message(response.message);
@@ -667,6 +688,10 @@ export default class UserViewService {
 					this._view.hideProgress();
 					return processedImages;
 				}
+				if (this.borderColor) {
+					let rects = document.querySelectorAll(".roi-image-rect");
+					rects.forEach(item => item.style.borderColor = this.borderColor);
+				}
 				return false;
 			})
 			.catch(() => {
@@ -744,6 +769,13 @@ export default class UserViewService {
 				tooltip.render();
 			}
 		});
+
+		this._dataview.attachEvent("onAfterLoad", () => {
+			if (this.borderColor) {
+				let rects = document.querySelectorAll(".roi-image-rect");
+				rects.forEach(item => item.style.borderColor = this.borderColor);
+			}
+		});
 	}
 
 	_setDataviewOverLay() {
@@ -785,6 +817,10 @@ export default class UserViewService {
 				if (ySpacerHeight >= 16 && this._dataview.count()) ySpacer.show();
 
 				this._itemMetadataPopup.setInitPosition();
+				if (this.borderColor) {
+					let rects = document.querySelectorAll(".roi-image-rect");
+					rects.forEach(item => item.style.borderColor = this.borderColor);
+				}
 			});
 	}
 

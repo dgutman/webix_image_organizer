@@ -347,6 +347,26 @@
     padding: 0.25em;
     color: #606060;
   }
+
+  .btn-user-colorpicker .webix_el_box {
+    padding: 0;
+    border: 1px solid @btn;
+
+    &:hover  {
+      border: 1px solid @btn-hover;
+    }
+
+    .webix_inp_static {
+      border: none;
+      visibility: hidden;
+    }
+
+    .webix_inp_label {
+      font-size: @mini-font-size;
+      color: @btn;
+      margin-left: 2px;
+    }
+  }
 }
 
 .materialStylesButtons() {

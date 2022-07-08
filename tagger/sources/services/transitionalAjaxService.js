@@ -474,11 +474,14 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	undoLastSubmit(taskIds) {
+	undoLastSubmit(taskIds, roiMode) {
 		const params = {
 			taskIds: taskIds || []
 		};
-		return this._ajax().put(`${TRANSITIONAL_API}/images/undo`, params)
+		const request = roiMode
+			? this._ajax().put(`${TRANSITIONAL_API}/rois/undo`, params)
+			: this._ajax().put(`${TRANSITIONAL_API}/images/undo`, params);
+		return request
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

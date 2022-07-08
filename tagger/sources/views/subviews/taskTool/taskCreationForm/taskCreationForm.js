@@ -66,8 +66,9 @@ class TaskCreationForm extends JetView {
 		const addNewTag = {
 			template: () => templates.getPlusButtonTemplate("Add new tag", "add-new-tag"),
 			localId: ADD_NEW_TAG_BTN_ID,
-			height: 25,
+			height: 35,
 			width: 130,
+			css: "new-tag",
 			borderless: true
 		};
 
@@ -76,7 +77,7 @@ class TaskCreationForm extends JetView {
 				{
 					template: "or load JSON file",
 					css: {"line-height": "30px"},
-					width: 150,
+					width: 110,
 					borderless: true
 				},
 				{
@@ -162,8 +163,8 @@ class TaskCreationForm extends JetView {
 			padding: 10,
 			rules: {
 				name: value => webix.rules.isNotEmpty(value.trim()),
-				group: value => {
-					const groupValue = !(value === "") && (value.trim()  === "");
+				group: (value) => {
+					const groupValue = !(value === "") && value.trim() === "";
 					return !groupValue;
 				},
 				user: arr => arr.length,
@@ -183,8 +184,12 @@ class TaskCreationForm extends JetView {
 						},
 						tagsAndValuesHeader,
 						this._tagsForm,
-						addNewTag,
-						loadJSONLayout,
+						{
+							cols: [
+								addNewTag,
+								loadJSONLayout
+							]
+						},
 						{height: 10},
 						assignUsersLayout,
 						{height: 10},
@@ -205,7 +210,7 @@ class TaskCreationForm extends JetView {
 		if (auth.isAdmin()) {
 			this._taskCreationService = new TaskCreationService(view);
 		}
-		document.querySelector('.main-header-admin a').innerHTML = '<span class="webix_icon wxi-angle-left"></span> Cancel';
+		document.querySelector(".main-header-admin a").innerHTML = '<span class="webix_icon wxi-angle-left"></span> Cancel';
 	}
 
 	get addNewTagTemplateButton() {

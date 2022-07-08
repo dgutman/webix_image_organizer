@@ -3,6 +3,7 @@ import dot from "dot-object";
 import galleryImageUrl from "../../../models/galleryImageUrls";
 import nonImageUrls from "../../../models/nonImageUrls";
 import ajaxService from "../../../services/ajaxActions";
+import transitionalAjax from "../../../services/transitionalAjaxService";
 import constants from "../../../constants";
 import UserDataviewTagIcons from "../../components/dataviewItemIcons";
 import auth from "../../../services/authentication";
@@ -98,6 +99,18 @@ export default class TaggerUserTaskView extends JetView {
 			hidden: true
 		};
 
+		const borderROIColorpicker = {
+			view: "colorpicker",
+			placeholder: "Select border color",
+			name: "borderROIColorpicker",
+			height: 40,
+			width: 120,
+			css: "btn-user-colorpicker",
+			value: "#ffffff",
+			label: "Border color",
+			hidden: true
+		};
+
 		const pager = {
 			view: "pager",
 			id: PAGER_ID,
@@ -108,6 +121,7 @@ export default class TaggerUserTaskView extends JetView {
 				<span class='pager-amount'>of ${obj.limit}</span> ${common.next()} ${common.last()}</div>`
 		};
 
+		// TODO: write custom tooltip for images with custom positioning instead of current temp. solution
 		webix.protoUI({
 			name: "imageTooltip"
 		}, webix.ui.tooltip);
@@ -247,6 +261,7 @@ export default class TaggerUserTaskView extends JetView {
 			borderless: true
 		};
 
+		// TODO: think about implementation with undomodel
 		const undoButton = {
 			view: "button",
 			css: "btn",
@@ -351,7 +366,12 @@ export default class TaggerUserTaskView extends JetView {
 							rows: [
 								showROIborders,
 								{height: 5}]
-
+						},
+						{width: 5},
+						{
+							rows: [
+								borderROIColorpicker,
+								{height: 5}]
 						},
 						{gravity: 2},
 						auth.isLoggedIn() ? showReviewed : {}
@@ -497,5 +517,9 @@ export default class TaggerUserTaskView extends JetView {
 
 	getROIBorderButton() {
 		return this.getRoot().queryView({name: "showROIBorders"});
+	}
+
+	getROIBorderColorpicker() {
+		return this.getRoot().queryView({name: "borderROIColorpicker"});
 	}
 }

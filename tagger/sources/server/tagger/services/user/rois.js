@@ -3,6 +3,8 @@ const sharp = require("sharp");
 const mongoose = require("mongoose");
 const NodeCache = require("node-cache");
 const Rois = require("../../models/user/rois");
+const RoisReviewHistoryModel = require("../../models/user/roisReviewHistory");
+const RoisModifiedByUserModel = require("../../models/user/roisModifiedByUser");
 const Tasks = require("../../models/user/tasks");
 const Images = require("../../models/images");
 const girderREST = require("../girderServerRequest");
@@ -163,6 +165,34 @@ async function countROIsByTask(taskId, userId) {
 	return {reviewedCount, allCount};
 }
 
+async function saveLastState(roisToReview, userId, taskId) {
+	const roisToInsert = await Promise.all(roisToReview.map(async (roiToReview) => {
+		const roi = await Rois.findOne({_id: mongoose.Types.ObjectId(roiToReview.id)});
+		const roiToInsert = {
+			changedByUser: userId,
+			roiId: roi.imageId,
+			isReviewed: roi.isReviewed,
+			taskId: roiToReview.taskId
+		};
+		return roiToInsert;
+	}));
+
+	const res = await RoisReviewHistoryModel.insertMany(roisToInsert);
+	const roisStates = res.filter(roiState => roiState.taskId === taskId);
+	const roisIds = roisStates.map(roiState => roiState._id);
+	const roisModifiedByUser = new RoisModifiedByUserModel({
+		userId,
+		roisIds,
+		taskId
+	});
+	await roisModifiedByUser.save();
+}
+
+async function deleteTaskHistory(roisIds, userId, taskIds) {
+	await RoisReviewHistoryModel.deleteMany({taskId: {$in: taskIds}});
+	await RoisModifiedByUserModel.deleteMany({taskId: {$in: taskIds}});
+}
+
 async function reviewROI(id, tags, preliminarily, isUpdated) {
 	// validation
 	if (typeof tags !== "object" || Array.isArray(tags)) throw "Field \"tags\" in image should be an hash";
@@ -195,13 +225,15 @@ async function setTagsByTask(images, defaultTagValues) {
 	}));
 }
 
-
 async function reviewROIs(rois, taskId, userId, preliminarily) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
 	if (!Array.isArray(rois)) throw "Field \"images\" should be an array";
 	if (!taskId) throw "Field \"taskId\" should be set";
 	await Tasks.validateByUserId([taskId], userId);
+
+	const roisToReview = rois.map(roi => ({id: roi._id, taskId: roi.taskId}));
+	saveLastState(roisToReview, userId, taskId);
 
 	const reviewedROIs = await Promise
 		.all(rois.map(roi => reviewROI(roi._id, roi.tags, preliminarily, roi.isUpdated)));
@@ -238,11 +270,43 @@ async function unreviewROIs(taskId, userId) {
 	return roisData;
 }
 
+async function undoLastSubmit(taskIds, userId) {
+	const roisModifiedByUser = await RoisModifiedByUserModel.find(
+		{userId, taskId: {$in: taskIds}}, // filter
+		null,
+		{sort: {updatedAt: -1}}
+	);
+	const lastModifiedByUser = roisModifiedByUser.length ? roisModifiedByUser[0] : null;
+	if (lastModifiedByUser) {
+		await RoisModifiedByUserModel.findByIdAndDelete(lastModifiedByUser._id);
+		const roisToUndo = await Promise
+			.all(lastModifiedByUser.roisIds
+				.map(async roiId => RoisReviewHistoryModel
+					.findByIdAndDelete(roiId)));
+		const roisToUpdate = roisToUndo.map((roi) => {
+			const id = roi.roiId;
+			const update = {
+				$set: {
+					isReviewed: roi.isReviewed
+				}
+			};
+			return {id, update};
+		});
+
+		const res = await Promise.all(roisToUpdate.map(async idAndUpdate => Rois.updateOne(
+			{_id: idAndUpdate.id},
+			idAndUpdate.update
+		)));
+		return res;
+	}
+}
+
 module.exports = {
 	getCroppedImage,
 	create,
 	getTaskROIs,
 	setTagsByTask,
 	reviewROIs,
-	unreviewROIs
+	unreviewROIs,
+	undoLastSubmit
 };
