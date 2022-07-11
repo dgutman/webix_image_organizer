@@ -5,6 +5,8 @@ volumes:
 
 services:
     tagger_client:
+        depends_on:
+            - tagger_backend
         container_name: tagger_client
         env_file: ./.env
         build:
@@ -15,6 +17,8 @@ services:
         ports:
             - 2000:80
     tagger_backend:
+        depends_on:
+            - mongodb
         container_name: tagger_backend
         env_file: ./.env
         environment:
@@ -31,10 +35,14 @@ services:
         image: mongo:4.2.6
         volumes:
             - mongodb_volume:/data/db
-        restart: always
+        restart: unless-stopped
+        env_file: ./.env
+        environment:
+            - MONGODB_INITDB_ROOT_USERNAME=$MONGODB_USER
+            - MONGODB_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
         expose:
-            - "27017"
+            - $MONGODB_DOCKER_PORT
         ports:
-            - 27017:27017
+            - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
 
 
