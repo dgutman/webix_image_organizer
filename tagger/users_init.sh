@@ -25,15 +25,15 @@ db.createUser({
 });
 
 
-use admin;
-db.createUser({
-  user:  '$MONGODB_USER',
-  pwd: '$MONGODB_PASSWORD',
-  roles: [{
-    role: 'admin',
-    db: 'admin'
-  }]
-});
+#use admin;
+#db.createUser({
+#  user:  '$MONGODB_USER',
+#  pwd: '$MONGODB_PASSWORD',
+#  roles: [{
+#    role: 'admin',
+#    db: 'admin'
+#  }]
+#});
 
 EOF
 else
