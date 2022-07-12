@@ -1,18 +1,18 @@
 const {
-	MONGODB_NAME,
-	MONGODB_HOST,
-	MONGODB_PORT,
-	MONGODB_USER_NAME,
-	MONGODB_PWD
+	DB_USER,
+	DB_PASSWORD,
+	DB_HOST,
+	DB_PORT,
+	DB_NAME
 } = process.env;
 
 module.exports = {
 	serverPort: 4000,
 	db: {
-		name: MONGODB_NAME || "taggerdb",
-		host: MONGODB_HOST || "localhost",
-		port: MONGODB_PORT || 27017,
-		username: MONGODB_USER_NAME || "",
-		pwd: MONGODB_PWD || ""
+		name: DB_NAME || "taggerdb",
+		host: DB_HOST || "localhost",
+		port: DB_PORT || 27017,
+		username: DB_USER || "",
+		pwd: DB_PASSWORD || ""
 	}
 };

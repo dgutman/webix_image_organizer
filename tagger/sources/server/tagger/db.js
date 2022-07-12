@@ -13,6 +13,7 @@ const joiSchema = Joi.object({
 });
 
 const result = joiSchema.validate({username: CONFIG.db.username, pwd: CONFIG.db.pwd});
+console.log(`mongodb://${CONFIG.db.username}:${CONFIG.db.pwd}@${CONFIG.db.host}:${CONFIG.db.port}/${CONFIG.db.name}`)
 if (result.error) {
 	mongoose.connect(`mongodb://${CONFIG.db.host}:${CONFIG.db.port}/${CONFIG.db.name}`, {
 		useUnifiedTopology: true,

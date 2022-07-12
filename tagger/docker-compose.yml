@@ -1,7 +1,7 @@
 version: "3"
 
 volumes:
-    mongodb_volume:
+    mongodb_tagger_volume:
 
 services:
     tagger_client:
@@ -21,8 +21,6 @@ services:
             - mongodb
         container_name: tagger_backend
         env_file: ./.env
-        environment:
-            - MONGODB_HOST=mongodb
         build:
             context: .
             dockerfile: sources/server/Dockerfile
@@ -30,16 +28,23 @@ services:
             - "4000"
         ports:
             - 4000:4000
-    #    restart: always
+        restart: unless-stopped
+        environment:
+            - DB_HOST=mongodb
+            - DB_USER=$MONGODB_USER
+            - DB_PASSWORD=$MONGODB_PASSWORD
+            - DB_NAME=$MONGODB_DATABASE
+            - DB_PORT=$MONGODB_DOCKER_PORT
     mongodb:
         image: mongo:4.2.6
         volumes:
-            - mongodb_volume:/data/db
+            - mongodb_tagger_volume:/data/db
+            - "./users_init.sh:/docker-entrypoint-initdb.d/users_init.sh:ro"
         restart: unless-stopped
         env_file: ./.env
         environment:
-            - MONGODB_INITDB_ROOT_USERNAME=$MONGODB_USER
-            - MONGODB_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
+            - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USER
+            - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
         expose:
             - $MONGODB_DOCKER_PORT
         ports:
