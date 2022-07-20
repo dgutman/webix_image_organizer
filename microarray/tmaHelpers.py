@@ -3,6 +3,7 @@ import random
 import cv2
 import numpy as np
 from matplotlib.patches import Rectangle
+from ipywidgets import interact,FloatSlider,IntSlider,interactive,HBox,VBox, fixed
 
 def plotGrid( w, h, x1, y1, theta, baseImage,colLabels, rowLabels ):
     ### Draws a grid of width w and height h starting at x1,y1 with a rotation of theta degrees
@@ -166,3 +167,49 @@ def get_annotation_region(gc, item_id, annotationElement,mag=None):
     #region_im = np.array(Image.open(BytesIO(resp_content)))
 
     return resp_content
+
+
+    # def plotGrid( w, h, x1, y1, theta, baseImage ):
+#     ### Draws a grid of width w and height h starting at x1,y1 with a rotation of theta degrees
+    
+#     plt.rcParams["figure.figsize"] = (15,15)
+#     plt.imshow(baseImage)
+#     for i,c in enumerate(colLabels):
+#     #print("Row: %s" % r)
+#         for j,r in enumerate(rowLabels):## j is the index, c is the rowLabel
+#         #print("\t",r,c)
+
+#             x = w*i+x1
+#             y = h*j+y1
+            
+#             (xc,yc) = tma.rotate((x,y),(x1,y1),theta)
+#             ### Compute the corrected coordinated after rotation
+            
+#             plt.gca().add_patch(Rectangle((xc,yc),w,h,
+#                         angle=theta,
+# #                         edgecolor=cmap( random.randint(0,len(colLabels) * len(rowLabels))),
+#                         edgecolor=cmap( i*len(colLabels)+j),
+#                         facecolor='none',
+#                         lw=2))
+            
+#     #plot fiducial for upper left 
+#     plt.plot(x1,y1, marker='v', color="red")
+
+#     ## For debugging below, also extract a sample TMA Core
+    
+#     tmaCore = region_im[y1:(y1+h),x1:(x1+w),:]    
+
+
+def generateTMAcontrols( rowLabels, colLabels, baseImage):
+    ### Generates several ipywidgets to control the width, height, theta, x1/y1
+    ### which are used to create an interactive ipywidget
+
+    maxTmaWidth = baseImage.shape[1]/ len(colLabels)
+    maxTmaHeight = baseImage.shape[0]/ len(rowLabels)
+    tmaWidth_s = IntSlider(min=10,max=maxTmaWidth, step=1, value=100,continuous_update=False)
+    tmaHeight_s = IntSlider(min=50,max=maxTmaHeight, step=1, value=100,continuous_update=False)
+    theta_s = FloatSlider(min=-10,max=10,step=0.2, value=0,continuous_update=False)
+    leftX_s = IntSlider(min=10,max=maxTmaWidth*2, step=1, value=10,continuous_update=False)
+    leftY_s = IntSlider(min=10,max=maxTmaHeight*2, step=1, value=10,continuous_update=False)
+
+    return (tmaWidth_s,tmaHeight_s, theta_s,leftX_s,leftY_s)
