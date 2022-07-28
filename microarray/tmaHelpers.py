@@ -4,14 +4,47 @@ import cv2
 import numpy as np
 from matplotlib.patches import Rectangle
 from ipywidgets import interact, FloatSlider, IntSlider, interactive, HBox, VBox, fixed
+from PIL import Image
+from io import BytesIO
 
-
-def plotGrid(w, h, x1, y1, theta, baseImage, colLabels, rowLabels,annotationElements):
+def plotGrid(w, h, x1, y1, theta, imgId,annotationElements,gc,thumbCache):
     # Draws a grid of width w and height h starting at x1,y1 with a rotation of theta degrees
-    cmap = get_cmap(len(colLabels) * len(rowLabels))
+ 
     annotationElements.clear()#  = [] ### Reset the array
-    
+    ### Need to think through this and cache the image(s) locally so I don't have to pull it from the server
+    ## Every single time.. I guess just stick everything in a .cache directory..
+    ### Check the array for the imgID
+    # if baseImage not in 
+    if imgId not in thumbCache:
+        print('uncached image')
+        tileInfo = gc.get('item/%s/tiles' % imgId)
+        itemInfo = gc.get('item/%s' % imgId)
+        imgThumb = gc.get("item/%s/tiles/region?units=base_pixel&magnification=%s" % (imgId, 0.625),jsonResp=False)
+        baseImage= np.array(Image.open(BytesIO(imgThumb.content)))
+        thumbCache[imgId] = {'tileInfo':tileInfo, 'itemInfo':itemInfo, 'baseImage':baseImage}
+
+    else:
+        tileInfo = thumbCache[imgId]['tileInfo']
+        itemInfo = thumbCache[imgId]['itemInfo']
+        baseImage = thumbCache[imgId]['baseImage']
+        print("Using Cache :-)")
+#    imgThumb = gc.get("item/%s/tiles/region?units=base_pixel&magnification=%s" % (imgId, 0.625),jsonResp=False)
+
+    ## Will cache this...for now though.. I won't :-)
+    #baseImage= np.array(Image.open(BytesIO(imgThumb.content)))
+
     sf = 32  # Scale Factor
+    rowLabels = itemInfo['meta']['rowLabels']
+    colLabels = itemInfo['meta']['colLabels']
+
+    ### Depending how the rowLabels are entered into the DSA, they may not show up as an array... monkey patch
+    if "," in rowLabels:
+        rowLabels = rowLabels.split(",")
+    if "," in colLabels:
+        colLabels = colLabels.split(",")
+
+
+    cmap = get_cmap(len(colLabels) * len(rowLabels))
     # print()
     plt.rcParams["figure.figsize"] = (15, 15)
     plt.imshow(baseImage)
@@ -221,16 +254,17 @@ def generateTMAcontrols(rowLabels, colLabels, baseImage):
 
     maxTmaWidth = baseImage.shape[1] / len(colLabels)
     maxTmaHeight = baseImage.shape[0] / len(rowLabels)
-    tmaWidth_s = IntSlider(min=10, max=maxTmaWidth, step=1,
+    tmaWidth_s = IntSlider(min=0, max=maxTmaWidth, step=1,
                            value=100, continuous_update=False)
-    tmaHeight_s = IntSlider(min=50, max=maxTmaHeight,
+    tmaHeight_s = IntSlider(min=0, max=maxTmaHeight,
                             step=1, value=100, continuous_update=False)
     theta_s = FloatSlider(min=-10, max=10, step=0.2,
                           value=0, continuous_update=False)
-    leftX_s = IntSlider(min=10, max=maxTmaWidth*2, step=1,
+    leftX_s = IntSlider(min=0, max=maxTmaWidth*2, step=1,
                         value=10, continuous_update=False)
-    leftY_s = IntSlider(min=10, max=maxTmaHeight*2, step=1,
+    leftY_s = IntSlider(min=0, max=maxTmaHeight*2, step=1,
                         value=10, continuous_update=False)
+
 
     return (tmaWidth_s, tmaHeight_s, theta_s, leftX_s, leftY_s)
 
