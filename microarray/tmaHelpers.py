@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import random
-import cv2
+import cv2, os
 import numpy as np
 from matplotlib.patches import Rectangle
 from ipywidgets import interact, FloatSlider, IntSlider, interactive, HBox, VBox, fixed
@@ -27,7 +27,7 @@ def plotGrid(w, h, x1, y1, theta, imgId,annotationElements,gc,thumbCache):
         tileInfo = thumbCache[imgId]['tileInfo']
         itemInfo = thumbCache[imgId]['itemInfo']
         baseImage = thumbCache[imgId]['baseImage']
-        print("Using Cache :-)")
+        print("Using Ca•che :-)")
 #    imgThumb = gc.get("item/%s/tiles/region?units=base_pixel&magnification=%s" % (imgId, 0.625),jsonResp=False)
 
     ## Will cache this...for now though.. I won't :-)
@@ -171,7 +171,7 @@ def get_annotation_region(gc, item_id, annotationElement, mag=None):
     aeType = annotationElement['type']
 
     if (aeType == 'rectangle'):
-        print(annotationElement)
+        #print(annotationElement)
         # For a rectangle, we have to compute the left as we are just given the center coord
         left = annotationElement['center'][0] - annotationElement['width'] / 2
         top = annotationElement['center'][1] - annotationElement['height'] / 2
@@ -191,7 +191,7 @@ def get_annotation_region(gc, item_id, annotationElement, mag=None):
             f'&magnification={mag}&exact=false&encoding={encoding}&jpegQuality=100&jpegSubsampling=0'
     # else:
     #     raise Exception('You must pass width / height or right / bottom parameters to get a region')
-    print(get_url)
+    #print(get_url)
     resp_content = gc.get('item/' + get_url, jsonResp=False).content
     #region_im = np.array(Image.open(BytesIO(resp_content)))
     return resp_content
@@ -269,3 +269,50 @@ def generateTMAcontrols(rowLabels, colLabels, baseImage):
     return (tmaWidth_s, tmaHeight_s, theta_s, leftX_s, leftY_s)
 
 
+def getAutoTMAcoreInfo( gc, imgId, tmaAnnotationName='autoTMA'):
+    ### This will find and return the latest autoTMA record associated with a given image
+    i = gc.get('item/%s' % imgId)
+    fileRoot = i['meta']['slideNumber']
+    
+    ## Get autoTMA documents for this item
+    tmaDocs=  gc.get('annotation?itemId=%s&name=%s' % (imgId, tmaAnnotationName))
+    print(len(tmaDocs),'autoTMA annotations found... will use the most recent one')
+    
+    if tmaDocs:
+        ae = gc.get('annotation/%s' % tmaDocs[-1]['_id']) ## Grab the last one... assume that's the most recent.. may need to check
+        print(len(ae['annotation']['elements']),'total ROIs to export')
+    else:
+        ae = None
+        print("No tma cores found for this image..")
+    
+    return ae
+
+def export_tma_cores( gc, imgId, roiUploadDir, tmaAnnotationName='autoTMA'):
+    ### This will save cropped regions from the itemID... will pass it the annotation ID as well
+    i = gc.get('item/%s' % imgId)
+    fileRoot = i['meta']['slideNumber']
+    
+    roiNames = []
+
+    ## Get autoTMA documents for this item
+    tmaDocs=  gc.get('annotation?itemId=%s&name=%s' % (imgId, tmaAnnotationName))
+    print(len(tmaDocs),'autoTMA annotations found... will use the most recent one and'),
+    
+    ae = gc.get('annotation/%s' % tmaDocs[-1]['_id']) ## Grab the last one... assume that's the most recent.. may need to check
+    print(len(ae['annotation']['elements']),'total ROIs to export')
+    
+    roiDir = 'ROI_Export'
+    if not os.path.isdir(roiDir):
+        os.mkdir(roiDir)
+
+    for roi in ae['annotation']['elements']:
+        roiFileName = "%s.%s.%d.%d.tiff" % (fileRoot,roi['label']['value'],roi['center'][0],roi['center'][1])
+        roiFilePath = "%s/%s" % (roiDir,roiFileName)
+        roiNames.append(roiFileName)
+
+        if roiFileName not in roiUploadDir:
+            if not os.path.isfile(roiFilePath):
+                r= get_annotation_region(gc,imgId,roi)        
+                with open(roiFilePath,"wb") as fpi:
+                    fpi.write(r)
+    return roiNames
