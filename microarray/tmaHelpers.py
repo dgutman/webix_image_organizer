@@ -6,6 +6,7 @@ from matplotlib.patches import Rectangle
 from ipywidgets import interact, FloatSlider, IntSlider, interactive, HBox, VBox, fixed
 from PIL import Image
 from io import BytesIO
+import tqdm
 
 def plotGrid(w, h, x1, y1, theta, imgId,annotationElements,gc,thumbCache):
     # Draws a grid of width w and height h starting at x1,y1 with a rotation of theta degrees
@@ -269,25 +270,52 @@ def generateTMAcontrols(rowLabels, colLabels, baseImage):
     return (tmaWidth_s, tmaHeight_s, theta_s, leftX_s, leftY_s)
 
 
-def getAutoTMAcoreInfo( gc, imgId, tmaAnnotationName='autoTMA'):
+def getAutoTMAcoreInfo( gc, imgId, tmaAnnotationName='autoTMA',debug=False):
     ### This will find and return the latest autoTMA record associated with a given image
     i = gc.get('item/%s' % imgId)
     fileRoot = i['meta']['slideNumber']
     
     ## Get autoTMA documents for this item
     tmaDocs=  gc.get('annotation?itemId=%s&name=%s' % (imgId, tmaAnnotationName))
-    print(len(tmaDocs),'autoTMA annotations found... will use the most recent one')
+    if debug: print(len(tmaDocs),'autoTMA annotations found... will use the most recent one')
     
     if tmaDocs:
         ae = gc.get('annotation/%s' % tmaDocs[-1]['_id']) ## Grab the last one... assume that's the most recent.. may need to check
-        print(len(ae['annotation']['elements']),'total ROIs to export')
+        if debug: print(len(ae['annotation']['elements']),'total ROIs to export')
     else:
         ae = None
         print("No tma cores found for this image..")
     
     return ae
 
-def export_tma_cores( gc, imgId, roiUploadDir, tmaAnnotationName='autoTMA'):
+def writeMultiCoreYaml( gc, imgIdOne, imgIdTwo):
+    ### This will take two images and concanetate them together with imgOne on the left and image two on the right
+    ### Using the nifty new YAML configuration...
+    ### Get the tileInfo for these two slides..
+    imgOneTs = gc.get('item/%s/tiles' % imgIdOne)
+    imgTwoTs = gc.get('item/%s/tiles' % imgIdTwo)
+#     print(imgOneTs)
+    mcWidth = imgOneTs['sizeX'] + imgTwoTs['sizeX']
+    mcHeight = max([imgOneTs['sizeY'],imgTwoTs['sizeY']])
+    
+    return (
+    f'---\r\n'
+    f'width: {mcWidth}\r\n'
+    f'height: {mcHeight}\r\n'
+    'sources:\r\n'
+    f'  - path: girder://{imgIdOne}\r\n'
+    f'    z: 0\r\n'
+    f'    position:\r\n'
+    f'      x: 0\r\n'
+    f'      y: 0\r\n'
+    f'  - path: girder://{imgIdTwo}\r\n'
+    f'    z: 0\r\n'
+    f'    position:\r\n'
+    f'      x: {imgOneTs["sizeX"]}\r\n'
+    f'      y: 0\r\n'
+    )
+
+def export_tma_cores( gc, imgId, roiUploadDir, tmaAnnotationName='autoTMA',roiDir = 'ROI_Export', debug=False):
     ### This will save cropped regions from the itemID... will pass it the annotation ID as well
     i = gc.get('item/%s' % imgId)
     fileRoot = i['meta']['slideNumber']
@@ -296,12 +324,11 @@ def export_tma_cores( gc, imgId, roiUploadDir, tmaAnnotationName='autoTMA'):
 
     ## Get autoTMA documents for this item
     tmaDocs=  gc.get('annotation?itemId=%s&name=%s' % (imgId, tmaAnnotationName))
-    print(len(tmaDocs),'autoTMA annotations found... will use the most recent one and'),
+    if debug: print(len(tmaDocs),'autoTMA annotations found... will use the most recent one and'),
     
     ae = gc.get('annotation/%s' % tmaDocs[-1]['_id']) ## Grab the last one... assume that's the most recent.. may need to check
-    print(len(ae['annotation']['elements']),'total ROIs to export')
+    if debug: print(len(ae['annotation']['elements']),'total ROIs to export')
     
-    roiDir = 'ROI_Export'
     if not os.path.isdir(roiDir):
         os.mkdir(roiDir)
 
