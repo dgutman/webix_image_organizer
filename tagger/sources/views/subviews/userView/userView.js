@@ -144,6 +144,10 @@ export default class TaggerUserView extends JetView {
 		return this._taskView.getROIBorderButton();
 	}
 
+	getROIBorderColorpicker() {
+		return this._taskView.getROIBorderColorpicker();
+	}
+
 	getFiltersAccordionItem() {
 		return this.getRoot().queryView({name: "filtersAccordionItem"});
 	}
