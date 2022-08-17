@@ -6,3 +6,13 @@ node_modules/
 *.lock
 .vscode/
 testdata/
+
+docker-compose*
+Dockerfile*
+.gitignore
+*.log
+.env.sample
+oldTaggerVersions
+README.md
+pm2.config.js
+license.txt

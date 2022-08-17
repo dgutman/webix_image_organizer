@@ -1,22 +1,19 @@
 version: "3"
-
 volumes:
-    mongodb_tagger_volume:
-
+    tagger_mongodb:
 services:
-    tagger_client:
+    frontend:
         depends_on:
-            - tagger_backend
+            - backend
+        restart: always
         container_name: tagger_client
         env_file: ./.env
         build:
             context: .
             dockerfile: ./Dockerfile
-        expose:
-            - "80"
         ports:
-            - 2000:80
-    tagger_backend:
+            - 81:80
+    backend:
         depends_on:
             - mongodb
         container_name: tagger_backend
@@ -24,30 +21,31 @@ services:
         build:
             context: .
             dockerfile: sources/server/Dockerfile
-        expose:
-            - "4000"
-        ports:
-            - 4000:4000
-        restart: unless-stopped
+        restart: always
         environment:
-            - DB_HOST=mongodb
-            - DB_USER=$MONGODB_USER
-            - DB_PASSWORD=$MONGODB_PASSWORD
-            - DB_NAME=$MONGODB_DATABASE
-            - DB_PORT=$MONGODB_DOCKER_PORT
+            - DB_HOST=$DB_HOST
+            - DB_USER=$DB_USER
+            - DB_PASSWORD=$DB_PASSWORD
+            - DB_NAME=$DB_NAME
+            - DB_PORT=$DB_PORT
     mongodb:
         image: mongo:4.2.6
+        container_name: tagger_mongodb
         volumes:
-            - mongodb_tagger_volume:/data/db
-            - "./users_init.sh:/docker-entrypoint-initdb.d/users_init.sh:ro"
-        restart: unless-stopped
+            - tagger_mongodb:/data/db
+            - ./users_init.sh:/docker-entrypoint-initdb.d/users_init.sh:ro
+            # - ./mongod.conf:/etc/mongod.conf
+        restart: always
         env_file: ./.env
         environment:
-            - MONGO_INITDB_ROOT_USERNAME=$MONGODB_USER
-            - MONGO_INITDB_ROOT_PASSWORD=$MONGODB_PASSWORD
-        expose:
-            - $MONGODB_DOCKER_PORT
-        ports:
-            - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
-
+            - MONGO_INITDB_ROOT_USERNAME=$DB_ROOT_USER
+            - MONGO_INITDB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
+            - MONGO_INITDB_DATABASE=$DB_NAME
+            - DB_NAME:$DB_NAME
+            - DB_USER:$DB_USER
+            - DB_PASSWORD:$DB_PASSWORD
+        # command: mongod --config /etc/mongod.conf
+        # entrypoint: ["mongod", "--config", "/etc/mongod.conf"]
+        # ports:
+        #     - 7017:$DB_PORT
 
