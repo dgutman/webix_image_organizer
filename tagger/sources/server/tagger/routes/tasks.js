@@ -113,8 +113,9 @@ function getTaskJSON(req, res, next) {
 function getTaskResults(req, res, next) {
 	const taskId = req.params.id;
 	const isAdmin = req.user ? req.user.prms : false;
+	const fromROI = JSON.parse(req.query.fromROI) || false;
 
-	tasksService.getTaskResults(taskId, isAdmin)
+	tasksService.getTaskResults(taskId, isAdmin, fromROI)
 		.then(data => res.json({data}))
 		.catch(err => next(err));
 }

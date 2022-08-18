@@ -13,6 +13,7 @@ const foldersService = require("./folders");
 const imageFilters = require("./imageFilters");
 const Tasks = require("../models/user/tasks");
 const girderREST = require("./girderServerRequest");
+const constants = require("../etc/constants");
 
 function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
@@ -27,6 +28,12 @@ async function countImagesByTask(taskId) {
 		taskId: mongoose.Types.ObjectId(taskId)
 	});
 	return {reviewedCount, allCount};
+}
+
+async function setTaskStatus(taskIds, newStatus) {
+	await Promise.all(
+		taskIds.map(async id => Tasks.findOneAndUpdate({_id: mongoose.Types.ObjectId(id), status: {$ne: "in_progress"}}, {$set: {status: newStatus}}))
+	);
 }
 
 function parseTagsAndValues(image, collectionId) {
@@ -95,10 +102,8 @@ function parseTagsAndValues(image, collectionId) {
 async function getDefaultTaskImages({taskId, hostApi, token, userId, imageIds}) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
-
-	const imagePromises = [];
-	// copy imagesId;
 	const imageIdsArray = [...imageIds];
+	const imagePromises = [];
 	while (imageIdsArray.length > 0) {
 		const imagesSlice = imageIdsArray.splice(0, 50);
 		const query = imagesSlice.map(id => ({$oid: id.toString()}));
@@ -376,7 +381,7 @@ async function getFoldersImages({
 	};
 }
 
-async function getTaskImages({ids, offset, limit, userId, filters}) {
+async function getTaskImages({ids, offset, limit, userId, filters, readOnly}) {
 	// validation
 	if (!Array.isArray(ids)) throw {message: "Query \"ids\" should be an array", name: "ValidationError"};
 	if (!userId) throw {name: "UnauthorizedError"};
@@ -386,9 +391,10 @@ async function getTaskImages({ids, offset, limit, userId, filters}) {
 
 	let searchParams = {
 		taskId: {$in: ids.map(id => mongoose.Types.ObjectId(id))},
-		userId,
-		isReviewed: false
+		userId
 	};
+
+	if (readOnly !== "true") searchParams.isReviewed = false;
 
 	if (filters) {
 		Object.assign(searchParams, imageFilters.getMongoQueryByValueFilters(filters));
@@ -603,23 +609,21 @@ async function reviewImages(images, taskIds, userId, preliminarily) {
 			image.isUpdated
 		))
 	);
-	// update task status by reviewed images
-	await Promise.all(
-		taskIds.map(async (id) => {
-			const {reviewedCount, allCount} = await countImagesByTask(id, userId);
-			if (allCount === reviewedCount) {
-				const task = await Tasks.findById(id);
-				if (task.userId.length === task.checked_out.length) {
-					task.status = "finished";
-					return task.save();
-				}
-			}
-			return Promise.resolve(false);
-		})
-	);
 	return {data: reviewedImages};
 }
 
+async function finalizeImages(images, taskId, userId) {
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!Array.isArray(images)) throw "Field \"images\" should be an array";
+	if (!taskId) throw "Field \"taskId\" should be set";
+	await Tasks.findByIdAndUpdate(taskId, {$push: {finished: userId}});
+	const task = await Tasks.findById(taskId);
+	if (task.userId.length === task.finished.length) {
+		task.status = "finished";
+		let finishTask = await Tasks.findByIdAndUpdate(taskId, {$set: {status: "finished"}});
+		return finishTask;
+	}
+}
 async function unreviewTaskImages(taskIds, userId) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
@@ -644,9 +648,7 @@ async function unreviewTaskImages(taskIds, userId) {
 		}}
 	);
 
-	await Promise.all(
-		taskIds.map(async id => Tasks.findOneAndUpdate({_id: mongoose.Types.ObjectId(id), status: {$ne: "in_progress"}}, {$set: {status: "in_progress"}}))
-	);
+	await setTaskStatus(taskIds, constants.TASK_STATUS_IN_PROGRESS);
 
 	return imagesData;
 }
@@ -687,6 +689,7 @@ async function undoLastSubmit(taskIds, userId) {
 			{_id: idAndUpdate.id},
 			idAndUpdate.update
 		)));
+		setTaskStatus(taskIds, constants.TASK_STATUS_IN_PROGRESS);
 		return res;
 	}
 }
@@ -701,5 +704,6 @@ module.exports = {
 	setTagsByTask,
 	unreviewTaskImages,
 	getDefaultTaskImages,
-	undoLastSubmit
+	undoLastSubmit,
+	finalizeImages
 };

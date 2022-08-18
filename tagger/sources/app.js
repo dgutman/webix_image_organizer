@@ -21,10 +21,9 @@ webix.ready(() => {
 	const appSettings = {
 		id: "",
 		version: "",
-		start: constants.APP_PATHS.TAGGER_USER,
+		start: constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD,
 		views: {
 			[constants.APP_PATHS.TAGGER]: taggerView,
-			admin: taggerAdminView,
 			user: taggerUserView,
 			dashboard: taggerDashboard,
 			notifications: taggerNotifications,
@@ -32,7 +31,7 @@ webix.ready(() => {
 			user_view: taggerUserView
 		},
 		routes: {
-			"/admin": constants.APP_PATHS.TAGGER_ADMIN,
+
 			"/user": constants.APP_PATHS.TAGGER_USER,
 			"/task_tool": constants.APP_PATHS.TAGGER_TASK_TOOL
 		}

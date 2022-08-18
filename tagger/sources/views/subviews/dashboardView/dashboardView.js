@@ -64,6 +64,7 @@ export default class TaggerDashboard extends JetView {
 
 					obj.progress = `${obj.reviewed}/${obj.count}`;
 					const format = webix.Date.dateToStr("%d.%m.%Y %H:%i");
+					obj.latest = obj.latest || obj.updatedAt;
 					obj._latest = obj.latest ? format(new Date(obj.latest)) : "";
 					obj._created = format(new Date(obj.created));
 

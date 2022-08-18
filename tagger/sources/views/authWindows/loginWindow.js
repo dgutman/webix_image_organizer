@@ -143,19 +143,19 @@ export default class LoginWindowView extends JetView {
 		this.view.showProgress();
 		if (this.form.validate()) {
 			const app = this.app;
+			let errorLabel = this.form.elements["error-label"];
 			authService.login(this.form.getValues())
 				.then(() => {
 					if (authService.isAdmin()) {
 						app.show(constants.APP_PATHS.TAGGER_ADMIN_DASHBOARD);
 					}
 					this.form.clear();
-					this.form.elements["error-label"].hide();
+					errorLabel.hide();
 					this.view.hideProgress();
 					this.cancelLogic();
 				})
 				.fail((xhr) => {
-					if (xhr.status === 401) {
-						const errorLabel = this.form.elements["error-label"];
+					if (xhr.status === 401 || xhr.status === 500) {
 						errorLabel.setValue("Login failed");
 						errorLabel.show();
 

@@ -12,6 +12,9 @@ const roisSchema = new Schema({
 	imageId: {
 		type: Schema.Types.ObjectId, required: true
 	},
+	folderId: {
+		type: Schema.Types.ObjectId
+	},
 	apiUrl: {
 		type: String,
 		default: "",
@@ -20,7 +23,6 @@ const roisSchema = new Schema({
 	boxColor: {
 		type: Array
 	},
-	// TODO: check if the coordinates are required
 	left: {
 		type: Number, required: true
 	},
@@ -42,6 +44,9 @@ const roisSchema = new Schema({
 	roiImg: {
 		type: Boolean, default: true
 	},
+	userId: {
+		type: String
+	},
 	meta: {
 		type: Schema.Types.Mixed,
 		default: {}
@@ -58,10 +63,13 @@ const roisSchema = new Schema({
 		default: {},
 		required: true
 	},
+	updatedAt: {
+		type: Date
+	},
 	taskId: {
 		type: Schema.Types.ObjectId
 	}
-});
+}, {timestamps: {createdAt: "addedDate", updatedAt: "updatedDate"}});
 
 roisSchema.set("toJSON", {virtuals: false, versionKey: false});
 const ImagesRois = mongoose.model("images_rois", roisSchema);

@@ -72,6 +72,7 @@ export default class TaggerUserTaskView extends JetView {
 			name: "showReviewed",
 			height: 40,
 			right: 0,
+			width: 400,
 			template: () => `<div class='show-reviewed-links'>
 									<a class='show-all'>Hide all</a>
 									<a class='show-reviewed'>Hide reviewed</a>
@@ -241,6 +242,9 @@ export default class TaggerUserTaskView extends JetView {
 						const disabledState = selectedValue.default ? "disabled" : "enabled";
 						str = `checked fas fa-check-square ${disabledState}`;
 					}
+
+					// Disable checkboxes for read-only mode
+					if (this.getUserDataview().config.userStatus === "completed") str = "checked fas fa-check-square disabled";
 					return str;
 				},
 				tagIcons: (obj, common) => this._dataviewIcons.getItemIconsTemplate(obj, common.width),
@@ -302,7 +306,7 @@ export default class TaggerUserTaskView extends JetView {
 				{
 					view: "button",
 					css: "btn",
-					width: 180,
+					width: 150,
 					name: "completeButton",
 					hidden: true,
 					value: "Finalize the task"

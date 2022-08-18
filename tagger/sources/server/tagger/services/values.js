@@ -95,7 +95,8 @@ async function updateValue(item, onlyValue) {
 
 	// copy item properties to value
 	Object.assign(value, item);
-	return value.save();
+	const result = await value.save();
+	return result;
 }
 
 async function updateMany(values, onlyValues) {

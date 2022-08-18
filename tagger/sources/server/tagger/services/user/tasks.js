@@ -18,7 +18,7 @@ const ajvSchemas = require("../../etc/json-validation-schemas");
 
 const ObjectID = mongoose.mongo.ObjectID;
 
-async function collectTaskData({taskData, userId, imageIds, taskId, groupId}) {
+async function collectTaskData({taskData, userId, imageIds, taskId, groupId, fromPattern, folderImageIds}) {
 	let tags = [];
 	let values = [];
 
@@ -50,7 +50,7 @@ async function collectTaskData({taskData, userId, imageIds, taskId, groupId}) {
 	if (taskCreators) taskProps.creatorId = taskCreators;
 	if (imageIds) {
 		taskProps.imageIds = Object.values(imageIds).flat();
-		taskProps.folderIds = Object.keys(imageIds);
+		taskProps.folderIds = fromPattern ? folderImageIds.flat() : Object.keys(imageIds);
 	}
 
 	if (taskData.tags) {
@@ -90,13 +90,24 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 	// validation
 	if (imageIds.undefined) imageIds = imageIds.undefined;
 	const valid = ajvSchemas.validate("task", {task: taskData});
-	if (!valid) throw {name: "ValidationError", message: ajvSchemas.errors};
+
+	let fromPattern = taskData.fromPattern;
+
+	if (!valid) throw {message: ajvSchemas.errors};
 	if (!userId) throw {name: "UnauthorizedError"};
-	const folderImageIds = Object.values(imageIds);
+	let folderImageIds = [];
+	if (fromPattern) {
+		let mainIdsArr = [];
+		selectedImages.forEach(img => mainIdsArr.push(img.folderId || img.mainId));
+		folderImageIds.push(mainIdsArr);
+	}
+	else {
+		folderImageIds = Object.values(imageIds);
+	}
 	const validImageIds = folderImageIds.every(ids => ids.length) && folderImageIds.length;
 	if (!validImageIds) throw {name: "ValidationError", message: "Image ids are not specified"};
 
-	const data = await collectTaskData({taskData, userId, imageIds});
+	const data = await collectTaskData({taskData, userId, imageIds, fromPattern, folderImageIds});
 	data.taskData.owner = userId;
 
 	const promisesArr = [
@@ -104,6 +115,7 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 		Tags.insertMany(data.tags),
 		Values.insertMany(data.values)
 	];
+
 	if (taskData.fromROI && selectedImages) {
 		let tags = {};
 		data.tags.forEach((tag) => {
@@ -126,7 +138,9 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 				name: img.name,
 				mainId: img.mainId,
 				imageId: img._id,
+				folderId: img.folderId,
 				_id: img._id,
+				userId,
 				left: img.left || 20,
 				top: img.top || 20,
 				right: img.right || 200,
@@ -153,7 +167,7 @@ async function createTask(taskData, imageIds, selectedImages, userId, hostApi, t
 	const userIDs = data.taskUsers.concat(data.taskCreators).unique();
 	await Promise.all(
 		data.taskData.folderIds
-			.map(id => folderService.giveReadAccessRightsToUsers(id, userIDs, hostApi, token))
+			.map(id => folderService.giveReadAccessRights(id, userIDs, hostApi, token))
 	);
 
 	return task;
@@ -215,7 +229,7 @@ async function editTask(id, taskData, imageIds, userId, hostApi, token) {
 	if (newUsers.length && data.taskData.folderIds) {
 		await Promise.all(
 			data.taskData.folderIds
-				.map(folderId => folderService.giveReadAccessRightsToUsers(folderId, newUsers, hostApi, token))
+				.map(folderId => folderService.giveReadAccessRights(folderId, newUsers, hostApi, token))
 		);
 	}
 	if (data.tags.length) {
@@ -480,6 +494,8 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 				groupId: 1,
 				_modelType: 1,
 				owner: 1,
+				fromROI: 1,
+				updatedAt: 1,
 				count: {
 					$divide: [{$size: "$images"}, {$max: [{$size: "$checked_out"}, 1]}]
 				}
@@ -498,6 +514,8 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 				latest: 1,
 				owner: 1,
 				count: 1,
+				fromROI: 1,
+				updatedAt: 1,
 				groupId: 1,
 				_modelType: 1
 			}
@@ -507,7 +525,7 @@ async function getTasksData({collectionId, host, token, userId, isAdmin, groupId
 	return Tasks.aggregate(aggregatePipeline);
 }
 
-async function getTaskResults(taskId, isAdmin) {
+async function getTaskResults(taskId, isAdmin, fromROI) {
 	// validation
 	if (!isAdmin) throw {name: "UnauthorizedError"};
 
@@ -532,7 +550,8 @@ async function getTaskResults(taskId, isAdmin) {
 		{$group: {_id: "$_id.user", reviewed: {$first: "$reviewed"}, tags: {$push: {name: "$_id.tag", values: "$values"}}}}
 	];
 
-	return Images.aggregate(aggregatePipeline);
+	let result = fromROI ? Rois.aggregate(aggregatePipeline) : Images.aggregate(aggregatePipeline);
+	return result;
 }
 
 async function groupTasks(ids, groupId, isAdmin) {
@@ -553,24 +572,34 @@ async function getTaskJSON({taskId, userId, isAdmin, hostApi, token}) {
 	if (!isAdmin) throw {name: "UnauthorizedError"};
 
 	task = task.toObject();
+	const fromROI = task.fromROI || false;
 
 	const options = {
 		headers: {
 			"Girder-Token": token
 		}
 	};
-
 	const imagePromises = [];
 	// copy imagesId;
 	const imageIdsArray = [...task.imageIds];
-	while (imageIdsArray.length > 0) {
-		const imageArr = imageIdsArray.splice(0, 50);
-		const query = imageArr.map(id => ({$oid: id.toString()}));
-		const url = encodeURI(`${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=50&offset=0`);
-		imagePromises.push(girderREST.get(url, options));
+	let objROI = [];
+	let imagesROI;
+	if (fromROI) {
+		imagesROI = await Rois.find({taskId: mongoose.Types.ObjectId(taskId), userId});
+		imagesROI.forEach(img => imagePromises.push(girderREST.get(img.apiUrl, options)));
+		objROI = imagesROI.map(img => img.toObject());
 	}
-	const imgs = await Promise.all(imagePromises);
-	const images = imgs.reduce((prev, curr) => {
+	else {
+		while (imageIdsArray.length > 0) {
+			const imageArr = imageIdsArray.splice(0, 50);
+			const query = imageArr.map(id => ({$oid: id.toString()}));
+			const url = encodeURI(`${hostApi}/item/query?query={"_id": {"$in": ${JSON.stringify(query)}}}&limit=50&offset=0`);
+			imagePromises.push(girderREST.get(url, options));
+		}
+	}
+
+	const imgs = fromROI ? objROI : await Promise.all(imagePromises);
+	const images = fromROI ? objROI : imgs.reduce((prev, curr) => {
 		if (curr) {
 			prev.push(...curr);
 		}

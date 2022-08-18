@@ -77,9 +77,13 @@ class TaskToolService {
 		// for ROI by pattern
 		let jsonColl = taskJSONCollection.get();
 		this._showROIBorders.hide();
-		if (jsonColl) {
-			this._parseROI(jsonColl.images);
+		if (jsonColl?.task?.fromROI) {
+			this._roisCollection.parse(jsonColl.images);
 			this._setShowROI();
+			this._setShowROIBorder();
+			this.fromPattern = true;
+			this._toggleVisibilityOfHiddenViews(jsonColl.images.length > 0);
+			this._resizeDataview();
 		}
 		else {
 			this._roisCollection.clearAll();
@@ -196,7 +200,7 @@ class TaskToolService {
 					parentNode.classList.remove("hide-meta");
 				}
 				previewPageService.parseTagsAndValues(taskData);
-				previewPageService.parseImages(selectedItems);
+				previewPageService.parseImages(selectedItems, taskData);
 				this._view.setValue("preview_task");
 			}
 		});
@@ -210,6 +214,9 @@ class TaskToolService {
 			this._createTaskButton.hide();
 			const imageIds = this._selectedImagesModel.getSelectedIds();
 			const selectedImages = this._selectedImagesModel.getSelectedItems();
+			if (taskData.fromPattern) {
+				selectedImages.forEach(img => img._id = mongoose.Types.ObjectId().toString());
+			}
 			if (taskData) {
 				this._view.showProgress();
 				transitionalAjax.createTask(taskData, imageIds, selectedImages)
@@ -406,6 +413,7 @@ class TaskToolService {
 		task.showMeta = this.showMeta || false;
 		task.fromROI = this.fromROI || false;
 		task.showROIBorders = this.showROIBorders || false;
+		task.fromPattern = this.fromPattern || false;
 
 		task.user = this.getIdsFromObjects(task.user).unique();
 		task.creator = [auth.getUserId(), ...this.getIdsFromObjects(task.creator || [])].unique();
@@ -615,6 +623,7 @@ class TaskToolService {
 			let imgCollection = this._imagesCollection.serialize();
 			imgCollection = imgCollection.map(img => img = {...img, roi: false, normal: true});
 			this._dataviewStore.parseItems(imgCollection);
+			this._showROIBorders.hide();
 		}
 		else {
 			this.fromROI = true;
@@ -624,6 +633,7 @@ class TaskToolService {
 			let roiCollection = this._roisCollection.serialize();
 			roiCollection = roiCollection.map(img => img = {...img, roi: true});
 			this._dataviewStore.parseItems(roiCollection);
+			this._showROIBorders.show();
 		}
 	}
 

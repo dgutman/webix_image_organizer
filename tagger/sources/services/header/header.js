@@ -37,6 +37,7 @@ export default class TaggerHeaderService {
 
 		this._view.$scope.on(this._view.$scope.app, "OnTaskSelect", (task) => {
 			this._taskNameTemplate.setValues(task);
+			this._taskNameTemplate.show();
 		});
 
 		this._view.$scope.on(this._view.$scope.app, "getCollectionData", () => {

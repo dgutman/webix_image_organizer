@@ -23,6 +23,7 @@ function getTaskROIs(req, res, next) {
 	const userId = req.user.sub;
 	let offset = req.query.offset || 0;
 	let limit = req.query.limit || 50;
+	let readOnly = req.query.readOnly || false;
 	offset = parseInt(offset);
 	limit = parseInt(limit);
 	const filters = req.query.filters ? JSON.parse(req.query.filters) : null;
@@ -32,7 +33,8 @@ function getTaskROIs(req, res, next) {
 		offset,
 		limit,
 		userId,
-		filters
+		filters,
+		readOnly
 	};
 
 	roisService.getTaskROIs(params)
@@ -54,6 +56,17 @@ function reviewROIs(req, res, next) {
 		.catch(err => next(err));
 }
 
+function finalizeROITask(req, res, next) {
+	const rois = JSON.parse(req.body.rois);
+	const taskId = req.body.taskId || null;
+	const userId = req.user ? req.user.sub : null;
+	const preliminarily = req.body.preliminarily || null;
+
+	roisService.finalizeROITask(rois, taskId, userId, preliminarily)
+		.then(data => res.send({message: "Task was finalized", data}))
+		.catch(err => next(err));
+}
+
 function unreviewROIs(req, res, next) {
 	const taskId = req.body.taskId;
 	const userId = req.user ? req.user.sub : null;
@@ -61,7 +74,7 @@ function unreviewROIs(req, res, next) {
 	roisService.unreviewROIs(taskId, userId)
 		.then((data) => {
 			const correctString = data.nModified === 1 ? "region of interest was" : "regions of interest were";
-			return res.send({message: `${data.nModified} ${correctString} succesfully updated`, data});
+			return res.send({message: `${correctString} succesfully updated`, data});
 		})
 		.catch(err => next(err));
 }
@@ -84,6 +97,7 @@ function undoLastSubmit(req, res, next) {
 router.get("/thumbnail/:id", getCroppedImage);
 router.get("/task/:id", getTaskROIs);
 router.put("/review", reviewROIs);
+router.put("/finalize", finalizeROITask);
 router.put("/unreview", unreviewROIs);
 router.put("/undo", undoLastSubmit);
 

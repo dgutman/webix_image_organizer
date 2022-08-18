@@ -39,7 +39,7 @@ function updateMany(req, res, next) {
 }
 
 function _delete(req, res, next) {
-	const tagIds = JSON.parse(req.body.images);
+	const tagIds = JSON.parse(req.body.ValueIds);
 
 	valuesServices.deleteMany(tagIds, next)
 		.then(() => res.sendStatus(noContentStatus))

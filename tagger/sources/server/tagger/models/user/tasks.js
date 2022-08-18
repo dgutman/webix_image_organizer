@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const constants = require("../../etc/constants");
 
 const Schema = mongoose.Schema;
 
@@ -39,7 +40,7 @@ const tasksSchema = new Schema({
 	imageIds: {
 		type: [Schema.Types.ObjectId],
 		required() {
-			return this.status === "created";
+			return this.status === constants.TASK_STATUS_CREATED;
 		}
 	},
 	folderIds: {
@@ -51,8 +52,14 @@ const tasksSchema = new Schema({
 	status: {
 		type: String,
 		required: true,
-		enum: ["created", "published", "in_progress", "canceled", "finished"],
-		default: "created"
+		enum: [
+			constants.TASK_STATUS_CREATED,
+			constants.TASK_STATUS_PUBLISHED,
+			constants.TASK_STATUS_IN_PROGRESS,
+			constants.TASK_STATUS_CANCELED,
+			constants.TASK_STATUS_FINISHED
+		],
+		default: constants.TASK_STATUS_CREATED
 	},
 	fromROI: {
 		type: Boolean,
@@ -70,11 +77,21 @@ const tasksSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	fromPattern: {
+		type: Boolean,
+		default: false
+	},
+	finished: {
+		type: Array
+	},
 	type: {
 		type: String,
 		required: true,
 		enum: ["girder", "default"],
 		default: "default"
+	},
+	updatedAt: {
+		type: Date
 	},
 	_modelType: {
 		type: "string",
@@ -87,7 +104,7 @@ tasksSchema.statics.validateByUserId = async function validateByUserId(taskIds, 
 	const tasks = await this.find({
 		_id: {$in: taskIds.map(id => mongoose.Types.ObjectId(id))},
 		userId: mongoose.Types.ObjectId(userId),
-		status: {$nin: ["canceled", "created"]}
+		status: {$nin: [constants.TASK_STATUS_CANCELED, constants.TASK_STATUS_CREATED]}
 	});
 	if (tasks.length !== taskIds.length) throw {name: "AccessError", message: "Access denied"};
 	return tasks;

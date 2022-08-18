@@ -88,6 +88,10 @@ export default class TaggerUserView extends JetView {
 		return this._tasksPanel.getTaskList();
 	}
 
+	getToggleTaskView() {
+		return this._tasksPanel.getToggleTaskView();
+	}
+
 	getTagSelect() {
 		return this._taskView.getTagSelect();
 	}

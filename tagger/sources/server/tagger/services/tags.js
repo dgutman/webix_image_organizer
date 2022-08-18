@@ -9,7 +9,7 @@ async function create(tags, collectionIds) {
 	if (!Array.isArray(tags)) throw "Field \"tags\" should be an array";
 	if (collectionIds && !Array.isArray(collectionIds)) throw "Field \"collectionIds\" should be an array";
 
-	return Promise.all(tags.map(async (tag) => {
+	let promises = tags.map(async (tag) => {
 		let name = tag;
 		let values = [];
 
@@ -23,7 +23,6 @@ async function create(tags, collectionIds) {
 			return false;
 		}
 
-		name = name.toLowerCase();
 		const existedTag = await Tags.findOne({name});
 		let createdTag;
 
@@ -47,7 +46,11 @@ async function create(tags, collectionIds) {
 		}
 
 		return existedTag || createdTag;
-	}));
+	});
+
+	let result = await Promise.all(promises);
+
+	return result;
 }
 
 async function getAll() {
