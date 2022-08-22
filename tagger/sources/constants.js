@@ -19,8 +19,8 @@ export default {
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
-	PATTERN_TAGS: "[A-Za-z0-9&_]+",
-	PATTERN_VALUES: "[A-Za-z0-9&_]+",
+	PATTERN_TAGS: "[ A-Za-z0-9&_-]+",
+	PATTERN_VALUES: "[ A-Za-z0-9&_-]+",
 	PATTERN_NOTES: "[A-Za-z0-9_\\/\\|\\\\@#,.+&:;\"'<>*!?%№()$ \\r\\n^=\\{\\}\\[\\]`~-]+",
 
 	TRANSITIONAL_TAGGER_SERVER_PATH: process.env.TAGGER_API_PATH,
@@ -112,6 +112,11 @@ export default {
 		"0"
 	],
 
+	BINARY_ICONS_FOR_VALUES: {
+		YES: ["true", "yes"],
+		NO: ["false", "no"]
+	},
+
 	USER_MENU_ITEMS: {
 		ADMIN: [
 			{id: "dashboard", value: "<span class='fas fa-table'></span> Dashboard"},
@@ -125,6 +130,12 @@ export default {
 			{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
 		]
 	},
+
+	TASK_STATUS_CREATED: "created",
+	TASK_STATUS_PUBLISHED: "published",
+	TASK_STATUS_IN_PROGRESS: "in_progress",
+	TASK_STATUS_CANCELED: "canceled",
+	TASK_STATUS_FINISHED: "finished",
 
 	TASK_STATUSES: ["created", "published", "in_progress", "canceled", "finished"],
 

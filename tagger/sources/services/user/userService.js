@@ -28,6 +28,7 @@ export default class UserViewService {
 		this._dataviewStore = new CustomDataPull(this._dataview);
 		this._pager = scope.getDataviewPager();
 		this._taskList = scope.getTaskList();
+		this._toggleTaskView = scope.getToggleTaskView();
 		this._taskAccordionItem = scope.getTaskAccordionItem();
 		this._accordion = scope.getAccordion();
 		this._imageSizeSelect = scope.getSelectImageSize();
@@ -211,7 +212,7 @@ export default class UserViewService {
 
 	_loggedInUserService() {
 		this._showPopupNotifications();
-		this._getTasks();
+		this.showFinished ? this._getTasks() : this._getFilteredTasks();
 		const tagList = this._tagSelect.getList();
 		const valuesList = this._valueSelect.getList();
 
@@ -251,6 +252,8 @@ export default class UserViewService {
 
 		this._taskList.attachEvent("onSelectChange", () => {
 			const task = this._taskList.getSelectedItem();
+			this._isFinalized = task.status === "finished";
+			if (task.finished?.indexOf(auth.getUserId()) !== -1) this._isFinalized = true;
 			this._pager.select(0);
 			this._dataviewStore.clearAll();
 			this._toggleVisibilityOfHiddenViews();
@@ -285,6 +288,44 @@ export default class UserViewService {
 			else {
 				this._roiBorderButton.hide();
 				this._roiBorderColorpicker.hide();
+			}
+			if (task.status === "finished" || this._isFinalized || this.userStatus === "completed") {
+				this._backButton.hide();
+				this._undoButton.hide();
+				this._nextButton.hide();
+			}
+		});
+
+		this._toggleTaskView.attachEvent("onItemClick", () => {
+			const changedItems = this._updatedImagesService.changedItems;
+			const changedItemsIds = Object.keys(changedItems);
+			if (changedItemsIds.length) {
+				webix.confirm({
+					title: "Save",
+					text: "Do you want to save unsaved data before choosing a new task?",
+					ok: "Yes",
+					cancel: "No"
+				})
+					.catch(() => {
+						this._updatedImagesService.clearChangedItems();
+						this._togglingTaskView();
+						return false;
+					})
+					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then((response) => {
+						if (response) {
+							webix.message(response.message);
+						}
+
+						this._togglingTaskView();
+						this._view.hideProgress();
+					})
+					.catch(() => {
+						this._view.hideProgress();
+					});
+			}
+			else {
+				this._togglingTaskView();
 			}
 		});
 
@@ -346,6 +387,11 @@ export default class UserViewService {
 			}
 		});
 
+		this._pager.attachEvent("onItemClick", () => {
+			this._roiBorderColorpicker.setValue("#ffffff");
+		});
+
+
 		this._deviationFilterDropdown.attachEvent("onChange", (id) => {
 			const ignore = id === "deviations";
 			this._iconsTemplateService.changeIgnoreDefaultState(ignore);
@@ -357,6 +403,8 @@ export default class UserViewService {
 			const changedItems = this._updatedImagesService.changedItems;
 			const tasks = this._taskList.getSelectedItem(true);
 			const taskIds = tasks.map(task => task._id);
+			const task = this._taskList.getSelectedItem();
+			const taskId = task._id;
 			this.borderColor = "";
 
 			pageItems.each((item) => {
@@ -383,7 +431,7 @@ export default class UserViewService {
 				}
 				this._view.showProgress();
 				const reviewPromise = this.roiMode ?
-					transitionalAjax.reviewROIs(dataToUpdate, taskIds[0]) :
+					transitionalAjax.reviewROIs(dataToUpdate, taskId) :
 					transitionalAjax.reviewImages(dataToUpdate, taskIds);
 				reviewPromise
 					.then((response) => {
@@ -454,7 +502,58 @@ export default class UserViewService {
 				text: "Are you sure that you are ready to finalize the task? Please, note further changes to the task will not be available.",
 				ok: "Yes",
 				cancel: "No"
-			});
+			})
+				.then(() => {
+					const pageItems = this._getItemsOnThePage();
+					const dataToUpdate = [];
+					const changedItems = this._updatedImagesService.changedItems;
+					const tasks = this._taskList.getSelectedItem(true);
+					const taskIds = tasks.map(task => task._id);
+					const task = this._taskList.getSelectedItem();
+					const taskId = task._id;
+					this.borderColor = "";
+
+					pageItems.each((item) => {
+						if (item.meta && item.meta.hasOwnProperty("tags")) {
+							dataToUpdate.push({
+								_id: item._id,
+								taskId: item.taskId,
+								tags: item.meta.tags,
+								isUpdated: item.isUpdated || changedItems.hasOwnProperty(item._id)
+							});
+						}
+					});
+
+					this._view.showProgress();
+					const reviewPromise = this.roiMode ?
+						transitionalAjax.finalizeROITask(dataToUpdate, taskId) :
+						transitionalAjax.finalizeImages(dataToUpdate, taskIds);
+					this._backButton.hide();
+					this._completeButton.hide();
+					this._undoButton.hide();
+					this._nextButton.hide();
+					reviewPromise
+						.then((response) => {
+							const images = response.data;
+							images.forEach((image) => {
+								delete changedItems[image._id];
+							});
+							webix.message(response.message);
+							this._view.hideProgress();
+
+							this._dataviewStore.clearAll();
+							this._getImages();
+						})
+						.catch(() => {
+							this._view.hideProgress();
+						});
+					this._taskListStore.clearAll();
+					this.showFinished ? this._getTasks() : this._getFilteredTasks();
+					this._taskAccordionItem.refresh();
+				})
+				.catch(() => {
+					this._view.hideProgress();
+				});
 		});
 
 		this._hotkeyInfoTemplate.define("onClick", {
@@ -547,12 +646,35 @@ export default class UserViewService {
 		return {index, pageIndex, limit};
 	}
 
+	_getFilteredTasks() {
+		this._view.showProgress();
+		transitionalAjax.getTasks()
+			.then((data) => {
+				let tasks = data.filter(task => !(task.finished?.indexOf(auth.getUserId()) !== -1 || task.status === "finished"));
+				this._taskListStore.parseItems(tasks);
+				if (data.length) {
+					const firstId = this._taskList.getFirstId();
+					this._taskAccordionItem.enable();
+					this._filtersAccordionItem.enable();
+					this._taskList.select(firstId);
+				}
+				this._setDataviewOverLay();
+				this._view.hideProgress();
+			})
+			.fail(() => {
+				this._view.hideProgress();
+			});
+	}
+
 	_getTasks() {
 		this._view.showProgress();
 		transitionalAjax.getTasks()
 			.then((data) => {
-				this._taskListStore.parseItems(data);
+				let tasks = data;
+				this._setStatus(tasks);
+				this._taskListStore.parseItems(tasks);
 				if (data.length) {
+					this._taskListStore.dataStoreView.sort(this._sortingTask);
 					const firstId = this._taskList.getFirstId();
 					this._taskAccordionItem.enable();
 					this._filtersAccordionItem.enable();
@@ -592,6 +714,7 @@ export default class UserViewService {
 
 	_selectTask(task) {
 		this._toggleROIMode(task);
+		this._toggleStatus(task);
 		this._updatedImagesService.clearChangedItems();
 		this._updatedImagesService.hotkeys = {};
 		this._updatedImagesService.hotkeyIcons = {};
@@ -613,7 +736,7 @@ export default class UserViewService {
 				this._dataviewFilters.setInitialFiltersState();
 
 				this._updatedImagesService.collectValueHotkeys();
-				this._parseHotkeysInfoTemplateData();
+				if (task.userStatus !== "completed") this._parseHotkeysInfoTemplateData();
 				this._hotkeysService.selectNewScope(task.name, this._updatedImagesService.hotkeys);
 
 				if (this._tagInfoPopup.isVisible()) {
@@ -653,10 +776,10 @@ export default class UserViewService {
 
 	_getImages(startWith, limit) {
 		const task = this._taskList.getSelectedItem();
-
 		this._view.showProgress();
 		let promise = Promise.resolve(false);
 		const params = this._getParamsForImages(startWith, limit);
+		params.readOnly = task.userStatus === "completed";
 		if (task && task.fromROI) {
 			params.id = task._id;
 
@@ -678,7 +801,8 @@ export default class UserViewService {
 					const templateValues = {
 						count: images.count,
 						totalCount: images.totalCount,
-						unfilteredCount: images.unfilteredCount
+						unfilteredCount: images.unfilteredCount,
+						status: task.status
 					};
 					this._itemsCountTemplate.setValues(templateValues);
 					this._toggleButtonsVisibility(templateValues);
@@ -696,6 +820,14 @@ export default class UserViewService {
 			})
 			.catch(() => {
 				this._view.hideProgress();
+			})
+			// for Read-only mode
+			.finally(() => {
+				if (task.status === "finished" || this._isFinalized || task.userStatus === "completed") {
+					this._backButton.hide();
+					this._undoButton.hide();
+					this._nextButton.hide();
+				}
 			});
 	}
 
@@ -707,7 +839,8 @@ export default class UserViewService {
 		const params = {
 			ids: taskIds,
 			offset,
-			limit
+			limit,
+			updatedAt: tasks[0].updatedAt
 		};
 		if (this._dataviewFilters.enabled) {
 			// this._dataviewFilters.setInitialFiltersState();
@@ -850,28 +983,40 @@ export default class UserViewService {
 		this._tagInfoPopup.setInitPosition();
 	}
 
-	_toggleButtonsVisibility({totalCount, unfilteredCount}) {
+	_toggleButtonsVisibility({totalCount, unfilteredCount, status}) {
 		if (totalCount && totalCount !== unfilteredCount) {
 			this._backButton.show();
 		}
 		else {
 			this._backButton.hide();
 		}
-
-		if (this._taskList.getSelectedItem(true)[0].status === "finished") {
+		// TODO: Commented to hide unworking finalizing functionality
+		if (!unfilteredCount && totalCount) {
+			this._completeButton.show();
+		}
+		else {
 			this._completeButton.hide();
+		}
+
+		if (this._taskList.getSelectedItem().status === "finished" || this._isFinalized || this._taskList.getSelectedItem().userStatus === "completed") {
+			this._completeButton.hide();
+			this._backButton.hide();
+			this._nextButton.hide();
 		}
 	}
 
 	_saveUnsavedImages() {
+		const pageItems = this._getItemsOnThePage();
 		this._view.showProgress();
 		const dataToUpdate = [];
 		const changedItems = this._updatedImagesService.changedItems;
 		const changedItemsIds = Object.keys(changedItems);
-		changedItemsIds.forEach((id) => {
+		const changedItemsOnPage = pageItems.filter(item => changedItemsIds.includes(item._id));
+		changedItemsOnPage.each((item) => {
 			dataToUpdate.push({
-				_id: id,
-				tags: changedItems[id],
+				_id: item._id,
+				taskId: item.taskId,
+				tags: item.meta.tags,
 				isUpdated: true
 			});
 		});
@@ -918,6 +1063,11 @@ export default class UserViewService {
 		this.roiBorders = task.showROIBorders;
 	}
 
+	_toggleStatus(task) {
+		this._dataview.define("userStatus", task.userStatus);
+		this.userStatus = task.userStatus;
+	}
+
 	_tagsAreSet(data) {
 		if (data.length) {
 			for (let i = 0; i < data.length; i++) {
@@ -930,6 +1080,58 @@ export default class UserViewService {
 					item.isReviewed = isReviewed;
 				}
 			}
+		}
+	}
+
+	_setTaskView(show) {
+		if (show) {
+			this.showFinished = true;
+			this._taskListStore.clearAll();
+			this._getTasks();
+		}
+		else {
+			this.showFinished = false;
+			this._taskListStore.clearAll();
+			this._getFilteredTasks();
+		}
+	}
+
+	_togglingTaskView() {
+		const btnView = this._toggleTaskView.$view;
+		const btn = btnView.querySelector(".webix_button");
+		if (btn.innerHTML === "Hide finished tasks") {
+			btn.innerHTML = "Show finished tasks";
+			this._setTaskView(false);
+		}
+		else {
+			btn.innerHTML = "Hide finished tasks";
+			this._setTaskView(true);
+		}
+	}
+
+	_setStatus(tasklist) {
+		tasklist.forEach((task) => {
+			task.userStatus = task.status;
+			if (task.status === "in_progress") task.userStatus = "not completed";
+			if (task.finished?.indexOf(auth.getUserId()) !== -1 || task.status === "finished") task.userStatus = "completed";
+		});
+	}
+
+	_sortingTask(a, b) {
+		if (a.userStatus === "not completed" && b.userStatus === "not completed") {
+			return a.name > b.name ? 1 : -1;
+		}
+
+		if (a.userStatus === "not completed" && b.userStatus === "completed") {
+			return -1;
+		}
+
+		if (a.userStatus === "completed" && b.userStatus === "not completed") {
+			return 1;
+		}
+
+		if (a.userStatus === "completed" && b.userStatus === "completed") {
+			return a.name > b.name ? 1 : -1;
 		}
 	}
 }

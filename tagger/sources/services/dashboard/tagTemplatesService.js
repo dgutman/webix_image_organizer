@@ -165,6 +165,7 @@ export default class TagTemplatesService {
 			this._view.showProgress();
 			Promise.all(requestArray)
 				.then((data) => {
+					this.getNewTagsData();
 				})
 				.finally(() => {
 					this._view.hideProgress();
@@ -278,17 +279,23 @@ export default class TagTemplatesService {
 
 				this._valuesListStore.updateItem(id, null, {tagIds: copyTagIds});
 
-				if (copyTagIds.length) {
+				if (copyTagIds.length > 0) {
 					if (value._id) {
-						this._changesValuesModel.addItem(value, "updated");
+						this._changesValuesModel.addItem(value, "removed");
 					}
 					else {
-						this._changesValuesModel.addItem(value, "created");
+						this._changesValuesModel.removeItem(value);
 					}
 				}
-				else if (value._id) this._changesValuesModel.addItem(value, "updated");
+				else if (value._id) this._changesValuesModel.addItem(value, "removed");
 				else this._changesValuesModel.removeItem(value, "created");
+
 				this._valuesListStore.removeItem(id);
+				const selectedTag = list.getSelectedItem();
+				if (selectedTag) {
+					this._valuesListStore.parseItems(selectedTag.values);
+					this._searchByName(this._valueColControls.list, this._valueColControls.searchField);
+				}
 				return false;
 			}
 		});
@@ -300,14 +307,17 @@ export default class TagTemplatesService {
 
 			const createdValues = this._changesValuesModel.getItems("created");
 			const updatedValues = this._changesValuesModel.getItems("updated");
-
-			const requestArray = [this._createValues(createdValues), this._updateValues(updatedValues)];
+			const removedValues = this._changesValuesModel.getItems("removed");
+			const requestArray = [this._createValues(createdValues), this._updateValues(updatedValues), this._removeValues(removedValues)];
 			this._view.showProgress();
 			Promise.all(requestArray)
+				.then(() => this.getNewTagsData())
 				.finally(() => {
 					this._view.hideProgress();
 				});
+			this._valuesListStore.clearAll();
 			this.getNewTagsData();
+			return false;
 		});
 	}
 
@@ -349,6 +359,17 @@ export default class TagTemplatesService {
 					});
 					this._changesValuesModel.clearItems("updated");
 					return response.data;
+				});
+		}
+		return Promise.resolve(false);
+	}
+
+	_removeValues(removedValues) {
+		if (removedValues.length) {
+			const valuesIds = removedValues.map(value => value._id);
+			return transitionalAjax.deleteValues(valuesIds)
+				.then(() => {
+					this._changesValuesModel.clearItems("removed");
 				});
 		}
 		return Promise.resolve(false);

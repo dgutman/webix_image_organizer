@@ -74,6 +74,7 @@ function getTaskImages(req, res, next) {
 	const userId = req.user.sub;
 	let offset = req.query.offset || 0;
 	let limit = req.query.limit || 50;
+	let readOnly = req.query.readOnly || false;
 	offset = parseInt(offset);
 	limit = parseInt(limit);
 	const filters = req.query.filters ? JSON.parse(req.query.filters) : null;
@@ -83,7 +84,8 @@ function getTaskImages(req, res, next) {
 		offset,
 		limit,
 		userId,
-		filters
+		filters,
+		readOnly
 	};
 
 	imagesService.getTaskImages(params)
@@ -115,6 +117,17 @@ function reviewImages(req, res, next) {
 			const correctString = data.length === 1 ? "image was" : "images were";
 			return res.send({message: `${data.length} ${correctString} succesfully updated`, data, count});
 		})
+		.catch(err => next(err));
+}
+
+function finalizeImages(req, res, next) {
+	const images = JSON.parse(req.body.images);
+	const taskIds = JSON.parse(req.body.taskIds);
+	const userId = req.user ? req.user.sub : null;
+	const preliminarily = req.body.preliminarily || null;
+
+	imagesService.finalizeImages(images, taskIds, userId, preliminarily)
+		.then(data => res.send({message: "Task was finalized", data}))
 		.catch(err => next(err));
 }
 
@@ -150,6 +163,7 @@ router.get("/tag/:tag/folders", getFoldersImages);
 router.get("/task", getTaskImages);
 router.put("/many", updateMany);
 router.put("/review", reviewImages);
+router.put("/finalize", finalizeImages);
 router.put("/unreview", unreviewTaskImages);
 router.post("/resource", getResourceImages);
 router.put("/undo", undoLastSubmit);

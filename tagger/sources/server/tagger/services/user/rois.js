@@ -6,14 +6,31 @@ const Rois = require("../../models/user/rois");
 const RoisReviewHistoryModel = require("../../models/user/roisReviewHistory");
 const RoisModifiedByUserModel = require("../../models/user/roisModifiedByUser");
 const Tasks = require("../../models/user/tasks");
-const Images = require("../../models/images");
 const girderREST = require("../girderServerRequest");
 const imageFilters = require("../imageFilters");
+const imageUpdatedDate = require("../../models/updatedDate");
+const constants = require("../../etc/constants");
 
 const roiThumbnailCache = new NodeCache();
 
 function setTokenIntoUrl(token, symbol) {
 	return token ? `${symbol}token=${token}` : "";
+}
+
+async function setTaskStatus(taskIds, newStatus) {
+	await Promise.all(
+		taskIds.map(
+			async id => Tasks.findOneAndUpdate(
+				{
+					_id: mongoose.Types.ObjectId(id),
+					status: {$ne: constants.TASK_STATUS_IN_PROGRESS}
+				},
+				{
+					$set: {status: newStatus}
+				}
+			)
+		)
+	);
 }
 
 async function getCroppedImage(roiId, userId, hostAPI, token) {
@@ -86,7 +103,7 @@ async function create(images) {
 	return Rois.insertMany(images);
 }
 
-async function getTaskROIs({id, offset, limit, userId, filters}) {
+async function getTaskROIs({id, offset, limit, userId, filters, readOnly}) {
 	// validation
 	if (!userId) throw {name: "UnauthorizedError"};
 	if (!id) throw {message: "Query \"id\" should be set"};
@@ -95,14 +112,24 @@ async function getTaskROIs({id, offset, limit, userId, filters}) {
 	const images = await Rois.find({taskId: mongoose.Types.ObjectId(id), userId});
 	const imageIds = images.map(image => image._id);
 
-	let searchParams = {
-		_id: {$in: imageIds},
-		isReviewed: false
-	};
+	let searchParams = {_id: {$in: imageIds}};
+	if (readOnly !== "true") searchParams.isReviewed = false;
 
 	if (filters) {
 		Object.assign(searchParams, imageFilters.getMongoQueryByValueFilters(filters));
 	}
+
+	const roisFilter = {
+		imageId: {$in: imageIds}
+	};
+	const roisData = await Rois.updateMany(
+		roisFilter,
+		{$set: {
+			updatedAt: Date.now()
+		}}
+	);
+
+	imageUpdatedDate.setDate(Date.now());
 
 	const aggregatePipeline = [
 		{$match: searchParams},
@@ -120,7 +147,9 @@ async function getTaskROIs({id, offset, limit, userId, filters}) {
 				taskId: 1,
 				apiUrl: 1,
 				style: 1,
-				boxColor: 1
+				boxColor: 1,
+				userId: 1,
+				updatedAt: 1
 			}
 		},
 		{$sort: {name: 1, _id: 1}},
@@ -142,24 +171,27 @@ async function getTaskROIs({id, offset, limit, userId, filters}) {
 	}
 
 	const totalCount = await Rois.countDocuments({imageId: {$in: imageIds}});
-
+	let finishTask = await Tasks.findByIdAndUpdate(
+		mongoose.Types.ObjectId(id), {$set: {updatedAt: Date.now()}}
+	);
 	return {
 		data,
 		count,
 		totalCount,
-		unfilteredCount
+		unfilteredCount,
+		roisData
 	};
 }
 
 async function countROIsByTask(taskId, userId) {
-	const images = await Images.find({taskId: mongoose.Types.ObjectId(taskId), userId});
+	const images = await Rois.find({taskId: mongoose.Types.ObjectId(taskId), userId});
 	const imageIds = images.map(image => image._id);
 
 	const reviewedCount = await Rois.countDocuments({
 		imageId: {$in: imageIds},
 		isReviewed: true
 	});
-	const allCount = await Images.countDocuments({
+	const allCount = await Rois.countDocuments({
 		imageId: {$in: imageIds}
 	});
 	return {reviewedCount, allCount};
@@ -193,7 +225,7 @@ async function deleteTaskHistory(roisIds, userId, taskIds) {
 	await RoisModifiedByUserModel.deleteMany({taskId: {$in: taskIds}});
 }
 
-async function reviewROI(id, tags, preliminarily, isUpdated) {
+async function reviewROI(id, tags, preliminarily, isUpdated, userId) {
 	// validation
 	if (typeof tags !== "object" || Array.isArray(tags)) throw "Field \"tags\" in image should be an hash";
 
@@ -208,6 +240,7 @@ async function reviewROI(id, tags, preliminarily, isUpdated) {
 		Object.assign(roi.meta.tags, tags);
 		roi.isReviewed = !preliminarily;
 		roi.isUpdated = isUpdated;
+		roi.userId = userId;
 		roi.updatedDate = Date.now();
 
 		roi.markModified("updatedDate");
@@ -232,17 +265,28 @@ async function reviewROIs(rois, taskId, userId, preliminarily) {
 	if (!taskId) throw "Field \"taskId\" should be set";
 	await Tasks.validateByUserId([taskId], userId);
 
+	const images = await Rois.find({taskId: mongoose.Types.ObjectId(taskId), userId});
+	const imageIds = images.map(image => image._id);
+
 	const roisToReview = rois.map(roi => ({id: roi._id, taskId: roi.taskId}));
 	saveLastState(roisToReview, userId, taskId);
 
 	const reviewedROIs = await Promise
-		.all(rois.map(roi => reviewROI(roi._id, roi.tags, preliminarily, roi.isUpdated)));
-	// update task status by reviewed images
-	const {reviewedCount, allCount} = await countROIsByTask(taskId, userId);
-	if (allCount === reviewedCount) {
-		await Tasks.findByIdAndUpdate(taskId, {$set: {status: "finished"}});
-	}
+		.all(rois.map(roi => reviewROI(roi._id, roi.tags, preliminarily, roi.isUpdated, userId)));
 	return {data: reviewedROIs};
+}
+
+async function finalizeROITask(rois, taskId, userId) {
+	if (!userId) throw {name: "UnauthorizedError"};
+	if (!Array.isArray(rois)) throw "Field \"images\" should be an array";
+	if (!taskId) throw "Field \"taskId\" should be set";
+	await Tasks.findByIdAndUpdate(taskId, {$push: {finished: userId}});
+	const task = await Tasks.findById(taskId);
+	if (task.userId.length === task.finished.length) {
+		task.status = "finished";
+		let finishTask = await Tasks.findByIdAndUpdate(taskId, {$set: {status: "finished"}});
+		return finishTask;
+	}
 }
 
 async function unreviewROIs(taskId, userId) {
@@ -251,21 +295,25 @@ async function unreviewROIs(taskId, userId) {
 	if (!taskId) throw "Field \"taskIds\" should be set";
 	await Tasks.validateByUserId([taskId], userId);
 
-	const images = await Images
+	const images = await Rois
 		.find({taskId: mongoose.Types.ObjectId(taskId), userId, isReviewed: true});
 	const imageIds = images.map(image => image._id);
+	const roisFilter = {
+		imageId: {$in: imageIds}
+	};
+	const unreviewedRois = Rois.find(roisFilter);
+	const roisIds = (await unreviewedRois).map(roi => roi._id.toString());
+	deleteTaskHistory(roisIds, userId, taskId);
 
 	const roisData = await Rois.updateMany(
-		{ // filter
-			imageId: {$in: imageIds}
-		},
+		roisFilter,
 		{$set: { // updated fields
 			isReviewed: false,
 			updatedDate: Date.now()
 		}}
 	);
 
-	await Tasks.findOneAndUpdate({_id: mongoose.Types.ObjectId(taskId), status: {$ne: "in_progress"}}, {$set: {status: "in_progress"}});
+	setTaskStatus([taskId], constants.TASK_STATUS_IN_PROGRESS);
 
 	return roisData;
 }
@@ -297,6 +345,7 @@ async function undoLastSubmit(taskIds, userId) {
 			{_id: idAndUpdate.id},
 			idAndUpdate.update
 		)));
+		setTaskStatus(taskIds, constants.TASK_STATUS_IN_PROGRESS);
 		return res;
 	}
 }
@@ -308,5 +357,6 @@ module.exports = {
 	setTagsByTask,
 	reviewROIs,
 	unreviewROIs,
-	undoLastSubmit
+	undoLastSubmit,
+	finalizeROITask
 };

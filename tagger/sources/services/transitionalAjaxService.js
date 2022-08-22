@@ -12,7 +12,7 @@ class TransitionalAjaxService extends AjaxClass {
 		const tok = `${params.username}:${params.password}`;
 		let hash;
 		try {
-			hash = btoa(tok);
+			hash = window.btoa(tok);
 		}
 		catch (e) {
 			console.log("Invalid character in password or login");
@@ -86,6 +86,15 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
+	deleteValues(ValueIds) {
+		const params = {
+			ValueIds
+		};
+		return this._ajax().del(`${TRANSITIONAL_API}/values`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
 	getResourceImages(resourceId, type) {
 		const hostApi = this.getHostApiUrl();
 		const params = {
@@ -143,11 +152,12 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	getImagesByTask({ids, offset, limit, filters}) {
+	getImagesByTask({ids, offset, limit, filters, readOnly}) {
 		const params = {
 			ids: ids || [],
 			offset: offset || 0,
-			limit: limit || 50
+			limit: limit || 50,
+			readOnly: readOnly || false
 		};
 		if (filters) params.filters = filters;
 
@@ -164,6 +174,18 @@ class TransitionalAjaxService extends AjaxClass {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/images/review`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	finalizeImages(images, taskIds, preliminarily) {
+		const params = {
+			images: images || [],
+			taskIds: taskIds || [],
+			preliminarily
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/images/finalize`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
@@ -321,8 +343,11 @@ class TransitionalAjaxService extends AjaxClass {
 			.then(result => this._parseData(result));
 	}
 
-	getTaskResults(taskId) {
-		return this._ajax().get(`${TRANSITIONAL_API}/tasks/results/${taskId}`)
+	getTaskResults(taskId, fromROI) {
+		const params = {
+			fromROI: fromROI || false
+		};
+		return this._ajax().get(`${TRANSITIONAL_API}/tasks/results/${taskId}`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
@@ -440,10 +465,11 @@ class TransitionalAjaxService extends AjaxClass {
 			.fail(this._parseError);
 	}
 
-	getTaskROIs({id, offset, limit, filters}) {
+	getTaskROIs({id, offset, limit, filters, readOnly}) {
 		const params = {
 			offset: offset || 0,
-			limit: limit || 50
+			limit: limit || 50,
+			readOnly: readOnly || false
 		};
 		if (filters) params.filters = filters;
 
@@ -460,6 +486,18 @@ class TransitionalAjaxService extends AjaxClass {
 		};
 
 		return this._ajax().put(`${TRANSITIONAL_API}/rois/review`, params)
+			.fail(this._parseError)
+			.then(result => this._parseData(result));
+	}
+
+	finalizeROITask(rois, taskId, preliminarily) {
+		const params = {
+			rois: rois || [],
+			taskId,
+			preliminarily
+		};
+
+		return this._ajax().put(`${TRANSITIONAL_API}/rois/finalize`, params)
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}

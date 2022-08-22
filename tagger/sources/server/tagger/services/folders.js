@@ -54,7 +54,7 @@ async function getResourceFolderById(folderId, host, token) {
 	});
 }
 
-async function giveReadAccessRightsToUsers(folderId, userIds, host, token) {
+async function giveReadAccessRights(folderId, userIds, host, token) {
 	const getURL = `${host}/folder/${folderId}/access`;
 	const options = {
 		headers: {
@@ -82,5 +82,5 @@ module.exports = {
 	getNestedFolderIds,
 	getById,
 	getResourceFolderById,
-	giveReadAccessRightsToUsers
+	giveReadAccessRights
 };

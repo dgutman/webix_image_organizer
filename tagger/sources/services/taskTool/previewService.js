@@ -135,9 +135,31 @@ export default class previewService extends UserService {
 		});
 	}
 
-	parseImages(images) {
+	parseImages(images, taskData) {
 		this._dataviewStore.clearAll();
-		this._dataviewStore.parseItems(images);
+		let previewImages = [...images];
+
+		const hasdefaults = taskData.tags.some(item => item.type === "multiple_with_default");
+		if (hasdefaults) {
+			previewImages.forEach((img) => { img.meta.tags = []; });
+			taskData.tags.forEach((tag) => {
+				if (tag.type === "multiple_with_default") {
+					tag.values.forEach((value) => {
+						if (value.default) {
+							previewImages.forEach((img) => {
+								img.meta.tags[tag.name] = [];
+								let val = {};
+								val.value = value.name;
+								img.meta.tags[tag.name].push(val);
+							});
+						}
+					});
+				}
+			});
+		}
+
+		this._dataviewStore.parseItems(previewImages);
+
 		this._toggleVisibilityOfHiddenViews(true);
 		this._resizeDataview();
 	}

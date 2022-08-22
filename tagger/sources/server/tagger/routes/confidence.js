@@ -5,7 +5,7 @@ const router = express.Router();
 const notFoundStatus = 404;
 const CONFIDENCE_LEVELS = confidence.getAll();
 
-function getAll(req, res, next) {
+function getAll(req, res) {
 	return CONFIDENCE_LEVELS.length !== 0
 		? res.send(CONFIDENCE_LEVELS)
 		: res.sendStatus(notFoundStatus);

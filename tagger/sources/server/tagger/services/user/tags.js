@@ -55,7 +55,8 @@ async function createTagTemplates(tags) {
 		return tag;
 	});
 
-	return tagsService.create(tags);
+	let tagcreate = await tagsService.create(tags);
+	return tagcreate;
 }
 
 module.exports = {

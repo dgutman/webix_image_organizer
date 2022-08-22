@@ -1,5 +1,4 @@
 const Notifications = require("../models/notifications");
-const Tasks = require("../models/user/tasks");
 const mongoose = require("mongoose");
 
 function escapeHtml(unsafe) {
@@ -32,19 +31,17 @@ async function getNotifications(userId, isAdmin) {
 			$project: {
 				created: 1,
 				isRead: 1,
-				taskName: "$task.name",
+				taskName: {$cond: {if: {$anyElementTrue: ["$task"]}, then: "$task.name", else: "Automatic message"}},
 				taskId: 1,
 				text: 1
 			}
 		},
 		{$sort: {created: -1, _id: 1}}
 	];
-
 	return Notifications.aggregate(aggregatePipeline);
 }
 
 async function sendNotifications(text, ids, isAdmin) {
-
 	// validation
 	if (!isAdmin) throw {name: "UnauthorizedError"};
 	if (!ids) throw "Field \"taskIds\" should be specified";
@@ -52,7 +49,9 @@ async function sendNotifications(text, ids, isAdmin) {
 
 	const message = escapeHtml(text);
 
-	const notifications = Object.entries(ids).map(([taskId, userIds]) => userIds.map(id => ({text: message, userId: id, taskId}))).flat();
+	const notifications = Object
+		.entries(ids)
+		.map(([taskId, userIds]) => userIds.map(id => ({text: message, userId: id, taskId}))).flat();
 
 	return Notifications.insertMany(notifications);
 }

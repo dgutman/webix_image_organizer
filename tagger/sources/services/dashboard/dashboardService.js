@@ -266,19 +266,17 @@ export default class TaggerDashboardService {
 			selectList.clearAll();
 			const users = taskUsers.data.serialize().filter(user => item.userId.includes(user._id));
 			selectList.parse(users);
-
-			if (!copy._progress) {
-				transitionalAjax.getTaskResults(item._id)
+			if (copy.fromROI) {
+				let params = {id: copy._id};
+				transitionalAjax.getTaskROIs(params)
 					.then((response) => {
-						copy._progress = response.data;
-						item._progress = response.data;
-						this._resultsTemplate.setValues(copy);
-						this._resultsRichselect.setValue(selectList.getFirstId());
+						copy.count = response.roisData?.modifiedCount;
+						copy.$count = response.roisData?.modifiedCount;
+						this.getResult(item, copy, selectList);
 					});
 			}
 			else {
-				this._resultsTemplate.setValues(copy);
-				this._resultsRichselect.setValue(selectList.getFirstId());
+				this.getResult(item, copy, selectList);
 			}
 		});
 
@@ -345,8 +343,6 @@ export default class TaggerDashboardService {
 				});
 				this._dashboard.parse(ungrouped);
 
-
-				this._dashboard.parse(tasks.data);
 				this._view.hideProgress();
 			})
 			.catch(() => {
@@ -454,5 +450,22 @@ export default class TaggerDashboardService {
 				});
 		}
 		return Promise.resolve();
+	}
+
+	getResult(item, copy, selectList) {
+		if (!copy._progress) {
+			transitionalAjax.getTaskResults(item._id, item.fromROI)
+				.then((response) => {
+					let data = response?.data?.data ? response.data.data : response.data;
+					copy._progress = data;
+					item._progress = data;
+					this._resultsTemplate.setValues(copy);
+					this._resultsRichselect.setValue(selectList.getFirstId());
+				});
+		}
+		else {
+			this._resultsTemplate.setValues(copy);
+			this._resultsRichselect.setValue(selectList.getFirstId());
+		}
 	}
 }
