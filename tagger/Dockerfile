@@ -1,26 +1,12 @@
-FROM node:16-alpine3.16
-
-WORKDIR /app/dev
-
-
+FROM node:16-alpine3.15  as builder
+# lts-gallium
+WORKDIR /app
 RUN apk add --no-cache git
+COPY . .
+RUN npm i && npm run build 
 
-RUN git --version
-
-RUN npm -v
-
-## Copy package.json first as this will likely change less than entire source repo
-COPY package.json .
-
-# build app bundles
-RUN npm i
-
-RUN npm install pm2 -g
-
-COPY . . 
-
-RUN npm run build
-
-EXPOSE 80
-
-CMD ["pm2-runtime", "start", "pm2.config.js", "--env=production"]
+FROM nginx:stable
+RUN rm -f /usr/share/nginx/html/*
+COPY --from=builder /app/codebase /usr/share/nginx/html
+COPY ./conf/frontend/default.conf /etc/nginx/conf.d/
+CMD ["nginx", "-g", "daemon off;"]
