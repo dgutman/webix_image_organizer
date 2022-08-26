@@ -11,6 +11,7 @@ const CLEAR_ALL_ID = "task-creation:clear-all";
 const CREATE_TASK_ID = constants.CREATE_TASK_BUTTON_ID;
 const EDIT_TASK_ID = constants.EDIT_TASK_BUTTON_ID;
 const PUBLISH_TASK_ID = constants.PUBLISH_TASK_BUTTON_ID;
+const PREVIEW_TASK_ID = constants.PREVIEW_TASK_BUTTON_ID;
 const LOAD_JSON_BTN_ID = "task-creation:load-json";
 const ADD_NEW_TAG_BTN_ID = "task-creation:add-new-tag";
 
@@ -61,7 +62,15 @@ class TaskCreationForm extends JetView {
 			inputHeight: 34
 		};
 
-		const tagsAndValuesHeader = getTextTemplate("Tags and values");
+		let tagsAndValuesHeader = getTextTemplate("Tags and values");
+		tagsAndValuesHeader.width = 140;
+
+		const tagTemplatesLink = {
+			view: "template",
+			name: "tagTemplatesLink",
+			borderless: true,
+			template: "<a class='tag-templates-link'>Tag templates</a>"
+		};
 
 		const addNewTag = {
 			template: () => templates.getPlusButtonTemplate("Add new tag", "add-new-tag"),
@@ -115,6 +124,14 @@ class TaskCreationForm extends JetView {
 					css: "btn"
 				},
 				{},
+				{
+					view: "button",
+					value: "Show preview",
+					id: PREVIEW_TASK_ID,
+					width: 150,
+					css: "btn-contour"
+				},
+				{width: 5},
 				{
 					view: "button",
 					value: "Save the task",
@@ -182,7 +199,13 @@ class TaskCreationForm extends JetView {
 								groupInput
 							]
 						},
-						tagsAndValuesHeader,
+						{
+							cols: [
+								tagsAndValuesHeader,
+								tagTemplatesLink,
+								{gravity: 1}
+							]
+						},
 						this._tagsForm,
 						{
 							cols: [
@@ -235,6 +258,10 @@ class TaskCreationForm extends JetView {
 
 	get uploadJSONButton() {
 		return this.$$(LOAD_JSON_BTN_ID);
+	}
+
+	get tagTemplatesLink() {
+		return this.getRoot().queryView({name: "tagTemplatesLink"});
 	}
 
 	get usersSelect() {

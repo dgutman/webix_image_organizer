@@ -120,11 +120,27 @@ function getTaskResults(req, res, next) {
 		.catch(err => next(err));
 }
 
+async function getResultsPerTask(req, res) {
+	const token = req.headers["girder-token"];
+	const host = req.query.host;
+	const results = await tasksService.getResultsPerTask(host, token);
+	res.json(results);
+}
+
+async function getResultsPerUser(req, res) {
+	const token = req.headers["girder-token"];
+	const host = req.query.host;
+	const results = await tasksService.getResultsPerUser(host, token);
+	res.json(results);
+}
+
 // routes
 router.get("/", getTasks);
 router.get("/data", getTasksData);
 router.get("/json/:id", getTaskJSON);
 router.get("/results/:id", getTaskResults);
+router.get("/results-per-user", getResultsPerUser);
+router.get("/results-per-task", getResultsPerTask);
 router.put("/check/:id", checkTask);
 router.put("/group", groupTasks);
 router.put("/edit/:id", editTask);

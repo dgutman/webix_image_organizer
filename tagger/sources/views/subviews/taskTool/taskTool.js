@@ -103,6 +103,22 @@ export default class TaggerTaskTool extends JetView {
 		return this.imagesLayout.queryView({name: "selectTemplate"});
 	}
 
+	get selectAll() {
+		return this.imagesLayout.queryView({name: "selectAll"});
+	}
+
+	get selectAllOnPage() {
+		return this.imagesLayout.queryView({name: "selectAllOnPage"});
+	}
+
+	get unselectAll() {
+		return this.imagesLayout.queryView({name: "unselectAll"});
+	}
+
+	get tagTemplatesLink() {
+		return this.taskCreationForm.queryView({name: "tagTemplatesLink"});
+	}
+
 	get showSelectedButton() {
 		return this.imagesLayout.queryView({name: "showSelectedButton"});
 	}
@@ -137,5 +153,9 @@ export default class TaggerTaskTool extends JetView {
 
 	get editTaskButton() {
 		return this.taskCreationForm.$scope.$$(constants.EDIT_TASK_BUTTON_ID);
+	}
+
+	get previewButton() {
+		return this.taskCreationForm.$scope.$$(constants.PREVIEW_TASK_BUTTON_ID);
 	}
 }

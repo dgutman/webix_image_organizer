@@ -31,6 +31,10 @@ class TaskToolService {
 		this._dataview = scope.dataview;
 		this._dataviewPager = scope.dataviewPager;
 		this._selectDataviewTemplate = scope.selectDataviewTemplate;
+		this._selectAll = scope.selectAll;
+		this._selectAllOnPage = scope.selectAllOnPage;
+		this._unselectAll = scope.unselectAll;
+		this._tagTemplatesLink = scope.tagTemplatesLink;
 		this._showSelectedButton = scope.showSelectedButton;
 		this._showImageName = scope.showImageName;
 		this._showMeta = scope.showMeta;
@@ -41,6 +45,7 @@ class TaskToolService {
 		this._createTaskButton = scope.createTaskButton;
 		this._publishTaskButton = scope.publishTaskButton;
 		this._editTaskButton = scope.editTaskButton;
+		this._previewButton = scope.previewButton;
 		this._tagTemplatesPopup = scope.ui(new TagTemplatesPopup(scope.app));
 		this._itemMetadataPopup = scope.ui(new InfoPopup(scope.app, "metadata", "Metadata", true));
 		this._imageWindow = scope.ui(imageWindow);
@@ -95,12 +100,14 @@ class TaskToolService {
 			});
 
 		this._showSelectedButton.attachEvent("onItemClick", () => {
+			const isDataviewEmpty = this._dataview.serialize().length > 0;
 			if (this._showSelected) {
 				this._setNormalDataviewState();
-				if (this._dataview.serialize().length > 0) this._selectDataviewTemplate.show();
+				this._toggleVisibilityOfHiddenViews(isDataviewEmpty);
 			}
 			else {
 				this._setShowSelectedState();
+				this._toggleVisibilityOfHiddenViews(isDataviewEmpty);
 			}
 		});
 
@@ -114,7 +121,22 @@ class TaskToolService {
 
 		// Show/hide metadata
 		this._showMeta.attachEvent("onItemClick", () => this._setShowMeta());
-		this._showROI.attachEvent("onItemClick", () => this._setShowROI());
+		this._showROI.attachEvent("onItemClick", () => {
+			if (this._selectedImagesModel.getSelectedItems().length > 0) {
+				webix.confirm({
+					title: "Clear selected items",
+					text: "If you switch on/off the ROI mode, the selected items will be cleared. Do you want to proceed?",
+					ok: "Yes",
+					cancel: "No"
+				})
+					.then(() => {
+						this._selectedImagesModel.unselectAllItems();
+						this._setShowROI();
+						this._view.hideProgress();
+					});
+			}
+			else this._setShowROI();
+		});
 		this._showROIBorders.attachEvent("onItemClick", () => this._setShowROIBorder());
 
 		this._editTaskButton.attachEvent("onItemClick", () => {
@@ -165,43 +187,20 @@ class TaskToolService {
 	}
 
 	_attachViewEvents() {
-		this._selectDataviewTemplate.define("onClick", {
-			"select-all-on-page": () => {
-				this._selectedImagesModel.selectAllVisibleItems(this._dataviewPager);
-			},
-			"select-all": () => {
-				this._selectedImagesModel.selectAllItems();
-			},
-			"unselect-all": () => {
-				this._selectedImagesModel.unselectAllItems();
-			},
-			"tag-templates": () => {
-				this._tagTemplatesPopup.showWindow();
-			},
-			"dataview-button": () => {
-				const taskData = this._collectTaskFormData();
-				const isValid = this._validateTaskByJSONValidator(taskData);
-				if (!isValid) return;
+		this._selectAllOnPage.attachEvent("onItemClick", () => {
+			this._selectedImagesModel.selectAllVisibleItems(this._dataviewPager);
+		});
+		this._selectAll.attachEvent("onItemClick", () => {
+			this._selectedImagesModel.selectAllItems();
+		});
+		this._unselectAll.attachEvent("onItemClick", () => {
+			this._selectedImagesModel.unselectAllItems();
+		});
 
-				const selectedItems = this._selectedImagesModel.getSelectedItems();
-				const previewView = $$("preview_task");
-				const previewPageService = previewView.$scope.previewPageService;
-				const parentNode = previewView.getNode();
-				if (!taskData.imgNames) {
-					parentNode.classList.add("hide-names");
-				}
-				else {
-					parentNode.classList.remove("hide-names");
-				}
-				if (!taskData.showMeta) {
-					parentNode.classList.add("hide-meta");
-				}
-				else {
-					parentNode.classList.remove("hide-meta");
-				}
-				previewPageService.parseTagsAndValues(taskData);
-				previewPageService.parseImages(selectedItems, taskData);
-				this._view.setValue("preview_task");
+
+		this._tagTemplatesLink.define("onClick", {
+			"tag-templates-link": () => {
+				this._tagTemplatesPopup.showWindow();
 			}
 		});
 
@@ -254,6 +253,32 @@ class TaskToolService {
 						}));
 			}
 			this._view.$scope.app.show("/dashboard");
+		});
+
+		this._previewButton.attachEvent("onItemClick", () => {
+			const taskData = this._collectTaskFormData();
+			const isValid = this._validateTaskByJSONValidator(taskData);
+			if (!isValid) return;
+
+			const selectedItems = this._selectedImagesModel.getSelectedItems();
+			const previewView = $$("preview_task");
+			const previewPageService = previewView.$scope.previewPageService;
+			const parentNode = previewView.getNode();
+			if (!taskData.imgNames) {
+				parentNode.classList.add("hide-names");
+			}
+			else {
+				parentNode.classList.remove("hide-names");
+			}
+			if (!taskData.showMeta) {
+				parentNode.classList.add("hide-meta");
+			}
+			else {
+				parentNode.classList.remove("hide-meta");
+			}
+			previewPageService.parseTagsAndValues(taskData);
+			previewPageService.parseImages(selectedItems, taskData);
+			this._view.setValue("preview_task");
 		});
 	}
 
@@ -320,7 +345,6 @@ class TaskToolService {
 				if (this._dataviewPager.data.page !== page) {
 					this._dataviewPager.select(page);
 				}
-
 				// to align dataview to center
 				const {xReminder, yReminder} = this._dataviewService.getVisibleRange();
 
@@ -525,18 +549,21 @@ class TaskToolService {
 
 	_attachFolderListEvents() {
 		this._foldersList.attachEvent("onItemClick", (id, ev) => {
-			const item = this._foldersList.getItem(id);
-			this._foldersList.select(id);
-			if (item.webix_kids) {
-				this._foldersList.showProgress();
-				this._getFolders(item)
-					.then(() => { // open item after data loading
-						this._foldersList.on_click.webix_list_item.call(this._foldersList, ev, id);
-						this._foldersList.hideProgress();
-					})
-					.catch(() => { this._foldersList.hideProgress(); });
-				return false;
+			if (this.fromROI && this._selectedImagesModel.getSelectedItems().length > 0) {
+				webix.confirm({
+					title: "Clear selected items",
+					text: "If you select another folder, the selected items will be cleared. Do you want to proceed?",
+					ok: "Yes",
+					cancel: "No"
+				})
+					.then(() => {
+						this._selectedImagesModel.unselectAllItems();
+						this._selectFolder(id, ev);
+						this._view.hideProgress();
+					});
 			}
+			else this._selectFolder(id, ev);
+			return false;
 		});
 
 		this._foldersList.attachEvent("onAfterSelect", (id) => {
@@ -584,6 +611,7 @@ class TaskToolService {
 		this._dataviewStore.parseItems(this._bgItems);
 		this._bgItems = [];
 		this._showSelected = false;
+		this._resizeDataview();
 	}
 
 	_setImageNames() {
@@ -624,6 +652,7 @@ class TaskToolService {
 			imgCollection = imgCollection.map(img => img = {...img, roi: false, normal: true});
 			this._dataviewStore.parseItems(imgCollection);
 			this._showROIBorders.hide();
+			this._resizeDataview();
 		}
 		else {
 			this.fromROI = true;
@@ -634,6 +663,7 @@ class TaskToolService {
 			roiCollection = roiCollection.map(img => img = {...img, roi: true});
 			this._dataviewStore.parseItems(roiCollection);
 			this._showROIBorders.show();
+			this._resizeDataview();
 		}
 	}
 
@@ -704,6 +734,20 @@ class TaskToolService {
 		urlCoords.width = +urlParams.get("regionWidth");
 		urlCoords.height = +urlParams.get("regionHeight");
 		return urlCoords;
+	}
+
+	_selectFolder(id, ev) {
+		const item = this._foldersList.getItem(id);
+		this._foldersList.select(id);
+		if (item.webix_kids) {
+			this._foldersList.showProgress();
+			this._getFolders(item)
+				.then(() => { // open item after data loading
+					this._foldersList.on_click.webix_list_item.call(this._foldersList, ev, id);
+					this._foldersList.hideProgress();
+				})
+				.catch(() => { this._foldersList.hideProgress(); });
+		}
 	}
 }
 

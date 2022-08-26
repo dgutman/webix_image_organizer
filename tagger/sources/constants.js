@@ -85,6 +85,7 @@ export default {
 	CREATE_TASK_BUTTON_ID: "task-creation:create-task",
 	EDIT_TASK_BUTTON_ID: "task-creation:edit-task",
 	PUBLISH_TASK_BUTTON_ID: "task-creation:publish-task",
+	PREVIEW_TASK_BUTTON_ID: "task-creation:preview-task",
 
 	DEFAULT_COLORS: [
 		"#ef9a9a",
@@ -121,7 +122,7 @@ export default {
 		ADMIN: [
 			{id: "dashboard", value: "<span class='fas fa-table'></span> Dashboard"},
 			{id: "task_tool", value: "<span class='fas fa-toolbox'></span> Create"},
-			{id: "user", value: "<span class='fas fas fa-columns'></span> User View"}
+			{id: "user", value: "<span class='fas fa-columns'></span> User View"}
 		],
 		USER: [
 			{id: "notifications", value: "<span class='fas fa-bell'></span> Notifications"}

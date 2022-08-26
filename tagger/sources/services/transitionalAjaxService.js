@@ -523,6 +523,24 @@ class TransitionalAjaxService extends AjaxClass {
 			.fail(this._parseError)
 			.then(result => this._parseData(result));
 	}
+
+	async getFinishedTasksPerUser() {
+		const host = this.getHostApiUrl();
+		const params = {
+			host
+		};
+		const result = await this._ajax().get(`${TRANSITIONAL_API}/tasks/results-per-user`, params);
+		return this._parseData(result);
+	}
+
+	async getFinishedTasksPerTask() {
+		const host = this.getHostApiUrl();
+		const params = {
+			host
+		};
+		const result = await this._ajax().get(`${TRANSITIONAL_API}/tasks/results-per-task`, params);
+		return this._parseData(result);
+	}
 }
 
 const instance = new TransitionalAjaxService();

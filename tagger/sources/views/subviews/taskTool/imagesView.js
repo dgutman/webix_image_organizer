@@ -36,22 +36,43 @@ export default class TaggerTaskToolImagesView extends JetView {
 			width: 180
 		};
 
+		const selectAllOnPage = {
+			view: "button",
+			name: "selectAllOnPage",
+			value: "Select all on the page",
+			css: "btn-contour select-all-on-page",
+			height: 30,
+			width: 180
+		};
+		const selectAll = {
+			view: "button",
+			name: "selectAll",
+			value: "Select all",
+			css: "btn-contour select-all",
+			height: 30,
+			width: 180
+		};
+
+		const unselectAll = {
+			view: "button",
+			name: "unselectAll",
+			value: "Unselect al",
+			css: "btn-contour unselect-all",
+			height: 30,
+			width: 180
+		};
+
 		const selectTemplate = {
 			name: "selectTemplate",
-			height: 70,
 			css: "images-select-template",
 			hideIfEmpty: true,
 			hidden: true,
-			template: () => `<div class='first-column'>
-							<a class='select-all-on-page'>Select all on the page</a>
-							<a class='select-all'>Select all</a>
-							<a class='unselect-all'>Unselect all</a>
-						</div>
-						<div class='second-column'>
-							<a class='tag-templates'>Tag templates</a>
-							<a class='dataview-button'>Show preview</a>
-						</div>`,
-			borderless: true
+			borderless: true,
+			rows: [
+				selectAllOnPage,
+				selectAll,
+				unselectAll
+			]
 		};
 
 		const showROI = {
@@ -169,21 +190,21 @@ export default class TaggerTaskToolImagesView extends JetView {
 				{
 					paddingY: 10,
 					cols: [
+						{},
 						{rows: [
 							showROI,
 							showROIborders,
 							{}
 						]},
-						{},
+						selectTemplate,
 						{rows: [
 							showSelectedButton,
 							showImageName,
 							showMeta
-						]}
-
+						]},
+						{}
 					]
 				},
-				selectTemplate,
 				{selector: "dataview_y_spacer"},
 				{
 					cols: [
