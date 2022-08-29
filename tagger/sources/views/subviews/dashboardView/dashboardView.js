@@ -7,6 +7,7 @@ import taskUsers from "../../../models/taskUsers";
 import UserPanel from "../header/parts/userPanel";
 import ResultsView from "./resultsView";
 import NotificationsView from "./notificationsView";
+import exportResultsWindow from "../../windows/exportResult";
 
 export default class TaggerDashboard extends JetView {
 	config() {
@@ -35,6 +36,17 @@ export default class TaggerDashboard extends JetView {
 			template: "<a class='tag-templates-link'>Tag templates</a>"
 		};
 
+		const exportResultsButton = {
+			view: "button",
+			css: "btn",
+			width: 200,
+			value: "Export all data",
+			name: "exportTasksButton",
+			click: () => {
+				this.exportTaskHandler();
+			}
+		};
+
 		const newTasksButton = {
 			view: "button",
 			css: "btn",
@@ -45,6 +57,14 @@ export default class TaggerDashboard extends JetView {
 				this.app.show(constants.APP_PATHS.TAGGER_TASK_TOOL);
 			}
 
+		};
+
+		const taskButtons = {
+			cols: [
+				exportResultsButton,
+				{width: 20},
+				newTasksButton
+			]
 		};
 
 		const treetable = {
@@ -213,7 +233,7 @@ export default class TaggerDashboard extends JetView {
 									cols: [
 										tagTemplatesLink,
 										{},
-										newTasksButton
+										taskButtons
 									]
 								},
 								{
@@ -248,12 +268,14 @@ export default class TaggerDashboard extends JetView {
 	}
 
 	ready(view) {
+		const scope = view.$scope;
 		if (!auth.isAdmin()) {
 			this.app.show(constants.APP_PATHS.TAGGER_USER);
 		}
 		else {
 			this._dashboardService = new DashboardService(view);
 		}
+		this._exportResultsWindow = scope.ui(exportResultsWindow);
 	}
 
 	get tagTemplatesLink() {
@@ -313,5 +335,9 @@ export default class TaggerDashboard extends JetView {
 			minutes,
 			seconds
 		};
+	}
+
+	exportTaskHandler() {
+		this._exportResultsWindow.showWindow();
 	}
 }

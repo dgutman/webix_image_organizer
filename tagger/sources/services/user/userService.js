@@ -736,8 +736,10 @@ export default class UserViewService {
 				this._dataviewFilters.setInitialFiltersState();
 
 				this._updatedImagesService.collectValueHotkeys();
-				if (task.userStatus !== "completed") this._parseHotkeysInfoTemplateData();
-				this._hotkeysService.selectNewScope(task.name, this._updatedImagesService.hotkeys);
+				if (task.userStatus !== "completed") {
+					this._parseHotkeysInfoTemplateData();
+					this._hotkeysService.selectNewScope(task.name, this._updatedImagesService.hotkeys);
+				}
 
 				if (this._tagInfoPopup.isVisible()) {
 					const obj = this._tagInfoTemplate.getValues() || {description: this.taskDescription || ""};

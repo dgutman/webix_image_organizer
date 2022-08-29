@@ -15,6 +15,7 @@ const notificationsService = require("../notifications");
 const girderREST = require("../girderServerRequest");
 
 const ajvSchemas = require("../../etc/json-validation-schemas");
+const constants = require("../../etc/constants");
 
 const ObjectID = mongoose.mongo.ObjectID;
 
@@ -186,7 +187,9 @@ async function deleteTask(id, userId, isAdmin, force) {
 		Tasks.deleteMany({_id: taskToDelete._id}),
 		Tags.deleteMany({_id: {$in: tagIdsToDelete}}),
 		Values.deleteMany({tagId: {$in: tagIdsToDelete}}),
-		taskToDelete.fromROI === true ? Rois.deleteMany({taskId: taskToDelete._id}) : Images.deleteMany({taskId: taskToDelete._id})
+		taskToDelete.fromROI === true
+			? Rois.deleteMany({taskId: taskToDelete._id})
+			: Images.deleteMany({taskId: taskToDelete._id})
 	]);
 
 	if (force) {
@@ -448,7 +451,12 @@ async function checkTask(taskId, hostApi, token, userId) {
 	}
 
 	const defaultTagValues = await Tags.collectDefaultValues(taskId);
-	task.fromROI ? await roisService.setTagsByTask(images, defaultTagValues) : await imagesService.setTagsByTask(images, defaultTagValues);
+	if (task.fromROI) {
+		await roisService.setTagsByTask(images, defaultTagValues);
+	}
+	else {
+		await imagesService.setTagsByTask(images, defaultTagValues);
+	}
 
 	task.checked_out.push(userId);
 	task.status = "in_progress";
@@ -642,6 +650,328 @@ async function getTaskJSON({taskId, userId, isAdmin, hostApi, token}) {
 	return {images, task};
 }
 
+async function getFinishedTasks() {
+	const finishedTasksPipeline = [{
+		$match: {
+			status: constants.TASK_STATUS_FINISHED
+		}
+	}, {
+		$project: {
+			_id: 1,
+			name: 1,
+			userId: 1,
+			groupId: 1,
+			fromROI: 1
+		}
+	}];
+	const finishedTasks = await Tasks.aggregate(finishedTasksPipeline);
+	return finishedTasks;
+}
+
+async function getResultsPerTask(host, token) {
+	const url = `${host}/user?limit=0&sort=lastName&sortdir=1`;
+	const usersInfo = await girderREST.get(url, {
+		headers: {
+			"Girder-Token": token
+		}
+	});
+	const groupIds = [];
+	const finishedTasks = await getFinishedTasks();
+	finishedTasks.forEach((task) => {
+		if (!groupIds.includes(task.groupId)) {
+			groupIds.push(task.groupId);
+		}
+	});
+	const groupAggregatePipeline = [
+		{$match: {_id: {$in: groupIds}}},
+		{$project: {
+			_id: 1,
+			name: 1
+		}}
+	];
+	const groups = await Groups.aggregate(groupAggregatePipeline);
+	groups.push({name: "No group tasks"});
+	const result = await Promise.all(groups.map(async (group) => {
+		group.tasks = [];
+		const tasksOfGroup = finishedTasks.filter((task) => {
+			if (group._id?.equals(task.groupId)) {
+				return true;
+			}
+			else if (!task.groupId && group.name === "No group tasks") {
+				return true;
+			}
+			return false;
+		});
+		const tasks = await Promise.all(tasksOfGroup.map(async (task) => {
+			const fromROI = task.fromROI;
+			const imagesAggregatePipeline = [
+				{$match: {
+					taskId: task._id
+				}},
+				{$project: {
+					_id: 1,
+					name: 1,
+					mainId: 1,
+					tags: {$objectToArray: "$meta.tags"}
+				}},
+				{$project: {
+					_id: 1,
+					name: 1,
+					mainId: 1,
+					tags: {$map: {input: "$tags", as: "kv", in: {k: "$$kv.k", v: "$$kv.v.value"}}}
+				}},
+				{$group: {
+					_id: {
+						mainId: "$mainId",
+						name: "$name"
+					},
+					reviewedImages: {
+						$push: {
+							_id: "$_id",
+							tags: "$tags"
+						}
+					}
+				}},
+				{$project: {
+					_id: "$_id.mainId",
+					name: "$_id.name",
+					reviewedImages: 1
+				}}
+			];
+			let taskImages;
+			if (fromROI) {
+				taskImages = await Rois.aggregate(imagesAggregatePipeline);
+			}
+			else {
+				taskImages = await Images.aggregate(imagesAggregatePipeline);
+			}
+			const images = await Promise.all(taskImages.map(async (image) => {
+				const tagsAggregatePipeline = [
+					{$match: {taskId: task._id}},
+					{$project: {
+						_id: 1,
+						name: 1
+					}}
+				];
+				const tags = await Tags.aggregate(tagsAggregatePipeline);
+				const imageTags = image.reviewedImages.reduce((prev, curr) => {
+					prev.push(...curr.tags);
+					return prev;
+				}, []);
+				const newTags = await Promise.all(tags.map(async (tag) => {
+					const currentImageTags = imageTags.filter(imageTag => imageTag.k === tag.name);
+					const tagValues = currentImageTags.reduce((prev, curr) => {
+						prev.push(...curr.v);
+						return prev;
+					}, []);
+					const valuesAggregatePipeline = [
+						{
+							$match: {
+								tagId: tag._id,
+								name: {
+									$in: tagValues
+								}
+							}
+						},
+						{
+							$project: {
+								_id: 1,
+								name: 1,
+								tagId: 1
+							}
+						},
+						{
+							$lookup: {
+								from: "users_tags",
+								localField: "tagId",
+								foreignField: "_id",
+								as: "tags"
+							}
+						},
+						{
+							$unwind: "$tags"
+						},
+						{
+							$lookup: {
+								from: "images",
+								localField: "tags.taskId",
+								foreignField: "taskId",
+								as: "images"
+							}
+						},
+						{
+							$unwind: "$images"
+						},
+						{
+							$project: {
+								_id: 1,
+								name: 1,
+								tagId: 1,
+								imageId: "$images._id",
+								mainId: "$images.mainId",
+								userId: "$images.userId"
+							}
+						},
+						{
+							$group: {
+								_id: {
+									id: "$_id",
+									name: "$name",
+									mainId: "$mainId"
+								},
+								users: {
+									$push: {
+										userId: "$userId"
+									}
+								}
+							}
+						},
+						{
+							$project: {
+								_id: "$_id.id",
+								name: "$_id.name",
+								users: "$users"
+							}
+						}
+					];
+					const values = await Values.aggregate(valuesAggregatePipeline);
+					values.forEach((value) => {
+						value.users.forEach((user) => {
+							const userInfo = usersInfo.find(
+								currentUserInfo => currentUserInfo._id === user.userId.toString()
+							);
+							user.firstName = userInfo.firstName;
+							user.lastName = userInfo.lastName;
+						});
+						value.usersCount = value.users.length;
+					});
+					tag.values = values;
+					return tag;
+				}));
+				image.tags = newTags;
+				delete image.reviewedImages;
+				return image;
+			}));
+			task.images = images;
+			delete task.userId;
+			delete task.groupId;
+			delete task.fromROI;
+			return task;
+		}));
+		group.tasks.push(...tasks);
+		return group;
+	}));
+	return result;
+}
+
+// TODO: find a way not to duplicate the code
+async function getResultsPerUser(host, token) {
+	const url = `${host}/user?limit=0&sort=lastName&sortdir=1`;
+	const usersInfo = await girderREST.get(url, {
+		headers: {
+			"Girder-Token": token
+		}
+	});
+	const groupIds = [];
+	const finishedTasks = await getFinishedTasks();
+	finishedTasks.forEach((task) => {
+		if (!groupIds.includes(task.groupId)) {
+			groupIds.push(task.groupId);
+		}
+	});
+	const groupAggregatePipeline = [
+		{$match: {_id: {$in: groupIds}}},
+		{$project: {
+			_id: 1,
+			name: 1
+		}}
+	];
+	const groups = await Groups.aggregate(groupAggregatePipeline);
+	groups.push({name: "No group tasks"});
+	const result = await Promise.all(groups.map(async (group) => {
+		group.tasks = [];
+		const tasksOfGroup = finishedTasks.filter((task) => {
+			if (group._id?.equals(task.groupId)) {
+				return true;
+			}
+			else if (!task.groupId && group.name === "No group tasks") {
+				return true;
+			}
+			return false;
+		});
+		const tasks = await Promise.all(tasksOfGroup.map(async (task) => {
+			const fromROI = task.fromROI;
+			const users = await Promise.all(task.userId.map(async (id) => {
+				const user = {_id: id};
+				user.name = usersInfo.find(userInfo => userInfo._id === id.toString())?.login;
+				const imagesAggregatePipeline = [
+					{$match: {
+						userId: id.toString(),
+						taskId: task._id
+					}},
+					{$project: {
+						_id: 1,
+						name: 1,
+						tags: {$objectToArray: "$meta.tags"}
+					}},
+					{$project: {
+						_id: 1,
+						name: 1,
+						tags: {$map: {input: "$tags", as: "kv", in: {k: "$$kv.k", v: "$$kv.v.value"}}}
+					}}
+				];
+				let taskImages;
+				if (fromROI) {
+					taskImages = await Rois.aggregate(imagesAggregatePipeline);
+				}
+				else {
+					taskImages = await Images.aggregate(imagesAggregatePipeline);
+				}
+				const images = await Promise.all(taskImages.map(async (image) => {
+					const tagsAggregatePipeline = [
+						{$match: {taskId: task._id}},
+						{$project: {
+							_id: 1,
+							name: 1
+						}}
+					];
+					const tags = await Tags.aggregate(tagsAggregatePipeline);
+					const newTags = await Promise.all(tags.map(async (tag) => {
+						const currentImageTagIndex = image.tags.findIndex(imageTag => imageTag.k === tag.name);
+						const valuesAggregatePipeline = [
+							{$match: {
+								tagId: tag._id,
+								name: {$in: image.tags[currentImageTagIndex].v}
+							}},
+							{$project: {
+								_id: 1,
+								name: 1
+							}}
+						];
+						const values = await Values.aggregate(valuesAggregatePipeline);
+						tag.values = values;
+						return tag;
+					}));
+					image.tags = newTags;
+					return image;
+				}));
+				user.images = images;
+				delete image.reviewedImages;
+				return user;
+			}));
+			task.users = users;
+			delete task.userId;
+			delete task.groupId;
+			delete task.fromROI;
+			return task;
+		}));
+		group.tasks.push(...tasks);
+		return group;
+	}));
+
+	return result;
+}
+
 module.exports = {
 	getTasks,
 	checkTask,
@@ -652,5 +982,7 @@ module.exports = {
 	editTask,
 	getTaskJSON,
 	getTaskResults,
-	changeTaskStatus
+	changeTaskStatus,
+	getResultsPerTask,
+	getResultsPerUser
 };
