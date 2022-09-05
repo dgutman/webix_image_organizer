@@ -52,7 +52,8 @@ class TaskCreationService {
 			this._tagsForm.removeTagForms();
 			this._tagsForm.redefineFormSize();
 			this._view.clear();
-			const deadline = new Date();
+			const date = Date.now() + constants.MILLISECONDS_TO_DAYS * constants.DEADLINE_DELAY;
+			const deadline = new Date(date);
 			this._view.setValues({deadline});
 		});
 	}

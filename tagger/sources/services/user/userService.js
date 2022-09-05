@@ -231,7 +231,7 @@ export default class UserViewService {
 						this._taskList.select(taskId);
 						return false;
 					})
-					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then(result => result ? this._saveUnsavedImages() : false)
 					.then((response) => {
 						if (response) {
 							webix.message(response.message);
@@ -252,7 +252,7 @@ export default class UserViewService {
 
 		this._taskList.attachEvent("onSelectChange", () => {
 			const task = this._taskList.getSelectedItem();
-			this._isFinalized = task.status === "finished";
+			this._isFinalized = task.status === constants.TASK_STATUS_FINISHED;
 			if (task.finished?.indexOf(auth.getUserId()) !== -1) this._isFinalized = true;
 			this._pager.select(0);
 			this._dataviewStore.clearAll();
@@ -289,7 +289,9 @@ export default class UserViewService {
 				this._roiBorderButton.hide();
 				this._roiBorderColorpicker.hide();
 			}
-			if (task.status === "finished" || this._isFinalized || this.userStatus === "completed") {
+			const isFinished = task.status === constants.TASK_STATUS_FINISHED;
+			const isCompleted = this.userStatus === constants.USER_STATUS_COMPLETED;
+			if (isFinished || this._isFinalized || isCompleted) {
 				this._backButton.hide();
 				this._undoButton.hide();
 				this._nextButton.hide();
@@ -311,7 +313,7 @@ export default class UserViewService {
 						this._togglingTaskView();
 						return false;
 					})
-					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then(result => result ? this._saveUnsavedImages() : false)
 					.then((response) => {
 						if (response) {
 							webix.message(response.message);
@@ -583,7 +585,7 @@ export default class UserViewService {
 						this._applyFilters();
 						return false;
 					})
-					.then(result => (result ? this._saveUnsavedImages() : false))
+					.then(result => result ? this._saveUnsavedImages() : false)
 					.then((response) => {
 						if (response) {
 							const images = response.data;
@@ -650,7 +652,11 @@ export default class UserViewService {
 		this._view.showProgress();
 		transitionalAjax.getTasks()
 			.then((data) => {
-				let tasks = data.filter(task => !(task.finished?.indexOf(auth.getUserId()) !== -1 || task.status === "finished"));
+				let tasks = data.filter((task) => {
+					const isFinished = task.finished?.indexOf(auth.getUserId()) !== -1;
+					const isCompleted = task.status === constants.TASK_STATUS_FINISHED;
+					return !(isFinished || isCompleted);
+				});
 				this._taskListStore.parseItems(tasks);
 				if (data.length) {
 					const firstId = this._taskList.getFirstId();
@@ -736,16 +742,20 @@ export default class UserViewService {
 				this._dataviewFilters.setInitialFiltersState();
 
 				this._updatedImagesService.collectValueHotkeys();
-				if (task.userStatus !== "completed") {
-					this._parseHotkeysInfoTemplateData();
+				this._parseHotkeysInfoTemplateData();
+				const notCompleted = task.userStatus !== constants.USER_STATUS_COMPLETED;
+				if (task.userStatus !== notCompleted) {
 					this._hotkeysService.selectNewScope(task.name, this._updatedImagesService.hotkeys);
+				}
+				else {
+					this._hotkeysService.removeCurrentScope();
 				}
 
 				if (this._tagInfoPopup.isVisible()) {
 					const obj = this._tagInfoTemplate.getValues() || {description: this.taskDescription || ""};
 					this._tagInfoPopup.setNewData(obj);
 				}
-				if (this._hotkeysInfoPopup.isVisible()) {
+				if (this._hotkeysInfoPopup.isVisible() && notCompleted) {
 					const obj = this._hotkeyInfoTemplate.getValues() || {};
 					this._hotkeysInfoPopup.setNewData(obj);
 				}
@@ -781,7 +791,7 @@ export default class UserViewService {
 		this._view.showProgress();
 		let promise = Promise.resolve(false);
 		const params = this._getParamsForImages(startWith, limit);
-		params.readOnly = task.userStatus === "completed";
+		params.readOnly = task.userStatus === constants.USER_STATUS_COMPLETED;
 		if (task && task.fromROI) {
 			params.id = task._id;
 
@@ -825,7 +835,9 @@ export default class UserViewService {
 			})
 			// for Read-only mode
 			.finally(() => {
-				if (task.status === "finished" || this._isFinalized || task.userStatus === "completed") {
+				const isFinished = task.status === constants.TASK_STATUS_FINISHED;
+				const isCompleted = task.userStatus === constants.USER_STATUS_COMPLETED;
+				if (isFinished || this._isFinalized || isCompleted) {
 					this._backButton.hide();
 					this._undoButton.hide();
 					this._nextButton.hide();
@@ -985,7 +997,7 @@ export default class UserViewService {
 		this._tagInfoPopup.setInitPosition();
 	}
 
-	_toggleButtonsVisibility({totalCount, unfilteredCount, status}) {
+	_toggleButtonsVisibility({totalCount, unfilteredCount}) {
 		if (totalCount && totalCount !== unfilteredCount) {
 			this._backButton.show();
 		}
@@ -1000,7 +1012,10 @@ export default class UserViewService {
 			this._completeButton.hide();
 		}
 
-		if (this._taskList.getSelectedItem().status === "finished" || this._isFinalized || this._taskList.getSelectedItem().userStatus === "completed") {
+		const task = this._taskList.getSelectedItem();
+		const isFinished = task.status === constants.TASK_STATUS_FINISHED;
+		const isCompleted = task.userStatus === constants.USER_STATUS_COMPLETED;
+		if (isFinished || this._isFinalized || isCompleted) {
 			this._completeButton.hide();
 			this._backButton.hide();
 			this._nextButton.hide();
@@ -1114,25 +1129,32 @@ export default class UserViewService {
 	_setStatus(tasklist) {
 		tasklist.forEach((task) => {
 			task.userStatus = task.status;
-			if (task.status === "in_progress") task.userStatus = "not completed";
-			if (task.finished?.indexOf(auth.getUserId()) !== -1 || task.status === "finished") task.userStatus = "completed";
+			if (task.status === constants.TASK_STATUS_IN_PROGRESS) {
+				task.userStatus = constants.USER_STATUS_NOT_COMPLETED;
+			}
+			const isCompleted = task.finished?.indexOf(auth.getUserId()) !== -1;
+			if (isCompleted || task.status === constants.TASK_STATUS_FINISHED) {
+				task.userStatus = constants.USER_STATUS_COMPLETED;
+			}
 		});
 	}
 
 	_sortingTask(a, b) {
-		if (a.userStatus === "not completed" && b.userStatus === "not completed") {
+		const completed = constants.USER_STATUS_COMPLETED;
+		const notCompleted = constants.USER_STATUS_NOT_COMPLETED;
+		if (a.userStatus === notCompleted && b.userStatus === notCompleted) {
 			return a.name > b.name ? 1 : -1;
 		}
 
-		if (a.userStatus === "not completed" && b.userStatus === "completed") {
+		if (a.userStatus === notCompleted && b.userStatus === completed) {
 			return -1;
 		}
 
-		if (a.userStatus === "completed" && b.userStatus === "not completed") {
+		if (a.userStatus === completed && b.userStatus === notCompleted) {
 			return 1;
 		}
 
-		if (a.userStatus === "completed" && b.userStatus === "completed") {
+		if (a.userStatus === completed && b.userStatus === completed) {
 			return a.name > b.name ? 1 : -1;
 		}
 	}

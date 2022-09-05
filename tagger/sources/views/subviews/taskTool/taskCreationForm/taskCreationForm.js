@@ -162,7 +162,7 @@ class TaskCreationForm extends JetView {
 			view: "datepicker",
 			name: "deadline",
 			css: "date-field",
-			value: new Date(),
+			value: new Date(Date.now() + constants.MILLISECONDS_TO_DAYS * constants.DEADLINE_DELAY),
 			label: "Task deadline",
 			timepicker: true,
 			width: 350,
