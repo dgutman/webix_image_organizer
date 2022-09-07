@@ -5,7 +5,8 @@ define([
 	"views/toolbar",
 	"views/user_panel",
 	"views/components/header_label",
-	"views/video_window"
+	"views/video_window",
+	"windows/export_csv_window"
 ], function(
 	app,
 	Images,
@@ -13,13 +14,14 @@ define([
 	modeToolbar,
 	userPanel,
 	HeaderLabel,
-	VideoWindow
+	VideoWindow,
+	ExportCSVWindow
 ) {
-	window.img = Images;
 	const toolbarId = "filter_toolbar";
 	const rowViewButtonId = 'row_view_button_id';
 	const colViewButtonId = 'col_view_button_id';
 	const tutorialButtonId = 'tutorial_button_id';
+	const exportButtonId = 'export_button_id';
 
 	const headerLabel = new HeaderLabel(app);
 
@@ -35,6 +37,20 @@ define([
 						cols: [
 							headerLabel,
 							{gravity: 10, height: 1},
+							{
+								view: "button",
+								id: exportButtonId,
+								label: "Export CSV",
+								width: 100,
+								click: function() {
+									const images = Images.getImages().serialize();
+									const dataToExport = images.map((image) => image.data);
+									const exportWindow = new ExportCSVWindow(app);
+									app.ui(exportWindow);
+									exportWindow.showWindow(dataToExport);
+								}
+							},
+							{width: 10},
 							{
 								view: "label",
 								id: "view_label",

@@ -46,7 +46,7 @@ define(["app", "constants"], function(app, constants) {
 		}
 
 		_parseData(data) {
-			return data ? data.json() : data;
+			return typeof data.json === 'function' ? data.json() : data;
 		}
 
 		_parseError(xhr) {
