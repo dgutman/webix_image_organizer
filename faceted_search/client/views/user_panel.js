@@ -6,9 +6,8 @@ define([
 	"helpers/authentication",
 	"helpers/switch_skins_confirm"
 ], function (app, constants, loginWindow, auth, switchSkinConfirm) {
-
 	// use object with callback functions instead with switch
-	let callbacks = {};
+	const callbacks = {};
 
 	function calcUserMenuWidth(str) {
 		return str && str.length ? str.length * 14 : 1;

@@ -28,37 +28,37 @@ define([
 	};
 
 	const setProps = function(data) {
-	    props = data;
-    };
+		props = data;
+	};
 
-    const saveApprovedMetadata = function(approvedMetadata) {
-        deleteUnnecessaryProperties(approvedMetadata);
-        webix.ajax().post(approvedMetadataURL, {data: approvedMetadata});
-    };
+	const saveApprovedMetadata = function(approvedMetadata) {
+		deleteUnnecessaryProperties(approvedMetadata);
+		webix.ajax().post(approvedMetadataURL, {data: approvedMetadata});
+	};
 
-    const deleteUnnecessaryProperties = function(approvedMetadata) {
-        approvedMetadata.map((element) => {
-            const excludedElements =
-                Object.getOwnPropertyNames(element)
-                .filter((exception) => exception !== 'id' && exception !== 'checked' && exception !== 'data');
-            excludedElements.forEach((excludedElement) => {
-                delete(element[excludedElement]);
-            });
-            if(element.data) {
-                deleteUnnecessaryProperties(element.data);
-            } else{
-                element.data = [];
-            }
-            return element;
-        });
-    };
+	const deleteUnnecessaryProperties = function(approvedMetadata) {
+		approvedMetadata.map((element) => {
+			const excludedElements =
+				Object.getOwnPropertyNames(element)
+				.filter((exception) => !['data', 'id', 'checked'].includes(exception));
+			excludedElements.forEach((excludedElement) => {
+				delete(element[excludedElement]);
+			});
+			if(element.data) {
+				deleteUnnecessaryProperties(element.data);
+			} else{
+				element.data = [];
+			}
+			return element;
+		});
+	};
 
-    const getProps = function() {
-        return props;
-    };
+	const getProps = function() {
+		return props;
+	};
 
-    return {
-        getProps: getProps,
-        saveApprovedMetadata: saveApprovedMetadata
-    };
+	return {
+		getProps: getProps,
+		saveApprovedMetadata: saveApprovedMetadata
+	};
 });

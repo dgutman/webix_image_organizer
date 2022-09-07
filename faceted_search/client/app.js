@@ -3,9 +3,9 @@ define([
     "libs/webix-mvc-core/plugins/menu",
     "libs/openseadragon/openseadragon.min.js",
     "constants"
-], function (core, menu, osd, constants) {
-    //configuration
-    var app = core.create({
+], function(core, menu, osd, constants) {
+    // configuration
+    const app = core.create({
         id: "app",
         name: "",
         version: "0.1.0",
@@ -23,6 +23,5 @@ define([
 
     app.use(menu);
 
-    
     return app;
 });

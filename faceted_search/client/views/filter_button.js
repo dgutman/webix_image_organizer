@@ -2,10 +2,10 @@ define([
     "models/images",
     "helpers/authentication"
 ], function(Images, auth) {
-    let buttonId = "filterButton";
-        let templateId = "button_template";
-        let visible = true;
-        let ui = {
+    const buttonId = "filterButton";
+    const templateId = "button_template";
+    let visible = true;
+    const ui = {
         id: buttonId,
         cols: [
             {
