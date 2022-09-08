@@ -11,6 +11,7 @@ import tagTemplates from "../../models/tagTemplates";
 import InfoPopup from "../../views/windows/infoPopup";
 import validateTask from "../taskValidator";
 import imageWindow from "../../views/windows/imageWindow";
+import constants from "../../constants";
 
 const mongoose = require("mongoose");
 
@@ -100,15 +101,14 @@ class TaskToolService {
 			});
 
 		this._showSelectedButton.attachEvent("onItemClick", () => {
-			const isDataviewEmpty = this._dataview.serialize().length > 0;
 			if (this._showSelected) {
 				this._setNormalDataviewState();
-				this._toggleVisibilityOfHiddenViews(isDataviewEmpty);
 			}
 			else {
 				this._setShowSelectedState();
-				this._toggleVisibilityOfHiddenViews(isDataviewEmpty);
 			}
+			const isDataviewEmpty = this._dataview.serialize().length > 0;
+			this._toggleVisibilityOfHiddenViews(isDataviewEmpty);
 		});
 
 		// Show/hide image names
@@ -400,7 +400,8 @@ class TaskToolService {
 		}
 		const validDate = !!taskData.deadline;
 		if (!validDate) {
-			taskData.deadline = new Date().toString();
+			let date = new Date(Date.now() + constants.MILLISECONDS_TO_DAYS * constants.DEADLINE_DELAY);
+			taskData.deadline = date.toString();
 			document.querySelector(".webix_el_datepicker").classList.add("webix_invalid");
 			webix.message("Please, select the deadline");
 		}
@@ -549,6 +550,8 @@ class TaskToolService {
 
 	_attachFolderListEvents() {
 		this._foldersList.attachEvent("onItemClick", (id, ev) => {
+			const item = this._foldersList.getItem(id);
+			item.webix_kids = true;
 			if (this.fromROI && this._selectedImagesModel.getSelectedItems().length > 0) {
 				webix.confirm({
 					title: "Clear selected items",
@@ -558,11 +561,11 @@ class TaskToolService {
 				})
 					.then(() => {
 						this._selectedImagesModel.unselectAllItems();
-						this._selectFolder(id, ev);
+						this._selectFolder(id, ev, item);
 						this._view.hideProgress();
 					});
 			}
-			else this._selectFolder(id, ev);
+			else this._selectFolder(id, ev, item);
 			return false;
 		});
 
@@ -736,8 +739,7 @@ class TaskToolService {
 		return urlCoords;
 	}
 
-	_selectFolder(id, ev) {
-		const item = this._foldersList.getItem(id);
+	_selectFolder(id, ev, item) {
 		this._foldersList.select(id);
 		if (item.webix_kids) {
 			this._foldersList.showProgress();
