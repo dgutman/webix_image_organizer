@@ -1,40 +1,40 @@
 version: "3"
 volumes:
-    tagger_mongodb:
+    fs_mongodb:
 services:
     frontend:
         depends_on:
-            - backend
+            - mongodb
         restart: always
-        container_name: tagger_client
+        container_name: facetedsearch_frontend
         env_file: ./.env
         build:
             context: .
             dockerfile: ./Dockerfile
         ports:
-            - 81:80
-    backend:
-        depends_on:
-            - mongodb
-        container_name: tagger_backend
-        env_file: ./.env
-        build:
-            context: .
-            dockerfile: sources/server/Dockerfile
-        restart: always
-        ports:
-            - 4000:4000
-        environment:
-            - DB_HOST=$DB_HOST
-            - DB_USER=$DB_USER
-            - DB_PASSWORD=$DB_PASSWORD
-            - DB_NAME=$DB_NAME
-            - DB_PORT=$DB_PORT
+            - 8000:80
+    # backend:
+    #     depends_on:
+    #         - mongodb
+    #     container_name: tagger_backend
+    #     env_file: ./.env
+    #     build:
+    #         context: .
+    #         dockerfile: sources/server/Dockerfile
+    #     restart: always
+    #     ports:
+    #         - 4000:4000
+    #     environment:
+    #         - DB_HOST=$DB_HOST
+    #         - DB_USER=$DB_USER
+    #         - DB_PASSWORD=$DB_PASSWORD
+    #         - DB_NAME=$DB_NAME
+    #         - DB_PORT=$DB_PORT
     mongodb:
         image: mongo:4.2.6
-        container_name: tagger_mongodb
+        container_name: fs_mongodb
         volumes:
-            - tagger_mongodb:/data/db
+            - fs_mongodb:/data/db
             - ./users_init.sh:/docker-entrypoint-initdb.d/users_init.sh:ro
             # - ./mongod.conf:/etc/mongod.conf
         restart: always
