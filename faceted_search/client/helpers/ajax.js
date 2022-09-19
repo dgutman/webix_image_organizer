@@ -200,7 +200,8 @@ define(["app", "constants"], function(app, constants) {
 
 		getImageTileUrl(itemId, z, x, y, params = {}) {
 			// HACK
-			const styleParam = getStyleParam(params);
+			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// const styleParam = getStyleParam(params);
 			const urlSearchParams = new URLSearchParams();
 			urlSearchParams.set("edge", "crop");
 			urlSearchParams.set("token", getToken());
@@ -210,12 +211,13 @@ define(["app", "constants"], function(app, constants) {
 				urlSearchParams.set(key, value);
 			});
 
-			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}${styleParam}`;
+			return `${this.getHostApiUrl()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 		}
 
 		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
 			// HACK
-			const styleParam = getStyleParam(params);
+			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// const styleParam = getStyleParam(params);
 			const searchParams = new URLSearchParams();
 			searchParams.set("token", getToken());
 
