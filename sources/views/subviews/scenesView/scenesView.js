@@ -88,6 +88,7 @@ export default class ScenesView extends JetView {
 					webix.delay(() => {
 						const selectedIds = listSlider.getSelectedId(true);
 						const [firstSelected] = selectedIds;
+						listSlider.unselectAll();
 						listSlider.select(firstSelected || listSlider.getFirstId());
 					});
 					break;

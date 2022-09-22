@@ -257,6 +257,23 @@ strong, b {
     }
   }
 
+  .collapser-vertical {
+    .box-shadow2(0 1px 4px 0 rgba(0,0,0,0.12), 0 2px 4px 0 rgba(0,0,0,0.04));
+
+    .collapser-btn {
+      border: none;
+      cursor: pointer;
+      .webix_template {
+        position: relative;
+      }
+      .webix_icon {
+        font-weight: 600;
+        position: absolute;
+        left: 50%;
+      }
+    }
+  }
+
 
   /* tooltip */
   .tooltip-container {
@@ -483,6 +500,11 @@ strong, b {
       left: 0;
     }
   }
+  .collapser-vertical {
+    .collapser-btn .webix_icon {
+      top: 0;
+    }
+  }
   .collapssible-accordion .webix_template {
     margin-top: 1px;
     padding-left: 5px;
@@ -500,6 +522,11 @@ strong, b {
 .miniStylesCommons() {
   .mainStylesCommons();
   .collapser {
+    .collapser-btn .webix_icon {
+      left: 0;
+    }
+  }
+  .collapser-vertical {
     .collapser-btn .webix_icon {
       left: 0;
     }

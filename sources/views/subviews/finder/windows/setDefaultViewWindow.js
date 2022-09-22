@@ -6,154 +6,159 @@ const SAVE_DSA_BUTTON = "saveDsaDefaultViewButton";
 const EDIT_DSA_BUTTON = "editDsaDefaultViewButton";
 const CANCEL_DSA_BUTTON = "cancelDsaDefaultViewButton";
 
-const SAVE_CASEVIEW_BUTTON = "saveCaseViewButton";
-const EDIT_CASEVIEW_BUTTON = "editCaseViewButton";
-const CANCEL_CASEVIEW_BUTTON = "cancelCaseViewButton";
+const SAVE_CASE_VIEW_BUTTON = "saveCaseViewButton";
+const EDIT_CASE_VIEW_BUTTON = "editCaseViewButton";
+const CANCEL_CASE_VIEW_BUTTON = "cancelCaseViewButton";
 
+const SAVE_STRUCTURE_BUTTON = "saveStructureButton";
+const EDIT_STRUCTURE_BUTTON = "editStructureButton";
+const CANCEL_STRUCTURE_BUTTON = "cancelStructureButton";
+
+const SAVE_LABEL = "Save";
+const EDIT_LABEL = "Edit";
+const CANCEL_LABEL = "Cancel"
+
+const DSA = "DSA";
+const CASE_VIEW = "CASE_VIEW";
+const FOLDER_STRUCTURE = "FOLDER_STRUCTURE";
 
 export default class SetDefaultViewWindow extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
 		this.folder = {};
+		this.folderStructureSwitchName = "structureSwitch";
+		this.setOptionsWindowHeadName = "setOptionsWindowHead";
+		this.setDsaDefaultViewWindowName = "setOptionsWindow";
+		this.dsaFormViewName = "dsaFormView";
+		this.windowFormViewName = "windowFormView";
+		this.dsaDefaultViewSelectName = "dsaDefaultViewSelect"
+		this.caseViewSwitchName = "caseViewSwitchName";
 	}
 
 	config() {
-		const saveDsaDefaultViewButton = {
-			view: "button",
-			css: "btn",
-			name: SAVE_DSA_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Save",
-			hidden: true,
-			click: () => {
-				const selectView = this.getDsaDefaultView();
-				const newOptionValue = selectView.getText();
-				this.folder.meta.dsaDefaultView = newOptionValue;
-				const params = {};
-				if (this.folder._id && this.folder.meta) {
-					params.metadata = JSON.stringify(this.folder.meta);
-					ajax.updateFolderMetadata(this.folder._id, params)
-						.then((result) => {
-							if (result) {
-								webix.message("Changes are successfully saved");
-								this.dsaDefaultView = newOptionValue;
-							}
-							else {
-								webix.message("Something went wrong");
-								this.folder.meta.dsaDefaultView = this.dsaDefaultView;
-								selectView.setValue(this.dsaDefaultView);
-							}
-						});
+		const saveDsaDefaultViewButton = this.createButton(SAVE_DSA_BUTTON, SAVE_LABEL, true)
+		saveDsaDefaultViewButton.click = () => {
+			const selectView = this.getDsaDefaultView();
+			const newOptionValue = selectView.getText();
+			this.folder.meta.dsaDefaultView = newOptionValue;
+			const params = {};
+			if (this.folder._id && this.folder.meta) {
+				params.metadata = JSON.stringify(this.folder.meta);
+				ajax.updateFolderMetadata(this.folder._id, params)
+					.then((result) => {
+						if (result) {
+							webix.message("Changes are successfully saved");
+							this.dsaDefaultView = newOptionValue;
+						}
+						else {
+							webix.message("Something went wrong");
+							this.folder.meta.dsaDefaultView = this.dsaDefaultView;
+							selectView.setValue(this.dsaDefaultView);
+						}
+					});
+			}
+			else {
+				webix.message("Something went wrong");
+			}
+			this.switchButtonsVisibility(DSA);
+			selectView.disable();
+		}
+
+		const editDsaDefaultViewButton = this.createButton(EDIT_DSA_BUTTON, EDIT_LABEL, false);
+		editDsaDefaultViewButton.click = () => {
+			const editField = this.getDsaDefaultView();
+			this.switchButtonsVisibility(DSA, true);
+			editField.enable();
+		}
+
+		const cancelDsaDefaultViewButton = this.createButton(CANCEL_DSA_BUTTON, CANCEL_LABEL, true);
+		cancelDsaDefaultViewButton.click = () => {
+			const editField = this.getDsaDefaultView();
+			editField.setValue(this.dsaDefaultView);
+			editField.disable();
+			this.switchButtonsVisibility(DSA);
+		}
+
+		const saveCaseViewButton = this.createButton(SAVE_CASE_VIEW_BUTTON, SAVE_LABEL, true);
+		saveCaseViewButton.click = () => {
+			const selectView = this.getCaseViewSwitch();
+			const newOptionValue = selectView.getValue();
+			this.folder.meta.caseViewFlag = newOptionValue;
+			const params = {};
+			if (this.folder._id && this.folder.meta) {
+				params.metadata = JSON.stringify(this.folder.meta);
+				ajax.updateFolderMetadata(this.folder._id, params)
+					.then((result) => {
+						if (result) {
+							webix.message("Changes are successfully saved");
+							this.caseViewFlag = newOptionValue;
+						}
+						else {
+							webix.message("Something went wrong");
+							this.folder.meta.caseViewFlag = this.caseViewFlag;
+							selectView.setValue(this.caseViewFlag);
+						}
+					});
+			}
+			else {
+				webix.message("Something went wrong");
+			}
+			this.switchButtonsVisibility(CASE_VIEW);
+			selectView.disable();
+		}
+
+		const editCaseViewButton = this.createButton(EDIT_CASE_VIEW_BUTTON, EDIT_LABEL, false);
+		editCaseViewButton.click = () => {
+			const editField = this.getCaseViewSwitch();
+			this.switchButtonsVisibility(CASE_VIEW, true);
+			editField.enable();
+		}
+
+		const cancelCaseViewButton = this.createButton(CANCEL_CASE_VIEW_BUTTON, CANCEL_LABEL , true);
+		cancelCaseViewButton.click = () => {
+			const editField = this.getCaseViewSwitch();
+			editField.disable();
+			this.switchButtonsVisibility(CASE_VIEW);
+		}
+
+		const saveStructureButton = this.createButton(SAVE_STRUCTURE_BUTTON, SAVE_LABEL, true);
+		saveStructureButton.click = async () => {
+			const newFolderStructureValue = this.getFolderStructureSwitch().getValue();
+			if (newFolderStructureValue === 1) {
+				this.folder.meta.isLinear = true;
+			}
+			else {
+				this.folder.meta.isLinear = false;
+			}
+			const params = {};
+			if (this.folder._id && this.folder.meta) {
+				params.metadata = JSON.stringify(this.folder.meta);
+				const result = await ajax.updateFolderMetadata(this.folder._id, params);
+				if (result) {
+					webix.message("Changes are successfully saved");
+					this.isLinear = true;
 				}
-				else {
-					webix.message("Something went wrong");
-				}
-				this.switchButtonsVisibility("DSA");
-				selectView.disable();
 			}
+
 		};
 
-		const editDsaDefaultViewButton = {
-			view: "button",
-			css: "btn",
-			name: EDIT_DSA_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Edit",
-			hidden: false,
-			click: () => {
-				const editField = this.getDsaDefaultView();
-				this.switchButtonsVisibility("DSA", "edit");
-				editField.enable();
-			}
+		const editStructureButton = this.createButton(EDIT_STRUCTURE_BUTTON, EDIT_LABEL, false);
+		editStructureButton.click = () => {
+			const editField = this.getFolderStructureSwitch();
+			this.switchButtonsVisibility(FOLDER_STRUCTURE, true);
+			editField.enable();
 		};
 
-		const cancelDsaDefaultViewButton = {
-			view: "button",
-			css: "btn",
-			name: CANCEL_DSA_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Cancel",
-			hidden: true,
-			click: () => {
-				const editField = this.getDsaDefaultView();
-				editField.setValue(this.dsaDefaultView);
-				editField.disable();
-				this.switchButtonsVisibility("DSA");
-			}
-		};
-
-		const saveCaseViewButton = {
-			view: "button",
-			css: "btn",
-			name: SAVE_CASEVIEW_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Save",
-			hidden: true,
-			click: () => {
-				const selectView = this.getCaseViewSwitch();
-				const newOptionValue = selectView.getValue();
-				this.folder.meta.caseViewFlag = newOptionValue;
-				const params = {};
-				if (this.folder._id && this.folder.meta) {
-					params.metadata = JSON.stringify(this.folder.meta);
-					ajax.updateFolderMetadata(this.folder._id, params)
-						.then((result) => {
-							if (result) {
-								webix.message("Changes are successfully saved");
-								this.caseViewFlag = newOptionValue;
-							}
-							else {
-								webix.message("Something went wrong");
-								this.folder.meta.caseViewFlag = this.caseViewFlag;
-								selectView.setValue(this.caseViewFlag);
-							}
-						});
-				}
-				else {
-					webix.message("Something went wrong");
-				}
-				this.switchButtonsVisibility("CASEVIEW");
-				selectView.disable();
-			}
-		};
-
-		const editCaseViewButton = {
-			view: "button",
-			css: "btn",
-			name: EDIT_CASEVIEW_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Edit",
-			hidden: false,
-			click: () => {
-				const editField = this.getCaseViewSwitch();
-				this.switchButtonsVisibility("CASEVIEW", "edit");
-				editField.enable();
-			}
-		};
-
-		const cancelCaseViewButton = {
-			view: "button",
-			css: "btn",
-			name: CANCEL_CASEVIEW_BUTTON,
-			width: 100,
-			height: 30,
-			value: "Cancel",
-			hidden: true,
-			click: () => {
-				const editField = this.getCaseViewSwitch();
-				editField.disable();
-				this.switchButtonsVisibility("CASEVIEW");
-			}
-		};
+		const cancelStructureButton = this.createButton(CANCEL_STRUCTURE_BUTTON, CANCEL_LABEL, true);
+		cancelStructureButton.click = () => {
+			const editField = this.getFolderStructureSwitch();
+			editField.disable();
+			this.switchButtonsVisibility(FOLDER_STRUCTURE);
+		}
 
 		const window = {
 			view: "window",
-			name: "setDsaDefaultViewWindow",
+			name: this.setDsaDefaultViewWindowName,
 			position: "center",
 			move: true,
 			modal: true,
@@ -162,7 +167,7 @@ export default class SetDefaultViewWindow extends JetView {
 				cols: [
 					{
 						css: "edit-window-header",
-						name: "setOptionsWindowHead",
+						name: this.setOptionsWindowHeadName,
 						template: "Set options"
 					},
 					{
@@ -183,7 +188,7 @@ export default class SetDefaultViewWindow extends JetView {
 					// },
 					{
 						view: "form",
-						name: "dsaFormView",
+						name: this.dsaFormViewName,
 						borderless: true,
 						elements: [
 							{
@@ -195,7 +200,7 @@ export default class SetDefaultViewWindow extends JetView {
 									{
 										view: "richselect",
 										css: "select-field ellipsis-text",
-										name: "dsaDefaultView-select",
+										name: this.dsaDefaultViewSelectName,
 										disabled: true,
 										label: "Set default view",
 										options: [
@@ -228,13 +233,41 @@ export default class SetDefaultViewWindow extends JetView {
 									{
 										view: "switch",
 										label: "CaseView",
-										name: "caseView-switch",
+										name: this.caseViewSwitchName,
 										width: 300,
 										disabled: true
 									},
 									saveCaseViewButton,
+									{gravity: 1},
 									editCaseViewButton,
 									cancelCaseViewButton
+								]
+							}
+						]
+					},
+					{
+						view: "form",
+						name: "linierStructureFormView",
+						borderless: true,
+						elements: [
+							{
+								template: "Set default folder structure",
+								height: 30
+							},
+							{
+								cols: [
+									{
+										view: 'switch',
+										name: this.folderStructureSwitchName,
+										onLabel: "linear",
+										offLabel: "tree",
+										disabled: true,
+										width: 300
+									},
+									saveStructureButton,
+									{gravity: 1},
+									editStructureButton,
+									cancelStructureButton
 								]
 							}
 						]
@@ -260,6 +293,12 @@ export default class SetDefaultViewWindow extends JetView {
 		else {
 			this.caseViewFlag = 0;
 		}
+		if (this.folder.meta.folderStructure) {
+			this.isLinear = !!this.folder.meta.folderStructure
+		}
+		else {
+			this.isLinear = false;
+		}
 		this.fillFormElements();
 		this.getRoot().show();
 	}
@@ -272,7 +311,7 @@ export default class SetDefaultViewWindow extends JetView {
 	}
 
 	getForm() {
-		return this.getRoot().queryView({name: "windowFormView"});
+		return this.getRoot().queryView({name: this.windowFormViewName});
 	}
 
 	getActionButton(nameValue) {
@@ -280,11 +319,15 @@ export default class SetDefaultViewWindow extends JetView {
 	}
 
 	getDsaDefaultView() {
-		return this.getRoot().queryView({name: "dsaDefaultView-select"});
+		return this.getRoot().queryView({name: this.dsaDefaultViewSelectName});
 	}
 
 	getCaseViewSwitch() {
-		return this.getRoot().queryView({name: "caseView-switch"});
+		return this.getRoot().queryView({name: this.caseViewSwitchName});
+	}
+
+	getFolderStructureSwitch() {
+		return this.getRoot().queryView({name: this.folderStructureSwitchName});
 	}
 
 	switchButtonsVisibility(form, isEdit) {
@@ -292,20 +335,25 @@ export default class SetDefaultViewWindow extends JetView {
 		let saveActionButton;
 		let editActionButton;
 		switch (form) {
-			case "DSA":
+			case DSA:
 				cancelActionButton = this.getActionButton(CANCEL_DSA_BUTTON);
 				saveActionButton = this.getActionButton(SAVE_DSA_BUTTON);
 				editActionButton = this.getActionButton(EDIT_DSA_BUTTON);
 				break;
-			case "CASEVIEW":
-				cancelActionButton = this.getActionButton(CANCEL_CASEVIEW_BUTTON);
-				saveActionButton = this.getActionButton(SAVE_CASEVIEW_BUTTON);
-				editActionButton = this.getActionButton(EDIT_CASEVIEW_BUTTON);
+			case CASE_VIEW:
+				cancelActionButton = this.getActionButton(CANCEL_CASE_VIEW_BUTTON);
+				saveActionButton = this.getActionButton(SAVE_CASE_VIEW_BUTTON);
+				editActionButton = this.getActionButton(EDIT_CASE_VIEW_BUTTON);
+				break;
+			case FOLDER_STRUCTURE:
+				cancelActionButton = this.getActionButton(CANCEL_STRUCTURE_BUTTON);
+				saveActionButton = this.getActionButton(SAVE_STRUCTURE_BUTTON);
+				editActionButton = this.getActionButton(EDIT_STRUCTURE_BUTTON);
 				break;
 			default:
 				return;
 		}
-		if (isEdit === "edit") {
+		if (isEdit) {
 			editActionButton.hide();
 			cancelActionButton.show();
 			saveActionButton.show();
@@ -314,6 +362,18 @@ export default class SetDefaultViewWindow extends JetView {
 			saveActionButton.hide();
 			cancelActionButton.hide();
 			editActionButton.show();
+		}
+	}
+
+	createButton(name, value, hidden) {
+		return {
+			view: "button",
+			css: "btn",
+			name: name,
+			width: 100,
+			height: 30,
+			value: value,
+			hidden: hidden
 		}
 	}
 }

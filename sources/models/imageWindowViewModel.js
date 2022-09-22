@@ -599,6 +599,8 @@ export default class imageWindowViewModel {
 			checkedIds = table.getChecked();
 			this.selectedData = checkedIds;
 			this.treeannotations.forEach((treeannotation) => {
+				treeannotation.checked = checkedIds.includes(treeannotation.id)
+					? true : false;
 				treeannotation.data.forEach((treeannotationItem) => {
 					const annotation = this.layer.annotationById(treeannotationItem.geoid);
 					if (!annotation) {

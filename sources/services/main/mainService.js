@@ -502,27 +502,7 @@ class MainService {
 						break;
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
-						this._finder.detachEvent(scrollEventId);
-						const sourceParams = {
-							sort: "lowerName",
-							limit: constants.LINEAR_STRUCTURE_LIMIT
-						};
-						if (this._finderFolder.hasOpened || this._finderFolder.open) {
-							this._finder.close(folderId);
-							this._itemsModel.findAndRemove(folderId, this._finderFolder);
-						}
-						this._finder.blockEvent();
-						this._finder.data.blockEvent();
-						this._setLastSelectedFolderId();
-						this._finder.data.unblockEvent();
-						this._finder.unblockEvent();
-						this._folderNav.setFoldersIntoUrl();
-						this._itemsModel.selectedItem = this._finderFolder;
-
-						this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
-						this._itemsModel.updateItems(this._finderFolder);
-
-						this.linearStructureHandler(folderId, sourceParams);
+						this._loadLinearImages(folderId);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -1171,11 +1151,11 @@ class MainService {
 
 	async _selectFinderItem(id) {
 		const item = this._finder.getItem(id);
+		this._finderFolder = item;
 		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
 		actionPanel.scenesViewOptionToggle(item);
 		await actionPanel.multichannelViewOptionToggle(item);
-
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
@@ -1185,12 +1165,17 @@ class MainService {
 			}
 		}
 		else if (item._modelType === "folder") {
-			this._itemsModel.selectedItem = item;
-			this._finderModel.loadBranch(id, this._view)
-				.then(() => {
-					this._highlightLastSelectedFolder();
-					this._folderNav.openNextFolder(item);
-				});
+			if (!(item.open ?? null) && item?.meta?.isLinear) {
+				this._loadLinearImages(id);
+			}
+			else {
+				this._itemsModel.selectedItem = item;
+				this._finderModel.loadBranch(id, this._view)
+					.then(() => {
+						this._highlightLastSelectedFolder();
+						this._folderNav.openNextFolder(item);
+					});
+			}
 		}
 		else if (item._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
 			webix.confirm({
@@ -1372,7 +1357,7 @@ class MainService {
 
 	linearStructureHandler(folderId, sourceParams, addBatch) {
 		const folder = this._finder.getItem(folderId);
-		return ajaxActions.getLinearStucture(folder._id, sourceParams)
+		return ajaxActions.getLinearStructure(folder._id, sourceParams)
 			.then((data) => {
 				if (data.length === 0) {
 					folder.linear = null;
@@ -1407,6 +1392,27 @@ class MainService {
 		this._collapser.config.setClosedState();
 		this._collapser.hide();
 		this._galleryFeaturesView.hide();
+	}
+
+	_loadLinearImages(folderId) {
+		const sourceParams = {
+			sort: "lowerName",
+			limit: constants.LINEAR_STRUCTURE_LIMIT
+		};
+		if (this._finderFolder.hasOpened || this._finderFolder.open) {
+			this._finder.close(folderId);
+			this._itemsModel.findAndRemove(folderId, this._finderFolder);
+		}
+		this._finder.blockEvent();
+		this._finder.data.blockEvent();
+		this._setLastSelectedFolderId();
+		this._finder.data.unblockEvent();
+		this._finder.unblockEvent();
+		this._folderNav.setFoldersIntoUrl();
+		this._itemsModel.selectedItem = this._finderFolder;
+		this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
+		this._itemsModel.updateItems(this._finderFolder);
+		this.linearStructureHandler(folderId, sourceParams);
 	}
 }
 
