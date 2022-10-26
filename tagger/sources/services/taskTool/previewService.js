@@ -1,7 +1,6 @@
 import auth from "../authentication";
 import DataviewService from "../user/dataviewService";
 import CustomDataPull from "../../models/customDataPullClass";
-import globalEvents from "../globalEvents";
 import imageWindow from "../../views/windows/imageWindow";
 import UpdatedImagesService from "../user/updateImageService";
 import constants from "../../constants";
@@ -35,7 +34,12 @@ export default class previewService extends UserService {
 		this._hotkeysInfoPopup = scope.ui(new InfoPopup(scope.app, "hotkeys", "Hot-keys"));
 		this._itemMetadataPopup = scope.ui(new InfoPopup(scope.app, "metadata", "Metadata", true));
 
-		this._dataviewService = new DataviewService(this._dataview,	this._dataviewStore, this._pager, this._imageSizeSelect);
+		this._dataviewService = new DataviewService(
+			this._dataview,
+			this._dataviewStore,
+			this._pager,
+			this._imageSizeSelect
+		);
 
 		this._attachViewEvents();
 
@@ -71,6 +75,7 @@ export default class previewService extends UserService {
 			this._tagInfoPopup.closeWindow();
 			this._itemMetadataPopup.closeWindow();
 			this._view.getParentView().back();
+			this.clearSelectValues();
 			state.app.callEvent("toggleVisibilityOfCancelButton", [true]);
 			document.querySelector(".main-header-admin a").innerHTML = '<span class="webix_icon wxi-angle-left"></span> Cancel';
 			state.app.callEvent("toggleVisibilityOfBackButton", [false]);
@@ -139,6 +144,7 @@ export default class previewService extends UserService {
 		this._dataviewStore.clearAll();
 		let previewImages = [...images];
 
+		// fix for bug with unassigned default values
 		const hasdefaults = taskData.tags.some(item => item.type === "multiple_with_default");
 		if (hasdefaults) {
 			previewImages.forEach((img) => { img.meta.tags = []; });
@@ -202,5 +208,10 @@ export default class previewService extends UserService {
 	_setDataviewOverLay() {
 		const count = this._dataview.count();
 		this._dataviewService.setDataviewState(count, "No items to review");
+	}
+
+	clearSelectValues() {
+		this._tagSelect.setValue();
+		this._valueSelect.setValue();
 	}
 }

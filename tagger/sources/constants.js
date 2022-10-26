@@ -140,9 +140,14 @@ export default {
 
 	TASK_STATUSES: ["created", "published", "in_progress", "canceled", "finished"],
 
+	USER_STATUS_COMPLETED: "completed",
+	USER_STATUS_NOT_COMPLETED: "not completed",
+
 	TAG_ICON_TYPES: {
 		PER_VALUE: "pervalue",
 		BADGE: "badge",
 		BADGE_COLOR: "badgecolor"
-	}
+	},
+	MILLISECONDS_TO_DAYS: 24 * 3600 * 1000,
+	DEADLINE_DELAY: 90
 };
