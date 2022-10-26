@@ -46,7 +46,7 @@
     "d3": "^6.7.0",
     "dot-object": "^1.7.1",
     "file-saver": "^2.0.0",
-    "geojs": "^0.19.8",
+    "geojs": "^1.10.11",
     "json-formatter-js": "^2.2.0",
     "jsoneditor": "^6.1.0",
     "lodash": "^4.17.21",
