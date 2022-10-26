@@ -84,12 +84,9 @@ define([
 							value: "Confirm",
 							click: () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
-								console.log(exportMetadata);
 								const filteredExportData = this.exportData.map((image) => this.filterData(image, exportMetadata));
 								const list = webix.ui({
-									view: "list",
-									template: "#id#. #created#",
-									select: "multiselect"
+									view: "list"
 								});
 								list.parse(filteredExportData);
 								webix.toCSV(list);

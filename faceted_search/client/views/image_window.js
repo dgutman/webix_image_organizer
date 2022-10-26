@@ -131,13 +131,14 @@ define([
             const dataToDisplay = Image.filterData(data.data);
             this._propertyAccordion.setProperties(dataToDisplay);
 
-            const styleParamsString = styleParams.getStyleParams(data.data);
-            const urlParams = {style: styleParamsString};
+            // TO DO: style parameter not working. message from server: "Style is not a valid json object."
+            // const styleParamsString = styleParams.getStyleParams(data.data);
+            // const urlParams = {style: styleParamsString};
 
             let layerConfig;
             let openseadragonConfig;
             if (data.data.largeImage) {
-                const tiles = await this._tilesService.getTileSources(data.data, urlParams);
+                const tiles = await this._tilesService.getTileSources(data.data, /* urlParams */);
                 layerConfig = {tileSource: tiles};
                 openseadragonConfig = {imageLoaderLimit: 1};
             } else {
@@ -145,8 +146,8 @@ define([
                     type: 'image',
                     url: ajax.getImageUrl(
                       data.data._id,
-                      'thumbnail',
-                      urlParams
+                      'thumbnail'
+                      /* urlParams */
                     )
                 };
                 openseadragonConfig = {maxZoomPixelRatio: 6};

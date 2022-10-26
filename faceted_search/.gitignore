@@ -8,3 +8,4 @@ test_source/
 upload/
 tmp/
 jsconfig.json
+.vs/

@@ -1,7 +1,6 @@
-define([], function () {
-
-    var getOptionsFromData = function (data) {
-        var i, array = [], tmp = webix.uid();
+define([], function() {
+    const getOptionsFromData = function(data) {
+        let i; const array = []; const tmp = webix.uid();
         for(i = 0; i < (data.interface.length > 4 ? 4 : data.interface.length); i++) {
             array.push({
                 id: tmp + data.interface[i] + tmp,
@@ -11,8 +10,8 @@ define([], function () {
         return array;
     };
 
-    var getRadioUI = function (data) {
-        var options = getOptionsFromData(data);
+    const getRadioUI = function(data) {
+        const options = getOptionsFromData(data);
 
         return {
             css: "radio-css label-css",
@@ -25,10 +24,10 @@ define([], function () {
         };
     };
 
-    var getSliderUI = function (data) {
-        var min = Math.min(...data.interface) || 0,
-            max = Math.max(...data.interface) || 0,
-            selectedValue = min - 1;
+    const getSliderUI = function(data) {
+        const min = Math.min(...data.interface) || 0;
+            const max = Math.max(...data.interface) || 0;
+            const selectedValue = min - 1;
 
         return {
             id: webix.uid(),
@@ -77,8 +76,8 @@ define([], function () {
         };
     };
 
-    var getComboUI = function (data) {
-        var options = getOptionsFromData(data);
+    const getComboUI = function(data) {
+        const options = getOptionsFromData(data);
         return {
             id: webix.uid(),
             rows: [
@@ -100,8 +99,8 @@ define([], function () {
         };
     };
 
-    var getCheckboxUI = function (data) {
-        var i, tmp = webix.uid(), view = {
+    const getCheckboxUI = function(data) {
+        let i; const tmp = webix.uid(); const view = {
             id: webix.uid(),
             rows: [
                 {
@@ -114,7 +113,7 @@ define([], function () {
         for(i = 0; i < (data.interface.length > 4 ? 4 : data.interface.length); i++) {
             view.rows.push(
                 {
-                    id: tmp + data.interface[i] + tmp ,
+                    id: tmp + data.interface[i] + tmp,
                     view: "checkbox",
                     css: "checkbox-filter",
                     labelRight: data.interface[i],
@@ -124,11 +123,10 @@ define([], function () {
         }
 
         return view;
-
     };
 
-    var getToggleUI = function (data) {
-        var i, tmp = webix.uid(), view = {
+    const getToggleUI = function(data) {
+        let i; const tmp = webix.uid(); const view = {
             id: webix.uid(),
             rows: [
                 {
@@ -158,10 +156,10 @@ define([], function () {
         return view;
     };
 
-    var getRangeSliderUI = function (data) {
-        var min = data.interface[0],
-            max = data.interface[0],
-            i;
+    const getRangeSliderUI = function(data) {
+        let min = data.interface[0];
+            let max = data.interface[0];
+            let i;
 
         for (i = 0; i < data.interface.length; i++) {
             if (data.interface[i] < min) {
@@ -233,5 +231,5 @@ define([], function () {
         getCheckboxUI: getCheckboxUI,
         getToggleUI: getToggleUI,
         getRangeSliderUI: getRangeSliderUI
-    }
+    };
 });
