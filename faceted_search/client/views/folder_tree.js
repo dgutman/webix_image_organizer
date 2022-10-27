@@ -22,7 +22,7 @@ define([
 		oncontext: {},
 		template: (obj, common) => {
 			const [downloadedResourceIcon, deleteResourceIcon] = downloadedResources.includes(obj._id)
-				? [`<span class="webix_icon wxi-check dwnicon"></span>`, `<span class="webix_icon wxi-close-circle delbtn"></span>`]
+				? [`<span class="webix_icon wxi-check dwnicon"></span>`, `<span class="webix_icon wxi-close-circle delicon"></span>`]
 				: [``, ``];
 			return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
 		},
@@ -193,7 +193,6 @@ define([
 
 			app.attachEvent("editForm:finishLoading", function(data) {
 				const tree = $$(constants.FOLDER_TREE_ID);
-				tree.hideProgress();
 
 				const selectedItem = tree.getSelectedItem();
 				toggleUploadButtonState(selectedItem);
@@ -204,9 +203,10 @@ define([
 						downloadedResources = data;
 					});
 
-				
+				downloadedResources.push(selectedItem._id);
 				tree.refresh();
 				$$(statusTempateId).setValues(data || {title: "Done!"});
+				tree.hideProgress();
 			});
 
 			app.attachEvent("uploaderList:loadingActions", function(data) {
@@ -221,12 +221,17 @@ define([
 				tree.refresh();
 			});
 
-			tree.on_click.delbtn = function(e, id, trg) {
+			tree.on_click.delicon = function(e, id, trg) {
+				tree.showProgress();
 				const obj = tree.getItem(id);
 				const token = auth.getToken();
 				const host = ajax.getHostApiUrl();
 				Upload.deleteResource(obj._id, host, token);
 				ajax.deleteResource(obj._id);
+				const downloadedIndex = downloadedResources.indexOf(obj._id);
+				if (downloadedIndex !== -1) {
+					downloadedResources.splice(downloadedIndex, 1);
+				}
 				tree.refresh();
 			};
 		}
