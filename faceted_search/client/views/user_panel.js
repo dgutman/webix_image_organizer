@@ -5,7 +5,7 @@ define([
 	"windows/login_window",
 	"helpers/authentication",
 	"helpers/switch_skins_confirm"
-], function (app, constants, loginWindow, auth, switchSkinConfirm) {
+], function(app, constants, loginWindow, auth, switchSkinConfirm) {
 	// use object with callback functions instead with switch
 	const callbacks = {};
 

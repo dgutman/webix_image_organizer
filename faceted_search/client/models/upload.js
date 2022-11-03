@@ -44,8 +44,12 @@ define([
         blobStream.pipe(uploadStream);
     };
 
-    const getImagesFromGirder = function(host, folderId, folderName, token) {
+    const getImagesFromGirderFolder = function(host, folderId, folderName, token) {
         socketStream(socketConnect).emit('loadGirderFolder', {host, id: folderId, name: folderName, token});
+    };
+
+    const getImagesFromGirderCollection = function(host, collectionId, token) {
+        socketStream(socketConnect).emit('loadGirderCollection', {host, id: collectionId, token});
     };
 
     const resyncImagesFromGirder = (token) => {
@@ -67,7 +71,8 @@ define([
 
     return {
         uploadJSONFile,
-        getImagesFromGirder,
+        getImagesFromGirderFolder,
+        getImagesFromGirderCollection,
         resyncImagesFromGirder,
 		deleteResource
     };

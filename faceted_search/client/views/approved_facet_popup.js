@@ -23,6 +23,7 @@ define([
 			}
 		});
 	};
+	
 	const filterFacetPopup = {
 		view: 'popup',
 		id: constants.SELECT_FACET_POPUP_ID,

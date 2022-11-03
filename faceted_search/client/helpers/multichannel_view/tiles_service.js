@@ -18,21 +18,21 @@ define([
 			this._image = image;
 	
 			const tileSourceOptions = await tilesCollection.getImageTileInfo(image);
-	
+
 			const tileSources = {
 				crossOriginPolicy: "Anonymous",
 				loadTilesWithAjax: true,
-				width: tileSourceOptions.sizeX,
-				height: tileSourceOptions.sizeY,
-				tileWidth: tileSourceOptions.tileWidth,
-				tileHeight: tileSourceOptions.tileHeight,
+				width: 0,
+				height: 0,
+				tileWidth: 0,
+				tileHeight: 0,
 				minLevel: 0,
-				maxLevel: tileSourceOptions.levels - 1,
+				maxLevel: 0,
 				getTileUrl(level, x, y) {
 					return ajaxActions.getImageTileUrl(image._id, level, x, y, {...params});
-				}
+				},
+				...(tileSourceOptions ?? {})
 			};
-	
 			this._imageTileSources = tileSources;
 	
 			return tileSources;

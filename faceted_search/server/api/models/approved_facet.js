@@ -67,14 +67,15 @@ class ApprovedFacet {
 						return facetToAdd.facetId === approvedFacetItem.facetId;
 					});
 				});
-				facetsToAdd.forEach((facetToAdd) => {
+				const saveDocPromises = facetsToAdd.map((facetToAdd) => {
 					const doc = new approvedFacetModel({
 						facetId: facetToAdd.facetId,
 						hidden: facetToAdd.hidden,
 						parentId: facetToAdd.parentId
 					});
-					doc.save();
+					return doc.save();
 				});
+				await Promise.all(saveDocPromises);
 			}
 		} catch(e) {
 			console.error(e);

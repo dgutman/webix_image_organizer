@@ -20,6 +20,14 @@ function getStyleParam(params) {
 	return styleParam;
 }
 
+function showValidationErrors(arr) {
+	arr.forEach((err) => {
+		const dataPathString = err.dataPath ? `<strong class='strong-font'>${err.dataPath.replace(".", "")}</strong>: <br>` : "";
+		const text = `${dataPathString} ${err.message}`;
+		webix.message({text, expire: 5000, id: text});
+	});
+}
+
 define(["app", "constants"], function(app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
 

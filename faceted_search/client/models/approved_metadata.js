@@ -34,6 +34,7 @@ define([
 	const saveApprovedMetadata = function(approvedMetadata) {
 		deleteUnnecessaryProperties(approvedMetadata);
 		webix.ajax().post(approvedMetadataURL, {data: approvedMetadata});
+		app.callEvent("approvedMetadata:loadData");
 	};
 
 	const deleteUnnecessaryProperties = function(approvedMetadata) {

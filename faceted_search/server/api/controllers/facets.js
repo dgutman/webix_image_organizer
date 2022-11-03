@@ -23,7 +23,7 @@ exports.getImagesData = (req, res) => {
 	.then(([hash, images, approvedMetadataData, allowedFolders]) => {
 		if(hash) {
 			const approvedMetadataHash = crypto.createHash('sha256');
-			approvedMetadataHash.update(approvedMetadataData.updatedAt.toString());
+			approvedMetadataHash.update(approvedMetadataData?.updatedAt?.toString() ?? '');
 
 			res.set({
 				'Cache-Control': 'private',

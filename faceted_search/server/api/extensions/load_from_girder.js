@@ -30,7 +30,7 @@ function addParentMetaToImages(images, folders) {
 	return images;
 }
 
-async function loadImagesFileFromGirder({host, id, token}) {
+async function loadImagesFileFromGirderFolder({host, id, token}) {
 	const url = `${host}/resource/${id}/items?type=folder&limit=0&sort=_id&sortdir=1`;
 
 	const options = {
@@ -111,7 +111,7 @@ async function getAllowedFolders(host, token) {
 }
 
 module.exports = {
-	loadImagesFileFromGirder,
+	loadImagesFileFromGirderFolder,
 	resyncImages,
 	getAllowedFolders
 };

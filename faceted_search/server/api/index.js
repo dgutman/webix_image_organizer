@@ -17,12 +17,12 @@ function handleIndexRoutes(req, res, next) {
             ServiceData.getHostsList()
     ])
     .then(([skins, extensions, hosts]) => {
-        let skinsList = skins.data;
-        let skinsExtensionsList = extensions.data;
+        const skinsList = skins.data;
+        const skinsExtensionsList = extensions.data;
         const defaultSkin = skinsList.includes("flat") ? "flat" : skinsList[0];
 
         const currentHost = req.session.host || hosts.data[0];
-        let data = {hostsList: hosts.data};
+        const data = {hostsList: hosts.data};
         if(adminMode) {
             if(!currentSkin || !skinsList.includes(currentSkin)) req.session.admin_skin = defaultSkin;
             Object.assign(data, {

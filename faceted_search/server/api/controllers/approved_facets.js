@@ -35,7 +35,7 @@ const parseDataForGroupList = (data) => {
 
 	data.forEach((node, index, dataArray) => {
 		if(node.parentId !== "") {
-			dataArray[map[node.parentId]].data.push(node);
+			dataArray[map[node.parentId]]?.data.push(node);
 		} else {
 			roots.push(node);
 		}

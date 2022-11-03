@@ -2,13 +2,14 @@ const ss = require('socket.io-stream');
 const fsp = require('fs-promise');
 const md5 = require('md5-file/promise');
 
-const {loadImagesFileFromGirder, resyncImages} = require('./load_from_girder');
+const {loadImagesFileFromGirderFolder, resyncImages} = require('./load_from_girder');
 const {parseImages} = require('./parse_images');
 const uniqFilter = require('./create_facets').uniqFilter;
 
 const facetImages = require('../models/facet_images');
 const serviceData = require('../models/service_data');
 const approvedFacetModel = require('../models/approved_facet');
+const {default: axios} = require('axios');
 
 const IMAGES_PATH = require('../../constants').ALL_IMAGES_RES_PATH;
 
@@ -21,6 +22,10 @@ class Backend {
         backend.on('connection', (socket) => {
             ss(socket).on('loadGirderFolder', (data) => {
                 this.loadGirderFolder(data);
+            });
+
+            ss(socket).on('loadGirderCollection', (data) => {
+                this.loadGirderCollection(data);
             });
 
             ss(socket).on('resyncUploadedData', (data) => {
@@ -38,11 +43,37 @@ class Backend {
 
     loadGirderFolder(data) {
         this._message('[Uploading]: started');
-        loadImagesFileFromGirder(data)
+        loadImagesFileFromGirderFolder(data)
             .then((images) => {
                 this._message('[Uploading]: finished');
                 return this._parseData(images, data.host, data.id);
+            })
+            .catch((error) => {
+                this._message(`[Error]: something went wrong`);
+                console.log(error);
             });
+    }
+
+    async loadGirderCollection(data) {
+        const {host, id, token} = data;
+        const url = `${host}/folder?parentType=collection&parentId=${id}`;
+        const options = {
+            headers: {
+                "girder-token": token
+            }
+        };
+        try {
+            const folders = await axios.get(url, options).then((response) => response.data);
+            this._message('[Uploading]: started');
+            if (folders) {
+                folders.forEach((folder) => {
+                    const id = folder._id;
+                    this.loadGirderFolder({host, id, token});
+                });
+            }
+        } catch(err) {
+            console.log(err.response || err);
+        }
     }
 
     async resyncUploadedData({host, token}) {
@@ -56,14 +87,13 @@ class Backend {
 
     async deleteResource(data) {
         this._message('[Looking images]: started');
-        const images = await loadImagesFileFromGirder(data);
+        const images = await loadImagesFileFromGirderFolder(data);
         this._message('[Delete]: started');
-        const ids = [];
         let imagesCount = 0;
-        images.forEach((image) => {
-            ids.push(image._id);
+        const ids = images ? images.map((image) => {
             imagesCount++;
-        });
+            return image._id;
+        }) : 0;
         const deletedCount = await facetImages.removeImages(ids);
         if(imagesCount === deletedCount) {
             this._message('[Delete]: finished successfully');
