@@ -1,0 +1,43 @@
+version: "3"
+volumes:
+    fs_mongodb:
+services:
+    frontend:
+        depends_on:
+            - mongodb
+        restart: always
+        container_name: dsafs
+        env_file: ./.env
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        ports:
+            - 81:80
+        environment:
+            - MONGODB_HOST=$DB_HOST
+            - MONGODB_USER=$DB_USER
+            - MONGODB_PASSWORD=$DB_PASSWORD
+            - MONGODB_NAME=$DB_NAME
+            - MONGODB_PORT=$DB_PORT
+
+    mongodb:
+        image: mongo:4.2.6
+        container_name: fs_mongodb
+        volumes:
+            - fs_mongodb:/data/db
+            #- ./users_init.sh:/docker-entrypoint-initdb.d/users_init.sh:ro
+            # - ./mongod.conf:/etc/mongod.conf
+        restart: always
+        env_file: ./.env
+        # environment:
+        #     - MONGO_INITDB_ROOT_USERNAME=$DB_ROOT_USER
+        #     - MONGO_INITDB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
+        #     - MONGO_INITDB_DATABASE=$DB_NAME
+        #     - DB_NAME:$DB_NAME
+        #     - DB_USER:$DB_USER
+        #     - DB_PASSWORD:$DB_PASSWORD
+        # command: mongod --config /etc/mongod.conf
+        # entrypoint: ["mongod", "--config", "/etc/mongod.conf"]
+        # ports:
+        #     - 7017:$DB_PORT
+
