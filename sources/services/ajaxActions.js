@@ -225,7 +225,7 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	getLinearStucture(folderId, sourceParams) {
+	getLinearStructure(folderId, sourceParams) {
 		const params = sourceParams ? {
 			type: "folder",
 			limit: sourceParams.limit || constants.LINEAR_STRUCTURE_LIMIT,

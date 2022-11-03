@@ -50,7 +50,7 @@ export default class ProjectMetadataWindow extends JetView {
 								let stringToReturn = "";
 								projectKeys.forEach((key) => {
 									if (Array.isArray(obj[key])) {
-										const validationValues = obj[key].map((value, index) => `<p data-edit=${key}-${index}>${value}</p>`).join("");
+										const validationValues = obj[key].map((value, index) => `<p data-edit=${key}-${index} style='height:14px; border:1px dotted'">${value}</p>`).join("");
 										const showedOrHiddenCssClass = this.getShowedOrHiddenCssClass(key);
 										stringToReturn += `<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
 														<span class="collpaser-text">${key}</span>

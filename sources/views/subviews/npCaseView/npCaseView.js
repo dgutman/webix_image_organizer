@@ -143,7 +143,11 @@ export default class NPCaseViewClass extends ScenesView {
 			this._setSelectedImagesToViewer();
 		});
 
-		this.on(switcherView, "onChange", updateView)
+		this.on(switcherView, "onChange", updateView);
+		
+		this.on(this.getRoot(), "onViewShow", async () => {
+			this._setSelectedImagesToViewer();
+		});
 	}
 
 	syncSlider(dataCollection) {
