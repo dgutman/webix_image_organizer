@@ -42,7 +42,7 @@ define([
 				rows: [
 					{
 						view: "textarea",
-						value: "Prease select the metadata which\n" +
+						value: "Please select the metadata which\n" +
 							"should be displayed in the User Mode:"
 					},
 					{
