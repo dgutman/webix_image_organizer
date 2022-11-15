@@ -2,8 +2,6 @@ FROM node:16-alpine3.15
 
 WORKDIR /app
 
-COPY . .
-
 RUN mkdir -p upload/archive
 
 RUN mkdir -p upload/images
@@ -14,10 +12,12 @@ RUN mkdir -p tmp
 
 #RUN cp -p sample_config.js config.js
 
-RUN npm -v
 
 RUN npm install pm2 -g
 
+COPY . .
+
+RUN npm -v
 # build app bundles
 RUN npm ci
 

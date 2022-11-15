@@ -17,12 +17,12 @@ define([
 					{
 						view: "label",
 						width: 155,
-						template: "<img class='app-logo' src='assets/imgs/logo.png'>"
+						template: "<img class='app-logo' src='assets/imgs/bdsa_logo.png'>"
 					},
 					{
 						view: "label",
 						width: 300,
-						template: "<p class='images-header-p'>HTAN Image Explorer</p>"
+						template: "<p class='images-header-p'>BDSA Image Explorer</p>"
 					},
 					{gravity: 1}
 				]

@@ -1,0 +1,71 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "default": {},
+    "title": "Root Schema",
+    "required": [
+        "npSchema"
+    ],
+    "properties": {
+        "npSchema": {
+            "type": "object",
+            "default": {},
+            "title": "The npSchema Schema",
+            "required": [
+                "blockID",
+                "caseID",
+                "regionName",
+                "stainID"
+            ],
+            "properties": {
+                "blockID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The blockID Schema",
+                    "examples": [
+                        "1"
+                    ]
+                },
+                "caseID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The caseID Schema",
+                    "examples": [
+                        "1"
+                    ]
+                },
+                "regionName": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The regionName Schema",
+                    "examples": [
+                        "Hippocampus"
+                    ]
+                },
+                "stainID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The stainID Schema",
+                    "examples": [
+                        "HE"
+                    ]
+                }
+            },
+            "examples": [{
+                "blockID": "1",
+                "caseID": "1",
+                "regionName": "Hippocampus",
+                "stainID": "HE"
+            }]
+        }
+    },
+    "examples": [{
+        "npSchema": {
+            "blockID": "1",
+            "caseID": "1",
+            "regionName": "Hippocampus",
+            "stainID": "HE"
+        }
+    }]
+}

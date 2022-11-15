@@ -24,8 +24,9 @@ define([
                 src = data.filename ? `/api/images/${data.filename}` : data.filesrc;
             }
 
-            const name = data.data.name || "no image";
-
+//            const name = data.data.name || "no image";
+            console.log(data.data)
+            const name = data.data?.meta?.pilotSchema?.ADRC || "no image";
             const viewIconSrc = tilesCollection.getChannelsFromChannelMap(data.data) ?
               "assets/imgs/icons8-paint-palette-48.png" : "assets/imgs/microscope.png";
             return `
