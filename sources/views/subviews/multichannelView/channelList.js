@@ -2,10 +2,11 @@ import {JetView} from "webix-jet";
 import ajaxActions from "../../../services/ajaxActions";
 import SelectedItems from "../../../models/selectedItems";
 import SortTemplate from "./sortChannelsTemplate";
+import constants from "../../../constants";
 
-const LIST_ID = "channels-list";
-const TEXT_SEARCH_ID = "channels-search-field";
-const ADD_TO_GROUP_BUTTON_ID = "add-to-group";
+const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
+const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;
+const ADD_TO_GROUP_BUTTON_ID = `${constants.ADD_TO_GROUP_BUTTON_ID}-${webix.uid()}`;
 
 export default class ChannelList extends JetView {
 	constructor(app, config = {}) {
@@ -112,6 +113,18 @@ export default class ChannelList extends JetView {
 		const list = this.getList();
 		list.callEvent("customSelectionChanged", [this._selectedChannelsModel.getSelectedItems()]);
 		list.refresh(id); // rerender item
+	}
+
+	handleGroupSelect(indexes) {
+		const list = this.getList();
+		this._selectedChannelsModel.unselectAll();
+		indexes.forEach((index) => {
+			const id = list.getIdByIndex(index);
+			if (id && !this._selectedChannelsModel.isSelected(id)) {
+				this._selectedChannelsModel.select(id);
+			}
+		});
+		list.refresh();
 	}
 
 	async _getTileSources(image) {

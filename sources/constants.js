@@ -153,6 +153,16 @@ export default {
 	OPEN_MULTICHANNEL_VIEW_EVENT: "showMultichannelView",
 
 	// begin MultichannelView
+	// begin channel list
+	LIST_ID: "channels-list",
+	TEXT_SEARCH_ID: "channels-search-field",
+	ADD_TO_GROUP_BUTTON_ID: "add-to-group",
+	// end channel list
+	DEFAULT_CHANNEL_SETTINGS: {
+		opacity: 1,
+		min: 500,
+		max: 30000
+	},
 	DEFAULT_16_BIT_CHANNEL_SETTINGS: {
 		opacity: 1,
 		min: 0,

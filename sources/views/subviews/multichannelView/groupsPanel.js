@@ -10,7 +10,7 @@ const GROUP_CHANNELS_LAYOUT_ID = "group-channels-layout";
 const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 const UPLOADER_API_ID = "uploader-api";
 const GROUPS_TITLE_TEMPLATE = "groups-title";
-
+const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
 
 export default class GroupsPanel extends JetView {
 	constructor(app, config = {}) {
@@ -77,6 +77,15 @@ export default class GroupsPanel extends JetView {
 					}
 				},
 				{
+					cols: [
+						{
+							view: "button",
+							id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+							value: "Generate Scene From Template"
+						}
+					]
+				},
+				{
 					localId: GROUP_CHANNELS_LAYOUT_ID,
 					hidden: true,
 					rows: [
@@ -132,6 +141,7 @@ export default class GroupsPanel extends JetView {
 
 		const groupsList = this.getGroupsList();
 		const channelsList = this.getGroupsChannelsList();
+		const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
 
 		this.on(groupsList, "onSelectChange", () => {
 			this.updateSelectedGroupTiles();
@@ -147,6 +157,12 @@ export default class GroupsPanel extends JetView {
 				channelsLayout.hide();
 			}
 		});
+
+		this.on(generateSceneFromTemplateButton, "onItemClick", () => {
+			// this.showTemplateWindow();
+			const groupId = this.getGroupsList().getSelectedId();
+			this.getRoot().callEvent("generateSceneFromTemplate", [groupId])
+		})
 	}
 
 	ready() {
@@ -178,16 +194,10 @@ export default class GroupsPanel extends JetView {
 			.filter(({index}) => !group.channels.find(channel => channel.index === index))
 			.map((channel, i, arr) => {
 				const color = this.createColorByIndex(count + i, arr.length + count);
-				// const defaultChannelSettings = {
-				// 	opacity: 1,
-				// 	min: 500,
-				// 	max: 30000
-				// };
 				if (stateStore.bit === constants.SIXTEEN_BIT) {
 					return {...constants.DEFAULT_16_BIT_CHANNEL_SETTINGS, ...channel, color};
 				}
 				return {...constants.DEFAULT_8_BIT_CHANNEL_SETTINGS, ...channel, color};
-				// return Object.assign(defaultChannelSettings, channel, {color});
 			});
 		group.channels.push(...newChannels);
 		return newChannels;
@@ -230,6 +240,13 @@ export default class GroupsPanel extends JetView {
 		this._colorWindow.showWindow({color, max, min}, channelNode, "left");
 		this.getRoot().callEvent("channelColorAdjustStart", [channel]);
 		this._waitForChangesFromPaletteWindow(channel);
+	}
+
+	showTemplateWindow() {
+		const channelList = this.getGroupsChannelsList();
+		const groupList = this.getGroupsList();
+		const selectedGroupId = groupList.getSelectedItem();
+		this._groupColorTemplateWindow.showWindow(selectedGroupId, channelList);
 	}
 
 	_waitForChangesFromPaletteWindow(channel) {
@@ -308,6 +325,10 @@ export default class GroupsPanel extends JetView {
 
 	getColorWindow() {
 		return this._colorWindow;
+	}
+
+	getGenerateSceneFromTemplateButton() {
+		return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 	}
 
 	get _group() {

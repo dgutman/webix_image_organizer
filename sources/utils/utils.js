@@ -65,6 +65,14 @@ function getNewImageHeight() {
 	return webix.storage.local.get(`newImageHeight-${getUserId() || "unregistered"}`);
 }
 
+function getColorTemplateData() {
+	return webix.storage.local.get(`colorTemplate-${getUserId() || "unregistered"}`);
+}
+
+function setColorTemplateData(colorTemplateData) {
+	webix.storage.local.put(`colorTemplate-${getUserId() || "unregistered"}`, colorTemplateData)
+}
+
 function escapeHTML(str) {
 	let tagsToReplace = {
 		"&": "&amp;",
@@ -369,5 +377,7 @@ export default {
 	compareURLStrings,
 	escapeURIChars,
 	isObject,
-	mergeDeep
+	mergeDeep,
+	getColorTemplateData,
+	setColorTemplateData
 };

@@ -9,6 +9,8 @@ import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../.
 import tilesCollection from "../../../models/imageTilesCollection";
 import ItemsModel from "../../../models/itemsModel";
 import stateStore from "../../../models/multichannelView/stateStore";
+import GroupColorTemplateWindow from "./windows/groupColorTemplateWindow";
+import constants from "../../../constants";
 
 export default class MultichannelView extends JetView {
 	constructor(app) {
@@ -68,6 +70,12 @@ export default class MultichannelView extends JetView {
 				groupsPanelRoot.hide();
 			}
 		});
+		this._groupColorTemplateWindow = this.ui(new GroupColorTemplateWindow(
+			this.app,
+			this._osdViewer,
+			this._channelsCollection,
+			this._groupsPanel
+		));
 	}
 
 	show() {
@@ -133,11 +141,7 @@ export default class MultichannelView extends JetView {
 		const selectedChannels = this._channelList.getSelectedChannels();
 		const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 			.map((channel) => {
-				const defaultChannelSettings = {
-					opacity: 1,
-					min: 500,
-					max: 30000
-				};
+				const defaultChannelSettings = constants.DEFAULT_CHANNEL_SETTINGS;
 
 				return {...defaultChannelSettings, ...channel};
 			});
@@ -161,8 +165,11 @@ export default class MultichannelView extends JetView {
 		if (!group) {
 			return;
 		}
-		const channelList = this._channelList.getList();
-		channelList.unselectAll();
+		// const channelList = this._channelList.getList();
+		const channelsIndexes = group.channels.map((channel) => {
+			return channel.index
+		});
+		this._channelList.handleGroupSelect(channelsIndexes);
 		await this.showColoredChannels(group.channels);
 	}
 
@@ -271,6 +278,10 @@ export default class MultichannelView extends JetView {
 			const channels = this._channelList.getSelectedChannels();
 			this._channelList.changeButtonVisibility(channels.length && group);
 		});
+
+		this.on(groupsPanel, "generateSceneFromTemplate", (groupId) => {
+			this._groupColorTemplateWindow.showWindow(groupId);
+		})
 
 		this.on(groupsPanel, "changeChannelOpacity", (channelIndex, opacity) => {
 			this._osdViewer.setTileOpacity(channelIndex, opacity);
