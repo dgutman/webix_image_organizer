@@ -4,6 +4,8 @@ import brain_region_maps
 ## Go through each year... note I am adding code to ignore folders that are not numeric
 unknownStainTags = [] ### I am making this global so I can access it whenever..
 unmatchedFileNames = []
+needsBrainMap = {}
+needsBrainMapUpdate = {}
 
 def evaluateNPSchema( npMeta,debug=False):
     ### This expects a dictionary of metadata for a case.. it should consist of
@@ -33,7 +35,20 @@ def evaluateNPSchema( npMeta,debug=False):
 
     if caseID in brain_region_maps.MAP:
         brm = brain_region_maps.MAP[caseID]
-        npMeta['regionName'] = brm.get(blockID,"Not Mapped")
+        if brm.get(blockID) is None:
+            npMeta['regionName'] = blockID
+
+            if needsBrainMapUpdate.get(caseID) is None:
+                needsBrainMapUpdate[caseID] = [blockID]
+                
+            else:
+                needsBrainMapUpdate[caseID].append(blockID)
+            
+        else:
+            npMeta['regionName'] = "Not Mapped"
+
+    else:
+        needsBrainMap.add(caseID)
 
     return npMeta
 

@@ -5,8 +5,10 @@ node_modules/
 *.lock
 *.swp
 services/__pycache__/*
-services/.ipynb_checkpoints/
+*.ipynb_checkpoints*
+*.ipynb_checkpoints*
 .vscode
 .env
 services/*.png
 services/*.jpg
+*.pyc*
