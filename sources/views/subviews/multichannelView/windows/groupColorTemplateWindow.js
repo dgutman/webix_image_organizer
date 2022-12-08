@@ -5,19 +5,16 @@ import utils from "../../../../utils/utils";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import ColorPickerWindow from "./colorPopup";
 import constants from "../../../../constants";
+import TilesSourcesService from "../../../../services/multichannelView/tilesService";
+import MathCalculations from "../../../../utils/mathCalculations";
 
 // TODO: move IDs  to constants
-const CLOSE_BUTTON_ID = `close-color-template-window-button-${webix.uid()}`;
-const TEMPLATE_CHANNELS_LIST_ID = `template-channel-list-${webix.uid()}`;
-const COLOR_TEMPLATE_WINDOW_ID = `color-template-window-${webix.uid()}`;
-const SAVE_TEMPLATE_BUTTON_ID = `save-template-button-${webix.uid()}`;
-const APPLY_TEMPLATE_BUTTON_ID = `apply-template-button-${webix.uid()}`;
-const DELETE_TEMPLATE_BUTTON_ID = `delete-template-button-${webix.uid()}`;
-const ADD_TEMPLATE_BUTTON_ID = `add-template-button-${webix.uid()}`;
-const DEFAULT_TEMPLATE = {
-	name: "Default",
-	channels: [],
-}
+const CLOSE_BUTTON_ID = `${constants.CLOSE_BUTTON_ID}-${webix.uid()}`;
+const TEMPLATE_CHANNELS_LIST_ID = `${constants.TEMPLATE_CHANNELS_LIST_ID}-${webix.uid()}`;
+const COLOR_TEMPLATE_WINDOW_ID = `${COLOR_TEMPLATE_WINDOW_ID}-${webix.uid()}`;
+const SAVE_TEMPLATE_BUTTON_ID = `${SAVE_TEMPLATE_BUTTON_ID}-${webix.uid()}`;
+const ADD_TEMPLATE_BUTTON_ID = `${ADD_TEMPLATE_BUTTON_ID}-${webix.uid()}`;
+const DEFAULT_TEMPLATE = webix.copy(constants.DEFAULT_TEMPLATE);
 
 export default class GroupColorTemplateWindow extends JetView {
 	constructor(app, osdViewer, channelsCollection, groupsPanel) {
@@ -26,7 +23,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		this._groupsPanel = groupsPanel;
 
 		this._templateList = new TemplateList(this.app);
-		this._channelList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
+		this._channelsList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
 
 		this._channelsCollection = channelsCollection;
 		this._templatesCollection = new webix.DataCollection();
@@ -50,9 +47,10 @@ export default class GroupColorTemplateWindow extends JetView {
 					select: false,
 					template: (obj) => {
 						const showIcon = obj?.opacity ? "fas fa-eye" : "fas fa-eye-slash";
-						return `<span class="channel-item__name name">${obj?.name}</span>
+						return `<span class="channel-item__name name ellipsis-text">${obj?.name}</span>
 						<div class="icons">
 							<span style="color: ${obj?.color};" class="icon palette fas fa-square-full"></span>
+							<span class="icon 
 							<span class="icon show ${showIcon}"></span>
 							<span class="icon delete fas fa-minus-circle"></span>
 						</div>`;
@@ -84,20 +82,8 @@ export default class GroupColorTemplateWindow extends JetView {
 				{
 					view: "button",
 					localId: SAVE_TEMPLATE_BUTTON_ID,
-					label: "Save template",
+					label: "Save templates",
 					click: () => {this.saveTemplates()}
-				},
-				{
-					view: "button",
-					localId: APPLY_TEMPLATE_BUTTON_ID,
-					label: "Apply template",
-					click: () => {this.applyTemplate()}
-				},
-				{
-					view: "button",
-					localId: DELETE_TEMPLATE_BUTTON_ID,
-					label: "Delete template",
-					click: () => {this.deleteTemplate}
 				}
 			]
 		}
@@ -135,7 +121,7 @@ export default class GroupColorTemplateWindow extends JetView {
 				rows: [
 					{
 						cols: [
-							this._channelList,
+							this._channelsList,
 							this._templateList,
 							templateChannelList
 						]
@@ -147,11 +133,12 @@ export default class GroupColorTemplateWindow extends JetView {
 	}
 
 	init() {
+		this._tileService = new TilesSourcesService();
 	}
 
 	ready() {
 		this._colorWindow = this.ui(new ColorPickerWindow(this.app));
-		const channelList = this._channelList.getList();
+		const channelList = this._channelsList.getList();
 		const templateList = this._templateList.getList();
 		const templateChannelList = this.getTemplateChannelList();
 
@@ -159,19 +146,51 @@ export default class GroupColorTemplateWindow extends JetView {
 		templateList.sync(this._templatesCollection);
 		templateChannelList.sync(this._templateChannelCollection);
 
-		// this._dragAndDropMediator = new DragAndDropMediator({
-		// 	main: this,
-		// 	groupsPanel: this._templateList,
-		// 	channelsList: this._channelList
-		// });
-		this.attachEvents()
+		this.attachTemplateListEvents();
+		this.attachChannelsListEvent();
 	}
 
-	attachEvents() {
+	attachTemplateListEvents() {
 		const templateList = this._templateList.getList();
 
 		this.on(templateList, "onSelectChange", () => {
 			this.updateSelectedTemplateTiles();
+		});
+
+		this.on(templateList, "applyTemplate", (id) => {
+			this.applyTemplateHandler(id)
+		})
+
+		this.on(templateList, "removeTemplate", (id) => {
+			this.removeTemplateHandler(id);
+		})
+	}
+
+	attachChannelsListEvent() {
+		const channelList = this._channelsList.getList();
+		const templateList = this._templateList.getList();
+		const templateChannelList = this.getTemplateChannelList();
+
+		this.on(channelList, "onAfterSelect", async (id) => {
+			templateList.unselectAll();
+			templateChannelList.unselectAll();
+
+			const channel = this._channelsCollection.getItem(id);
+			const channelTileSource = await this._tileService.getChannelTileSources(this._image, channel.index);
+			this._osdViewer.removeAllTiles();
+			this._osdViewer.addNewTile(channelTileSource);
+		})
+
+		this.on(channelList, "customSelectionChanged", (channels) => {
+			const selectedGroups = templateList.getSelectedItem(true);
+			this._channelsList.changeButtonVisibility(channels.length && selectedGroups.length);
+		})
+
+		this.on(channelList, "addToSelectedGroup", (channels) => {
+			const selectedGroup = templateList.getSelectedItem();
+			this.addChannelsToTemplate(channels, selectedGroup);
+			this.updateSelectedTemplateTiles();
+			this._channelsList.unselectAllChannels();
 		});
 	}
 
@@ -183,17 +202,26 @@ export default class GroupColorTemplateWindow extends JetView {
 	}
 
 	saveTemplates() {
-		const colorTemplateData = this._templatesCollection.serialize();
+		const colorTemplateData = this._templatesCollection.serialize()
+			.map(template => {
+				return {name: template.name, channels: template.channels, saved: true}
+			});
 		utils.setColorTemplateData(colorTemplateData);
+		this._templatesCollection.clearAll();
+		this._templatesCollection.parse(colorTemplateData);
 	}
 
-	applyTemplate() {
-		// TODO: implement
+	applyTemplateHandler(id) {
+		const templateList = this._templateList.getList();
+		const {name, channels} = templateList.getItem(id);
+
+		this._groupsPanel.getRoot().callEvent("addGroupFromTemplate", [name, channels])
 	}
 
 	deleteTemplate() {
-		// TODO: implement
-		template
+		const templateList = this._templateList.getList();
+		const selectedTemplateId = templateList.getSelectedId();
+		templateList.remove(selectedTemplateId);
 	}
 
 	updateSelectedTemplateTiles() {
@@ -205,16 +233,12 @@ export default class GroupColorTemplateWindow extends JetView {
 
 		if(template) {
 			this._templateChannelCollection.parse(template.channels);
-			const templateChannelsIndexes = this._templateChannelCollection
-				.serialize()
-				.map(channel => channel.index);
-			this._channelList.handleGroupSelect(templateChannelsIndexes);
 		}
 
 		this._groupsPanel.getRoot().callEvent("groupSelectChange", [template]);
 	}
 
-	addChannelsToGroup(channels, template) {
+	addChannelsToTemplate(channels, template) {
 		if(!template) {
 			return null;
 		}
@@ -232,7 +256,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		return newChannels;
 	}
 
-	removeTemplate(id) {
+	removeTemplateHandler(id) {
 		const isSelected = this._templateList.isSelected(id);
 		this._templatesCollection.remove(id);
 		if (isSelected) {
@@ -248,21 +272,27 @@ export default class GroupColorTemplateWindow extends JetView {
 
 	showWindow(groupId) {
 		try{
+			this._templatesCollection.clearAll();
 			const colorTemplateData = utils.getColorTemplateData() ?? [];
 			const templates = [];
+			const groupList = this._groupsPanel.getGroupsList();
 			if (groupId) {
-				const groupList = this._groupsPanel.getGroupsList();
 				this._template = groupList.getItem(groupId);
 				templates.push(this._template);
 				templates.push(...colorTemplateData);
-				this._templatesCollection.parse(templates);
 			} else {
-				this._template = {...DEFAULT_TEMPLATE};
+				if (colorTemplateData.length === 0) {
+					this._template = {...DEFAULT_TEMPLATE};
+				}
+				else {
+					templates.push(...colorTemplateData);
+				}
 			}
+			this._templatesCollection.parse(templates);
 			this.getRoot().show();
 		}
 		catch(err) {
-			// TODO: implement
+			console.log(err);
 		}
 	}
 
@@ -272,18 +302,6 @@ export default class GroupColorTemplateWindow extends JetView {
 
 	getAddTemplateButton() {
 		return this.$$(ADD_TEMPLATE_BUTTON_ID);
-	}
-
-	get _template() {
-		return stateStore.template
-	}
-
-	set _template(template) {
-		stateStore.template = template
-	}
-
-	saveTemplates () {
-		const colorTemplateData = utils.getColorTemplateData() ?? [];
 	}
 
 	showOrHideChannel(id) {
@@ -302,7 +320,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		const channelList = this.getTemplateChannelList();
 		const channelIndex = channelList.getIndexById(id);
 
-		this._group.channels.splice(channelIndex, 1);
+		this._template.channels.splice(channelIndex, 1);
 		channelList.remove(id);
 		this._groupsPanel.getRoot().callEvent("removeChannel", [channelIndex]);
 	}
@@ -336,5 +354,25 @@ export default class GroupColorTemplateWindow extends JetView {
 			colorWindowRoot.detachEvent(hideEventId);
 			this._groupsPanel.getRoot().callEvent("channelColorAdjustEnd", [channel]);
 		});
+	}
+
+	// TODO: fix code duplication
+	createColorByIndex(index, count = 1) {
+		const hue = Math.round(MathCalculations.mapLinear(index, 0, count, 0, 360, true));
+		let saturation = 100;
+		let lightness = 50;
+		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+	}
+
+	get _image() {
+		return stateStore.image;
+	}
+	
+	get _template() {
+		return stateStore.template
+	}
+
+	set _template(template) {
+		stateStore.template = template
 	}
 }

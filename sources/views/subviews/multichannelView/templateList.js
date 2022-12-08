@@ -1,5 +1,4 @@
 import {JetView} from "webix-jet";
-import SelectedItems from "../../../models/selectedItems";
 
 const LIST_ID = `templates-list-${webix.uid()}`;
 const FORM_ID = `template-edit-form-${webix.uid()}`
@@ -13,22 +12,25 @@ export default class TemplateList extends JetView {
 		const templateList = {
 			view: "list",
 			localId: LIST_ID,
-			css: "group-list",
+			css: "groups-list",
 			scroll: "auto",
 			navigation: false,
 			select: true,
-			tooltip: ({name}) => name,
-			template: ({name}) => `<span class="group-item__name name ellipsis-text">${name}</span>
+			template: (obj) => {
+				const savedIcon = obj?.saved ? "fas fa-save" : "";
+				return `<span class="group-item__name name ellipsis-text">${obj?.name}</span>
 				<div class="icons">
-					<span class="icon apply fas fa-circle-check"></span>
-					<span class="icon delete fas fa-minus-circle"></span>
-				</div>`,
+					<span title="saved" class="icon ${savedIcon}"></span>
+					<span title="apply template" class="icon apply fas fa-check"></span>
+					<span title="delete template" class="icon delete fas fa-minus-circle"></span>
+				</div>`
+			},
 			onClick: {
 				delete: (ev, id) => {
-					this.removeTemplate(id);
+					this.getList().callEvent("removeTemplate", [id]);
 				},
 				apply: (ev, id) => {
-					this.applyTemplate(id);
+					this.getList().callEvent("applyTemplate", [id]);
 				}
 			}
 		};
@@ -87,9 +89,5 @@ export default class TemplateList extends JetView {
 			}
 			form.save();
 		}
-	}
-
-	applyTemplate(id) {
-		
 	}
 }

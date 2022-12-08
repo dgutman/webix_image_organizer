@@ -115,18 +115,6 @@ export default class ChannelList extends JetView {
 		list.refresh(id); // rerender item
 	}
 
-	handleGroupSelect(indexes) {
-		const list = this.getList();
-		this._selectedChannelsModel.unselectAll();
-		indexes.forEach((index) => {
-			const id = list.getIdByIndex(index);
-			if (id && !this._selectedChannelsModel.isSelected(id)) {
-				this._selectedChannelsModel.select(id);
-			}
-		});
-		list.refresh();
-	}
-
 	async _getTileSources(image) {
 		const tileSourceOptions = await ajaxActions.getImageTiles(image._id);
 		const tileSources = {

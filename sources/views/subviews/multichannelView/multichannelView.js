@@ -165,11 +165,6 @@ export default class MultichannelView extends JetView {
 		if (!group) {
 			return;
 		}
-		// const channelList = this._channelList.getList();
-		const channelsIndexes = group.channels.map((channel) => {
-			return channel.index
-		});
-		this._channelList.handleGroupSelect(channelsIndexes);
 		await this.showColoredChannels(group.channels);
 	}
 
@@ -329,6 +324,10 @@ export default class MultichannelView extends JetView {
 		this.on(groupsPanel, "exportGroups", (groups) => {
 			downloadGroup(this._image.name, this._image._id, groups);
 		});
+
+		this.on(groupsPanel, "addGroupFromTemplate", (groupName, channels) => {
+			this._addNewGroup(groupName, channels)
+		})
 	}
 
 	startChannelAdjusting(channel) {

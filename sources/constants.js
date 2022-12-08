@@ -181,6 +181,18 @@ export default {
 	CHANNEL_MAP_FILTER: "meta|ioparams|channelmap",
 	CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap",
 	LINEAR_SCALE_VALUE: 1,
-	LOGARITHMIC_SCALE_VALUE: 0
+	LOGARITHMIC_SCALE_VALUE: 0,
 	// end MultichannelView
+
+	//begin GroupColorTemplateWindow
+	CLOSE_BUTTON_ID: "close-color-template-window-button",
+	TEMPLATE_CHANNELS_LIST_ID: "template-channel-list",
+	COLOR_TEMPLATE_WINDOW_ID: "color-template-window-",
+	SAVE_TEMPLATE_BUTTON_ID: "save-template-button",
+	ADD_TEMPLATE_BUTTON_ID: "add-template-button",
+	DEFAULT_TEMPLATE: {
+		name: "Default",
+		channels: [],
+	}
+	//end GroupColorTemplateWindow
 };
