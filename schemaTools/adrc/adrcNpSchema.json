@@ -1,8 +1,72 @@
-dsaNpSchema = {
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "http://example.com/example.json",
     "type": "object",
+    "default": {},
+    "title": "Root Schema",
+    "required": [
+        "npSchema"
+    ],
     "properties": {
-        "blockID": {"type": "string"},
-        "caseID": {"type": "string", "pattern": "^(E|A)\d\d-\d+"},
-        "stainID": {"type": "string", "enum": ["HE","Tau","aBeta","Syn","p62","pTDP","Biels","Ubiq","LFB"]},
+        "npSchema": {
+            "type": "object",
+            "default": {},
+            "title": "The npSchema Schema",
+            "required": [
+                "blockID",
+                "caseID",
+                "stainID"
+            ],
+            "properties": {
+                "blockID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The blockID Schema",
+                    "examples": [
+                        "10"
+                    ]
+                },
+                "caseID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The caseID Schema",
+                    "examples": [
+                        "E18-7"
+                    ],
+                    "pattern": "^(E|A)\\\\d\\\\d-\\\\d+"
+                },
+                "stainID": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The stainID Schema",
+                    "examples": [
+                        "Tau"
+                    ],
+                    "enum": [
+                        "HE",
+                        "Tau",
+                        "aBeta",
+                        "Syn",
+                        "p62",
+                        "pTDP",
+                        "Biels",
+                        "Ubiq",
+                        "LFB"
+                    ]
+                }
+            },
+            "examples": [{
+                "blockID": "10",
+                "caseID": "E18-7",
+                "stainID": "Tau"
+            }]
+        }
     },
+    "examples": [{
+        "npSchema": {
+            "blockID": "10",
+            "caseID": "E18-7",
+            "stainID": "Tau"
+        }
+    }]
 }
