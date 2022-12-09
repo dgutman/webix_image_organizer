@@ -81,10 +81,13 @@ def evaluateNPSchema(npMeta, debug=False):
             npMeta["regionName"] = "Not Mapped"
 
             if brainMapNoBlockMap.get(caseID) is None:
-                brainMapNoBlockMap[caseID] = [blockID]
+                brainMapNoBlockMap[caseID] = {blockID: 1}
+
+            elif brainMapNoBlockMap[caseID].get(blockID) is None:
+                brainMapNoBlockMap[caseID][blockID] = 1
 
             else:
-                brainMapNoBlockMap[caseID].append(blockID)
+                brainMapNoBlockMap[caseID][blockID] += 1
 
         else:
             npMeta["regionName"] = brm[blockID]
@@ -251,10 +254,12 @@ def scanMetadata(gc, fldrInfo, updateGirder=False, rescanNpSchema=True, debug=Fa
                 # print("This slidename failed to match and is not a control",s['name'])
 
     if noBrainMap:
-        print(f"Needs Brain Map: {noBrainMap}\n")
+        print(f"Needs Brain Map: {noBrainMap}")
+        noBrainMap.clear()
 
     if brainMapNoBlockMap:
-        print(f"Needs Block Map: {brainMapNoBlockMap}\n")
+        print(f"Needs Block Map: {brainMapNoBlockMap}")
+        brainMapNoBlockMap.clear()
 
     return {
         "Processed": slidesProcessed,
