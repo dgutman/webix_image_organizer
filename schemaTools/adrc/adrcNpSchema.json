@@ -1,0 +1,8 @@
+dsaNpSchema = {
+    "type": "object",
+    "properties": {
+        "blockID": {"type": "string"},
+        "caseID": {"type": "string", "pattern": "^(E|A)\d\d-\d+"},
+        "stainID": {"type": "string", "enum": ["HE","Tau","aBeta","Syn","p62","pTDP","Biels","Ubiq","LFB"]},
+    },
+}
