@@ -8,6 +8,7 @@ noBrainMap = set()
 brainMapNoBlockMap = {}
 
 #  NOTE: multiple different stainAliasDicts below
+stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB"]
 
 
 def evaluateNPSchema(npMeta, debug=False):
@@ -22,9 +23,9 @@ def evaluateNPSchema(npMeta, debug=False):
         "ptdp": "pTDP",
         "pTDP": "pTDP",
         "pTDP (2)": "pTDP",
-        "ptdp-001": "ptdp",
-        "ptdp-002": "ptdp",
-        "ptdp-003": "ptdp",
+        "ptdp-001": "pTDP",
+        "ptdp-002": "pTDP",
+        "ptdp-003": "pTDP",
         "HE": "HE",
         "H&E": "HE",
         "HE (2)": "HE",
@@ -38,7 +39,7 @@ def evaluateNPSchema(npMeta, debug=False):
         "TAU": "Tau",
         "Tau": "Tau",
         "tau": "Tau",
-        "tau (2)": "tau",
+        "tau (2)": "Tau",
         "TAU (2)": "Tau",
         "TAU-001": "Tau",
         "BIELS": "Biels",
@@ -56,12 +57,10 @@ def evaluateNPSchema(npMeta, debug=False):
         "LFB PAS": "LFB",
     }
 
-    stainList = ["ptdp", "he", "abeta", "ubiq", "tau", "biels", "syn", "p62", "lfb"]
-
     if "stainID" in npMeta:
 
         stain = npMeta["stainID"]
-        stainInString = [val for val in stainList if val in stain.lower()]
+        stainInString = [val for val in stainList if val.lower() in stain.lower()]
 
         if stain not in stainAliasDict and not stainInString:
             unknownStainTags.append(stain)
@@ -238,9 +237,14 @@ def scanMetadata(gc, fldrInfo, updateGirder=False, rescanNpSchema=True, debug=Fa
 
             elif "CON" in slideName.upper():
                 ###  Probably a control slide!!
+                stainInString = [
+                    val for val in stainList if val.lower() in slideName.lower()
+                ]
+                stain = stainInString[0] if stainInString else "No Stain Identified"
                 if updateGirder:
                     gc.addMetadataToItem(
-                        s["_id"], {"npSchema": {"controlSlide": "Yes"}}
+                        s["_id"],
+                        {"npSchema": {"controlSlide": "Yes", "stainID": stain}},
                     )
             else:
                 unmatchedFileNames.append(s["name"])
