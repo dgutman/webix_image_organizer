@@ -11,19 +11,56 @@ def evaluateNPSchema( npMeta,debug=False):
     ## First version should just check and see if the stainID is a valid name...
     if debug:
         print(npMeta)
-    stainAliasDict =     { 'PTDP':'pTDP', 'ptdp':'pTDP', 'pTDP':'pTDP','pTDP (2)':'pTDP','ptdp-001':'ptdp','ptdp-002':'ptdp','ptdp-003':'ptdp',
-                          'HE':'HE','H&E':'HE','HE (2)':'HE',
-                          'AB':'aBeta','ABETA':'aBeta','Ab':'aBeta','aBeta':'aBeta',
-                          'ubiq':'Ubiq','UBIQ':'Ubiq','Ubiq':'Ubiq',
-                          'TAU':'Tau','Tau':'Tau','tau':'Tau','tau (2)':'tau','TAU (2)':'Tau','TAU-001':'Tau',
-                          'BIELS':'Biels','biels':'Biels','Biels':'Biels','Biels (2)': 'Biels','Biels (3)': 'Biels',
-                          'SYN':'Syn','Syn':'Syn','syn':'Syn',
-                         'p62':'p62','P62':'p62',
-                          'LFB-PAS':'LFB', 'LFB':'LFB','LFB PAS':'LFB'
-                         }
-    if 'stainID' in npMeta:
-        stain = npMeta['stainID']
-        if stain not in stainAliasDict:
+
+    stainAliasDict = {
+        "PTDP": "pTDP",
+        "ptdp": "pTDP",
+        "pTDP": "pTDP",
+        "pTDP (2)": "pTDP",
+        "ptdp-001": "pTDP",
+        "ptdp-002": "pTDP",
+        "ptdp-003": "pTDP",
+        "HE": "HE",
+        "H&E": "HE",
+        "HE (2)": "HE",
+        "AB": "aBeta",
+        "ABETA": "aBeta",
+        "Ab": "aBeta",
+        "aBeta": "aBeta",
+        "ubiq": "Ubiq",
+        "UBIQ": "Ubiq",
+        "Ubiq": "Ubiq",
+        "TAU": "Tau",
+        "Tau": "Tau",
+        "tau": "Tau",
+        "tau (2)": "tau",
+        "TAU (2)": "Tau",
+        "TAU-001": "Tau",
+        "BIELS": "Biels",
+        "biels": "Biels",
+        "Biels": "Biels",
+        "Biels (2)": "Biels",
+        "Biels (3)": "Biels",
+        "SYN": "Syn",
+        "Syn": "Syn",
+        "syn": "Syn",
+        "p62": "p62",
+        "P62": "p62",
+        "LFB-PAS": "LFB",
+        "LFB": "LFB",
+        "LFB PAS": "LFB",
+    }
+
+
+
+    stainList = ["ptdp", "he", "abeta", "ubiq", "tau", "biels", "syn", "p62", "lfb"]
+
+    if "stainID" in npMeta:
+
+        stain = npMeta["stainID"]
+        stainInString = [val for val in stainList if val in stain.lower()]
+
+        if stain not in stainAliasDict and not stainInString:
             unknownStainTags.append(stain)
         else:
             npMeta['stainID'] = stainAliasDict[stain]   
