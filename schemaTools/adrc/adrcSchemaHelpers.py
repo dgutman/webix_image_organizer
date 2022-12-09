@@ -32,6 +32,7 @@ def evaluateNPSchema(npMeta, debug=False):
         "AB": "aBeta",
         "ABETA": "aBeta",
         "Ab": "aBeta",
+        "AB (2)": "aBeta",
         "aBeta": "aBeta",
         "ubiq": "Ubiq",
         "UBIQ": "Ubiq",
@@ -64,6 +65,7 @@ def evaluateNPSchema(npMeta, debug=False):
 
         if stain not in stainAliasDict and not stainInString:
             unknownStainTags.append(stain)
+            npMeta["stainID"] = f"~{npMeta['stainID']}"
         elif stainInString:
             npMeta["stainID"] = stainInString[0]
         else:
