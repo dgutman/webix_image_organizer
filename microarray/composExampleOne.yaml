@@ -1,0 +1,12 @@
+---
+width: 6080
+height: 7232
+sources:
+  - path: ./imabig.tiff
+    position: 
+      x: 0
+      y: 0
+  - path: ./imabig2.tiff
+    position:
+      x: 3040
+      y: 3616
