@@ -33,7 +33,7 @@
                     "examples": [
                         "E18-7"
                     ],
-                    "pattern": "^(E|A)\\\\d\\\\d-\\\\d+"
+                    "pattern": "^(E|A)\\d\\d-\\d+"
                 },
                 "stainID": {
                     "type": "string",
