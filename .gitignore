@@ -10,3 +10,4 @@ services/.ipynb_checkpoints/
 .env
 services/*.png
 services/*.jpg
+.ipynb_checkpoints/
