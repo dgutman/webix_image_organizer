@@ -101,49 +101,6 @@ def evaluateNPSchema(npMeta, debug=False):
     return npMeta
 
 
-def getADRCcollection(
-    gc, rootCollectionName="Emory_ADRC", debug=False, pullSlideList=False
-):
-    ## Given the collection name, pull all the items
-    npSlideDict = {}
-
-    ## Get the ID for the ADRC Collection
-    rawColList = gc.get(f"collection?text={rootCollectionName}")
-    adrcCollection = [x for x in rawColList if x["name"] == rootCollectionName][0]
-
-    for yr in gc.listFolder(adrcCollection["_id"], parentFolderType="collection"):
-        year = yr["name"]
-        if not year.isnumeric():
-            continue
-        else:
-            if debug:
-                print(year)
-        for subj in gc.listFolder(yr["_id"]):
-            # TODO: generate number of slides under each subject
-            # And in the future also validate the metadata!!
-            subjItemSet = gc.listResource(f"resource/{subj['_id']}/items?type=folder")
-            if pullSlideList:
-                slideList = [
-                    x
-                    for x in subjItemSet
-                    if ("svs" in x["name"] or "ndpi" in x["name"])
-                ]
-            else:
-                slideList = []
-
-            if debug:
-                print(f"\t{subj['name']}\t{len(slideList)}")
-
-            npSlideDict[f"{year}_{subj['name']}"] = {
-                "slideList": slideList,
-                "rootFolderInfo": subj,
-            }
-
-    return npSlideDict
-
-    ## Will shim to the preferred alias
-
-
 stainAliasDict = {
     "PTDP": "pTDP",
     "HE": "HE",
@@ -156,48 +113,6 @@ stainAliasDict = {
 
 ## For control slides I make the region Control  and also set the controlSlide Flag... not sure what to do about the
 ## slideName..
-
-#  NOTE: patientID passed but never used
-def validateSlide(slideInfo, patientId, debug=False):
-    ## This will be a cleanup function that either validates data is meta.npSc,hema is available
-    ## or tries to populate it from the existing and likely dirty metadata from either parsing the slide name
-    ## or if meta.region or meta.stain are already populated..
-    meta = slideInfo["meta"]
-
-    ## Will clean up the region and remove the a's
-    ## Remove the A's if it happens to have been encoded in the region but only if it's not a 1A.. HMM
-
-    if "npSchema" in meta:
-        return
-
-    else:
-        ### First try and validate the region
-        if "region" in meta:
-            blockID = meta["region"]
-            if blockID.startswith("A"):
-                blockID = blockID.replace("A", "")
-            if debug:
-                print(blockID)
-
-            if "subject" in meta:
-                subject = meta["subject"]
-            else:
-                subject = "Unknown"
-
-            if "stain" in meta:
-                stain = meta["stain"]
-            else:
-                stain = "Unknown"
-
-            return {
-                "region": meta["region"],
-                "blockID": blockID,
-                "subject": subject,
-                "stain": stain,
-                "filename": slideInfo["name"],
-            }
-        else:
-            return {"filename": slideInfo["name"]}
 
 
 #             print(meta['region'],meta['subject'])
@@ -224,7 +139,7 @@ def scanMetadata(gc, fldrInfo, updateGirder=False, rescanNpSchema=True, debug=Fa
         ### See if there's any metadata .. anywhere
         slidesProcessed += 1
         if rescanNpSchema:
-            ### MEans I can add some metadata if I can find any... we haven't set anything yet
+            ### Means I can add some metadata if I can find any... we haven't set anything yet
             slideName = s["name"]
             m = adrcNamePattern.search(slideName)
             if m:
@@ -270,6 +185,92 @@ def scanMetadata(gc, fldrInfo, updateGirder=False, rescanNpSchema=True, debug=Fa
     }, unmatchedFileNames
 
 
-print(
-    f"Unknown Stain Tags: {unknownStainTags}\nUnmatched File Names: {unmatchedFileNames}"
-)
+# print(
+#     f"Unknown Stain Tags: {unknownStainTags}\nUnmatched File Names: {unmatchedFileNames}"
+# )
+
+
+# def getADRCcollection(
+#     gc, rootCollectionName="Emory_ADRC", debug=False, pullSlideList=False
+# ):
+#     ## Given the collection name, pull all the items
+#     npSlideDict = {}
+
+#     ## Get the ID for the ADRC Collection
+#     rawColList = gc.get(f"collection?text={rootCollectionName}")
+#     adrcCollection = [x for x in rawColList if x["name"] == rootCollectionName][0]
+
+#     for yr in gc.listFolder(adrcCollection["_id"], parentFolderType="collection"):
+#         year = yr["name"]
+#         if not year.isnumeric():
+#             continue
+#         else:
+#             if debug:
+#                 print(year)
+#         for subj in gc.listFolder(yr["_id"]):
+#             # TODO: generate number of slides under each subject
+#             # And in the future also validate the metadata!!
+#             subjItemSet = gc.listResource(f"resource/{subj['_id']}/items?type=folder")
+#             if pullSlideList:
+#                 slideList = [
+#                     x
+#                     for x in subjItemSet
+#                     if ("svs" in x["name"] or "ndpi" in x["name"])
+#                 ]
+#             else:
+#                 slideList = []
+
+#             if debug:
+#                 print(f"\t{subj['name']}\t{len(slideList)}")
+
+#             npSlideDict[f"{year}_{subj['name']}"] = {
+#                 "slideList": slideList,
+#                 "rootFolderInfo": subj,
+#             }
+
+#     return npSlideDict
+
+#     ## Will shim to the preferred alias
+
+
+#  NOTE: patientID passed but never used
+# def validateSlide(slideInfo, patientId, debug=False):
+#     ## This will be a cleanup function that either validates data is meta.npSc,hema is available
+#     ## or tries to populate it from the existing and likely dirty metadata from either parsing the slide name
+#     ## or if meta.region or meta.stain are already populated..
+#     meta = slideInfo["meta"]
+
+#     ## Will clean up the region and remove the a's
+#     ## Remove the A's if it happens to have been encoded in the region but only if it's not a 1A.. HMM
+
+#     if "npSchema" in meta:
+#         return
+
+#     else:
+#         ### First try and validate the region
+#         if "region" in meta:
+#             blockID = meta["region"]
+#             if blockID.startswith("A"):
+#                 blockID = blockID.replace("A", "")
+#             if debug:
+#                 print(blockID)
+
+#             if "subject" in meta:
+#                 subject = meta["subject"]
+#             else:
+#                 subject = "Unknown"
+
+#             if "stain" in meta:
+#                 stain = meta["stain"]
+#             else:
+#                 stain = "Unknown"
+
+#             return {
+#                 "region": meta["region"],
+#                 "blockID": blockID,
+#                 "subject": subject,
+#                 "stain": stain,
+#                 "filename": slideInfo["name"],
+#             }
+#         else:
+#             return {"filename": slideInfo["name"]}
