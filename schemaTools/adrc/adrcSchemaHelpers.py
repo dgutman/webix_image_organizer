@@ -41,6 +41,7 @@ def evaluateNPSchema(npMeta, debug=False):
         "Tau": "Tau",
         "tau": "Tau",
         "tau (2)": "Tau",
+        "tau (2)": "tau",
         "TAU (2)": "Tau",
         "TAU-001": "Tau",
         "BIELS": "Biels",

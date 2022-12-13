@@ -1,0 +1,14 @@
+---
+width: 6080
+height: 3616
+sources:
+  - path: girder://62e0200de70def4ae726cc3f
+    z: 0
+    position: 
+      x: 0
+      y: 0
+  - path: girder://62e02014e70def4ae726cc45
+    z: 0
+    position:
+      x: 3040
+      y: 0
