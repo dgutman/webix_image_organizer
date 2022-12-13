@@ -5,6 +5,16 @@ define([], function() {
 		HOST_BOX_ID: "host-box",
 		FOLDER_TREE_ID: "folder-tree-view",
 		LOCAL_API: `${window.location.origin}/api`,
+		// begin channel list
+		LIST_ID: "channels-list",
+		TEXT_SEARCH_ID: "channels-search-field",
+		ADD_TO_GROUP_BUTTON_ID: "add-to-group",
+		// end channel list
+		DEFAULT_CHANNEL_SETTINGS: {
+			opacity: 1,
+			min: 500,
+			max: 30000
+		},
 		DEFAULT_16_BIT_CHANNEL_SETTINGS: {
 			opacity: 1,
 			min: 0,
@@ -44,6 +54,23 @@ define([], function() {
 		FACET_FILTER_GROUPLIST_ID: "facet_filter_grouplist_id",
 		// end approved-facet popup
 
-		TUTORIAL_LINK: "https://screencast-o-matic.com/watch/crhuIbVhoxa"
+		TUTORIAL_LINK: "https://screencast-o-matic.com/watch/crhuIbVhoxa",
+
+		// begin GroupColorTemplateWindow
+		CLOSE_BUTTON_ID: "close-color-template-window-button",
+		TEMPLATE_CHANNELS_LIST_ID: "template-channel-list",
+		COLOR_TEMPLATE_WINDOW_ID: "color-template-window-",
+		SAVE_TEMPLATE_BUTTON_ID: "save-template-button",
+		ADD_TEMPLATE_BUTTON_ID: "add-template-button",
+		DEFAULT_TEMPLATE: {
+			name: "Default",
+			channels: []
+		},
+		// end GroupColorTemplateWindow
+
+		// begin ColorPickerWindow
+		FORM_ID: "color-form",
+		HISTOGRAM_FORM_ID: "histogram-form"
+		// end ColorPickerWindow
 	};
 });
