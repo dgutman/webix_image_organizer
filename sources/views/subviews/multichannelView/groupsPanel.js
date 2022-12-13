@@ -159,7 +159,6 @@ export default class GroupsPanel extends JetView {
 		});
 
 		this.on(generateSceneFromTemplateButton, "onItemClick", () => {
-			// this.showTemplateWindow();
 			const groupId = this.getGroupsList().getSelectedId();
 			this.getRoot().callEvent("generateSceneFromTemplate", [groupId])
 		})
@@ -240,13 +239,6 @@ export default class GroupsPanel extends JetView {
 		this._colorWindow.showWindow({color, max, min}, channelNode, "left");
 		this.getRoot().callEvent("channelColorAdjustStart", [channel]);
 		this._waitForChangesFromPaletteWindow(channel);
-	}
-
-	showTemplateWindow() {
-		const channelList = this.getGroupsChannelsList();
-		const groupList = this.getGroupsList();
-		const selectedGroupId = groupList.getSelectedItem();
-		this._groupColorTemplateWindow.showWindow(selectedGroupId, channelList);
 	}
 
 	_waitForChangesFromPaletteWindow(channel) {

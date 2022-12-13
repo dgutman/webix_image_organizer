@@ -50,7 +50,6 @@ export default class GroupColorTemplateWindow extends JetView {
 						return `<span class="channel-item__name name ellipsis-text">${obj?.name}</span>
 						<div class="icons">
 							<span style="color: ${obj?.color};" class="icon palette fas fa-square-full"></span>
-							<span class="icon 
 							<span class="icon show ${showIcon}"></span>
 							<span class="icon delete fas fa-minus-circle"></span>
 						</div>`;
@@ -257,13 +256,14 @@ export default class GroupColorTemplateWindow extends JetView {
 	}
 
 	removeTemplateHandler(id) {
-		const isSelected = this._templateList.isSelected(id);
+		const templateList = this._templateList.getList();
+		const isSelected = templateList.isSelected(id);
 		this._templatesCollection.remove(id);
 		if (isSelected) {
-			this._templateList.unselectAll();
+			templateList.unselectAll();
 			this.getTemplateChannelList().clearAll();
 			const firstId = this._templateList.getFirstId();
-			this._templateList.select(firstId);
+			templateList.select(firstId);
 			if (!firstId) {
 				this._osdViewer.setDefaultOSDImage()
 			}

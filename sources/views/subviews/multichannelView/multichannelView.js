@@ -165,6 +165,8 @@ export default class MultichannelView extends JetView {
 		if (!group) {
 			return;
 		}
+		const channelList = this._channelList.getList();
+		channelList.unselectAll();
 		await this.showColoredChannels(group.channels);
 	}
 
