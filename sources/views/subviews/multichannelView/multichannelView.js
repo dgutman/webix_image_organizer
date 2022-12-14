@@ -11,7 +11,7 @@ import ItemsModel from "../../../models/itemsModel";
 import stateStore from "../../../models/multichannelView/stateStore";
 
 
-import OpenSeadragon  from "openseadragon";
+import OpenSeadragon from "openseadragon";
 
 export default class MultichannelView extends JetView {
 	constructor(app) {
@@ -34,7 +34,7 @@ export default class MultichannelView extends JetView {
 			cols: [
 				this._channelList,
 				this._osdViewer,
-				this._groupsPanel,
+				this._groupsPanel
 			//	this._infoPanel
 			]
 		};
@@ -117,35 +117,31 @@ export default class MultichannelView extends JetView {
 
 		this._osdViewer.createViewer({tileSources});
 
-		console.log(this._osdViewer)
+		console.log(this._osdViewer);
 
-		var viewer = this._osdViewer;
+		const viewer = this._osdViewer.$viewer();
 		console.log(viewer);
-		 viewer.addHandler('open', function() {
+		viewer.addHandler("open", () => {
+			const tracker = new OpenSeadragon.MouseTracker({
+				element: viewer.container,
+				moveHandler(event) {
+					const webPoint = event.position;
+					const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+					const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+					const zoom = viewer.viewport.getZoom(true);
+					const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
 
-        var tracker = new OpenSeadragon.MouseTracker({
-            element: viewer.container,
-            moveHandler: function(event) {
-                var webPoint = event.position;
-                var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-                var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
-                var zoom = viewer.viewport.getZoom(true);
-                var imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+					        $$("mousetrack").setHTML(`Web:<br>${webPoint.toString()
+					}<br><br>Viewport:<br>${viewportPoint.toString()
+					}<br><br>Image:<br>${imagePoint.toString()}`);
+					//                updateZoom();
+				}
+			});
 
-					        $$('mousetrack').setHTML('Web:<br>' + webPoint.toString() + 
-                    '<br><br>Viewport:<br>' + viewportPoint.toString() +
-                    '<br><br>Image:<br>' + imagePoint.toString())
-//                updateZoom();     
-            }
-        });  
+			tracker.setTracking(true);
 
-        tracker.setTracking(true);  
-
-        viewer.addHandler('animation', updateZoom);   
-    });
-
-
-
+			viewer.addHandler("animation", updateZoom);
+		});
 	}
 
 	_parseChannels(channels) {
