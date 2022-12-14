@@ -115,6 +115,14 @@ export default class GroupsPanel extends JetView {
 						}
 					]
 				},
+				{ rows: [{
+					template: "Mouse Tracker:",
+					height: 30
+				},{
+					view:"template",template:"Mouse Info Here",id:"mousetrack"
+
+
+				}]},
 				{
 					view: "uploader",
 					localId: UPLOADER_API_ID,

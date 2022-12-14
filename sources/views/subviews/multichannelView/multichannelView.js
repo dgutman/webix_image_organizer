@@ -10,6 +10,9 @@ import tilesCollection from "../../../models/imageTilesCollection";
 import ItemsModel from "../../../models/itemsModel";
 import stateStore from "../../../models/multichannelView/stateStore";
 
+
+import OpenSeadragon  from "openseadragon";
+
 export default class MultichannelView extends JetView {
 	constructor(app) {
 		super(app);
@@ -17,6 +20,7 @@ export default class MultichannelView extends JetView {
 		this._osdViewer = new MultichannelOSDViewer(this.app, {showNavigationControl: false});
 		this._channelList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
 		this._groupsPanel = new GroupsPanel(this.app, {gravity: 0.2, minWidth: 200});
+
 
 		this._channelsCollection = new webix.DataCollection();
 		this._groupsCollection = new webix.DataCollection();
@@ -30,7 +34,8 @@ export default class MultichannelView extends JetView {
 			cols: [
 				this._channelList,
 				this._osdViewer,
-				this._groupsPanel
+				this._groupsPanel,
+			//	this._infoPanel
 			]
 		};
 	}
@@ -111,6 +116,36 @@ export default class MultichannelView extends JetView {
 		this.getRoot().hideProgress();
 
 		this._osdViewer.createViewer({tileSources});
+
+		console.log(this._osdViewer)
+
+		var viewer = this._osdViewer;
+		console.log(viewer);
+		 viewer.addHandler('open', function() {
+
+        var tracker = new OpenSeadragon.MouseTracker({
+            element: viewer.container,
+            moveHandler: function(event) {
+                var webPoint = event.position;
+                var viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+                var imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+                var zoom = viewer.viewport.getZoom(true);
+                var imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+
+					        $$('mousetrack').setHTML('Web:<br>' + webPoint.toString() + 
+                    '<br><br>Viewport:<br>' + viewportPoint.toString() +
+                    '<br><br>Image:<br>' + imagePoint.toString())
+//                updateZoom();     
+            }
+        });  
+
+        tracker.setTracking(true);  
+
+        viewer.addHandler('animation', updateZoom);   
+    });
+
+
+
 	}
 
 	_parseChannels(channels) {

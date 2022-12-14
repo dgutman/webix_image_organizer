@@ -57,6 +57,7 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 	createViewer(options) {
 		const osdTemplateNode = this.getRoot().getNode();
 		const osdContainer = osdTemplateNode.querySelector(".osd-container");
+
 		return super.createViewer(options, osdContainer);
 	}
 
