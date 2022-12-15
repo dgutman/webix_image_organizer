@@ -14,10 +14,9 @@ import pandas as pd
 # TODO: add record of all seen collectionIDs and fileIDs so as to reduce number of things examined
 # ideally hash their content, etc. to make 1: 1 validation faster, etc.
 
-# TODO: optimize file type checking -- currently checked a couple times in different contexts
-# one check in adrcNamePattern and again later in comprehensions
-
 # TODO: add TQDM where relevant
+
+# TODO: add "staticMetadata" tag or something similar which indicates a file has had metadata validated and shouldn't be altered
 
 server = "candygram"
 apiUrl = f"http://{server}.neurology.emory.edu:8080/api/v1"
@@ -31,11 +30,9 @@ gc.authenticate(interactive=True)
 # this is the folderID of the ADRC Collection
 folderID, parentType = "638e2da11f75016b81fda12f", "collection"
 
-# .ProjectMetadata collection seems to have a copy of the json schema as its metadata
+# NOTE: .ProjectMetadata collection seems to have a copy of the json schema as its metadata
 # perhaps in the future we just pull that and load it as the schema, so that we don't need it locally
 schemaPath = "adrcNpSchema.json"
-
-yearsToScan = ["2020"]
 
 stainAliasDict = {
     "PTDP": "pTDP",
