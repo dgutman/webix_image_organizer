@@ -304,10 +304,6 @@ def validateNPJson(schemaPath, jsonData):
     return (True,)
 
 
-# blankMetadata(collectionID=folderID)
-# populateMetadata(collectionID=folderID)
-
-
 def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
     """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
 
@@ -327,23 +323,6 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
         if (item["name"] not in blankMetadata) and (item["meta"].get("npWorking") is not None)
     ]
 
-    #  mapping of select items seen returned from girder_client api calls
-
-    #  _id: internal mongo id
-    #  _modelType: object type (folder, item, or collection -- also annotations but not so relevant)
-    #  baseParentId: collection the item is in
-    #  baseParentType: parent object type (folder, item, or collection -- also annotations but not so relevant)
-    #  created: date created
-    #  creatorId: id of individual who created the item
-    #  description: description of the item
-    #  meta: dictionary of meta data pertaining to item
-    #  name: item name (may be a year, patient id, or other folder/file names)
-    #  parentCollection: *unclear, but told to ignore*
-    #  parentId: id of parent collection
-    #  public: whether item is public or not
-    #  size: size in bytes (or other unit) -- folders show as 0
-    #  updated: datetime of last update
-
     allVals = {"blankMetadata": blankMetadata}
 
     # iterating over all npSchemas in itemSet
@@ -356,7 +335,7 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
 
             if allVals.get(key) is None:
                 allVals[key] = [val]
-            elif val not in allVals[key]:
+            else:
                 allVals[key].append(val)
 
     # determining the number of None values to append to make it possible to convert this to a dataframe
@@ -390,4 +369,24 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
         print(df.head(df.shape[0]))
 
 
+# blankMetadata(collectionID=folderID)
+# populateMetadata(collectionID=folderID)
 auditMetadata(collectionID=folderID, outputRecords=True)
+
+
+#  mapping of select items seen returned from girder_client api calls
+
+#  _id: internal mongo id
+#  _modelType: object type (folder, item, or collection -- also annotations but not so relevant)
+#  baseParentId: collection the item is in
+#  baseParentType: parent object type (folder, item, or collection -- also annotations but not so relevant)
+#  created: date created
+#  creatorId: id of individual who created the item
+#  description: description of the item
+#  meta: dictionary of meta data pertaining to item
+#  name: item name (may be a year, patient id, or other folder/file names)
+#  parentCollection: *unclear, but told to ignore*
+#  parentId: id of parent collection
+#  public: whether item is public or not
+#  size: size in bytes (or other unit) -- folders show as 0
+#  updated: datetime of last update
