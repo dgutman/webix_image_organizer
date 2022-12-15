@@ -9,7 +9,13 @@ import girder_client
 
 import brain_region_maps
 
-import pandas as pd
+
+# import pandas as pd
+
+# TODO: optimize file type checking -- currently checked a couple times in different contexts
+# one check in adrcNamePattern and again later in comprehensions
+
+# TODO: add TQDM where relevant
 
 server = "candygram"
 apiUrl = f"http://{server}.neurology.emory.edu:8080/api/v1"
@@ -71,28 +77,29 @@ stainAliasDict = {
 
 stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB"]
 
-# accepts only a single collectionID at a time
-def getCollectionContents(collectionID, parentType="collection", contentIDsOnly=True):
-    """Returns either all metadata for folders in the specified collection, or just the IDs thereof"""
-    contents = [
-        (item if not contentIDsOnly else item["_id"])
-        for item in gc.listFolder(collectionID, parentFolderType=parentType)
-    ]
-    return contents
+adrcNamePattern = re.compile("(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]")
 
 
-# may take either a single folderID or an iterable thereof
-def getFolderContents(folderID):
-    """Returns details of all items in the specified folder(s)"""
-    urlExtension = "resource/*/items?type=folder"
+def blankMetadata(collectionID=None, folderID=None):
+    """Completely removes metadata; Accepts a single collectionID or folderID(s)"""
 
-    if isinstance(folderID, str):
-        folderID = [folderID]
+    fileTypes = ["svs", "ndpi"]
 
-    contents = [item for ID in folderID for item in gc.listResource(urlExtension.replace("*", ID))]
-    return contents
+    if collectionID is not None:
+        folderID = getCollectionContents(collectionID)
+
+    itemsToEvaluate = getFolderContents(folderID)
+
+    itemsToEvaluate = {
+        item["_id"]: {"npSchema": None, "npWorking": None}
+        for item in itemsToEvaluate
+        if any([item["name"].endswith(val) for val in fileTypes]) and item["meta"]
+    }
+
+    updateMetadata(itemsToEvaluate)
 
 
+# entry point/main function to call when populating metadata from file name
 def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
     """Accepts a single collectionID or folderID(s)"""
 
@@ -116,7 +123,35 @@ def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
     updateMetadata(updateDict)
 
 
-adrcNamePattern = re.compile("(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]")
+# accepts only a single collectionID at a time
+def getCollectionContents(collectionID, parentType="collection", contentIDsOnly=True):
+    """Returns either all metadata for folders in the specified collection, or just the IDs thereof"""
+
+    folderList = gc.listFolder(collectionID, parentFolderType=parentType)
+    contents = [(item if not contentIDsOnly else item["_id"]) for item in folderList]
+
+    return contents
+
+
+# may take either a single folderID or an iterable thereof
+def getFolderContents(folderID):
+    """Returns details of all items in the specified folder(s)"""
+
+    urlExtension = "resource/*/items?type=folder"
+
+    if isinstance(folderID, str):
+        folderID = [folderID]
+
+    contents = [item for ID in folderID for item in gc.listResource(urlExtension.replace("*", ID))]
+
+    return contents
+
+
+def updateMetadata(data):
+    dataLen = len(data)
+    for count, (key, val) in enumerate(data.items(), 1):
+        print(f"Updating {key} ({count} of {dataLen}) with: {val}")
+        gc.addMetadataToItem(key, val)
 
 
 def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
@@ -126,7 +161,6 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
 
     for ID, data in slideData.items():
 
-        # Means I can add some metadata if I can find any... we haven't set anything yet
         slideName = data["name"]
         metadata = matchPattern.search(slideName)
 
@@ -137,8 +171,11 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
 
             currentNpSchema = data["meta"].get("npSchema")
 
+            if validatedNPData.get("npWorking") is None:
+                validatedNPData["npWorking"] = None
+
             if currentNpSchema != validatedNPData:
-                updateDict[ID] = {"npSchema": validatedNPData}
+                updateDict[ID] = validatedNPData
 
         # NOTE: why a completely different process for control? we should aim to generalize if possible
         elif "CON" in slideName.upper():
@@ -150,6 +187,8 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
             updateDict[ID] = updateData
 
         else:
+            updateData = {"npWorking": {"Metadata Error": "File name failed to parse"}}
+            updateDict[ID] = updateData
             failedDict[ID] = data
 
     return updateDict, failedDict
@@ -214,25 +253,19 @@ def cleanInitialMetadata(npMeta, debug=False, outputFailed=False):
             f"Unknown Stain Tags: {unknownStainTags}\n\nNo Brain Map: {noBrainMap}\n\nBrain Map Without Block Map: {brainMapNoBlockMap}"
         )
 
-    return npMeta
-
-
-def updateMetadata(data):
-    for key, val in data.items():
-        print(f"Updating {key} with: {val}")
-        gc.addMetadataToItem(key, val)
+    return {"npSchema": npMeta}
 
 
 def validateMetadata(metadata):
 
-    isValid = validateNPJson(metadata)
+    isValid = validateNPJson("./schemaTools/adrc/adrcNpSchema.json", metadata)
 
     if not isValid[0]:
 
         errorDict = isValid[1]
-        message, problemVal, instance = (
+        problemVal = errorDict["path"][-1]
+        message, instance = (
             errorDict["message"],
-            errorDict["path"][-1],
             errorDict["instance"],
         )
 
@@ -240,7 +273,7 @@ def validateMetadata(metadata):
             instance = f"{instance} is not a Valid Value for this Field"
 
         metadata["npSchema"][problemVal] = instance
-        metadata["npWorking"][problemVal] = message
+        metadata["npWorking"] = {problemVal: message}
 
     return metadata
 
@@ -258,6 +291,9 @@ def validateNPJson(schemaPath, jsonData):
         return (False, err._contents())
     return (True,)
 
+
+# blankMetadata(collectionID=folderID)
+populateMetadata(collectionID=folderID, outputFailed=True)
 
 # def auditMetadata(folderID, parentType, outputRecords=False):
 #     """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
