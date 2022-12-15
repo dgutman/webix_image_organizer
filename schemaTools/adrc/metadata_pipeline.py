@@ -10,7 +10,7 @@ import girder_client
 import brain_region_maps
 
 
-# import pandas as pd
+import pandas as pd
 
 # TODO: optimize file type checking -- currently checked a couple times in different contexts
 # one check in adrcNamePattern and again later in comprehensions
@@ -301,97 +301,83 @@ def validateNPJson(schemaPath, jsonData):
 # blankMetadata(collectionID=folderID)
 populateMetadata(collectionID=folderID)
 
-# def auditMetadata(folderID, parentType, outputRecords=False):
-#     """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
 
-#     # building a list of all folders in the specified folder/collection
-#     folders = [folder for folder in gc.listFolder(folderID, parentFolderType=parentType)]
+def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
+    """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
 
-#     #  mapping of select items seen returned from girder_client api calls
+    fileTypes = ["svs", "ndpi"]
 
-#     #  _id: internal mongo id
-#     #  _modelType: object type (folder, item, or collection -- also annotations but not so relevant)
-#     #  baseParentId: collection the item is in
-#     #  baseParentType: parent object type (folder, item, or collection -- also annotations but not so relevant)
-#     #  created: date created
-#     #  creatorId: id of individual who created the item
-#     #  description: description of the item
-#     #  meta: dictionary of meta data pertaining to item
-#     #  name: item name (may be a year, patient id, or other folder/file names)
-#     #  parentCollection: *unclear, but told to ignore*
-#     #  parentId: id of parent collection
-#     #  public: whether item is public or not
-#     #  size: size in bytes (or other unit) -- folders show as 0
-#     #  updated: datetime of last update
+    if collectionID is not None:
+        folderID = getCollectionContents(collectionID)
 
-#     urlExtension = "resource/*/items?type=folder&limit=1000"
+    itemsToEvaluate = getFolderContents(folderID)
 
-#     # getting npSchema for all items with npSchema in all subfolders for all folders in folders
-#     # notice how urlExtension is just the extension required to perform the intended action
-#     # presumably, it is being used with the apiUrl already provided above
-#     itemSet = [
-#         item["meta"]["npSchema"]
-#         for folder in folders
-#         for subFolder in gc.listFolder(folder["_id"])
-#         for item in gc.getResource(urlExtension.replace("*", subFolder["_id"]))
-#         if item["meta"].get("npSchema") is not None
-#     ]
+    itemsToEvaluate = [
+        item["meta"]["npSchema"]
+        for item in itemsToEvaluate
+        if any([item["name"].endswith(val) for val in fileTypes])
+        and (item["meta"].get("npSchema") is not None)
+        and (item["meta"].get("npWorking") is not None)
+    ]
 
-#     allVals = {}
+    #  mapping of select items seen returned from girder_client api calls
 
-#     # iterating over all npSchemas in itemSet
-#     for item in itemSet:
-#         # iterating over key: value pairs in each npSchema
-#         for (key, val) in item.items():
-#             # aggregating all possible values for a given key, from the provided data set
-#             if allVals.get(key) is None:
-#                 allVals[key] = [val]
-#             elif val not in allVals[key]:
-#                 allVals[key].append(val)
+    #  _id: internal mongo id
+    #  _modelType: object type (folder, item, or collection -- also annotations but not so relevant)
+    #  baseParentId: collection the item is in
+    #  baseParentType: parent object type (folder, item, or collection -- also annotations but not so relevant)
+    #  created: date created
+    #  creatorId: id of individual who created the item
+    #  description: description of the item
+    #  meta: dictionary of meta data pertaining to item
+    #  name: item name (may be a year, patient id, or other folder/file names)
+    #  parentCollection: *unclear, but told to ignore*
+    #  parentId: id of parent collection
+    #  public: whether item is public or not
+    #  size: size in bytes (or other unit) -- folders show as 0
+    #  updated: datetime of last update
 
-#     # determining the number of None values to append to make it possible to convert this to a dataframe
-#     lens = [len(val) for val in allVals.values()]
-#     lens = [max(lens) - length for length in lens]
+    allVals = {}
 
-#     # for pandas to make df from dict, columns must be of equal length, so adding "val" number of Nones
-#     for key, val in zip(allVals.keys(), lens):
-#         if val:
-#             allVals[key].extend([None] * val)
+    # iterating over all npSchemas in itemSet
+    for item in itemsToEvaluate:
+        # iterating over key: value pairs in each npSchema
+        for (key, val) in item.items():
+            # aggregating all possible values for a given key, from the provided data set
+            if key == "stainID":
+                val = val.split(" ")[0]
 
-#     # making data frame of all values observed
-#     df = pd.DataFrame.from_dict(allVals)
+            if allVals.get(key) is None:
+                allVals[key] = [val]
+            elif val not in allVals[key]:
+                allVals[key].append(val)
 
-#     # creating a column of stainIDs which have been made lowercase while retaining originals in stainID column
-#     df["lowerStainID"] = df["stainID"].str.lower()
+    # determining the number of None values to append to make it possible to convert this to a dataframe
+    lens = [len(val) for val in allVals.values()]
+    lens = [max(lens) - length for length in lens]
 
-#     # TODO: replace these values with the correct capitalizations or provide mapping for that
-#     stainList = ["ptdp", "he", "abeta", "ubiq", "tau", "biels", "syn", "p62", "lfb"]
-#     # stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB"]
+    # for pandas to make df from dict, columns must be of equal length, so adding "val" number of Nones
+    for key, val in zip(allVals.keys(), lens):
+        if val:
+            allVals[key].extend([None] * val)
 
-#     # below filter says: True if the lowercase stainID isn't in the stainList and it is not None
-#     filt = (~df["lowerStainID"].isin(stainList)) & (df["lowerStainID"].notna())
-#     mappable = df.loc[filt, "stainID"].unique().tolist()
+    # making data frame of all values observed
+    df = pd.DataFrame.from_dict(allVals)
 
-#     mappable = {key: val for key in mappable for val in stainList if val in key.lower()}
-#     df["stainID"].replace(mappable, inplace=True)
+    # outputting value count for each column -- summarizes all values in a column
+    for col in df.columns:
+        counted = df[col].value_counts()
+        counted.name = "Count"
+        counted.index.name = col
 
-#     # dropping temp columns
-#     df.drop(columns=["lowerStainID"], inplace=True)
+        if outputRecords:
+            counted.to_csv(f"./{col}_vals_counted.csv")
+        else:
+            print(counted.head(counted.shape[0]))
 
-#     # outputting value count for each column -- summarizes all values in a column
-#     for col in df.columns:
-#         counted = df[col].value_counts()
-#         counted.name = "Count"
-#         counted.index.name = col
+    df["stainID"] = df["stainID"].drop_duplicates()
 
-#         if outputRecords:
-#             counted.to_csv(f"./{col}_vals_counted.csv")
-#         else:
-#             print(counted.head(counted.shape[0]))
-
-#     df["stainID"] = df["stainID"].drop_duplicates()
-
-#     if outputRecords:
-#         df.to_csv("./all_vals.csv", index=False)
-#     else:
-#         print(df.head(df.shape[0]))
+    if outputRecords:
+        df.to_csv("./all_vals.csv", index=False)
+    else:
+        print(df.head(df.shape[0]))
