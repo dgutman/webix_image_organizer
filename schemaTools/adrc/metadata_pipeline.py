@@ -9,8 +9,10 @@ import girder_client
 
 import brain_region_maps
 
-
 import pandas as pd
+
+# TODO: add record of all seen collectionIDs and fileIDs so as to reduce number of things examined
+# ideally hash their content, etc. to make 1: 1 validation faster, etc.
 
 # TODO: optimize file type checking -- currently checked a couple times in different contexts
 # one check in adrcNamePattern and again later in comprehensions
@@ -154,7 +156,7 @@ def updateMetadata(data):
         gc.addMetadataToItem(key, val)
 
 
-def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
+def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern, referenceDoc=None):
 
     updateDict = {}
     failedDict = {}
@@ -177,6 +179,13 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
                     validatedNPData["npWorking"] = None
 
                 updateDict[ID] = validatedNPData
+
+        # branch for case where there is an external document provided to pull metadata from instead
+        # not certain if this is the level it should be referenced, or if it should supplement the
+        # if metadata branch, since caseID, which is extracted from file name,
+        # will likely be required to reference entries, at least in the provided document
+        elif referenceDoc is not None:
+            pass
 
         # NOTE: why a completely different process for control? we should aim to generalize if possible
         elif "CON" in slideName.upper():
@@ -299,7 +308,7 @@ def validateNPJson(schemaPath, jsonData):
 
 
 # blankMetadata(collectionID=folderID)
-populateMetadata(collectionID=folderID)
+# populateMetadata(collectionID=folderID)
 
 
 def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
@@ -312,12 +321,13 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
 
     itemsToEvaluate = getFolderContents(folderID)
 
+    itemsToEvaluate = [item for item in itemsToEvaluate if any([item["name"].endswith(val) for val in fileTypes])]
+    blankMetadata = [item["name"] for item in itemsToEvaluate if item["meta"].get("npSchema") is None]
+
     itemsToEvaluate = [
         item["meta"]["npSchema"]
         for item in itemsToEvaluate
-        if any([item["name"].endswith(val) for val in fileTypes])
-        and (item["meta"].get("npSchema") is not None)
-        and (item["meta"].get("npWorking") is not None)
+        if (item["name"] not in blankMetadata) and (item["meta"].get("npWorking") is not None)
     ]
 
     #  mapping of select items seen returned from girder_client api calls
@@ -337,14 +347,14 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
     #  size: size in bytes (or other unit) -- folders show as 0
     #  updated: datetime of last update
 
-    allVals = {}
+    allVals = {"blankMetadata": blankMetadata}
 
     # iterating over all npSchemas in itemSet
     for item in itemsToEvaluate:
         # iterating over key: value pairs in each npSchema
         for (key, val) in item.items():
             # aggregating all possible values for a given key, from the provided data set
-            if key == "stainID":
+            if "not a Valid Value" in val:
                 val = val.split(" ")[0]
 
             if allVals.get(key) is None:
@@ -371,13 +381,16 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
         counted.index.name = col
 
         if outputRecords:
-            counted.to_csv(f"./{col}_vals_counted.csv")
+            counted.to_csv(f"./schemaTools/adrc/{col}_vals_counted.csv")
         else:
             print(counted.head(counted.shape[0]))
 
     df["stainID"] = df["stainID"].drop_duplicates()
 
     if outputRecords:
-        df.to_csv("./all_vals.csv", index=False)
+        df.to_csv("./schemaTools/adrc/all_vals.csv", index=False)
     else:
         print(df.head(df.shape[0]))
+
+
+auditMetadata(collectionID=folderID, outputRecords=True)
