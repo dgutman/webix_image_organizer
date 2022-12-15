@@ -164,17 +164,18 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
         slideName = data["name"]
         metadata = matchPattern.search(slideName)
 
+        currentNpSchema = data["meta"]
+
         if metadata:
             metadata = metadata.groupdict()
             cleanedNPData = cleanInitialMetadata(metadata, debug=False)
             validatedNPData = validateMetadata(cleanedNPData)
 
-            currentNpSchema = data["meta"].get("npSchema")
-
-            if validatedNPData.get("npWorking") is None:
-                validatedNPData["npWorking"] = None
-
             if currentNpSchema != validatedNPData:
+
+                if validatedNPData.get("npWorking") is None:
+                    validatedNPData["npWorking"] = None
+
                 updateDict[ID] = validatedNPData
 
         # NOTE: why a completely different process for control? we should aim to generalize if possible
@@ -184,11 +185,16 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern):
             stain = stainInString[0] if stainInString else "No Stain Identified"
 
             updateData = {"npSchema": {"controlSlide": "Yes", "stainID": stain}}
-            updateDict[ID] = updateData
+
+            if currentNpSchema != updateData:
+                updateDict[ID] = updateData
 
         else:
             updateData = {"npWorking": {"Metadata Error": "File name failed to parse"}}
-            updateDict[ID] = updateData
+
+            if currentNpSchema != updateData:
+                updateDict[ID] = updateData
+
             failedDict[ID] = data
 
     return updateDict, failedDict
@@ -293,7 +299,7 @@ def validateNPJson(schemaPath, jsonData):
 
 
 # blankMetadata(collectionID=folderID)
-populateMetadata(collectionID=folderID, outputFailed=True)
+populateMetadata(collectionID=folderID)
 
 # def auditMetadata(folderID, parentType, outputRecords=False):
 #     """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
