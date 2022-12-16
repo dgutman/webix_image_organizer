@@ -11,6 +11,8 @@ import brain_region_maps
 
 import pandas as pd
 
+from functools import cache
+
 # TODO: add record of all seen collectionIDs and fileIDs so as to reduce number of things examined
 # ideally hash their content, etc. to make 1: 1 validation faster, etc.
 
@@ -37,44 +39,69 @@ schemaPath = "adrcNpSchema.json"
 stainAliasDict = {
     "PTDP": "pTDP",
     "ptdp": "pTDP",
-    "pTDP": "pTDP",
+    # "pTDP": "pTDP",
     "pTDP (2)": "pTDP",
+    "_pTDP": "pTDP",
     "ptdp-001": "pTDP",
     "ptdp-002": "pTDP",
     "ptdp-003": "pTDP",
-    "HE": "HE",
+    # "HE": "HE",
     "H&E": "HE",
+    "H&E_v1": "HE",
+    "_H&E": "HE",
+    "H&E-001": "HE",
+    "H&E-002": "HE",
     "HE (2)": "HE",
+    "US_AB": "aBeta",
+    "US-AB": "aBeta",
+    "us-ab": "aBeta",
+    "_AB": "aBeta",
+    "_Ab": "aBeta",
+    "_AB-001": "aBeta",
+    "AB-001": "aBeta",
     "AB": "aBeta",
     "ABETA": "aBeta",
     "Ab": "aBeta",
+    "ab": "aBeta",
     "AB (2)": "aBeta",
-    "aBeta": "aBeta",
+    # "aBeta": "aBeta",
     "ubiq": "Ubiq",
+    "Ubig": "Ubiq",
     "UBIQ": "Ubiq",
-    "Ubiq": "Ubiq",
+    # "Ubiq": "Ubiq",
     "TAU": "Tau",
-    "Tau": "Tau",
+    # "Tau": "Tau",
     "tau": "Tau",
     "tau (2)": "Tau",
     "TAU (2)": "Tau",
     "TAU-001": "Tau",
+    "BIEL": "Biels",
+    "_BIEL": "Biels",
+    "_Biel": "Biels",
+    "US_Biel": "Biels",
     "BIELS": "Biels",
+    "Biel": "Biels",
     "biels": "Biels",
-    "Biels": "Biels",
+    # "Biels": "Biels",
     "Biels (2)": "Biels",
     "Biels (3)": "Biels",
     "SYN": "Syn",
-    "Syn": "Syn",
+    # "Syn": "Syn",
     "syn": "Syn",
-    "p62": "p62",
+    # "p62": "p62",
     "P62": "p62",
     "LFB-PAS": "LFB",
-    "LFB": "LFB",
+    # "LFB": "LFB",
     "LFB PAS": "LFB",
+    "RBFUS": "FUS",
+    "TDP": "TDP-43",
+    "_TDP43": "TDP-43",
+    "US-TDP": "TDP-43",
+    "_TDP43_ProtTech": "TDP-43",
 }
 
-stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB"]
+# NOTE: If you alter the below, be sure to update the schema to match!
+stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB", "FUS", "TDP-43", "GFAP"]
 
 adrcNamePattern = re.compile("(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]")
 
@@ -123,16 +150,18 @@ def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
 
 
 # accepts only a single collectionID at a time
+@cache
 def getCollectionContents(collectionID, parentType="collection", contentIDsOnly=True):
     """Returns either all metadata for folders in the specified collection, or just the IDs thereof"""
 
     folderList = gc.listFolder(collectionID, parentFolderType=parentType)
-    contents = [(item if not contentIDsOnly else item["_id"]) for item in folderList]
+    contents = ((item if not contentIDsOnly else item["_id"]) for item in folderList)
 
     return contents
 
 
 # may take either a single folderID or an iterable thereof
+@cache
 def getFolderContents(folderID):
     """Returns details of all items in the specified folder(s)"""
 
@@ -371,7 +400,7 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
 
 # blankMetadata(collectionID=folderID)
 # populateMetadata(collectionID=folderID)
-auditMetadata(collectionID=folderID, outputRecords=True)
+# auditMetadata(collectionID=folderID, outputRecords=True)
 
 
 #  mapping of select items seen returned from girder_client api calls
