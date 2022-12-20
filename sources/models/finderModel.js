@@ -48,7 +48,8 @@ export default class FinderModel {
 				finderView.open(id);
 				finderView.unblockEvent();
 				itemsArray = this.finder.data.getBranch(item.id);
-				if (itemsArray.length === 1 && itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
+				if (itemsArray.length === 1
+					&& itemsArray[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
 					itemsArray = this.finder.data.getBranch(itemsArray[0].id);
 				}
 				let isChildFolderExists = false;

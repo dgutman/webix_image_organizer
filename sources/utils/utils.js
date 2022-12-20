@@ -65,6 +65,14 @@ function getNewImageHeight() {
 	return webix.storage.local.get(`newImageHeight-${getUserId() || "unregistered"}`);
 }
 
+function getColorTemplateData() {
+	return webix.storage.local.get(`colorTemplate-${getUserId() || "unregistered"}`);
+}
+
+function setColorTemplateData(colorTemplateData) {
+	webix.storage.local.put(`colorTemplate-${getUserId() || "unregistered"}`, colorTemplateData)
+}
+
 function escapeHTML(str) {
 	let tagsToReplace = {
 		"&": "&amp;",
@@ -76,7 +84,7 @@ function escapeHTML(str) {
 }
 
 function searchForFileType(obj) {
-	let str = obj.name;
+	let str = obj.name ?? "";
 	const pattern = /\.([0-9a-z]+)(?!\S)/gi; // /\.[0-9a-z]+$/i;
 	const matched = str.match(pattern);
 	// const dotIndex = matched ? matched.index : 0;
@@ -369,5 +377,7 @@ export default {
 	compareURLStrings,
 	escapeURIChars,
 	isObject,
-	mergeDeep
+	mergeDeep,
+	getColorTemplateData,
+	setColorTemplateData
 };

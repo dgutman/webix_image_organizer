@@ -129,6 +129,7 @@ export default {
 
 	SUB_FOLDER_MODEL_TYPE: "itemsSubFolder",
 	FOLDER_MAX_SHOWED_ITEMS: 5000,
+	COLLAPSED_ITEMS_COUNT: 0,
 
 	METADATA_TABLE_ROW_HEIGHT: 34,
 
@@ -153,6 +154,16 @@ export default {
 	OPEN_MULTICHANNEL_VIEW_EVENT: "showMultichannelView",
 
 	// begin MultichannelView
+	// begin channel list
+	LIST_ID: "channels-list",
+	TEXT_SEARCH_ID: "channels-search-field",
+	ADD_TO_GROUP_BUTTON_ID: "add-to-group",
+	// end channel list
+	DEFAULT_CHANNEL_SETTINGS: {
+		opacity: 1,
+		min: 500,
+		max: 30000
+	},
 	DEFAULT_16_BIT_CHANNEL_SETTINGS: {
 		opacity: 1,
 		min: 0,
@@ -171,6 +182,21 @@ export default {
 	CHANNEL_MAP_FILTER: "meta|ioparams|channelmap",
 	CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap",
 	LINEAR_SCALE_VALUE: 1,
-	LOGARITHMIC_SCALE_VALUE: 0
+	LOGARITHMIC_SCALE_VALUE: 0,
 	// end MultichannelView
+
+	//begin GroupColorTemplateWindow
+	CLOSE_BUTTON_ID: "close-color-template-window-button",
+	TEMPLATE_CHANNELS_LIST_ID: "template-channel-list",
+	COLOR_TEMPLATE_WINDOW_ID: "color-template-window-",
+	SAVE_TEMPLATE_BUTTON_ID: "save-template-button",
+	ADD_TEMPLATE_BUTTON_ID: "add-template-button",
+	DEFAULT_TEMPLATE: {
+		name: "Default",
+		channels: [],
+	},
+	//end GroupColorTemplateWindow
+
+	EXPAND_LINK: "expand",
+	COLLAPSE_LINK: "collapse"
 };

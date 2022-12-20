@@ -19,6 +19,11 @@ export default class FinderViewClass extends JetView {
 			editValue: "name",
 			oncontext: {},
 			template: (obj, common) => {
+				if (obj.link) {
+					return obj.link === "expand"
+						? `${common.icon(obj, common)}<span class="fas fa-arrow-down expand"></span><span>Show all</span></a>` 
+						: `${common.icon(obj, common)}<a><span class="fas fa-arrow-up collapse"></span><span>Hide</span></a>`;
+				}
 				const branch = this.getTreeRoot().data.getBranch(obj.id);
 				let count = obj._modelType === "folder" ? obj.$count : -1;
 				if (obj._modelType === "folder" && branch.length === 1 && branch[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
