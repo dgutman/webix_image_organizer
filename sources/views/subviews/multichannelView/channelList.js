@@ -2,10 +2,11 @@ import {JetView} from "webix-jet";
 import ajaxActions from "../../../services/ajaxActions";
 import SelectedItems from "../../../models/selectedItems";
 import SortTemplate from "./sortChannelsTemplate";
+import constants from "../../../constants";
 
-const LIST_ID = "channels-list";
-const TEXT_SEARCH_ID = "channels-search-field";
-const ADD_TO_GROUP_BUTTON_ID = "add-to-group";
+const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
+const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;
+const ADD_TO_GROUP_BUTTON_ID = `${constants.ADD_TO_GROUP_BUTTON_ID}-${webix.uid()}`;
 
 export default class ChannelList extends JetView {
 	constructor(app, config = {}) {
