@@ -22,16 +22,15 @@ define([
 			const tileSources = {
 				crossOriginPolicy: "Anonymous",
 				loadTilesWithAjax: true,
-				width: 0,
-				height: 0,
-				tileWidth: 0,
-				tileHeight: 0,
+				width: tileSourceOptions.sizeX ?? 1,
+				height: tileSourceOptions.sizeY ?? 1,
+				tileWidth: tileSourceOptions.tileWidth ?? 1,
+				tileHeight: tileSourceOptions.tileHeight ?? 1,
 				minLevel: 0,
-				maxLevel: 0,
+				maxLevel: tileSourceOptions.levels - 1 ?? 0,
 				getTileUrl(level, x, y) {
 					return ajaxActions.getImageTileUrl(image._id, level, x, y, {...params});
-				},
-				...(tileSourceOptions ?? {})
+				}
 			};
 			this._imageTileSources = tileSources;
 	
