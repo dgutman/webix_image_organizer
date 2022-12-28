@@ -117,30 +117,34 @@ export default class MultichannelView extends JetView {
 
 		this._osdViewer.createViewer({tileSources});
 
-		console.log(this._osdViewer);
+		// console.log(this._osdViewer);
+
+
 
 		const viewer = this._osdViewer.$viewer();
-		console.log(viewer);
+
+
+
 		viewer.addHandler("open", () => {
 			const tracker = new OpenSeadragon.MouseTracker({
 				element: viewer.container,
 				moveHandler(event) {
 					const webPoint = event.position;
-					const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-					const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+					const viewportPoint = viewer.world.getItemAt(0).viewport.pointFromPixel(webPoint);
+					const imagePoint = viewer.world.getItemAt(0).viewportToImageCoordinates(viewportPoint);
 					const zoom = viewer.viewport.getZoom(true);
-					const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+					const imageZoom = viewer.world.getItemAt(0).viewportToImageZoom(zoom);
 
 					        $$("mousetrack").setHTML(`Web:<br>${webPoint.toString()
 					}<br><br>Viewport:<br>${viewportPoint.toString()
-					}<br><br>Image:<br>${imagePoint.toString()}`);
-					//                updateZoom();
+					}<br><br>Image:<br>${imagePoint.toString()}
+					<br>Zoom: ${Math.round(zoom*100)/100}<br> InnerZoom: ${Math.round(imageZoom *100)/ 100}`);
 				}
 			});
 
 			tracker.setTracking(true);
 
-			viewer.addHandler("animation", updateZoom);
+		//	viewer.addHandler("animation", updateZoom);
 		});
 	}
 
