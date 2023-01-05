@@ -6,12 +6,10 @@ import jsonschema
 
 # girder_client docs are here: https://girder.readthedocs.io/en/stable/python-client.html#the-python-client-library
 import girder_client
-
 import brain_region_maps
-
 import pandas as pd
 
-from functools import cache
+# from functools import cache
 
 # TODO: add record of all seen collectionIDs and fileIDs so as to reduce number of things examined
 # ideally hash their content, etc. to make 1: 1 validation faster, etc.
@@ -20,21 +18,6 @@ from functools import cache
 
 # TODO: add "staticMetadata" tag or something similar which indicates a file has had metadata validated and shouldn't be altered
 
-server = "candygram"
-apiUrl = f"http://{server}.neurology.emory.edu:8080/api/v1"
-
-# initializing connection with server via girder_client
-gc = girder_client.GirderClient(apiUrl=apiUrl)
-
-# authenticating connection to server
-gc.authenticate(interactive=True)
-
-# this is the folderID of the ADRC Collection
-folderID, parentType = "638e2da11f75016b81fda12f", "collection"
-
-# NOTE: .ProjectMetadata collection seems to have a copy of the json schema as its metadata
-# perhaps in the future we just pull that and load it as the schema, so that we don't need it locally
-schemaPath = "adrcNpSchema.json"
 
 stainAliasDict = {
     "PTDP": "pTDP",
@@ -106,7 +89,7 @@ stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB",
 adrcNamePattern = re.compile("(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]")
 
 
-def blankMetadata(collectionID=None, folderID=None):
+def blankMetadata(gc, collectionID=None, folderID=None):
     """Completely removes metadata; Accepts a single collectionID or folderID(s)"""
 
     fileTypes = ["svs", "ndpi"]
@@ -126,7 +109,7 @@ def blankMetadata(collectionID=None, folderID=None):
 
 
 # entry point/main function to call when populating metadata from file name
-def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
+def populateMetadata(gc, collectionID=None, folderID=None, outputFailed=False):
     """Accepts a single collectionID or folderID(s)"""
 
     fileTypes = ["svs", "ndpi"]
@@ -134,7 +117,7 @@ def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
     if collectionID is not None:
         folderID = getCollectionContents(collectionID)
 
-    itemsToEvaluate = getFolderContents(folderID)
+    itemsToEvaluate = getFolderContents(gc, folderID)
     itemsToEvaluate = {
         item["_id"]: {"name": item["name"], "meta": item.get("meta")}
         for item in itemsToEvaluate
@@ -143,15 +126,15 @@ def populateMetadata(collectionID=None, folderID=None, outputFailed=False):
 
     updateDict, failedDict = extractMetadataFromFileName(itemsToEvaluate)
 
-    if outputFailed:
-        print(failedDict)
-
     updateMetadata(updateDict)
+
+    if outputFailed:
+        return failedDict
 
 
 # accepts only a single collectionID at a time
-@cache
-def getCollectionContents(collectionID, parentType="collection", contentIDsOnly=True):
+# @cache
+def getCollectionContents(gc, collectionID, parentType="collection", contentIDsOnly=True):
     """Returns either all metadata for folders in the specified collection, or just the IDs thereof"""
 
     folderList = gc.listFolder(collectionID, parentFolderType=parentType)
@@ -161,8 +144,8 @@ def getCollectionContents(collectionID, parentType="collection", contentIDsOnly=
 
 
 # may take either a single folderID or an iterable thereof
-@cache
-def getFolderContents(folderID):
+# @cache
+def getFolderContents(gc, folderID):
     """Returns details of all items in the specified folder(s)"""
 
     urlExtension = "resource/*/items?type=folder"
@@ -299,10 +282,9 @@ def cleanInitialMetadata(npMeta, debug=False, outputFailed=False):
 
 def validateMetadata(metadata):
 
-    isValid = validateNPJson("./schemaTools/adrc/adrcNpSchema.json", metadata)
+    isValid = validateNPJson("./adrcNpSchema.json", metadata)
 
     if not isValid[0]:
-
         errorDict = isValid[1]
         problemVal = errorDict["path"][-1]
         message, instance = (
@@ -316,7 +298,9 @@ def validateMetadata(metadata):
         metadata["npSchema"][problemVal] = instance
         metadata["npWorking"] = {problemVal: message}
 
-    return metadata
+        return False, metadata
+
+    return True, metadata
 
 
 def validateNPJson(schemaPath, jsonData):
@@ -333,15 +317,15 @@ def validateNPJson(schemaPath, jsonData):
     return (True,)
 
 
-def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
+def auditMetadata(gc, collectionID=None, folderID=None, outputRecords=False):
     """Used to generate summaries of existing values in metadata in order to remediate persistent errors"""
 
     fileTypes = ["svs", "ndpi"]
 
     if collectionID is not None:
-        folderID = getCollectionContents(collectionID)
+        folderID = getCollectionContents(gc, collectionID)
 
-    itemsToEvaluate = getFolderContents(folderID)
+    itemsToEvaluate = getFolderContents(gc, folderID)
 
     itemsToEvaluate = [item for item in itemsToEvaluate if any([item["name"].endswith(val) for val in fileTypes])]
     blankMetadata = [item["name"] for item in itemsToEvaluate if item["meta"].get("npSchema") is None]
@@ -386,18 +370,34 @@ def auditMetadata(collectionID=None, folderID=None, outputRecords=False):
         counted.index.name = col
 
         if outputRecords:
-            counted.to_csv(f"./schemaTools/adrc/{col}_vals_counted.csv")
+            counted.to_csv(f"{col}_vals_counted.csv")
         else:
             print(counted.head(counted.shape[0]))
 
     df["stainID"] = df["stainID"].drop_duplicates()
 
     if outputRecords:
-        df.to_csv("./schemaTools/adrc/all_vals.csv", index=False)
+        df.to_csv("all_vals.csv", index=False)
     else:
         print(df.head(df.shape[0]))
 
 
+if __name__ == "__main__":
+    server = "candygram"
+    apiUrl = f"http://{server}.neurology.emory.edu:8080/api/v1"
+
+    # initializing connection with server via girder_client
+    gc = girder_client.GirderClient(apiUrl=apiUrl)
+
+    # authenticating connection to server
+    gc.authenticate(interactive=True)
+
+    # this is the folderID of the ADRC Collection
+    folderID, parentType = "638e2da11f75016b81fda12f", "collection"
+
+    # NOTE: .ProjectMetadata collection seems to have a copy of the json schema as its metadata
+    # perhaps in the future we just pull that and load it as the schema, so that we don't need it locally
+    schemaPath = "adrcNpSchema.json"
 # blankMetadata(collectionID=folderID)
 # populateMetadata(collectionID=folderID)
 # auditMetadata(collectionID=folderID, outputRecords=True)
