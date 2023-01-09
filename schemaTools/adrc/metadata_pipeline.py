@@ -86,7 +86,12 @@ stainAliasDict = {
 # NOTE: If you alter the below, be sure to update the schema to match!
 stainList = ["pTDP", "HE", "aBeta", "Ubiq", "Tau", "Biels", "Syn", "p62", "LFB", "FUS", "TDP-43", "GFAP"]
 
-adrcNamePattern = re.compile("(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]")
+patternList = [
+    "(?P<caseID>E*A*\d+-\d+)_(?P<blockID>A*\d+).(?P<stainID>.*)\.[svs|ndpi]",
+    "(?P<caseID>E*A*\d+-\d+)_(?P<stainID>.*)_(?P<blockID>\d+)\.[svs|ndpi]",
+    "(?P<caseID>E*A*\d+-\d+)_(?P<stainID>.*)_(?P<blockID>\d+\w)\.[svs|ndpi]",
+]
+adrcNamePatterns = [re.compile(pattern) for pattern in patternList]
 
 
 def blankMetadata(gc, collectionID=None, folderID=None):
@@ -105,7 +110,7 @@ def blankMetadata(gc, collectionID=None, folderID=None):
         if any([item["name"].endswith(val) for val in fileTypes]) and item["meta"]
     }
 
-    updateMetadata(itemsToEvaluate)
+    updateMetadata(gc, itemsToEvaluate)
 
 
 # entry point/main function to call when populating metadata from file name
@@ -115,7 +120,7 @@ def populateMetadata(gc, collectionID=None, folderID=None, outputFailed=False):
     fileTypes = ["svs", "ndpi"]
 
     if collectionID is not None:
-        folderID = getCollectionContents(collectionID)
+        folderID = getCollectionContents(gc, collectionID)
 
     itemsToEvaluate = getFolderContents(gc, folderID)
     itemsToEvaluate = {
@@ -126,7 +131,7 @@ def populateMetadata(gc, collectionID=None, folderID=None, outputFailed=False):
 
     updateDict, failedDict = extractMetadataFromFileName(itemsToEvaluate)
 
-    updateMetadata(updateDict)
+    updateMetadata(gc, updateDict)
 
     if outputFailed:
         return failedDict
@@ -158,14 +163,14 @@ def getFolderContents(gc, folderID):
     return contents
 
 
-def updateMetadata(data):
+def updateMetadata(gc, data):
     dataLen = len(data)
     for count, (key, val) in enumerate(data.items(), 1):
         print(f"Updating {key} ({count} of {dataLen}) with: {val}")
         gc.addMetadataToItem(key, val)
 
 
-def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern, referenceDoc=None):
+def extractMetadataFromFileName(slideData, matchPatterns=adrcNamePatterns, referenceDoc=None):
 
     updateDict = {}
     failedDict = {}
@@ -173,14 +178,20 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern, referen
     for ID, data in slideData.items():
 
         slideName = data["name"]
-        metadata = matchPattern.search(slideName)
+        metadata = False
+
+        for matchPattern in matchPatterns:
+            metadata = matchPattern.search(slideName)
+
+            if metadata:
+                break
 
         currentNpSchema = data["meta"]
 
         if metadata:
             metadata = metadata.groupdict()
             cleanedNPData = cleanInitialMetadata(metadata, debug=False)
-            validatedNPData = validateMetadata(cleanedNPData)
+            _, validatedNPData = validateMetadata(cleanedNPData)
 
             if currentNpSchema != validatedNPData:
 
@@ -200,15 +211,16 @@ def extractMetadataFromFileName(slideData, matchPattern=adrcNamePattern, referen
         elif "CON" in slideName.upper():
             #  Probably a control slide!!
             stainInString = [val for val in stainList if val.lower() in slideName.lower()]
-            stain = stainInString[0] if stainInString else "No Stain Identified"
+            updateData = {"npSchema": {"controlSlide": "Yes"}}
 
-            updateData = {"npSchema": {"controlSlide": "Yes", "stainID": stain}}
+            if stainInString:
+                updateData["npSchema"]["stainID"] = stainInString[0]
 
             if currentNpSchema != updateData:
                 updateDict[ID] = updateData
 
         else:
-            updateData = {"npWorking": {"Metadata Error": "File name failed to parse"}}
+            updateData = {"npWorking": {"Metadata Error": f"File name {slideName} failed to parse"}}
 
             if currentNpSchema != updateData:
                 updateDict[ID] = updateData
@@ -254,7 +266,7 @@ def cleanInitialMetadata(npMeta, debug=False, outputFailed=False):
 
         #  Block id does not have mapping -- generally due to typo or other oversight
         if brm.get(blockID) is None:
-            npMeta["regionName"] = "Not Mapped"
+            # npMeta["regionName"] = "Not Mapped"
 
             if brainMapNoBlockMap.get(caseID) is None:
                 brainMapNoBlockMap[caseID] = {blockID: 1}
@@ -292,8 +304,8 @@ def validateMetadata(metadata):
             errorDict["instance"],
         )
 
-        if "not a Valid Value" not in instance:
-            instance = f"{instance} is not a Valid Value for this Field"
+        if "not a Valid Value" in instance:
+            instance = " ".join(instance.split(" ")[:-8])
 
         metadata["npSchema"][problemVal] = instance
         metadata["npWorking"] = {problemVal: message}
@@ -344,7 +356,7 @@ def auditMetadata(gc, collectionID=None, folderID=None, outputRecords=False):
         for (key, val) in item.items():
             # aggregating all possible values for a given key, from the provided data set
             if "not a Valid Value" in val:
-                val = val.split(" ")[0]
+                val = " ".join(val.split(" ")[:-8])
 
             if allVals.get(key) is None:
                 allVals[key] = [val]
@@ -380,6 +392,45 @@ def auditMetadata(gc, collectionID=None, folderID=None, outputRecords=False):
         df.to_csv("all_vals.csv", index=False)
     else:
         print(df.head(df.shape[0]))
+
+
+def getSummaryStats(gc, collectionID=None, folderID=None):
+
+    if collectionID is not None:
+        folderID = getCollectionContents(gc, collectionID, parentType="collection", contentIDsOnly=True)
+
+    if isinstance(folderID, str):
+        folderID = [folderID]
+
+    folderContents = getFolderContents(gc, folderID)
+
+    valid = 0
+    invalid = 0
+    toReview = []
+    control = 0
+
+    for contents in folderContents:
+
+        if "npWorking" in contents["meta"]:
+            invalid += 1
+            toReview.append(contents)
+
+        elif "controlSlide" in contents["meta"]["npSchema"]:
+            control += 1
+
+        else:
+            isValid, data = validateMetadata(contents["meta"])
+
+            if isValid:
+                valid += 1
+            else:
+                invalid += 1
+                toReview.append(data)
+
+    with open("summaryStats.csv", "w") as f:
+        f.write(toReview)
+
+    print(f"Valid Count {valid}\n\nInvalid Count: {invalid}\n\nControl Count: {control}")
 
 
 if __name__ == "__main__":
