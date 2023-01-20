@@ -1,8 +1,9 @@
 import {JetView} from "webix-jet";
-import ajaxActions from "../../../services/ajaxActions";
-import SelectedItems from "../../../models/selectedItems";
-import SortTemplate from "./sortChannelsTemplate";
+
 import constants from "../../../constants";
+import SelectedItems from "../../../models/selectedItems";
+import ajaxActions from "../../../services/ajaxActions";
+import SortTemplate from "./sortChannelsTemplate";
 
 const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
 const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;

@@ -86,7 +86,7 @@ export default class ColorPickerWindow extends JetView {
 								]
 							}
 						]
-					},
+					}
 				]
 			}
 		};
@@ -192,7 +192,7 @@ export default class ColorPickerWindow extends JetView {
 		const yScale = this._scaleTypeToggle.getValue();
 		const chartValues = histogram.hist.map((value, i) => {
 			// xValue: i, yValue: value
-			const bitMaxEdge = histogram.bin_edges[i+1];
+			const bitMaxEdge = histogram.bin_edges[i + 1];
 			const name = typeof bitMaxEdge === "number" ? bitMaxEdge.toFixed(2) : bitMaxEdge;
 			return {value, name};
 		});

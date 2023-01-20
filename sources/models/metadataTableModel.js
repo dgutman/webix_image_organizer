@@ -110,8 +110,11 @@ function setSelectFilterOptions(filterType, columnId, initial) {
 	return options;
 }
 
-function markWrongMetadata(value, config) {
-	let style = {"background-color": "#ff5d5d"};
+function markWrongMetadata(value, obj, rowId, columnId) {
+	let style = {};
+	if (obj?.highlightedValues?.find(highlightedValue => highlightedValue === columnId)) {
+		style = {"background-color": "#ff5d5d"};
+	}
 	return style;
 }
 
@@ -119,6 +122,7 @@ function getMetadataColumnTemplate(obj, config, columnId) {
 	if (obj.hasOwnProperty("meta")) {
 		// const columnValueColor = utils.getMetadataColumnColor(obj, columnId);
 		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `meta.${columnId}`);
+		config.cssFormat = markWrongMetadata;
 
 		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
 			if (obj.highlightedValues

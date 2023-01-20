@@ -1,19 +1,20 @@
 import {JetView} from "webix-jet";
-import ChannelList from "../channelList";
-import TemplateList from "../templateList";
-import utils from "../../../../utils/utils";
-import stateStore from "../../../../models/multichannelView/stateStore";
-import ColorPickerWindow from "./colorPopup";
+
 import constants from "../../../../constants";
+import stateStore from "../../../../models/multichannelView/stateStore";
 import TilesSourcesService from "../../../../services/multichannelView/tilesService";
 import MathCalculations from "../../../../utils/mathCalculations";
+import utils from "../../../../utils/utils";
+import ChannelList from "../channelList";
+import TemplateList from "../templateList";
+import ColorPickerWindow from "./colorPopup";
 
 // TODO: move IDs  to constants
-const CLOSE_BUTTON_ID = `${constants.CLOSE_BUTTON_ID}-${webix.uid()}`;
-const TEMPLATE_CHANNELS_LIST_ID = `${constants.TEMPLATE_CHANNELS_LIST_ID}-${webix.uid()}`;
-const COLOR_TEMPLATE_WINDOW_ID = `${COLOR_TEMPLATE_WINDOW_ID}-${webix.uid()}`;
-const SAVE_TEMPLATE_BUTTON_ID = `${SAVE_TEMPLATE_BUTTON_ID}-${webix.uid()}`;
-const ADD_TEMPLATE_BUTTON_ID = `${ADD_TEMPLATE_BUTTON_ID}-${webix.uid()}`;
+const CLOSE_BUTTON_ID = `close-color-template-window-button-${webix.uid()}`;
+const TEMPLATE_CHANNELS_LIST_ID = `template-channel-list-${webix.uid()}`;
+const COLOR_TEMPLATE_WINDOW_ID = `color-template-window-${webix.uid()}`;
+const SAVE_TEMPLATE_BUTTON_ID = `save-template-button-${webix.uid()}`;
+const ADD_TEMPLATE_BUTTON_ID = `add-template-button-${webix.uid()}`;
 const DEFAULT_TEMPLATE = webix.copy(constants.DEFAULT_TEMPLATE);
 
 export default class GroupColorTemplateWindow extends JetView {
@@ -47,11 +48,19 @@ export default class GroupColorTemplateWindow extends JetView {
 					select: false,
 					template: (obj) => {
 						const showIcon = obj?.opacity ? "fas fa-eye" : "fas fa-eye-slash";
-						return `<span class="channel-item__name name ellipsis-text">${obj?.name}</span>
-						<div class="icons">
-							<span style="color: ${obj?.color};" class="icon palette fas fa-square-full"></span>
-							<span class="icon show ${showIcon}"></span>
-							<span class="icon delete fas fa-minus-circle"></span>
+						return `<div class="channel-item">
+							<div class="channel-item__row-one">
+								<span class="channel-item__name name ellipsis-text">${obj?.name}</span>
+								<div class="icons">
+									<span style="color: ${obj?.color};" class="icon palette fas fa-square-full"></span>
+									<span class="icon show ${showIcon}"></span>
+									<span class="icon delete fas fa-minus-circle"></span>
+								</div>
+							</div>
+							<div class="channel-item__row-two">
+								<div class="channel-item__range-opacity"></div>
+								<div class="channel-item__position-controls"></div>
+							</div>
 						</div>`;
 					},
 					onClick: {
@@ -76,16 +85,16 @@ export default class GroupColorTemplateWindow extends JetView {
 					view: "button",
 					localId: ADD_TEMPLATE_BUTTON_ID,
 					label: "Add template",
-					click: () => {this.addTemplate()}
+					click: () => { this.addTemplate(); }
 				},
 				{
 					view: "button",
 					localId: SAVE_TEMPLATE_BUTTON_ID,
 					label: "Save templates",
-					click: () => {this.saveTemplates()}
+					click: () => { this.saveTemplates(); }
 				}
 			]
-		}
+		};
 
 		return {
 			view: "window",
@@ -106,10 +115,10 @@ export default class GroupColorTemplateWindow extends JetView {
 					},
 					{gravity: 10},
 					{
-						view:"icon",
+						view: "icon",
 						id: CLOSE_BUTTON_ID,
-						icon:"wxi-close",
-						click: function() {
+						icon: "wxi-close",
+						click: function clickClose() {
 							const currentWindow = webix.$$(COLOR_TEMPLATE_WINDOW_ID);
 							currentWindow.hide();
 						}
@@ -128,7 +137,7 @@ export default class GroupColorTemplateWindow extends JetView {
 					controls
 				]
 			}
-		}
+		};
 	}
 
 	init() {
@@ -157,12 +166,12 @@ export default class GroupColorTemplateWindow extends JetView {
 		});
 
 		this.on(templateList, "applyTemplate", (id) => {
-			this.applyTemplateHandler(id)
-		})
+			this.applyTemplateHandler(id);
+		});
 
 		this.on(templateList, "removeTemplate", (id) => {
 			this.removeTemplateHandler(id);
-		})
+		});
 	}
 
 	attachChannelsListEvent() {
@@ -175,15 +184,17 @@ export default class GroupColorTemplateWindow extends JetView {
 			templateChannelList.unselectAll();
 
 			const channel = this._channelsCollection.getItem(id);
-			const channelTileSource = await this._tileService.getChannelTileSources(this._image, channel.index);
+			const channelTileSource = await this
+				._tileService
+				.getChannelTileSources(this._image, channel.index);
 			this._osdViewer.removeAllTiles();
 			this._osdViewer.addNewTile(channelTileSource);
-		})
+		});
 
 		this.on(channelList, "customSelectionChanged", (channels) => {
 			const selectedGroups = templateList.getSelectedItem(true);
 			this._channelsList.changeButtonVisibility(channels.length && selectedGroups.length);
-		})
+		});
 
 		this.on(channelList, "addToSelectedGroup", (channels) => {
 			const selectedGroup = templateList.getSelectedItem();
@@ -202,9 +213,7 @@ export default class GroupColorTemplateWindow extends JetView {
 
 	saveTemplates() {
 		const colorTemplateData = this._templatesCollection.serialize()
-			.map(template => {
-				return {name: template.name, channels: template.channels, saved: true}
-			});
+			.map(template => ({name: template.name, channels: template.channels, saved: true}));
 		utils.setColorTemplateData(colorTemplateData);
 		this._templatesCollection.clearAll();
 		this._templatesCollection.parse(colorTemplateData);
@@ -214,7 +223,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		const templateList = this._templateList.getList();
 		const {name, channels} = templateList.getItem(id);
 
-		this._groupsPanel.getRoot().callEvent("addGroupFromTemplate", [name, channels])
+		this._groupsPanel.getRoot().callEvent("addGroupFromTemplate", [name, channels]);
 	}
 
 	deleteTemplate() {
@@ -230,7 +239,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		this._templateChannelCollection.clearAll();
 		this._template = template;
 
-		if(template) {
+		if (template) {
 			this._templateChannelCollection.parse(template.channels);
 		}
 
@@ -238,7 +247,7 @@ export default class GroupColorTemplateWindow extends JetView {
 	}
 
 	addChannelsToTemplate(channels, template) {
-		if(!template) {
+		if (!template) {
 			return null;
 		}
 		const count = template.channels.length;
@@ -260,18 +269,18 @@ export default class GroupColorTemplateWindow extends JetView {
 		const isSelected = templateList.isSelected(id);
 		this._templatesCollection.remove(id);
 		if (isSelected) {
-			templateList.unselectAll();
+			this._templateList.unselectAll();
 			this.getTemplateChannelList().clearAll();
 			const firstId = this._templateList.getFirstId();
-			templateList.select(firstId);
+			this._templateList.select(firstId);
 			if (!firstId) {
-				this._osdViewer.setDefaultOSDImage()
+				this._osdViewer.setDefaultOSDImage();
 			}
 		}
 	}
 
 	showWindow(groupId) {
-		try{
+		try {
 			this._templatesCollection.clearAll();
 			const colorTemplateData = utils.getColorTemplateData() ?? [];
 			const templates = [];
@@ -280,18 +289,17 @@ export default class GroupColorTemplateWindow extends JetView {
 				this._template = groupList.getItem(groupId);
 				templates.push(this._template);
 				templates.push(...colorTemplateData);
-			} else {
-				if (colorTemplateData.length === 0) {
-					this._template = {...DEFAULT_TEMPLATE};
-				}
-				else {
-					templates.push(...colorTemplateData);
-				}
+			}
+			else if (colorTemplateData.length === 0) {
+				this._template = {...DEFAULT_TEMPLATE};
+			}
+			else {
+				templates.push(...colorTemplateData);
 			}
 			this._templatesCollection.parse(templates);
 			this.getRoot().show();
 		}
-		catch(err) {
+		catch (err) {
 			console.log(err);
 		}
 	}
@@ -367,12 +375,12 @@ export default class GroupColorTemplateWindow extends JetView {
 	get _image() {
 		return stateStore.image;
 	}
-	
+
 	get _template() {
-		return stateStore.template
+		return stateStore.template;
 	}
 
 	set _template(template) {
-		stateStore.template = template
+		stateStore.template = template;
 	}
 }

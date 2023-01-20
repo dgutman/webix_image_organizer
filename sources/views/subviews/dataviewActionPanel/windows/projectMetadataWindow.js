@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import projectMetadata from "../../../../models/projectMetadata";
 import utils from "../../../../utils/utils";
 import "../../../components/editableTemplate";
@@ -39,27 +40,15 @@ export default class ProjectMetadataWindow extends JetView {
 				borderless: true,
 				rows: [
 					{
-						view: "editabletemplate",
+						view: "template",
 						name: "projectMetadataTemplateName",
 						css: {overflow: "auto"},
-						editable: true,
-						editor: "text",
-						editaction: "click",
 						template: (obj) => {
 							if (!utils.isObjectEmpty(obj)) {
-								let stringToReturn = "";
-								projectKeys.forEach((key) => {
-									if (Array.isArray(obj[key])) {
-										const validationValues = obj[key].map((value, index) => `<p data-edit=${key}-${index} style='height:14px; border:1px dotted'">${value}</p>`).join("");
-										const showedOrHiddenCssClass = this.getShowedOrHiddenCssClass(key);
-										stringToReturn += `<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
-														<span class="collpaser-text">${key}</span>
-													</div>
-													<div class="validation-values-template ${key}" style="">${validationValues}</div>\n`;
-									}
-								});
+								const stringToReturn = `<pre>${JSON.stringify(obj, null, 2)}</pre>`;
 								return stringToReturn;
 							}
+							return "";
 						},
 						onClick: {
 							"collapssible-accordion": (e, id, element) => {
@@ -86,7 +75,8 @@ export default class ProjectMetadataWindow extends JetView {
 	showWindow() {
 		this.projectMetadataTemplate = this.getProjectMetadataTemplate();
 		const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
-		const projectMetadataFolder = projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
+		const projectMetadataFolder =
+			projectMetadataCollection.getItem(projectMetadataCollection.getFirstId());
 
 		const fieldName = this.getProjectMetadataSchemaField(projectMetadataFolder);
 		if (projectMetadataFolder instanceof Object && fieldName) {
@@ -94,7 +84,7 @@ export default class ProjectMetadataWindow extends JetView {
 			projectKeys = Object.keys(projectSchema);
 			this.projectMetadataTemplate.parse(projectSchema);
 			this.projectMetadataTemplate.attachEvent("onAfterRender", () => {
-				collapsedTemplatesCollection.find((elementNode) => {
+				collapsedTemplatesCollection.forEach((elementNode) => {
 					const key = elementNode.id;
 					utils.showOrHideTemplateCollapsedViews(key, elementNode);
 				});
@@ -112,7 +102,8 @@ export default class ProjectMetadataWindow extends JetView {
 
 	getProjectMetadataSchemaField(projectMetadataFolder) {
 		const names = ["schema", "ProjectSchema", "projectSchema"];
-		return projectMetadataFolder.meta && names.find(name => projectMetadataFolder.meta.hasOwnProperty(name));
+		return projectMetadataFolder.meta
+			&& names.find(name => projectMetadataFolder.meta.hasOwnProperty(name));
 	}
 
 	getProjectMetadataTemplate() {
@@ -120,7 +111,8 @@ export default class ProjectMetadataWindow extends JetView {
 	}
 
 	getShowedOrHiddenCssClass(key) {
-		const templatesToShow = collapsedTemplatesCollection.find(elementNode => elementNode.id === key);
+		const templatesToShow =
+			collapsedTemplatesCollection.find(elementNode => elementNode.id === key);
 		if (templatesToShow.length !== 0) {
 			return "showed-views";
 		}

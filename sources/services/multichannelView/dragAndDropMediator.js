@@ -24,6 +24,7 @@ export default class DragAndDropMediator {
 				this.handleChannelsDropAdd(context.source);
 				return false;
 			}
+			return false;
 		});
 	}
 

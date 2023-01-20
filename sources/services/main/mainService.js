@@ -1,41 +1,42 @@
-import lodashObject from "lodash/object";
 import {isObject} from "lodash/lang";
-import ajaxActions from "../ajaxActions";
-import utils from "../../utils/utils";
+import lodashObject from "lodash/object";
+
+import constants from "../../constants";
+import downloadFiles from "../../models/downloadFiles";
+import editableFoldersModel from "../../models/editableFoldersModel";
+import FilterModel from "../../models/filterModel";
+import FinderModel from "../../models/finderModel";
 import galleryImageUrl from "../../models/galleryImageUrls";
+import ItemsModel from "../../models/itemsModel";
+import metadataTableModel from "../../models/metadataTableModel";
+import modifiedObjects from "../../models/modifiedObjects";
+import nonImageUrls from "../../models/nonImageUrls";
+import npdataTableModel from "../../models/npdataTableModel";
+import patientsDataModel from "../../models/patientsDataModel";
+import projectMetadata from "../../models/projectMetadata";
+import recognizedItemsModel from "../../models/recognizedItems";
+import selectDataviewItems from "../../models/selectGalleryDataviewItems";
+import webixViews from "../../models/webixViews";
+import utils from "../../utils/utils";
+import viewMouseEvents from "../../utils/viewMouseEvents";
+import FinderContextMenu from "../../views/components/finderContextMenu";
+import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
+import RenamePopup from "../../views/components/renamePopup";
+import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
+import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
+import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
+import SetDefaultViewWindow from "../../views/subviews/finder/windows/setDefaultViewWindow";
+import CsvViewerWindow from "../../views/subviews/gallery/windows/csvViewerWindow";
 import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
 import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
-import CsvViewerWindow from "../../views/subviews/gallery/windows/csvViewerWindow";
-import FinderContextMenu from "../../views/components/finderContextMenu";
+import ajaxActions from "../ajaxActions";
 import authService from "../authentication";
-import selectDataviewItems from "../../models/selectGalleryDataviewItems";
-import constants from "../../constants";
-import FinderModel from "../../models/finderModel";
-import metadataTableModel from "../../models/metadataTableModel";
-import npdataTableModel from "../../models/npdataTableModel";
-import nonImageUrls from "../../models/nonImageUrls";
-import downloadFiles from "../../models/downloadFiles";
-import modifiedObjects from "../../models/modifiedObjects";
-import webixViews from "../../models/webixViews";
-import GalleryDataviewContextMenu from "../../views/components/galleryDataviewContextMenu";
-import MakeLargeImageWindow from "../../views/subviews/dataviewActionPanel/windows/makeLargeImageWindow";
-import RenamePopup from "../../views/components/renamePopup";
-import projectMetadata from "../../models/projectMetadata";
-import patientsDataModel from "../../models/patientsDataModel";
-import ItemsModel from "../../models/itemsModel";
-import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
-import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigCountNotification";
-import EmptyDataViewsService from "../views/emptyDataViews";
-import viewMouseEvents from "../../utils/viewMouseEvents";
-import recognizedItemsModel from "../../models/recognizedItems";
-import FilterModel from "../../models/filterModel";
-import editableFoldersModel from "../../models/editableFoldersModel";
+// import webixModels from "../../models/webixModels";
 import FolderNav from "../folderNav";
 import ImageThumbnailLoader from "../gallery/imageThumbnailLoader";
-import SetDefaultViewWindow from "../../views/subviews/finder/windows/setDefaultViewWindow";
+import EmptyDataViewsService from "../views/emptyDataViews";
 
 let contextToFolder;
-let scrollEventId;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
@@ -434,6 +435,7 @@ class MainService {
 		if (authService.isLoggedIn()) {
 			this._finderContextMenu.attachTo(this._finder);
 
+			// eslint-disable-next-line consistent-return
 			this._finder.attachEvent("onBeforeContextMenu", (id) => {
 				const item = this._finder.getItem(id);
 				this._finderContextMenu.clearAll();
@@ -502,7 +504,8 @@ class MainService {
 						break;
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
-						this._loadLinearImages(folderId);
+						const isCollapsed = true;
+						this._loadLinearImages(folderId, isCollapsed);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -568,8 +571,10 @@ class MainService {
 							});
 					}
 					else {
-						if (!this._finderItem 
-							|| this._finderItem && item && this._finderItem._id !== item._id) {
+						if (
+							!this._finderItem
+							|| this._finderItem?._id !== item?._id
+						) {
 							this._finderItem = this._itemsModel.findItem(null, item._id);
 						}
 						else if (!item) {
@@ -685,7 +690,7 @@ class MainService {
 		this._cartList.data.attachEvent("onAfterDeleteItem", (id) => {
 			let item = this._cartList.getItem(id);
 			selectDataviewItems.remove(item);
-			this._cartList.find((obj) => {
+			this._cartList.forEach((obj) => {
 				if (obj._id === item._id) {
 					this._cartList.remove(obj.id);
 				}
@@ -974,7 +979,7 @@ class MainService {
 		const patientsData = patientsDataCollection.serialize();
 		const metadataTableData = [];
 		itemsData.forEach((item) => {
-			const patientDataToAdd = patientsData.find(patient => patient.name === item.meta.subject);
+			const patientDataToAdd = patientsData.find(patient => patient.name === item?.meta?.subject);
 			const itemKeys = Object.keys(item);
 			const patientKeys = patientDataToAdd ? Object.keys(patientDataToAdd) : [];
 			const metadataToAdd = {};
@@ -1113,7 +1118,9 @@ class MainService {
 					if (itemType === "bmp" || itemType === "jpg" || itemType === "png" || itemType === "gif" || itemType === "tiff") {
 						return obj;
 					}
+					return null;
 				}
+				return null;
 			});
 			viewMouseEvents.setFilesToLargeImage(filesToLargeImage);
 			if (filesToLargeImage.length !== 0) {
@@ -1151,6 +1158,7 @@ class MainService {
 
 	async _selectFinderItem(id) {
 		const item = this._finder.getItem(id);
+		const isCollapsed = item.link !== constants.EXPAND_LINK;
 		this._finderFolder = item;
 		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
@@ -1166,7 +1174,7 @@ class MainService {
 		}
 		else if (item._modelType === "folder") {
 			if (!(item.open ?? null) && item?.meta?.isLinear) {
-				this._loadLinearImages(id);
+				this._loadLinearImages(id, isCollapsed);
 			}
 			else {
 				this._itemsModel.selectedItem = item;
@@ -1355,7 +1363,7 @@ class MainService {
 		}
 	}
 
-	linearStructureHandler(folderId, sourceParams, addBatch) {
+	linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
 		const folder = this._finder.getItem(folderId);
 		return ajaxActions.getLinearStructure(folder._id, sourceParams)
 			.then((data) => {
@@ -1364,8 +1372,18 @@ class MainService {
 					this._itemsModel.updateItems(this._finderFolder);
 				}
 				else if (folder.linear) {
-					const copy = webix.copy(data);
-					this._itemsModel.parseItems(copy, folderId);
+					let finderElements;
+					if (isCollapsed && !addBatch) {
+						finderElements = data.slice(0, constants.COLLAPSED_ITEMS_COUNT);
+						finderElements.push({link: constants.EXPAND_LINK});
+					}
+					else if (!addBatch) {
+						finderElements = webix.copy(data);
+						finderElements.push({link: constants.COLLAPSE_LINK});
+					}
+					if (finderElements) {
+						this._itemsModel.parseItems(finderElements, folderId);
+					}
 					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
 					this._highlightLastSelectedFolder();
 
@@ -1379,7 +1397,7 @@ class MainService {
 							offset: this._itemsModel.getFolderCount(folder)
 						};
 
-						this.linearStructureHandler(folderId, newParams, true);
+						this.linearStructureHandler(folderId, newParams, true, isCollapsed);
 					}
 				}
 			});
@@ -1394,7 +1412,7 @@ class MainService {
 		this._galleryFeaturesView.hide();
 	}
 
-	_loadLinearImages(folderId) {
+	_loadLinearImages(folderId, isCollapsed) {
 		const sourceParams = {
 			sort: "lowerName",
 			limit: constants.LINEAR_STRUCTURE_LIMIT
@@ -1412,7 +1430,8 @@ class MainService {
 		this._itemsModel.selectedItem = this._finderFolder;
 		this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
 		this._itemsModel.updateItems(this._finderFolder);
-		this.linearStructureHandler(folderId, sourceParams);
+		const addBatch = false;
+		this.linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed);
 	}
 }
 

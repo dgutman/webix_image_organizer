@@ -1,9 +1,10 @@
 import {JetApp, plugins} from "webix-jet";
+
 import "./styles/app.less";
 import "./services/globalEvents";
+import constants from "./constants";
 import state from "./models/state";
 import utils from "./utils/utils";
-import constants from "./constants";
 import Header from "./views/header/header";
 import MainView from "./views/main/main";
 import UploadMetadataView from "./views/uploadMetadata/root";
