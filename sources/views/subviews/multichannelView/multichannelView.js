@@ -11,6 +11,7 @@ import TimedOutBehavior from "../../../utils/timedOutBehavior";
 import ChannelList from "./channelList";
 import GroupsPanel from "./groupsPanel";
 import MultichannelOSDViewer from "./osdViewer";
+import ViewportCoordinates from "./viewportCoordinates";
 import GroupColorTemplateWindow from "./windows/groupColorTemplateWindow";
 
 export default class MultichannelView extends JetView {
@@ -18,8 +19,9 @@ export default class MultichannelView extends JetView {
 		super(app);
 
 		this._osdViewer = new MultichannelOSDViewer(this.app, {showNavigationControl: false});
-		this._channelList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
+		this._channelList = new ChannelList(this.app, {gravity: 1, minWidth: 200});
 		this._groupsPanel = new GroupsPanel(this.app, {gravity: 0.2, minWidth: 200});
+		this._viewportCoordinates = new ViewportCoordinates(this.app, {gravity: 1, minWidth: 200});
 
 		this._channelsCollection = new webix.DataCollection();
 		this._groupsCollection = new webix.DataCollection();
@@ -32,7 +34,13 @@ export default class MultichannelView extends JetView {
 			css: "multichannel-view",
 			margin: 8,
 			cols: [
-				this._channelList,
+				{
+					gravity: 0.2,
+					rows: [
+						this._channelList,
+						this._viewportCoordinates
+					]
+				},
 				this._osdViewer,
 				this._groupsPanel
 			]

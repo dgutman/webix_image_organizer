@@ -1,8 +1,8 @@
 import dot from "dot-object";
 
 import constants from "../constants";
+import validate from "../services/gallery/itemValidator";
 import projectMetadata from "./projectMetadata";
-import validate from "../services/gallery/npValidator";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -257,7 +257,7 @@ export default class ItemsModel {
 			try {
 				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
 
-				// TODO: uncomment if projectMetadata validation will be removed
+				// TODO: uncomment when old validation will be removed
 				// if (isValid) {
 				// 	starColor = "green";
 				// }

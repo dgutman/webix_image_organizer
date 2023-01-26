@@ -118,7 +118,7 @@ export default class GroupColorTemplateWindow extends JetView {
 						view: "icon",
 						id: CLOSE_BUTTON_ID,
 						icon: "wxi-close",
-						click: function clickClose() {
+						click() {
 							const currentWindow = webix.$$(COLOR_TEMPLATE_WINDOW_ID);
 							currentWindow.hide();
 						}
