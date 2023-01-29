@@ -129,6 +129,7 @@ export default {
 
 	SUB_FOLDER_MODEL_TYPE: "itemsSubFolder",
 	FOLDER_MAX_SHOWED_ITEMS: 5000,
+	COLLAPSED_ITEMS_COUNT: 0,
 
 	METADATA_TABLE_ROW_HEIGHT: 34,
 
@@ -193,6 +194,9 @@ export default {
 	DEFAULT_TEMPLATE: {
 		name: "Default",
 		channels: [],
-	}
+	},
 	//end GroupColorTemplateWindow
+
+	EXPAND_LINK: "expand",
+	COLLAPSE_LINK: "collapse"
 };

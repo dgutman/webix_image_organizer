@@ -84,7 +84,7 @@ function escapeHTML(str) {
 }
 
 function searchForFileType(obj) {
-	let str = obj.name;
+	let str = obj.name ?? "";
 	const pattern = /\.([0-9a-z]+)(?!\S)/gi; // /\.[0-9a-z]+$/i;
 	const matched = str.match(pattern);
 	// const dotIndex = matched ? matched.index : 0;

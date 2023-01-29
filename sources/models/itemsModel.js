@@ -31,7 +31,9 @@ export default class ItemsModel {
 		dataArray.forEach((item) => {
 			const id = webix.uid();
 			item.id = id;
-			finderDataPull[item._id] = item;
+			if (item._id) {
+				finderDataPull[item._id] = item;
+			}
 		});
 
 		if (parentId) {

@@ -260,10 +260,10 @@ export default class GroupColorTemplateWindow extends JetView {
 		const isSelected = templateList.isSelected(id);
 		this._templatesCollection.remove(id);
 		if (isSelected) {
-			templateList.unselectAll();
+			this._templateList.unselectAll();
 			this.getTemplateChannelList().clearAll();
 			const firstId = this._templateList.getFirstId();
-			templateList.select(firstId);
+			this._templateList.select(firstId);
 			if (!firstId) {
 				this._osdViewer.setDefaultOSDImage()
 			}
