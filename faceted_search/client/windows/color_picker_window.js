@@ -24,8 +24,8 @@ define([
 	constants
 ) {
 	'use strict';
-	const FORM_ID = "color-form";
-	const HISTOGRAM_FORM_ID = "histogram-form";
+	const FORM_ID = `${constants.FORM_ID}-${webix.uid()}`;
+	const HISTOGRAM_FORM_ID = `${constants.HISTOGRAM_FORM_ID}-${webix.uid()}`;
 	const chartOverlay = "<div class='chart-overlay'></div>";
 
 	return class ColorPickerWindow extends BaseJetView {

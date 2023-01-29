@@ -20,6 +20,7 @@ define([
 	"helpers/organizer_filters",
 	"helpers/maker_layer",
 	"windows/color_picker_window",
+	"windows/groupColorTemplateWindow",
 	"constants",
 	"libs/lodash/lodash.min"
 ], function(
@@ -44,6 +45,7 @@ define([
 	OrganizerFilters,
 	MakerLayer,
 	ColorPickerWindow,
+	GroupColorTemplateWindow,
 	constants,
 	lodash
 ) {
@@ -58,13 +60,13 @@ define([
 		constructor(app) {
 			super(app);
 
-			this._colorWindow = this.ui(new ColorPickerWindow(this.app));
+			this._colorWindow = this.ui(new ColorPickerWindow(app));
 			this._osdViewer = new MultichannelOSDViewer(app, {showNavigationControl: false});
 			this._channelList = new ChannelList(app);
 			this._groupsPanel = new GroupsPanel(app, {gravity: 0.2, minWidth: 200, hidden: true}, this._colorWindow);
-			this._channlesListCollapser = new HorizontalCollapser(app, {direction: "left"});
+			this._channelsListCollapser = new HorizontalCollapser(app, {direction: "left"});
 			this._groupsPanelCollapser = new HorizontalCollapser(app, {direction: "right"});
-			this._metadataPopup = this.ui(new MetadataPopup(this.app));
+			this._metadataPopup = this.ui(new MetadataPopup(app));
 
 			this._channelsCollection = new webix.DataCollection();
 			this._groupsCollection = new webix.DataCollection();
@@ -73,6 +75,15 @@ define([
 			this._waitForViewerCreation = webix.promise.defer();
 
 			this._channelLayers = {};
+
+			this._groupColorTemplateWindow = this.ui(
+				new GroupColorTemplateWindow(
+					app,
+					this._osdViewer,
+					this._channelsCollection,
+					this._groupsPanel
+				)
+			);
 
 			this.$oninit = () => {
 				const view = this.getRoot();
@@ -194,7 +205,7 @@ define([
 									this._channelsControls
 								]
 							},
-							this._channlesListCollapser,
+							this._channelsListCollapser,
 							this._osdViewer,
 							this._groupsPanelCollapser,
 							this._groupsPanel
@@ -437,6 +448,10 @@ define([
 				this._channelList.changeButtonVisibility(channels.length && group);
 			});
 
+			groupsPanel.attachEvent("generateSceneFromTemplate", (groupId) => {
+				this._groupColorTemplateWindow.showWindow(groupId);
+			});
+
 			groupsPanel.attachEvent("changeChannelOpacity", (channelIndex, opacity) => {
 				this._osdViewer.setTileOpacity(channelIndex, opacity);
 			});
@@ -473,6 +488,10 @@ define([
 					.finally(() => {
 						this.getRoot().hideProgress();
 					});
+			});
+
+			groupsPanel.attachEvent("addGroupFromTemplate", (groupName, channels) => {
+				this._addNewGroup(groupName, channels);
 			});
 		}
 
