@@ -9,6 +9,8 @@ import girder_client
 import brain_region_maps
 import pandas as pd
 
+import time
+
 # from functools import cache
 
 # TODO: add record of all seen collectionIDs and fileIDs so as to reduce number of things examined
@@ -397,38 +399,90 @@ def auditMetadata(gc, collectionID=None, folderID=None, outputRecords=False):
 def getSummaryStats(gc, collectionID=None, folderID=None):
 
     if collectionID is not None:
-        folderID = getCollectionContents(gc, collectionID, parentType="collection", contentIDsOnly=True)
+        folders = getCollectionContents(gc, collectionID, parentType="collection", contentIDsOnly=False)
+        folders = [folder for folder in folders if folder["name"].isdigit()]
 
-    if isinstance(folderID, str):
-        folderID = [folderID]
-
-    folderContents = getFolderContents(gc, folderID)
+    # if isinstance(folderID, str):
+    #     folderID = [val["_id"] for val in folderID]
+    #     folderName = [val["name"] for val in folderID]
 
     valid = 0
     invalid = 0
     toReview = []
     control = 0
 
-    for contents in folderContents:
+    for folder in folders:
+        folderContents = gc.listFolder(folder["_id"])
+        year = folder["name"]
 
-        if "npWorking" in contents["meta"]:
-            invalid += 1
-            toReview.append(contents)
+        for contents in folderContents:
 
-        elif "controlSlide" in contents["meta"]["npSchema"]:
-            control += 1
+            name = contents["name"]
+            files = getFolderContents(gc, contents["_id"])
 
-        else:
-            isValid, data = validateMetadata(contents["meta"])
+            for file in files:
 
-            if isValid:
-                valid += 1
-            else:
-                invalid += 1
-                toReview.append(data)
+                fileName = file["name"]
+                fileTypes = ["svs", "ndpi"]
 
-    with open("summaryStats.csv", "w") as f:
-        f.write(toReview)
+                if any([fileName.endswith(val) for val in fileTypes]):
+
+                    if "npWorking" in file["meta"] or "npSchema" not in file["meta"]:
+                        invalid += 1
+                        file["state"] = "invalid"
+                        file["year"], file["folder_name"] = year, name
+                        toReview.append(file)
+
+                    elif "controlSlide" in file["meta"]["npSchema"]:
+                        control += 1
+                        file["state"] = "control"
+                        file["year"], file["folder_name"] = year, name
+                        toReview.append(file)
+
+                    else:
+                        isValid, data = validateMetadata(file["meta"])
+
+                        if isValid:
+                            valid += 1
+                            file["state"] = "valid"
+                            file["year"], file["folder_name"] = year, name
+                            toReview.append(file)
+
+                        else:
+                            invalid += 1
+                            data["state"] = "invalid"
+                            data["year"], data["folder_name"] = year, name
+
+                            toReview.append(data)
+
+    df = pd.DataFrame(toReview)
+    df = df[["_id", "baseParentId", "baseParentType", "year", "folderId", "folder_name", "lowerName", "state", "meta"]]
+    df.to_csv("summaryStats.csv", index=False)
+
+    folders = pd.DataFrame(df.value_counts(subset=["folder_name", "year", "state"]))
+    folders.reset_index(inplace=True)
+    print(folders.head())
+
+    stateList = ["valid", "invalid", "control"]
+
+    folders[stateList] = None
+    folders["uid"] = folders["folder_name"] + folders["year"]
+
+    folders.rename(columns={0: "count"}, inplace=True)
+
+    uids = folders["uid"].unique().tolist()
+
+    for uid in uids:
+        baseFilt = folders["uid"] == uid
+
+        for state in stateList:
+            filt = baseFilt & (folders["state"] == state)
+            if filt.any():
+                folders.loc[baseFilt, state] = folders.loc[filt, "count"].item()
+
+    folders.drop_duplicates(subset=(stateList + ["uid"]), inplace=True)
+    folders.drop(columns=["state", "count", "uid"], inplace=True)
+    folders.to_csv("stateCounts.csv", index=False)
 
     print(f"Valid Count {valid}\n\nInvalid Count: {invalid}\n\nControl Count: {control}")
 
