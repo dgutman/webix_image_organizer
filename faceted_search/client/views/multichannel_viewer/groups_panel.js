@@ -12,6 +12,8 @@ define([
 	const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 	const UPLOADER_API_ID = "uploader-api";
 	const GROUPS_TITLE_TEMPLATE = "groups-title";
+	const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
+
 
 	return class GroupsPanel extends BaseJetView {
 		constructor(app, config = {}, colorWindow) {
@@ -28,6 +30,7 @@ define([
 		
 				const groupsList = this.getGroupsList();
 				const channelsList = this.getGroupsChannelsList();
+				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
 		
 				groupsList.attachEvent("onSelectChange", () => {
 					this.updateSelectedGroupTiles();
@@ -42,6 +45,11 @@ define([
 					else {
 						channelsLayout.hide();
 					}
+				});
+
+				generateSceneFromTemplateButton.attachEvent("onItemClick", () => {
+					const groupId = this.getGroupsList().getSelectedId();
+					this.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
 				});
 			};
 		}
@@ -101,6 +109,15 @@ define([
 								this.removeGroup(id);
 							}
 						}
+					},
+					{
+						cols: [
+							{
+								view: "button",
+								id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+								value: "Generate Scene From Template"
+							}
+						]
 					},
 					{
 						localId: GROUP_CHANNELS_LAYOUT_ID,
@@ -173,7 +190,7 @@ define([
 				return null;
 			}
 			const count = group.channels.length;
-			let newChannels = channels
+			const newChannels = channels
 				.filter(({index}) => !group.channels.find(channel => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
@@ -225,7 +242,7 @@ define([
 			this.getRoot().callEvent("channelColorAdjustStart", [channel]);
 			this._waitForChangesFromPaletteWindow(channel);
 		}
-	
+
 		_waitForChangesFromPaletteWindow(channel) {
 			const channelList = this.getGroupsChannelsList();
 			const colorWindowRoot = this._colorWindow.getRoot();
@@ -257,8 +274,8 @@ define([
 	
 		createColorByIndex(index, count = 1) {
 			const hue = Math.round(MathCalculations.mapLinear(index, 0, count, 0, 360, true));
-			let saturation = 100;
-			let lightness = 50;
+			const saturation = 100;
+			const lightness = 50;
 			return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 		}
 	
@@ -284,6 +301,10 @@ define([
 	
 		getColorWindow() {
 			return this._colorWindow;
+		}
+
+		getGenerateSceneFromTemplateButton() {
+			return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 		}
 	
 		get _group() {

@@ -3,6 +3,7 @@ define([
 ], function(constants) {
 	'use strict';
 	return {
+		template: null,
 		group: null,
 		image: null,
 		adjustedChannel: null,

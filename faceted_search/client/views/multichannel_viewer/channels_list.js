@@ -1,16 +1,18 @@
 define([
 	"helpers/base_jet_view",
 	"models/multichannel_view/selected_items",
-	"views/multichannel_viewer/sort_template"
+	"views/multichannel_viewer/sort_template",
+	"constants"
 ], function(
 	BaseJetView,
 	SelectedItems,
-	SortTemplate
+	SortTemplate,
+	constants
 ) {
 	'use strict';
-	const LIST_ID = "channels-list";
-	const TEXT_SEARCH_ID = "channels-search-field";
-	const ADD_TO_GROUP_BUTTON_ID = "add-to-group";
+	const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
+	const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;
+	const ADD_TO_GROUP_BUTTON_ID = `${constants.ADD_TO_GROUP_BUTTON_ID}-${webix.uid()}`;
 
 	return class ChannelList extends BaseJetView {
 		constructor(app, config = {}) {

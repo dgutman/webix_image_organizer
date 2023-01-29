@@ -10,9 +10,9 @@ import RangeSwitch from "../../../components/rangeSwitch";
 import HistogramChart from "../../../components/histogramChart";
 import ScaleTypeToggle from "../../../components/scaleTypeToggle";
 
-const FORM_ID = "color-form";
-const HISTOGRAM_CHART_ID = "histogram-chart";
-const HISTOGRAM_FORM_ID = "histogram-form";
+const FORM_ID = `color-form-${webix.uid()}`;
+const HISTOGRAM_CHART_ID = `histogram-chart-${webix.uid()}`;
+const HISTOGRAM_FORM_ID = `histogram-form-${webix.uid()}`;
 const chartOverlay = "<div class='chart-overlay'></div>";
 
 export default class ColorPickerWindow extends JetView {
