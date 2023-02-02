@@ -1,27 +1,31 @@
 import {JetView} from "webix-jet";
-import MultichannelOSDViewer from "./osdViewer";
-import ChannelList from "./channelList";
-import GroupsPanel from "./groupsPanel";
-import TilesService from "../../../services/multichannelView/tilesService";
-import DragAndDropMediator from "../../../services/multichannelView/dragAndDropMediator";
-import TimedOutBehavior from "../../../utils/timedOutBehavior";
-import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../../../services/multichannelView/groupsLoader";
+
+import constants from "../../../constants";
 import tilesCollection from "../../../models/imageTilesCollection";
 import ItemsModel from "../../../models/itemsModel";
 import stateStore from "../../../models/multichannelView/stateStore";
+import DragAndDropMediator from "../../../services/multichannelView/dragAndDropMediator";
+import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../../../services/multichannelView/groupsLoader";
+import TilesService from "../../../services/multichannelView/tilesService";
+import TimedOutBehavior from "../../../utils/timedOutBehavior";
+import ChannelList from "./channelList";
+import GroupsPanel from "./groupsPanel";
+import MultichannelOSDViewer from "./osdViewer";
+import ViewportCoordinates from "./viewportCoordinates";
 import GroupColorTemplateWindow from "./windows/groupColorTemplateWindow";
-import constants from "../../../constants";
 
 export default class MultichannelView extends JetView {
 	constructor(app) {
 		super(app);
 
 		this._osdViewer = new MultichannelOSDViewer(this.app, {showNavigationControl: false});
-		this._channelList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
+		this._channelList = new ChannelList(this.app, {gravity: 1, minWidth: 200});
 		this._groupsPanel = new GroupsPanel(this.app, {gravity: 0.2, minWidth: 200});
+		this._viewportCoordinates = new ViewportCoordinates(this.app, {gravity: 1, minWidth: 200});
 
 		this._channelsCollection = new webix.DataCollection();
 		this._groupsCollection = new webix.DataCollection();
+		this._groupChannelsCollection = new webix.DataCollection();
 	}
 
 	config() {
@@ -30,7 +34,13 @@ export default class MultichannelView extends JetView {
 			css: "multichannel-view",
 			margin: 8,
 			cols: [
-				this._channelList,
+				{
+					gravity: 0.2,
+					rows: [
+						this._channelList,
+						this._viewportCoordinates
+					]
+				},
 				this._osdViewer,
 				this._groupsPanel
 			]
@@ -278,7 +288,7 @@ export default class MultichannelView extends JetView {
 
 		this.on(groupsPanel, "generateSceneFromTemplate", (groupId) => {
 			this._groupColorTemplateWindow.showWindow(groupId);
-		})
+		});
 
 		this.on(groupsPanel, "changeChannelOpacity", (channelIndex, opacity) => {
 			this._osdViewer.setTileOpacity(channelIndex, opacity);
@@ -328,8 +338,8 @@ export default class MultichannelView extends JetView {
 		});
 
 		this.on(groupsPanel, "addGroupFromTemplate", (groupName, channels) => {
-			this._addNewGroup(groupName, channels)
-		})
+			this._addNewGroup(groupName, channels);
+		});
 	}
 
 	startChannelAdjusting(channel) {

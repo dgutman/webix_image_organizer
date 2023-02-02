@@ -1,10 +1,7 @@
-const location = window.location;
-
 const APP_URL_PATH = "app";
 
 export default {
 
-	// TODO: update constants for multichannelview
 	KEY_TOKEN: "girderToken",
 
 	APP_PATHS: {
@@ -185,17 +182,12 @@ export default {
 	LOGARITHMIC_SCALE_VALUE: 0,
 	// end MultichannelView
 
-	//begin GroupColorTemplateWindow
-	CLOSE_BUTTON_ID: "close-color-template-window-button",
-	TEMPLATE_CHANNELS_LIST_ID: "template-channel-list",
-	COLOR_TEMPLATE_WINDOW_ID: "color-template-window-",
-	SAVE_TEMPLATE_BUTTON_ID: "save-template-button",
-	ADD_TEMPLATE_BUTTON_ID: "add-template-button",
+	// begin GroupColorTemplateWindow
 	DEFAULT_TEMPLATE: {
 		name: "Default",
-		channels: [],
+		channels: []
 	},
-	//end GroupColorTemplateWindow
+	// end GroupColorTemplateWindow
 
 	EXPAND_LINK: "expand",
 	COLLAPSE_LINK: "collapse"

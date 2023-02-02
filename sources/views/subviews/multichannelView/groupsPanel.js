@@ -1,8 +1,9 @@
 import {JetView} from "webix-jet";
+
+import constants from "../../../constants";
+import stateStore from "../../../models/multichannelView/stateStore";
 import MathCalculations from "../../../utils/mathCalculations";
 import ColorPickerWindow from "./windows/colorPopup";
-import stateStore from "../../../models/multichannelView/stateStore";
-import constants from "../../../constants";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -11,11 +12,14 @@ const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 const UPLOADER_API_ID = "uploader-api";
 const GROUPS_TITLE_TEMPLATE = "groups-title";
 const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
+const GROUP_CHANNELS_FORM_ID = `group-channels-form-${webix.uid()}`;
+const GROUP_CHANNELS_OPACITY_SLIDER_ID = "group-channels-opacity-slider";
 
 export default class GroupsPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app);
 		this._cnf = config;
+		this._channelsSlidersContainersIds = new Map();
 	}
 
 	config() {
@@ -97,18 +101,46 @@ export default class GroupsPanel extends JetView {
 							view: "list",
 							localId: GROUP_CHANNELS_LIST_ID,
 							css: "groups-channels-list",
-							drag: true,
+							drag: false,
+							dragscroll: false,
 							scroll: "auto",
 							navigation: false,
 							select: false,
-							template: ({name, color, opacity}) => {
+							template: ({name, color, opacity, id}) => {
 								const showIcon = opacity ? "fas fa-eye" : "fas fa-eye-slash";
-								return `<span class="channel-item__name name">${name}</span>
-								<div class="icons">
-									<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
-									<span class="icon show ${showIcon}"></span>
-									<span class="icon delete fas fa-minus-circle"></span>
+								const containerId = webix.uid();
+								this._channelsSlidersContainersIds.set(id, containerId);
+								return `<div class="channel-item">
+									<div class="channel-item__row-one">
+										<span class="channel-item__name name">${name}</span>
+										<div class="icons">
+											<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
+											<span class="icon show ${showIcon}"></span>
+											<span class="icon delete fas fa-minus-circle"></span>
+										</div>
+									</div>
+									<div class="channel-item__row-two" style="height: 27px">
+										<div class="channel-item__range-opacity" id="${containerId}"></div>
+										<div class="icons channel-item__position-controls">
+											<span class="icon up fas fa-chevron-up"></span>
+											<span class="icon down fas fa-chevron-down"></span>
+										</div>
+									</div>
 								</div>`;
+							},
+							type: {
+								height: 80
+							},
+							on: {
+								onAfterRender: () => {
+									this.createChannelsSliders();
+								},
+								onAfterItemRender(obj) {
+									console.log(obj);
+								},
+								onDataUpdate: (/* id */) => {
+									this.getGroupsChannelsList().refresh();
+								}
 							},
 							onClick: {
 								show: (ev, id) => {
@@ -119,6 +151,12 @@ export default class GroupsPanel extends JetView {
 								},
 								palette: (ev, id) => {
 									this.showPaletteWindow(id);
+								},
+								up: (ev, id) => {
+									this.moveChannelUp(id);
+								},
+								down: (ev, id) => {
+									this.moveChannelDown(id);
 								}
 							}
 						}
@@ -160,8 +198,8 @@ export default class GroupsPanel extends JetView {
 
 		this.on(generateSceneFromTemplateButton, "onItemClick", () => {
 			const groupId = this.getGroupsList().getSelectedId();
-			this.getRoot().callEvent("generateSceneFromTemplate", [groupId])
-		})
+			this.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
+		});
 	}
 
 	ready() {
@@ -169,12 +207,79 @@ export default class GroupsPanel extends JetView {
 		webix.TooltipControl.addTooltip(this.$$(GROUPS_TITLE_TEMPLATE).$view);
 	}
 
+	createChannelsSliders() {
+		const channelList = this.getGroupsChannelsList();
+		const channels = channelList.serialize();
+		channels.forEach((channel) => {
+			const containerId = this._channelsSlidersContainersIds.get(channel.id);
+			const sliderContainerElement = document.getElementById(containerId);
+			sliderContainerElement.innerHTML = "";
+			const channelId = channel.id;
+			const sliderView = this.createSlider(containerId, channel.opacity);
+			this.on(sliderView, "onChange", (newValue) => {
+				const channelIndex = channelList.getIndexById(channelId);
+				channelList.updateItem(channelId, {opacity: newValue});
+				this.updateChannelOpacity(channelIndex, newValue);
+			});
+		});
+	}
+
+	createSlider(containerId, opacity) {
+		const slider = {
+			view: "slider",
+			id: `${GROUP_CHANNELS_OPACITY_SLIDER_ID}-${webix.uid()}`,
+			container: `${containerId}`,
+			name: "opacity",
+			max: 1,
+			min: 0,
+			step: 0.01,
+			value: opacity,
+			width: 100,
+			height: 50
+		};
+		const sliderView = webix.ui(slider);
+		return sliderView;
+	}
+
+	refreshChannelsSliders() {
+		const channelList = this.getGroupsChannelsList();
+		channelList.refresh();
+	}
+
+	updateChannelOpacity(channelIndex, newValue) {
+		this.getRoot().callEvent("changeChannelOpacity", [channelIndex, newValue]);
+	}
+
+	moveChannelUp(id) {
+		const channelsList = this.getGroupsChannelsList();
+		const channelIndex = channelsList.getIndexById(id);
+		if (channelIndex > 0) {
+			channelsList.moveUp(id, 1);
+			const newChannelIndex = channelsList.getIndexById(id);
+			this.handleChannelsOrderChange(newChannelIndex, channelIndex);
+			this.refreshChannelsSliders();
+		}
+	}
+
+	moveChannelDown(id) {
+		const channelsList = this.getGroupsChannelsList();
+		const channelIndex = channelsList.getIndexById(id);
+		channelsList.moveDown(id, 1);
+		const newChannelIndex = channelsList.getIndexById(id);
+		this.handleChannelsOrderChange(newChannelIndex, channelIndex);
+		this.refreshChannelsSliders();
+	}
+
+	handleChannelsOrderChange(newChannelIndex, oldChannelIndex) {
+		this.getRoot().callEvent("channelOrderChange", [newChannelIndex, oldChannelIndex]);
+	}
+
 	updateSelectedGroupTiles() {
 		const groupsList = this.getGroupsList();
 		const channelsList = this.getGroupsChannelsList();
 
 		const group = groupsList.getSelectedItem();
-		channelsList.clearAll();
+		this.clearGroupChannelsList();
 		this._group = group;
 
 		if (group) {
@@ -217,7 +322,7 @@ export default class GroupsPanel extends JetView {
 
 		channelList.updateItem(id, {opacity: channelOpacity});
 
-		this.getRoot().callEvent("changeChannelOpacity", [channelIndex, channelOpacity]);
+		this.updateChannelOpacity(channelIndex, channelOpacity);
 	}
 
 	removeChannel(id) {
@@ -299,6 +404,11 @@ export default class GroupsPanel extends JetView {
 		uploader.fileDialog();
 	}
 
+	clearGroupChannelsList() {
+		const channelsList = this.getGroupsChannelsList();
+		channelsList.clearAll();
+	}
+
 	getGroupsList() {
 		return this.$$(GROUPS_LIST_ID);
 	}
@@ -321,6 +431,14 @@ export default class GroupsPanel extends JetView {
 
 	getGenerateSceneFromTemplateButton() {
 		return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
+	}
+
+	getGroupChannelsForm() {
+		return this.$$(GROUP_CHANNELS_FORM_ID);
+	}
+
+	getGroupChannelsOpacitySlider() {
+		return this.getGroupChannelsForm().elements.opacity;
 	}
 
 	get _group() {

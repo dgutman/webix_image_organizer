@@ -1,6 +1,8 @@
 import dot from "dot-object";
-import projectMetadata from "./projectMetadata";
+
 import constants from "../constants";
+import validate from "../services/gallery/itemValidator";
+import projectMetadata from "./projectMetadata";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -97,7 +99,8 @@ export default class ItemsModel {
 		}
 		items.forEach((updatedItem) => {
 			const foundedItemInFinder = this.customFinderDataPull[updatedItem._id];
-			const foundedItemInDataCollection = this.dataCollection.find(item => item._id === updatedItem._id, true);
+			const foundedItemInDataCollection =
+				this.dataCollection.find(item => item._id === updatedItem._id, true);
 			if (foundedItemInFinder) {
 				this.finderCollection.updateItem(foundedItemInFinder.id, updatedItem);
 			}
@@ -150,7 +153,11 @@ export default class ItemsModel {
 	}
 
 	parseDataToViews(data, linearData, folderId, isChildFolderExists) {
-		if (folderId && this.selectedItem?.id && folderId.toString() === this.selectedItem?.id?.toString()) {
+		if (
+			folderId
+			&& this.selectedItem?.id
+			&& folderId.toString() === this.selectedItem?.id?.toString()
+		) {
 			const dataview = this.dataview;
 			const pager = dataview.getPager();
 
@@ -187,8 +194,13 @@ export default class ItemsModel {
 		let starColor;
 
 		if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
-			const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
-			const projectSchema = projectSchemaItem.meta.schema || projectSchemaItem.meta.ProjectSchema || projectSchemaItem.meta.projectSchema || {};
+			const projectSchemaItem =
+				projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
+			const projectSchema =
+				projectSchemaItem.meta.schema
+				|| projectSchemaItem.meta.ProjectSchema
+				|| projectSchemaItem.meta.projectSchema
+				|| {};
 
 			const schemaKeys = Object.keys(projectSchema);
 
@@ -213,7 +225,8 @@ export default class ItemsModel {
 						hasFoundIncorrectKey = true;
 					}
 					else if (wrongMetadataItem) {
-						wrongMetadataItem.incorrectKeys = wrongMetadataItem.incorrectKeys.filter(value => value !== key);
+						wrongMetadataItem.incorrectKeys =
+							wrongMetadataItem.incorrectKeys.filter(value => value !== key);
 						if (!wrongMetadataItem.incorrectKeys.length) {
 							wrongMetadataCollection.remove(item._id);
 						}
@@ -238,17 +251,40 @@ export default class ItemsModel {
 			}
 			else {
 				starColor = "red";
+				return starColor;
 			}
-			return starColor;
+			// Validate with JSON Schema
+			try {
+				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
+
+				// TODO: uncomment when old validation will be removed
+				// if (isValid) {
+				// 	starColor = "green";
+				// }
+				if (incorrectKeys.length === 0 && missedKeys.length !== 0 && starColor !== "red" && starColor !== "yellow") {
+					starColor = "orange";
+				}
+				else if (incorrectKeys.length !== 0 && missedKeys.length === 0 && starColor !== "red" && starColor !== "orange") {
+					starColor = "yellow";
+				}
+				else {
+					starColor = "red";
+				}
+			}
+			catch(err) {
+				console.error(err);
+			}
+			return starColor ?? null;
 		}
 		return null;
 	}
 
 	findHighlightedValues(item) {
-		const highlight = [];
+		const highlight = new Set();
 
 		if (item.hasOwnProperty("meta") && projectMetadataCollection.count() !== 0) {
-			const projectSchemaItem = projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
+			const projectSchemaItem =
+				projectMetadataCollection.getItem(projectMetadataCollection.getLastId());
 			const projectSchema = projectSchemaItem.meta.schema
 				|| projectSchemaItem.meta.ProjectSchema
 				|| projectSchemaItem.meta.projectSchema
@@ -262,15 +298,31 @@ export default class ItemsModel {
 				if (metadataValue !== undefined) {
 					const correctValue = projectSchema[key].find(value => metadataValue === value);
 					if (!correctValue) {
-						highlight.push(key);
+						highlight.add(key);
 					}
 				}
 				else {
-					highlight.push(key);
+					highlight.add(key);
 				}
 			});
+
+			try {
+				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
+				if (!isValid) {
+					missedKeys.forEach((missedKey) => {
+						highlight.add((missedKey.replaceAll("/", ".")).slice(1))
+					});
+					incorrectKeys.forEach((incorrectKey) => {
+						highlight.add((incorrectKey.replaceAll("/", ".")).slice(1));
+					});
+				}
+			}
+			catch(err) {
+				console.error(err);
+			}
+			return Array.from(highlight);
 		}
-		return highlight;
+		return Array.from(highlight);
 	}
 
 	findAndRemove(id, folder) {

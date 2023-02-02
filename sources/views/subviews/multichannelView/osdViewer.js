@@ -1,3 +1,5 @@
+import OpenSeadragon from "openseadragon";
+
 import OpenSeadragonViewer from "../../components/openSeadragonViewer";
 
 const OSD_VIEWER_TEMPLATE = "osd-template";
@@ -54,10 +56,44 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		webix.TooltipControl.addTooltip(this.getViewerTemplate().$view);
 	}
 
+	updateZoom() {
+		const viewer = this.$viewer();
+		const zoom = viewer.viewport.getZoom(true);
+		const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+		this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
+	}
+
+	addEventHandler() {
+		const viewer = this.$viewer();
+		const updateZoom = () => {
+			const zoom = viewer.viewport.getZoom(true);
+			const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+			this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
+		};
+		viewer.addHandler("open", () => {
+			const tracker = new OpenSeadragon.MouseTracker({
+				element: viewer.container,
+				moveHandler: (event) => {
+					const webPoint = event.position;
+					const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
+					const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
+					const zoom = viewer.viewport.getZoom(true);
+					const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+					updateZoom();
+					this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint, zoom, imageZoom]);
+				}
+			});
+			tracker.setTracking(true);
+			viewer.addHandler("animation", updateZoom);
+		});
+	}
+
 	createViewer(options) {
 		const osdTemplateNode = this.getRoot().getNode();
 		const osdContainer = osdTemplateNode.querySelector(".osd-container");
-		return super.createViewer(options, osdContainer);
+		const viewer = super.createViewer(options, osdContainer);
+		this.addEventHandler();
+		return viewer;
 	}
 
 	zoomHome() {

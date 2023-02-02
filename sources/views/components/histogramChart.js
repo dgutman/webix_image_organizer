@@ -1,6 +1,7 @@
-import {JetView} from "webix-jet";
-import lodash from "lodash";
 import * as d3 from "d3";
+import lodash from "lodash";
+import {JetView} from "webix-jet";
+
 import constants from "../../constants";
 
 export default class D3Chart extends JetView {
