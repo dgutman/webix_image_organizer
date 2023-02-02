@@ -43,15 +43,18 @@
                         "Tau"
                     ],
                     "enum": [
+                        "pTDP",
                         "HE",
-                        "Tau",
                         "aBeta",
+                        "Ubiq",
+                        "Tau",
+                        "Biels",
                         "Syn",
                         "p62",
-                        "pTDP",
-                        "Biels",
-                        "Ubiq",
-                        "LFB"
+                        "LFB",
+                        "FUS",
+                        "TDP-43",
+                        "GFAP"
                     ]
                 }
             },

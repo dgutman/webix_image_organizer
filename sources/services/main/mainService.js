@@ -1162,8 +1162,17 @@ class MainService {
 		this._finderFolder = item;
 		const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 		const multichannelViewCell = this._view.$scope.getSubMultichannelViewCell();
-		actionPanel.scenesViewOptionToggle(item);
-		await actionPanel.multichannelViewOptionToggle(item);
+		if (!item.link) {
+			actionPanel.scenesViewOptionToggle(item);
+			await actionPanel.multichannelViewOptionToggle(item);
+			actionPanel.caseViewOptionToggle(item);
+		}
+		else {
+			const parentId = this._finder.getParentId(id);
+			this._finderFolder = this._finder.getItem(parentId);
+			this._loadLinearImages(parentId, isCollapsed);
+			return;
+		}
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
 			this._itemsModel.parseDataToViews(item, false, item.id);
