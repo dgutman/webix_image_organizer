@@ -67,7 +67,8 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		const viewer = this.$viewer();
 		const updateZoom = () => {
 			const zoom = viewer.viewport.getZoom(true);
-			const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+			const tiledImage = viewer.world.getItemAt(0);
+			const imageZoom = tiledImage.viewportToImageZoom(zoom);
 			this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
 		};
 		viewer.addHandler("open", () => {
@@ -76,11 +77,10 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 				moveHandler: (event) => {
 					const webPoint = event.position;
 					const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-					const imagePoint = viewer.viewport.viewportToImageCoordinates(viewportPoint);
-					const zoom = viewer.viewport.getZoom(true);
-					const imageZoom = viewer.viewport.viewportToImageZoom(zoom);
+					const tiledImage = viewer.world.getItemAt(0);
+					const imagePoint = tiledImage.viewportToImageCoordinates(viewportPoint);
 					updateZoom();
-					this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint, zoom, imageZoom]);
+					this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint]);
 				}
 			});
 			tracker.setTracking(true);

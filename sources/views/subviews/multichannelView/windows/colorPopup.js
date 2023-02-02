@@ -1,12 +1,11 @@
 import {JetView} from "webix-jet";
-import ColorPicker from "../../../components/colorPicker";
-import RangeSlider from "../../../components/rangeSlider";
-import tilesCollection from "../../../../models/imageTilesCollection";
-import ajaxActions from "../../../../services/ajaxActions";
-import stateStore from "../../../../models/multichannelView/stateStore";
-import TimedOutBehavior from "../../../../utils/timedOutBehavior";
+
 import constants from "../../../../constants";
-import RangeSwitch from "../../../components/rangeSwitch";
+import tilesCollection from "../../../../models/imageTilesCollection";
+import stateStore from "../../../../models/multichannelView/stateStore";
+import ajaxActions from "../../../../services/ajaxActions";
+import TimedOutBehavior from "../../../../utils/timedOutBehavior";
+import ColorPicker from "../../../components/colorPicker";
 import HistogramChart from "../../../components/histogramChart";
 import ScaleTypeToggle from "../../../components/scaleTypeToggle";
 
@@ -20,16 +19,13 @@ export default class ColorPickerWindow extends JetView {
 		super(app);
 
 		this._colorPicker = new ColorPicker(app, {name: "color", width: 300});
-		const initialMaxEdge = stateStore.bit === constants.EIGHT_BIT ?
-			constants.MAX_EDGE_FOR_8_BIT : constants.MAX_EDGE_FOR_16_BIT;
-		this._rangeSlider = new RangeSlider(app, {}, 65000, 0);
-		this._rangeSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
-		this._rangeSwitch = new RangeSwitch(app, {hidden: true}, initialMaxEdge, this._rangeSlider);
-		this._histogramChart = new HistogramChart(this.app, {width: 330, height: 210, localId: HISTOGRAM_CHART_ID});
-		this._histogramSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
+		this._histogramChart = new HistogramChart(
+			this.app,
+			{width: 530, height: 410, localId: HISTOGRAM_CHART_ID}
+		);
 		this._scaleTypeToggle = new ScaleTypeToggle(
 			app,
-			{value: constants.LINEAR_SCALE_VALUE}
+			{value: constants.LOGARITHMIC_SCALE_VALUE}
 		);
 	}
 
@@ -39,7 +35,7 @@ export default class ColorPickerWindow extends JetView {
 			css: "color-picker-popup",
 			move: true,
 			modal: false,
-			width: 700,
+			width: 900,
 			height: 850,
 			body: {
 				cols: [
@@ -48,7 +44,6 @@ export default class ColorPickerWindow extends JetView {
 						localId: HISTOGRAM_FORM_ID,
 						elements: [
 							this._histogramChart,
-							this._histogramSlider,
 							this._scaleTypeToggle
 						]
 					},
@@ -57,8 +52,6 @@ export default class ColorPickerWindow extends JetView {
 						localId: FORM_ID,
 						elements: [
 							this._colorPicker,
-							this._rangeSlider,
-							this._rangeSwitch,
 							{
 								cols: [
 									{
@@ -67,7 +60,6 @@ export default class ColorPickerWindow extends JetView {
 										label: "Cancel",
 										click: () => {
 											this.getForm().setValues(this._initValues);
-											this.applyChanges();
 											this.savePosition();
 											this.closeWindow();
 										}
@@ -107,29 +99,12 @@ export default class ColorPickerWindow extends JetView {
 		this.on(form, "onChange", async () => {
 			const values = this.getForm().getValues();
 			this.getRoot().callEvent("colorChanged", [values]);
-			debounce.execute(this.updateHistorgamHandler, this);
+			debounce.execute(this.updateHistogramHandler, this);
 		});
 
-		const toggleRangeSwitchVisibility = () => {
-			const rangeSwitchRoot = this._rangeSwitch.getRoot();
-			const isVisible = rangeSwitchRoot.isVisible();
-			if (isVisible) {
-				rangeSwitchRoot.hide();
-			}
-			else {
-				rangeSwitchRoot.show();
-			}
-			return false;
-		};
-		this.on(this.getRoot(), "onShow", () => {
-			webix.UIManager.addHotKey("Shift+S", toggleRangeSwitchVisibility);
-		});
-		this.on(this.getRoot(), "onHide", () => {
-			webix.UIManager.removeHotKey("Shift+S", toggleRangeSwitchVisibility);
-		});
 		const histogramForm = this.getHistogramForm();
 		histogramForm.attachEvent("onChange", async () => {
-			debounce.execute(this.updateHistorgamHandler, this);
+			debounce.execute(this.updateHistogramHandler, this);
 		});
 	}
 
@@ -147,7 +122,8 @@ export default class ColorPickerWindow extends JetView {
 			this.getForm().setValues(initValues);
 
 			this._histogramChart.getRoot().showOverlay(chartOverlay);
-			this._getHistogramInfo()
+			const getHistogramInfoPromise = this._getHistogramInfo();
+			getHistogramInfoPromise
 				.then(([histogram]) => {
 					this.setHistogramValues(histogram);
 					this.setMinAndMaxValuesByHistogram(histogram);
@@ -177,7 +153,7 @@ export default class ColorPickerWindow extends JetView {
 		this.getRoot().callEvent("applyColorChange", [form.getValues()]);
 	}
 
-	updateHistorgamHandler() {
+	updateHistogramHandler() {
 		this._histogramChart.getRoot().showOverlay(chartOverlay);
 		this._getHistogramInfo().then(([histogram]) => {
 			this.setHistogramValues(histogram);
@@ -191,7 +167,6 @@ export default class ColorPickerWindow extends JetView {
 		this._histogram = histogram;
 		const yScale = this._scaleTypeToggle.getValue();
 		const chartValues = histogram.hist.map((value, i) => {
-			// xValue: i, yValue: value
 			const bitMaxEdge = histogram.bin_edges[i + 1];
 			const name = typeof bitMaxEdge === "number" ? bitMaxEdge.toFixed(2) : bitMaxEdge;
 			return {value, name};
@@ -199,15 +174,9 @@ export default class ColorPickerWindow extends JetView {
 		this._histogramChart.makeChart(chartValues, yScale);
 	}
 
-	setMinAndMaxValuesByHistogram({min, max}) {
-		this._rangeSlider.setEdges(min, max);
-		this._histogramSlider.setEdges(min, max);
-		this._rangeSwitch.setMaxRange(max);
-	}
-
 	async _getHistogramInfo() {
 		if (!this._image || !this._channel) {
-			return;
+			return null;
 		}
 		const {min, max} = this.getHistogramForm().getValues();
 		const tileInfo = await tilesCollection.getImageTileInfo(this._image);
@@ -218,8 +187,11 @@ export default class ColorPickerWindow extends JetView {
 			rangeMax: max
 		};
 
-		return ajaxActions
-			.getImageTilesHistogram(this._image._id, this._channel.index, binSettings);
+		return ajaxActions.getImageTilesHistogram(
+			this._image._id,
+			this._channel.index,
+			binSettings
+		);
 	}
 
 	getHistogramChart() {
