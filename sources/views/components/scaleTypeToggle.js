@@ -3,7 +3,7 @@ import {JetView} from "webix-jet";
 const SCALE_TOGGLE_ID = "scale-toggle-id";
 
 export default class ScaleToggle extends JetView {
-	constructor(app, config = {}, scaleType) {
+	constructor(app, config = {}) {
 		super(app, config);
 
 		this._cnf = config;
