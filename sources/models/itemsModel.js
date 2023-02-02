@@ -1,7 +1,7 @@
 import dot from "dot-object";
 
 import constants from "../constants";
-import validate from "../services/gallery/itemValidator";
+import validate from "../services/gallery/npValidator";
 import projectMetadata from "./projectMetadata";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
