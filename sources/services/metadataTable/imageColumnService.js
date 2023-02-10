@@ -1,6 +1,6 @@
+import constants from "../../constants";
 import metadataTableModel from "../../models/metadataTableModel";
 import authService from "../authentication";
-import constants from "../../constants";
 
 const buttonMinusIcon = "fas fa-minus";
 const buttonPlusIcon = "fas fa-plus";

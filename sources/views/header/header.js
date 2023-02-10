@@ -1,14 +1,16 @@
 import {JetView, plugins} from "webix-jet";
-import authService from "../../services/authentication";
+
+import constants from "../../constants";
 import ajax from "../../services/ajaxActions";
+import authService from "../../services/authentication";
 import HeaderService from "../../services/header/headerService";
+import utils from "../../utils/utils";
 import LoginWindow from "../authWindows/loginWindow";
 import LogoutPanel from "./parts/logoutPanel";
-import utils from "../../utils/utils";
 
 const LOGOUT_PANEL_NAME = "logout-panel";
 const LOGIN_PANEL_NAME = "login-panel";
-const serverListData = process.env.SERVER_LIST;
+const serverListData = constants.SERVER_LIST;
 
 export default class Header extends JetView {
 	config() {

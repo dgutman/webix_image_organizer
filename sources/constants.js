@@ -10,6 +10,8 @@ export default {
 		UPLOAD_METADATA: `${APP_URL_PATH}///upload-metadata`
 	},
 
+	SERVER_LIST: JSON.parse(process.env.SERVER_LIST),
+
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
 	PATTERN_LOGIN: "^[a-zA-Z]{1}[a-zA-Z0-9_.]{3,}$",
@@ -190,5 +192,6 @@ export default {
 	// end GroupColorTemplateWindow
 
 	EXPAND_LINK: "expand",
-	COLLAPSE_LINK: "collapse"
+	COLLAPSE_LINK: "collapse",
+	TABSTATE: process.env.TABSTATE
 };

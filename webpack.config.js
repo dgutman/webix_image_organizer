@@ -1,16 +1,13 @@
-const path = require("path");
-const webpack = require("webpack");
-const pack = require("./package.json");
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const TerserPlugin = require("terser-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const path = require("path");
+const TerserPlugin = require("terser-webpack-plugin");
+const webpack = require("webpack");
+require("dotenv").config();
 
-// ./node_modules/eslint-config-xbsoftware/1__double_quotes_and_tabs.js
-const localEnv = new Dotenv({
-	path: path.resolve(__dirname, ".env") // Path to .env file
-});
+const pack = require("./package.json");
 
 module.exports = (env) => {
 	const production = !!(env && env.production === "true");
@@ -18,12 +15,7 @@ module.exports = (env) => {
 		extends: path.join(__dirname, "/.babelrc")
 	};
 
-	const serverList = JSON.parse(localEnv.definitions["process.env.SERVER_LIST"], (key, value) => {
-		if (typeof value === "string") {
-			return JSON.parse(value);
-		}
-		return value;
-	});
+	const serverList = JSON.parse(process.env.SERVER_LIST);
 
 	const config = {
 		entry: "./sources/app.js",
@@ -38,25 +30,25 @@ module.exports = (env) => {
 			rules: [
 				{
 					test: /\.js?$/,
-					exclude(modulePath) {
-						return /node_modules/.test(modulePath) &&
-							!/node_modules[\\/]webix-jet/.test(modulePath) &&
-							!/node_modules[\\/]webpack-dev-server/.test(modulePath);
+					exclude: {
+						and: [/node_modules/]
 					},
-					loader: `babel-loader?${JSON.stringify(babelSettings)}`
+					use: [
+						{
+							loader: "babel-loader",
+							options: {
+								...babelSettings
+							}
+						}
+					]
 				},
 				{
 					test: /\.(svg|png|jpg|gif)$/,
-					use: {
-						loader: "file-loader",
-						options: {
-							name: "[path][name].[ext]"
-						}
-					}
+					type: "asset/resource"
 				},
 				{
 					test: /\.(less|css)$/,
-					loader: ExtractTextPlugin.extract("css-loader!less-loader")
+					use: [MiniCssExtractPlugin.loader, "css-loader", "less-loader"]
 				},
 				{
 					test: /\.html$/,
@@ -65,13 +57,16 @@ module.exports = (env) => {
 				},
 				{
 					test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
-					loader: "url-loader?limit=10000&mimetype=application/font-woff&name=[path][name].[ext]"
+					type: "asset/inline"
 				},
 				{
 					test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-					loader: "url-loader?limit=10000&mimetype=application/octet-stream&name=[path][name].[ext]"
+					type: "asset/inline"
 				},
-				{test: /\.eot(\?v=\d+\.\d+\.\d+)?$/, loader: "file-loader?name=[path][name].[ext]"}
+				{
+					test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+					type: "asset/inline"
+				}
 			]
 		},
 		resolve: {
@@ -86,15 +81,13 @@ module.exports = (env) => {
 			host: process.env.DEV_HOST || "0.0.0.0",
 			port: process.env.DEV_PORT || 5000,
 			// Path to all other files (e.g. index.html and webix):
-			contentBase: ["./codebase", "./node_modules"],
-			inline: true,
-			disableHostCheck: true
+			static: [
+				{
+					directory: path.join(__dirname, "./codebase")
+				}
+			]
 		},
 		plugins: [
-			new ExtractTextPlugin("./app.css"),
-			new HtmlWebpackPlugin({
-				template: "index.html"
-			}),
 			new webpack.DefinePlugin({
 				VERSION: `"${pack.version}"`,
 				APPNAME: `"${pack.name}"`,
@@ -102,8 +95,9 @@ module.exports = (env) => {
 			}),
 			new CopyWebpackPlugin({
 				patterns: [
-					{from: path.join(__dirname, "sources/images/"), to: "sources/images"},
-					{from: path.join(__dirname, "node_modules/webix/"), to: "webix"}
+					{from: path.resolve(__dirname, "sources/images/"), to: "sources/images"},
+					{from: path.resolve(__dirname, "node_modules/webix/"), to: "webix"},
+					{from: path.resolve(__dirname, "index.html")}
 				]
 			}),
 			new webpack.EnvironmentPlugin({
@@ -118,7 +112,8 @@ module.exports = (env) => {
 			}),
 			new Dotenv({
 				path: path.resolve(__dirname, ".env") // Path to .env file
-			})
+			}),
+			new MiniCssExtractPlugin()
 		]
 	};
 
