@@ -1,3 +1,4 @@
+import constants from "../../constants";
 import utils from "../../utils/utils";
 import ajax from "../ajaxActions";
 
@@ -75,11 +76,11 @@ class HeaderService {
 	urlChangeHost(view) {
 		const host = view.$scope.getParam("host");
 		if (!host) {
-			const firstHostItemId = process.env.SERVER_LIST[0].id;
+			const firstHostItemId = constants.SERVER_LIST[0].id;
 			view.$scope.setParam("host", this._hostBox.getValue() || firstHostItemId, true);
 			return false;
 		}
-		const paramsHost = process.env.SERVER_LIST.find(item => item.id === host);
+		const paramsHost = constants.SERVER_LIST.find(item => item.id === host);
 		if (paramsHost) {
 			this._hostBox.setValue(paramsHost.id);
 		}
@@ -119,8 +120,8 @@ class HeaderService {
 	setValueAndParseData() {
 		const paramsHostId = this._view.$scope.getParam("host");
 
-		const firstHostItemId = process.env.SERVER_LIST[0].id;
-		const paramsHost = process.env.SERVER_LIST.find(item => item.id === paramsHostId);
+		const firstHostItemId = constants.SERVER_LIST[0].id;
+		const paramsHost = constants.SERVER_LIST.find(item => item.id === paramsHostId);
 		if (paramsHost) {
 			const hostId = paramsHost.id;
 			this.putValuesAfterHostChange(hostId);

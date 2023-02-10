@@ -1,3 +1,5 @@
+import constants from "../../../../../constants";
+
 export default class ToolbarEventServices {
 	constructor(imageWindowView, toolbarView, imageWindowViewModel) {
 		this._imageWindowView = imageWindowView;
@@ -51,7 +53,7 @@ export default class ToolbarEventServices {
 			}
 
 			let childs = topToolbar.getChildViews();
-			const tabsState = process.env.TABSTATE;
+			const tabsState = constants.TABSTATE;
 			for (let i = 0; i < childs.length; i++) {
 				if (tabsState) {
 					if (tabsState[childs[i].config.name] === "disable") {

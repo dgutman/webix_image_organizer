@@ -1182,7 +1182,7 @@ class MainService {
 			}
 		}
 		else if (item._modelType === "folder") {
-			if (!(item.open ?? null) && item?.meta?.isLinear) {
+			if (item?.meta?.isLinear) {
 				this._loadLinearImages(id, isCollapsed);
 			}
 			else {

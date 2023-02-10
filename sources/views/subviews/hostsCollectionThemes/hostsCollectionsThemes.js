@@ -2,9 +2,10 @@
 import {JetView} from "webix-jet";
 import ajax from "../../../services/ajaxActions";
 import utils from "../../../utils/utils";
+import constants from "../../../constants"
 
 let hiddenViews = true;
-const serverListData = process.env.SERVER_LIST;
+const serverListData = constants.SERVER_LIST;
 
 export default class HostsCollectionThemesClass extends JetView {
 	config() {
