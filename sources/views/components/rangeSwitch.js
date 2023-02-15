@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import constants from "../../constants";
 
 const maxEdgeFor8BitId = 1;

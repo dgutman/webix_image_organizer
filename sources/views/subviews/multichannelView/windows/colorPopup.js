@@ -7,6 +7,7 @@ import ajaxActions from "../../../../services/ajaxActions";
 import TimedOutBehavior from "../../../../utils/timedOutBehavior";
 import ColorPicker from "../../../components/colorPicker";
 import HistogramChart from "../../../components/histogramChart";
+import RangeSlider from "../../../components/rangeSlider";
 import ScaleTypeToggle from "../../../components/scaleTypeToggle";
 
 const FORM_ID = `color-form-${webix.uid()}`;
@@ -23,6 +24,10 @@ export default class ColorPickerWindow extends JetView {
 			this.app,
 			{width: 530, height: 410, localId: HISTOGRAM_CHART_ID}
 		);
+		const initialMaxEdge = stateStore.bit === constants.EIGHT_BIT
+			? constants.MAX_EDGE_FOR_8_BIT
+			: constants.MAX_EDGE_FOR_16_BIT;
+		this._visibleRangeSlider = new RangeSlider(app, {hidden: true}, initialMaxEdge, 0);
 		this._scaleTypeToggle = new ScaleTypeToggle(
 			app,
 			{value: constants.LOGARITHMIC_SCALE_VALUE}
@@ -52,6 +57,7 @@ export default class ColorPickerWindow extends JetView {
 						localId: FORM_ID,
 						elements: [
 							this._colorPicker,
+							this._visibleRangeSlider,
 							{
 								cols: [
 									{
@@ -60,6 +66,7 @@ export default class ColorPickerWindow extends JetView {
 										label: "Cancel",
 										click: () => {
 											this.getForm().setValues(this._initValues);
+											this.applyChanges();
 											this.savePosition();
 											this.closeWindow();
 										}
@@ -172,6 +179,18 @@ export default class ColorPickerWindow extends JetView {
 			return {value, name};
 		});
 		this._histogramChart.makeChart(chartValues, yScale);
+		const histogramChartDiv = this._histogramChart.getHistogramDiv();
+		histogramChartDiv.on("plotly_relayout", (eventData) => {
+			const min = eventData["xaxis.range[0]"];
+			const max = eventData["xaxis.range[1]"];
+			const values = {min, max};
+			this.getForm().setValues(values);
+			this.getRoot().callEvent("colorChanged", [values]);
+		});
+	}
+
+	setMinAndMaxValuesByHistogram({min, max}) {
+		this._visibleRangeSlider.setEdges(min, max);
 	}
 
 	async _getHistogramInfo() {
