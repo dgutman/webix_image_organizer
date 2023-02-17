@@ -1,8 +1,8 @@
 import dot from "dot-object";
 
+import projectMetadata from "./projectMetadata";
 import constants from "../constants";
 import validate from "../services/gallery/npValidator";
-import projectMetadata from "./projectMetadata";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
@@ -253,9 +253,11 @@ export default class ItemsModel {
 				starColor = "red";
 				return starColor;
 			}
+		}
+		else if (item.hasOwnProperty("meta")) {
 			// Validate with JSON Schema
 			try {
-				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
+				const {/* valid: isValid, */missedKeys, incorrectKeys} = validate(item?.meta);
 
 				// TODO: uncomment when old validation will be removed
 				// if (isValid) {
@@ -271,7 +273,7 @@ export default class ItemsModel {
 					starColor = "red";
 				}
 			}
-			catch(err) {
+			catch (err) {
 				console.error(err);
 			}
 			return starColor ?? null;
@@ -310,14 +312,14 @@ export default class ItemsModel {
 				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
 				if (!isValid) {
 					missedKeys.forEach((missedKey) => {
-						highlight.add((missedKey.replaceAll("/", ".")).slice(1))
+						highlight.add((missedKey.replaceAll("/", ".")).slice(1));
 					});
 					incorrectKeys.forEach((incorrectKey) => {
 						highlight.add((incorrectKey.replaceAll("/", ".")).slice(1));
 					});
 				}
 			}
-			catch(err) {
+			catch (err) {
 				console.error(err);
 			}
 			return Array.from(highlight);

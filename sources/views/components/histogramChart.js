@@ -29,6 +29,7 @@ export default class PlotlyChart extends JetView {
 			return;
 		}
 		const templateNode = template.getNode();
+		// Create element with histogramContainerId for Plotly chart
 		templateNode.innerHTML = `<div id="${this._histogramContainerId}"/>`;
 		this._renderChart(data, yScaleType);
 		webix.TooltipControl.addTooltip(templateNode);
@@ -91,12 +92,16 @@ export default class PlotlyChart extends JetView {
 			config: plotlyConfig
 		};
 
-		console.log(plotlyOptions);
+		const histogramChartDiv = this.getHistogramDiv();
 
-		Plotly.newPlot(this._histogramContainerId, plotlyOptions);
+		Plotly.newPlot(histogramChartDiv, plotlyOptions);
 	}
 
 	$chartTemplate() {
 		return this.getRoot();
+	}
+
+	getHistogramDiv() {
+		return document.getElementById(this._histogramContainerId);
 	}
 }
