@@ -40,6 +40,7 @@ let contextToFolder;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
+const validationSchemas = projectMetadata.getValidationSchemas();
 let filesToLargeImage = [];
 let isRecognitionResultMode;
 
@@ -120,6 +121,10 @@ class MainService {
 		this._itemsModel = new ItemsModel(this._finder, this._galleryDataview, this._metadataTable);
 		this._itemsDataCollection = this._itemsModel.getDataCollection();
 		this._metadataTableDataCollection = metadataTableModel.getMetadataTableDataCollection();
+		/*
+			TODO: this collection should be consist of all elements under the folder and
+			show all images with HE by default.
+		*/
 		this._npSliderDataCollection = npdataTableModel.getNPDataCollection();
 		this._recognitionOptionsWindow = this._view.$scope.ui(RecognitionServiceWindow);
 		this._bigCountNotification = this._view.$scope.ui(BigCountNotificationWindow);
@@ -321,7 +326,8 @@ class MainService {
 			const scenesOption = constants.SCENES_VIEW_OPTION;
 			const multichannelViewOption = constants.MULTICHANNEL_VIEW_OPTION;
 
-			const selectedItem = this._finder.getSelectedItem();
+			// TODO: find selectedItem
+			// const selectedItem = this._finder.getSelectedItem();
 
 			switch (value) {
 				case thumbnailOption.id:
@@ -1329,9 +1335,9 @@ class MainService {
 			this._collapser.config.setClosedState();
 			this._view.showProgress();
 			const subcollectionData = await this._view.$scope.getSubFinderView()
-				.loadTreeFolders("collection", collectionItem._id);
+				.loadTreeFolders(constants.FOLDER_PARENT_TYPES.COLLECTION, collectionItem._id);
 			this._folderNav.openFirstFolder();
-			const projectMetadataFolder = subcollectionData
+			let projectMetadataFolder = subcollectionData
 				.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
 			projectMetadataCollection.clearAll();
 			projectMetadata.clearWrongMetadata();
@@ -1340,8 +1346,21 @@ class MainService {
 				this._projectFolderWindowButton.show();
 			}
 			else {
-				this._projectFolderWindowButton.hide();
+				const newProjectMetadataFolder = {
+					parentType: constants.FOLDER_PARENT_TYPES.COLLECTION,
+					name: constants.PROJECT_METADATA_FOLDER_NAME,
+					parentId: collectionItem._id
+				};
+				projectMetadataFolder = await ajaxActions.postNewFolder(newProjectMetadataFolder);
+				if (projectMetadataFolder) {
+					projectMetadataCollection.add(projectMetadataFolder);
+					this._projectFolderWindowButton.show();
+				}
+				else {
+					this._projectFolderWindowButton.hide();
+				}
 			}
+
 			const schemaFolder = subcollectionData
 				.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
 			patientsDataCollection.clearAll();

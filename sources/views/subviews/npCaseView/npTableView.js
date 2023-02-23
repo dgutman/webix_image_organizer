@@ -1,5 +1,5 @@
-import MetadataTableCellClass from "../metadataTable/metadataTable";
 import NPCaseViewService from "../../../services/npCaseView/npCaseView";
+import MetadataTableCellClass from "../metadataTable/metadataTable";
 
 export default class NPCaseViewClass extends MetadataTableCellClass {
 	config() {

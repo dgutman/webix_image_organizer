@@ -1,9 +1,10 @@
+import hotkeys from "hotkeys-js";
 import {JetView} from "webix-jet";
 
+import ColorPickerWindow from "./windows/colorPopup";
 import constants from "../../../constants";
 import stateStore from "../../../models/multichannelView/stateStore";
 import MathCalculations from "../../../utils/mathCalculations";
-import ColorPickerWindow from "./windows/colorPopup";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -20,6 +21,7 @@ export default class GroupsPanel extends JetView {
 		super(app);
 		this._cnf = config;
 		this._channelsSlidersContainersIds = new Map();
+		this._hotkeyCounter = 1;
 	}
 
 	config() {
@@ -89,6 +91,7 @@ export default class GroupsPanel extends JetView {
 						}
 					]
 				},
+				// TODO: move channels to groupChannel.js
 				{
 					localId: GROUP_CHANNELS_LAYOUT_ID,
 					hidden: true,
@@ -108,13 +111,20 @@ export default class GroupsPanel extends JetView {
 							select: false,
 							template: ({name, color, opacity, id}) => {
 								const showIcon = opacity ? "fas fa-eye" : "fas fa-eye-slash";
+								const focusIcon = "fas fa-dot-circle";
 								const containerId = webix.uid();
 								this._channelsSlidersContainersIds.set(id, containerId);
+								const iconElementId = webix.uid();
+								this.setHotkeyToIcon(iconElementId);
+								// Save focusHotkey value before call incrementHotkeyCounter function
+								const focusHotkey = this._hotkeyCounter;
+								this.incrementHotkeyCounter();
 								return `<div class="channel-item">
 									<div class="channel-item__row-one">
 										<span class="channel-item__name name">${name}</span>
 										<div class="icons">
 											<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
+											<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}" id="${iconElementId}"></span>
 											<span class="icon show ${showIcon}"></span>
 											<span class="icon delete fas fa-minus-circle"></span>
 										</div>
@@ -135,16 +145,18 @@ export default class GroupsPanel extends JetView {
 								onAfterRender: () => {
 									this.createChannelsSliders();
 								},
-								onAfterItemRender(obj) {
-									console.log(obj);
-								},
 								onDataUpdate: (/* id */) => {
+									this.resetHotkeyCounter();
+									this.clearHotkeys();
 									this.getGroupsChannelsList().refresh();
 								}
 							},
 							onClick: {
 								show: (ev, id) => {
 									this.showOrHideChannel(id);
+								},
+								focus: (ev, id) => {
+									this.focusOnChannel(id);
 								},
 								delete: (ev, id) => {
 									this.removeChannel(id);
@@ -205,6 +217,15 @@ export default class GroupsPanel extends JetView {
 	ready() {
 		this._colorWindow = this.ui(new ColorPickerWindow(this.app));
 		webix.TooltipControl.addTooltip(this.$$(GROUPS_TITLE_TEMPLATE).$view);
+		webix.TooltipControl.addTooltip(this.$$(GROUP_CHANNELS_LIST_ID).$view);
+		hotkeys("0", (/* event, handler */) => {
+			const channelList = this.getGroupsChannelsList();
+			channelList?.data?.each((channel, index) => {
+				const channelOpacity = 1;
+				channelList.updateItem(channel.id, {opacity: channelOpacity});
+				this.updateChannelOpacity(index, channelOpacity);
+			});
+		});
 	}
 
 	createChannelsSliders() {
@@ -325,6 +346,19 @@ export default class GroupsPanel extends JetView {
 		this.updateChannelOpacity(channelIndex, channelOpacity);
 	}
 
+	focusOnChannel(id) {
+		const channelList = this.getGroupsChannelsList();
+		channelList.data.each((channel, index) => {
+			const channelOpacity = 0;
+			channelList.updateItem(channel.id, {opacity: channelOpacity});
+			this.updateChannelOpacity(index, channelOpacity);
+		});
+		const focusedChannelIndex = channelList.getIndexById(id);
+		const channelOpacity = 1;
+		channelList.updateItem(id, {opacity: channelOpacity});
+		this.updateChannelOpacity(focusedChannelIndex, channelOpacity);
+	}
+
 	removeChannel(id) {
 		const channelList = this.getGroupsChannelsList();
 		const channelIndex = channelList.getIndexById(id);
@@ -407,6 +441,35 @@ export default class GroupsPanel extends JetView {
 	clearGroupChannelsList() {
 		const channelsList = this.getGroupsChannelsList();
 		channelsList.clearAll();
+	}
+
+	setHotkeyToIcon(iconElementId) {
+		if (this._hotkeyCounter !== 0) {
+			hotkeys(`${this._hotkeyCounter}`, (/* event, handler */) => {
+				const iconElement = document.getElementById(iconElementId);
+				iconElement?.click();
+			});
+		}
+	}
+
+	incrementHotkeyCounter() {
+		switch (this._hotkeyCounter) {
+			case 9:
+				break;
+			default:
+				this._hotkeyCounter++;
+				break;
+		}
+	}
+
+	resetHotkeyCounter() {
+		this._hotkeyCounter = 1;
+	}
+
+	clearHotkeys() {
+		for (let i = 1; i < 10; i++) {
+			hotkeys.unbind(`${i}`);
+		}
 	}
 
 	getGroupsList() {

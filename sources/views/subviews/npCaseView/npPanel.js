@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import npButton from "./parts/button";
 
 const NP_PANEL_ID = `np-toolbar-id-${webix.uid()}`;
@@ -15,36 +16,31 @@ export default class NpPanel extends JetView {
 			...this._config,
 			id: NP_PANEL_ID,
 			localId: NP_PANEL_ID,
-			view: "toolbar",
-			height: 80,
-			cols: [] // init in npCaseView
+			view: "scrollview",
+			body: {
+				height: 80,
+				cols: []
+			}
 		};
 	}
 
-	init() {
+	init() {}
 
-	}
-
-	ready() {
-
-	}
+	ready() {}
 
 	removeButtons() {
 		const npPanel = this.getNpPanelView();
-		const buttons = npPanel.getChildViews();
-		const buttonsIds = [];
-		buttons.forEach((view) => {
-			buttonsIds.push(view.config.id);
-		});
+		const npPanelBody = npPanel.getBody();
+		const buttonsIds = npPanelBody.getChildViews().map(button => button.config.id);
 		buttonsIds.forEach((id) => {
-			npPanel.removeView(id);
+			npPanelBody.removeView(id);
 		});
 	}
 
 	setButtons(npSchemaPropertiesArray, clickButtonHandler) {
 		const npPanelView = this.getNpPanelView();
 		this.removeButtons();
-		npPanelView.addView({});
+		const npPanelBody = npPanelView.getBody();
 		npSchemaPropertiesArray.forEach((property) => {
 			if (property) {
 				const buttonConfig = npButton.getConfig({
@@ -53,15 +49,16 @@ export default class NpPanel extends JetView {
 					id: `${property}_button`,
 					click: clickButtonHandler
 				});
-				npPanelView.addView(buttonConfig);
-				npPanelView.addView({});
+				npPanelBody.addView(buttonConfig);
+				npPanelBody.addView({});
 			}
 		});
 	}
 
 	getButtons() {
 		const npPanel = this.getNpPanelView();
-		return npPanel.getChildViews();
+		const buttons = npPanel.getBody().getChildViews();
+		return buttons;
 	}
 
 	getNpPanelView() {
