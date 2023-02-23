@@ -1,16 +1,17 @@
 import {DataCollection} from "webix";
-import ScenesView from "../scenesView/scenesView";
+
 import NpPanel from "./npPanel";
 import NPTableView from "./npTableView";
 import collapser from "../../components/collapser";
+import ScenesView from "../scenesView/scenesView";
 
-const npPanelCollapserName = 'npPanelCollapser';
-const toggleStainAndRegionId = 'toggleStainAndRegionId';
+const npPanelCollapserName = "npPanelCollapser";
+const toggleStainAndRegionId = "toggleStainAndRegionId";
 
 export default class NPCaseViewClass extends ScenesView {
 	constructor(app, config) {
 		super(app, config);
-		this._npPanel = new NpPanel(app);
+		this._npPanel = new NpPanel(app, {scroll: "x"});
 		this._npTableView = new NPTableView(app);
 	}
 
@@ -25,13 +26,13 @@ export default class NPCaseViewClass extends ScenesView {
 			onLabel: "Stain",
 			width: 100,
 			value: 1
-		}
+		};
 		const modePanel = {
 			cols: [
 				toggleButton,
 				this._modePanelView
 			]
-		}
+		};
 		return {
 			name: "npViewCell",
 			css: "scenes-view",
@@ -78,14 +79,15 @@ export default class NPCaseViewClass extends ScenesView {
 						&& !npSchemaProperties.includes(items[key].meta.npSchema.stainID)) {
 						npSchemaProperties.push(items[key].meta.npSchema.stainID);
 					}
-				});	
-			} else {
+				});
+			}
+			else {
 				itemsKeys.forEach((key) => {
 					if (items[key].meta?.npSchema?.regionName
 						&& !npSchemaProperties.includes(items[key].meta.npSchema.regionName)) {
 						npSchemaProperties.push(items[key].meta.npSchema.regionName);
 					}
-				});	
+				});
 			}
 			const clickButtonHandler = function (id) {
 				if (switcherView.getValue()) {
@@ -95,14 +97,16 @@ export default class NPCaseViewClass extends ScenesView {
 							? obj.meta.npSchema.stainID === $$(id).config.value
 							: false;
 					});
-					npPanel.getNpPanelView().getChildViews().forEach((button) => {
+					const buttons = npPanel.getButtons();
+					buttons.forEach((button) => {
 						const buttonNode = button.getNode();
 						buttonNode.classList.remove("np_button_active");
 						buttonNode.classList.add("np_button");
-					})
+					});
 					$$(id).getNode().classList.remove("np_button");
-					$$(id).getNode().classList.add("np_button_active");	
-				} else {
+					$$(id).getNode().classList.add("np_button_active");
+				}
+				else {
 					sliderCollection.filter((obj) => {
 						return obj.meta?.npSchema?.regionName
 							&& ($$(id))?.config
@@ -113,9 +117,9 @@ export default class NPCaseViewClass extends ScenesView {
 						const buttonNode = button.getNode();
 						buttonNode.classList.remove("np_button_active");
 						buttonNode.classList.add("np_button");
-					})
+					});
 					$$(id).getNode().classList.remove("np_button");
-					$$(id).getNode().classList.add("np_button_active");	
+					$$(id).getNode().classList.add("np_button_active");
 				}
 			};
 
@@ -144,7 +148,7 @@ export default class NPCaseViewClass extends ScenesView {
 		});
 
 		this.on(switcherView, "onChange", updateView);
-		
+
 		this.on(this.getRoot(), "onViewShow", async () => {
 			this._setSelectedImagesToViewer();
 		});

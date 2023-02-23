@@ -340,6 +340,18 @@ class AjaxActions {
 			.get(this.getOpenFileUrl(id))
 			.catch(parseError);
 	}
+
+	postNewFolder(folder) {
+		const params = {
+			name: folder.name,
+			parentId: folder.parentId,
+			parentType: folder.parentType
+		};
+		return this._ajax()
+			.post(`${this.getHostApiUrl()}/folder`, params)
+			.catch(parseError)
+			.then(result => this._parseData(result));
+	}
 }
 
 const instance = new AjaxActions();

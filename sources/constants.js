@@ -79,6 +79,7 @@ export default {
 	PROJECT_METADATA_FOLDER_NAME: ".ProjectMetadata",
 	SCHEMA_METADATA_FOLDER_NAME: ".schema",
 	PATIENTS_METADATA_FOLDER_NAME: "CaseLevelData",
+	VALIDATION_SCHEMAS_FOLDER_NAME: "validationSchemas",
 
 	THUMBNAIL_DATAVIEW_IMAGES: "Display THUMBNAIL images",
 	LABEL_DATAVIEW_IMAGES: "Display LABEL images",
@@ -193,5 +194,10 @@ export default {
 
 	EXPAND_LINK: "expand",
 	COLLAPSE_LINK: "collapse",
-	TABSTATE: process.env.TABSTATE
+	TABSTATE: process.env.TABSTATE,
+	FOLDER_PARENT_TYPES: {
+		FOLDER: "folder",
+		USER: "user",
+		COLLECTION: "collection"
+	}
 };
