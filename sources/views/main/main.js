@@ -1,13 +1,14 @@
 import {JetView, plugins} from "webix-jet";
-import finderView from "../subviews/finder/finderView";
-import Multiview from "../subviews/multiDataView/multiDataView";
-import dataviewActionPanel from "../subviews/dataviewActionPanel/dataviewActionPanel";
-import metadataTemplateView from "../subviews/metadataPanel/metadataTemplateView";
-import collapser from "../components/collapser";
+
 import constants from "../../constants";
 import MainService from "../../services/main/mainService";
+import collapser from "../components/collapser";
 import cartList from "../subviews/cartList/cardList";
+import dataviewActionPanel from "../subviews/dataviewActionPanel/dataviewActionPanel";
+import finderView from "../subviews/finder/finderView";
 import galleryFeatures from "../subviews/galleryFeatures/galleryFeatures";
+import metadataTemplateView from "../subviews/metadataPanel/metadataTemplateView";
+import Multiview from "../subviews/multiDataView/multiDataView";
 
 const collapserName = "metadataCollapser";
 const finderCollapserName = "finderCollapserName";

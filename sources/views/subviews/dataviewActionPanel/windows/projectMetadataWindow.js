@@ -40,12 +40,25 @@ export default class ProjectMetadataWindow extends JetView {
 				borderless: true,
 				rows: [
 					{
-						view: "template",
+						view: "editabletemplate",
 						name: "projectMetadataTemplateName",
 						css: {overflow: "auto"},
+						editable: true,
+						editor: "text",
+						editaction: "click",
 						template: (obj) => {
 							if (!utils.isObjectEmpty(obj)) {
-								const stringToReturn = `<pre>${JSON.stringify(obj, null, 2)}</pre>`;
+								let stringToReturn = "";
+								projectKeys.forEach((key) => {
+									if (Array.isArray(obj[key])) {
+										const validationValues = obj[key].map((value, index) => `<p data-edit=${key}-${index} style='height:14px; border:1px dotted'">${value}</p>`).join("");
+										const showedOrHiddenCssClass = this.getShowedOrHiddenCssClass(key);
+										stringToReturn += `<div class="collapssible-accordion ${key} project-metadata-window-collapser ${showedOrHiddenCssClass}" id=${key}>
+														<span class="collpaser-text">${key}</span>
+													</div>
+													<div class="validation-values-template ${key}" style="">${validationValues}</div>\n`;
+									}
+								});
 								return stringToReturn;
 							}
 							return "";

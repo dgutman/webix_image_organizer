@@ -1,9 +1,10 @@
 import {JetView} from "webix-jet";
+
 import ProjectMetadataWindow from "./windows/projectMetadataWindow";
 import constants from "../../../constants";
-import utils from "../../../utils/utils";
-import ItemsModel from "../../../models/itemsModel";
 import tilesCollection from "../../../models/imageTilesCollection";
+import ItemsModel from "../../../models/itemsModel";
+import utils from "../../../utils/utils";
 
 const SPACER_FOR_PAGER_ID = "spacer-for-pager";
 const [thumbnailOption] = constants.MAIN_MULTIVIEW_OPTIONS;
