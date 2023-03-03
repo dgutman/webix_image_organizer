@@ -169,7 +169,11 @@ class MetadataTableService {
 					}
 					patientsDataCollection.parse(copyOfAnPatientToEdit);
 					this._view.showProgress();
-					ajaxActions.updatePatientMetadata(patientToEdit._id, copyOfAnPatientToEdit.meta, patientToEdit._modelType)
+					ajaxActions.updatePatientMetadata(
+						patientToEdit._id,
+						copyOfAnPatientToEdit.meta,
+						patientToEdit._modelType
+					)
 						.then(() => {
 							this._view.hideProgress();
 						})

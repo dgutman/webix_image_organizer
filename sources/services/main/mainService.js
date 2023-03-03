@@ -37,6 +37,8 @@ import ImageThumbnailLoader from "../gallery/imageThumbnailLoader";
 import EmptyDataViewsService from "../views/emptyDataViews";
 
 let contextToFolder;
+// TODO: find scroll event
+// let scrollEventId;
 let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
@@ -838,6 +840,7 @@ class MainService {
 			this._finderCountTemplate.setCount(count);
 		});
 
+		// TODO: synchronise this._itemsDataCollection and this._metadataTableDataCollection
 		this._itemsDataCollection.attachEvent("onAfterLoad", () => {
 			this._updateMetadataTableData();
 		});
@@ -1359,6 +1362,25 @@ class MainService {
 				else {
 					this._projectFolderWindowButton.hide();
 				}
+			}
+
+			const projectMetadataContent = await this._view.$scope.getSubFinderView().loadTreeFolders(
+				projectMetadataFolder._modelType,
+				projectMetadataFolder._id
+			);
+
+			const validationSchemasFolder = projectMetadataContent
+				.find(item => item.name === constants.VALIDATION_SCHEMAS_FOLDER_NAME);
+
+			if (validationSchemasFolder) {
+				const validationSchemasItems = await ajaxActions.getItems(validationSchemasFolder._id);
+				validationSchemasItems.forEach(async (schema) => {
+					const schemaBlob = await ajaxActions.getBlobFile(schema._id);
+					const jsonSchema = schemaBlob?.json();
+					if (jsonSchema) {
+						validationSchemas.push(jsonSchema);
+					}
+				});
 			}
 
 			const schemaFolder = subcollectionData

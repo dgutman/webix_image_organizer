@@ -2,9 +2,9 @@
 // To determine which node acts as value editor we use "data-edit" attribute, which value contains
 // name of the property of the data object, that should be edited
 //
-import ajaxActions from "../../services/ajaxActions";
 import projectMetadata from "../../models/projectMetadata";
 import webixViews from "../../models/webixViews";
+import ajaxActions from "../../services/ajaxActions";
 
 if (!webix.ui.editabletemplate) {
 	webix.protoUI({

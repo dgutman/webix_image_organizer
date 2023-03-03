@@ -1,13 +1,14 @@
 import dot from "dot-object";
-import utils from "../utils/utils";
-import constants from "../constants";
-import format from "../utils/formats";
-import authService from "../services/authentication";
+
 import editableFoldersModel from "./editableFoldersModel";
 import galleryImageUrl from "./galleryImageUrls";
 import nonImageUrls from "./nonImageUrls";
 import webixViews from "./webixViews";
+import constants from "../constants";
+import authService from "../services/authentication";
 import ImageThumbnailLoader from "../services/gallery/imageThumbnailLoader";
+import format from "../utils/formats";
+import utils from "../utils/utils";
 
 let metadataDotObject = {};
 let patientsDataDotObject = {};
@@ -111,9 +112,12 @@ function setSelectFilterOptions(filterType, columnId, initial) {
 }
 
 function markWrongMetadata(value, obj, rowId, columnId) {
-	let style = {};
+	let style = {"background-color": "#90EE90"};
+	if (obj?.highlightedValues?.find(highlightedValue => columnId.startsWith(highlightedValue))) {
+		style = {"background-color": "#fc8b18", color: "#FFFFFF"};
+	}
 	if (obj?.highlightedValues?.find(highlightedValue => highlightedValue === columnId)) {
-		style = {"background-color": "#ff5d5d"};
+		style = {"background-color": "#ff5d5d", color: "#FFFFFF"};
 	}
 	return style;
 }
@@ -302,7 +306,10 @@ function getImageColumnTemplate(columnConfig, size) {
 
 function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig) {
 	if (columnConfigToAdd.columnType === "image") {
-		columnConfigToAdd.template = getImageColumnTemplate(columnConfigToAdd, columnConfigToAdd.imageSize);
+		columnConfigToAdd.template = getImageColumnTemplate(
+			columnConfigToAdd,
+			columnConfigToAdd.imageSize
+		);
 		columnConfigToAdd.tooltip = getImageColumnTemplate(columnConfigToAdd, 64);
 	}
 	else {
@@ -362,8 +369,11 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 		else {
 			columnConfigToAdd.header = localColumnHeaderArray;
 			const initialColumn = initialColumnsConfig
+				// eslint-disable-next-line max-len
 				.find(initialColumnConfig => initialColumnConfig.id === columnConfigToAdd.id && !columnConfigToAdd.hidden);
-			if (initialColumn && initialColumn.template) columnConfigToAdd.template = initialColumn.template;
+			if (initialColumn && initialColumn.template) {
+				columnConfigToAdd.template = initialColumn.template;
+			}
 		}
 		if (filterTypeValue) columnConfigToAdd.filterTypeValue = filterTypeValue;
 	}

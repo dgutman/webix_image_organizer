@@ -311,11 +311,11 @@ export default class ItemsModel {
 			try {
 				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
 				if (!isValid) {
-					missedKeys.forEach((missedKey) => {
-						highlight.add((missedKey.replaceAll("/", ".")).slice(1));
+					missedKeys.forEach((missedKeyObject) => {
+						highlight.add((missedKeyObject.missedKey.replaceAll("/", ".")).slice(1));
 					});
-					incorrectKeys.forEach((incorrectKey) => {
-						highlight.add((incorrectKey.replaceAll("/", ".")).slice(1));
+					incorrectKeys.forEach((incorrectKeyObject) => {
+						highlight.add((incorrectKeyObject.incorrectKey.replaceAll("/", ".")).slice(1));
 					});
 				}
 			}

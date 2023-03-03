@@ -1,7 +1,8 @@
-import {JetView} from "webix-jet";
 import papaparse from "papaparse";
-import utils from "../../../../utils/utils";
+import {JetView} from "webix-jet";
+
 import ajaxActions from "../../../../services/ajaxActions";
+import utils from "../../../../utils/utils";
 
 const windowWidth = Math.max(window.innerWidth / 100 * 80, 900);
 const windowHeight = Math.max(window.innerHeight / 100 * 80, 700);
