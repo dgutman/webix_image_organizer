@@ -27,7 +27,7 @@ const validate = (data) => {
 	const incorrectKeys = [];
 	let isDataValid = true;
 	schemas.forEach((schema) => {
-		const ajv = new Ajv({strict: "log"});
+		const ajv = new Ajv({strict: "log", allErrors: true});
 		const validator = ajv.compile(schema);
 		const valid = validator(data);
 		if (!valid) {
