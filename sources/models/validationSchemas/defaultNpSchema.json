@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2019-09/schema",
-    "$id": "validationSchemas/defaultNpSchema.json",
+    "$id": "http://example.com/example.json",
     "type": "object",
     "default": {},
     "title": "Root Schema",
@@ -15,7 +15,6 @@
             "required": [
                 "blockID",
                 "caseID",
-                "regionName",
                 "stainID"
             ],
             "properties": {
@@ -24,7 +23,7 @@
                     "default": "",
                     "title": "The blockID Schema",
                     "examples": [
-                        "1"
+                        "10"
                     ]
                 },
                 "caseID": {
@@ -32,40 +31,45 @@
                     "default": "",
                     "title": "The caseID Schema",
                     "examples": [
-                        "1"
-                    ]
-                },
-                "regionName": {
-                    "type": "string",
-                    "default": "",
-                    "title": "The regionName Schema",
-                    "examples": [
-                        "Hippocampus"
-                    ]
+                        "E18-7"
+                    ],
+                    "pattern": "^(E|A)\\d\\d-\\d+"
                 },
                 "stainID": {
                     "type": "string",
                     "default": "",
                     "title": "The stainID Schema",
                     "examples": [
-                        "HE"
+                        "Tau"
+                    ],
+                    "enum": [
+                        "pTDP",
+                        "HE",
+                        "aBeta",
+                        "Ubiq",
+                        "Tau",
+                        "Biels",
+                        "Syn",
+                        "p62",
+                        "LFB",
+                        "FUS",
+                        "TDP-43",
+                        "GFAP"
                     ]
                 }
             },
             "examples": [{
-                "blockID": "1",
-                "caseID": "1",
-                "regionName": "Hippocampus",
-                "stainID": "HE"
+                "blockID": "10",
+                "caseID": "E18-7",
+                "stainID": "Tau"
             }]
         }
     },
     "examples": [{
         "npSchema": {
-            "blockID": "1",
-            "caseID": "1",
-            "regionName": "Hippocampus",
-            "stainID": "HE"
+            "blockID": "10",
+            "caseID": "E18-7",
+            "stainID": "Tau"
         }
     }]
 }
