@@ -1,7 +1,7 @@
 import Ajv from "ajv/dist/2019";
 
 import projectMetadata from "../../models/projectMetadata";
-import itemSchema from "../../models/validationSchemas/defaultNpSchema.json";
+import defaultSchema from "../../models/validationSchemas/defaultNpSchema.json";
 
 const validationSchemas = projectMetadata.getValidationSchemas();
 
@@ -9,11 +9,16 @@ const findErrors = (errors) => {
 	const missedKeys = [];
 	const incorrectKeys = [];
 	errors.forEach((error) => {
-		if (error.keyword === "required") {
-			missedKeys.push(`${error.instancePath}/${error.params.missingProperty}`);
-		}
-		if (error.params?.allowedValues) {
-			incorrectKeys.push(error.instancePath);
+		switch (error.keyword) {
+			case "required":
+				missedKeys.push(`${error.instancePath}/${error.params.missingProperty}`);
+				break;
+			case "pattern":
+				incorrectKeys.push(error.instancePath);
+				break;
+			default:
+				incorrectKeys.push(error.instancePath);
+				break;
 		}
 	});
 	return {missedKeys, incorrectKeys};
@@ -21,8 +26,15 @@ const findErrors = (errors) => {
 
 const validate = (data) => {
 	const schemas = [];
-	schemas.push(itemSchema);
-	schemas.push(...validationSchemas);
+	const validationFolder = projectMetadata.getValidationFolder();
+	const foldersAndSchemasMapping = projectMetadata.getFolderAndSchemasMapping();
+	const validationSchemasIds = foldersAndSchemasMapping?.get(validationFolder?.name);
+	if (Array.isArray(validationSchemasIds) && validationSchemasIds?.length) {
+		schemas.push(...validationSchemas.filter(schema => validationSchemasIds.includes(schema.$id)));
+	}
+	else {
+		schemas.push(defaultSchema);
+	}
 	const missedKeys = [];
 	const incorrectKeys = [];
 	let isDataValid = true;
