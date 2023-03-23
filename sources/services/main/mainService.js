@@ -1453,13 +1453,17 @@ class MainService {
 						finderElements.push({link: constants.COLLAPSE_LINK});
 					}
 					if (finderElements) {
-						this._itemsModel.parseItems(finderElements, folderId);
+						this._itemsModel.parseItems(finderElements, folderId, data?.length);
 					}
 					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
 					this._highlightLastSelectedFolder();
 
 					if (data.length < sourceParams.limit) {
-						this._finder.updateItem(folderId, {linear: constants.LOADING_STATUSES.DONE});
+						const currentLinear = folder.linear;
+						this._finder.updateItem(
+							folderId,
+							{linear: Object.assign(currentLinear, constants.LOADING_STATUSES.DONE)}
+						);
 					}
 					else {
 						const newParams = {
@@ -1499,7 +1503,7 @@ class MainService {
 		this._finder.unblockEvent();
 		this._folderNav.setFoldersIntoUrl();
 		this._itemsModel.selectedItem = this._finderFolder;
-		this._finderFolder.linear = constants.LOADING_STATUSES.IN_PROGRESS;
+		this._finderFolder.linear = Object.assign({}, constants.LOADING_STATUSES.IN_PROGRESS);
 		this._itemsModel.updateItems(this._finderFolder);
 		const addBatch = false;
 		this.linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed);

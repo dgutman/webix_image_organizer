@@ -30,7 +30,7 @@ export default class FinderViewClass extends JetView {
 				if (obj._modelType === "folder" && branch.length === 1 && branch[0]._modelType === constants.SUB_FOLDER_MODEL_TYPE) {
 					count = branch[0].$count;
 				}
-				const countTemplate = count >= 0 ? `<span class='strong-font'>(${count})</span>` : "";
+				const countTemplate = count >= 0 ? `<span class='strong-font'>(${count < obj.linear?.count ? obj.linear.count : count})</span>` : "";
 				const loadingStatus = obj.linear || obj.caseview;
 				const loadingIcon = loadingStatus ? `<i class='${loadingStatus.icon}' style='color: ${loadingStatus.iconColor};'></i>` : "";
 				return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name} ${countTemplate} ${loadingIcon}</span>`;

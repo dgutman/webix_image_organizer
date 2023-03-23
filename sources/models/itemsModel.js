@@ -12,7 +12,7 @@ const subFolderType = constants.SUB_FOLDER_MODEL_TYPE;
 export default class ItemsModel {
 	constructor(finder, dataview, table) {
 		if (!ItemsModel.instance) {
-			this.finderCollection = finder;
+			this.finderView = finder;
 			this.dataCollection = new webix.DataCollection();
 			this.customFinderDataPull = {};
 			this.dataview = dataview;
@@ -28,7 +28,7 @@ export default class ItemsModel {
 		return ItemsModel.instance;
 	}
 
-	parseItems(dataArray, parentId) {
+	parseItems(dataArray, parentId, linearDataCount) {
 		const finderDataPull = {};
 		dataArray.forEach((item) => {
 			const id = webix.uid();
@@ -39,18 +39,21 @@ export default class ItemsModel {
 		});
 
 		if (parentId) {
-			this.parseItemsToFolder(dataArray, parentId);
+			this.parseItemsToFolder(dataArray, parentId, linearDataCount);
 		}
 		else {
-			this.finderCollection.parse(dataArray);
+			this.finderView.parse(dataArray);
 		}
 
 		Object.assign(this.customFinderDataPull, finderDataPull);
 	}
 
-	parseItemsToFolder(dataArray, parentId) {
-		let branch = this.finderCollection.data.getBranch(parentId) || [];
+	parseItemsToFolder(dataArray, parentId, linearDataCount) {
+		let branch = this.finderView.data.getBranch(parentId) || [];
 		const parent = this.findItem(parentId);
+		if (parent?.linear) {
+			parent.linear.count = linearDataCount;
+		}
 		const count = this.getFolderCount(parent) + dataArray.length;
 		let items = dataArray;
 		if (count >= constants.FOLDER_MAX_SHOWED_ITEMS && !parent._showMany) {
@@ -58,11 +61,11 @@ export default class ItemsModel {
 				parentId = branch[0].id;
 			}
 			else {
-				this.finderCollection.callEvent("putItemsToSubFolder");
-				this.finderCollection.blockEvent();
-				this.finderCollection.close(parentId);
+				this.finderView.callEvent("putItemsToSubFolder");
+				this.finderView.blockEvent();
+				this.finderView.close(parentId);
 				branch.forEach(item => this.removeItem(item.id));
-				this.finderCollection.unblockEvent();
+				this.finderView.unblockEvent();
 
 				items = [{
 					_modelType: subFolderType,
@@ -71,16 +74,16 @@ export default class ItemsModel {
 				}];
 			}
 		}
-		this.finderCollection.parse({data: items, parent: parentId});
-		this.finderCollection.blockEvent();
-		this.finderCollection.open(parent.id);
-		this.finderCollection.unblockEvent();
+		this.finderView.parse({data: items, parent: parentId});
+		this.finderView.blockEvent();
+		this.finderView.open(parent.id);
+		this.finderView.unblockEvent();
 	}
 
 	openSubFolder(id) {
 		const subFolder = this.findItem(id);
 		const parent = this.findItem(subFolder.$parent);
-		const branch = this.finderCollection.data.getBranch(id);
+		const branch = this.finderView.data.getBranch(id);
 		parent._showMany = true;
 		this.removeItem(id);
 		this.parseItems(branch, parent.id);
@@ -89,7 +92,7 @@ export default class ItemsModel {
 	addItem(item) {
 		const id = webix.uid();
 		item.id = id;
-		this.finderCollection.add(item);
+		this.finderView.add(item);
 		this.customFinderDataPull[item._id] = item;
 	}
 
@@ -102,7 +105,7 @@ export default class ItemsModel {
 			const foundedItemInDataCollection =
 				this.dataCollection.find(item => item._id === updatedItem._id, true);
 			if (foundedItemInFinder) {
-				this.finderCollection.updateItem(foundedItemInFinder.id, updatedItem);
+				this.finderView.updateItem(foundedItemInFinder.id, updatedItem);
 			}
 			if (foundedItemInDataCollection) {
 				this.dataCollection.updateItem(foundedItemInDataCollection.id, updatedItem);
@@ -113,13 +116,13 @@ export default class ItemsModel {
 	removeItem(id, baseId) {
 		let item = null;
 		if (id) {
-			item = this.finderCollection.getItem(id);
+			item = this.finderView.getItem(id);
 			delete this.customFinderDataPull[item._id];
-			this.finderCollection.remove(id);
+			this.finderView.remove(id);
 		}
 		else if (baseId) {
 			item = this.customFinderDataPull[baseId];
-			this.finderCollection.remove(item.id);
+			this.finderView.remove(item.id);
 			delete this.customFinderDataPull[baseId];
 		}
 	}
@@ -127,7 +130,7 @@ export default class ItemsModel {
 	findItem(id, baseId) {
 		let item = null;
 		if (id) {
-			item = this.finderCollection.getItem(id);
+			item = this.finderView.getItem(id);
 		}
 		else if (baseId) {
 			item = this.customFinderDataPull[baseId];
@@ -136,7 +139,7 @@ export default class ItemsModel {
 	}
 
 	clearAll() {
-		this.finderCollection.clearAll();
+		this.finderView.clearAll();
 		this.customFinderDataPull = {};
 	}
 
@@ -145,7 +148,7 @@ export default class ItemsModel {
 	}
 
 	getFinderCollection() {
-		return this.finderCollection;
+		return this.finderView;
 	}
 
 	getDataCollection() {
@@ -328,14 +331,14 @@ export default class ItemsModel {
 	}
 
 	findAndRemove(id, folder) {
-		const array = this.finderCollection.data.getBranch(id);
+		const array = this.finderView.data.getBranch(id);
 
 		array.forEach(item => this.removeItem(item.id));
 		folder.$count = -1; // typical for folders with webix_kids and no actual data
 		folder.hasOpened = false;
 
-		webix.dp(this.finderCollection).ignore(() => {
-			this.finderCollection.updateItem(folder.id, folder);
+		webix.dp(this.finderView).ignore(() => {
+			this.finderView.updateItem(folder.id, folder);
 		});
 
 		this.dataview.getPager().hide();
@@ -343,9 +346,9 @@ export default class ItemsModel {
 	}
 
 	getFolderItems(folderId) {
-		const branch = this.finderCollection.data.getBranch(folderId);
+		const branch = this.finderView.data.getBranch(folderId);
 		if (branch.length === 1 && branch[0]._modelType === subFolderType) {
-			return this.finderCollection.data.getBranch(branch[0].id);
+			return this.finderView.data.getBranch(branch[0].id);
 		}
 		return branch;
 	}
