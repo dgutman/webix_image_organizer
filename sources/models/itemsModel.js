@@ -309,7 +309,7 @@ export default class ItemsModel {
 			});
 
 			try {
-				const {valid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
+				const {isDataValid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
 				if (!isValid) {
 					missedKeys.forEach((missedKeyObject) => {
 						highlight.add((missedKeyObject.missedKey.replaceAll("/", ".")).slice(1));
