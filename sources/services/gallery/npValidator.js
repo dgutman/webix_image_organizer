@@ -26,9 +26,14 @@ const findErrors = (errors) => {
 
 const validate = (data) => {
 	const schemas = [];
-	schemas.push(defaultSchema);
-	if (Array.isArray(validationSchemas)) {
-		schemas.push(...validationSchemas);
+	const validationFolder = projectMetadata.getValidationFolder();
+	const foldersAndSchemasMapping = projectMetadata.getFolderAndSchemasMapping();
+	const validationSchemasIds = foldersAndSchemasMapping?.get(validationFolder?.name);
+	if (Array.isArray(validationSchemasIds) && validationSchemasIds?.length) {
+		schemas.push(...validationSchemas.filter(schema => validationSchemasIds.includes(schema.$id)));
+	}
+	else {
+		schemas.push(defaultSchema);
 	}
 	const missedKeys = [];
 	const incorrectKeys = [];

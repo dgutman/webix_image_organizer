@@ -307,6 +307,9 @@ class AjaxActions {
 
 	updateFolderMetadata(folderId, metadata) {
 		return this._ajax()
+			.headers({
+				"Content-type": "application/json"
+			})
 			.put(`${this.getHostApiUrl()}/folder/${folderId}/metadata`, metadata)
 			.catch(parseError)
 			.then(result => this._parseData(result));

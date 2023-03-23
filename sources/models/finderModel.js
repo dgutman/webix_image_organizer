@@ -1,4 +1,5 @@
 import constants from "../constants";
+import projectMetadata from "./projectMetadata";
 
 export default class FinderModel {
 	constructor(view, finder, itemsModel) {
@@ -13,6 +14,10 @@ export default class FinderModel {
 		const array = [];
 		let itemsArray = [];
 		const item = finderView.getItem(id);
+		const collectionFolders = projectMetadata.getCollectionFolders();
+		if (collectionFolders.find(folder => folder._id === item._id)) {
+			projectMetadata.setValidationFolder(item);
+		}
 		if (!item.hasOpened && !item.linear) {
 			view.showProgress();
 			return view.$scope.getSubFinderView()

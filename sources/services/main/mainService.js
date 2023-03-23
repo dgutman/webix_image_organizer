@@ -43,6 +43,7 @@ let lastSelectedFolderId;
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
 const patientsDataCollection = patientsDataModel.getPatientsDataCollection();
 const validationSchemas = projectMetadata.getValidationSchemas();
+const folderAndSchemasMapping = projectMetadata.getFolderAndSchemasMapping();
 let filesToLargeImage = [];
 let isRecognitionResultMode;
 
@@ -1340,12 +1341,19 @@ class MainService {
 			const subcollectionData = await this._view.$scope.getSubFinderView()
 				.loadTreeFolders(constants.FOLDER_PARENT_TYPES.COLLECTION, collectionItem._id);
 			this._folderNav.openFirstFolder();
-			let projectMetadataFolder = subcollectionData
+			let projectFolderMetadata = subcollectionData
 				.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
-			projectMetadataCollection.clearAll();
+			const collectionFolders = projectMetadata.getCollectionFolders();
+			// Clear collection folders before push folders from server
+			projectMetadata.clearCollectionFolders();
+			collectionFolders.push(...subcollectionData
+				.filter(folder => folder._modelType === constants.MODEL_TYPE.FOLDER
+					&& folder.name !== constants.PROJECT_METADATA_FOLDER_NAME));
+			// projectMetadataCollection.clearAll();
+			projectMetadata.clearProjectFolderMetadata();
 			projectMetadata.clearWrongMetadata();
-			if (projectMetadataFolder) {
-				projectMetadataCollection.add(projectMetadataFolder);
+			if (projectFolderMetadata) {
+				projectMetadataCollection.add(projectFolderMetadata);
 				this._projectFolderWindowButton.show();
 			}
 			else {
@@ -1354,9 +1362,9 @@ class MainService {
 					name: constants.PROJECT_METADATA_FOLDER_NAME,
 					parentId: collectionItem._id
 				};
-				projectMetadataFolder = await ajaxActions.postNewFolder(newProjectMetadataFolder);
-				if (projectMetadataFolder) {
-					projectMetadataCollection.add(projectMetadataFolder);
+				projectFolderMetadata = await ajaxActions.postNewFolder(newProjectMetadataFolder);
+				if (projectFolderMetadata) {
+					projectMetadataCollection.add(projectFolderMetadata);
 					this._projectFolderWindowButton.show();
 				}
 				else {
@@ -1365,14 +1373,15 @@ class MainService {
 			}
 
 			const projectMetadataContent = await this._view.$scope.getSubFinderView().loadTreeFolders(
-				projectMetadataFolder._modelType,
-				projectMetadataFolder._id
+				projectFolderMetadata._modelType,
+				projectFolderMetadata._id
 			);
 
 			const validationSchemasFolder = projectMetadataContent
 				.find(item => item.name === constants.VALIDATION_SCHEMAS_FOLDER_NAME);
 
 			if (validationSchemasFolder) {
+				projectMetadata.setProjectValidationSchemasFolder(validationSchemasFolder);
 				const validationSchemasItems = await ajaxActions.getItems(validationSchemasFolder._id);
 				validationSchemasItems.forEach(async (schema) => {
 					const schemaBlob = await ajaxActions.getBlobFile(schema._id);
@@ -1381,6 +1390,18 @@ class MainService {
 						validationSchemas.push(jsonSchema);
 					}
 				});
+				validationSchemasFolder.meta?.folderAndSchemasMapping?.forEach((map) => {
+					folderAndSchemasMapping.set(map.folderName, map.schemas);
+				});
+			}
+			else {
+				const newFolder = {
+					name: constants.VALIDATION_SCHEMAS_FOLDER_NAME,
+					parentId: projectFolderMetadata._id,
+					parentType: projectFolderMetadata._modelType
+				};
+				const newValidationSchemasFolder = ajaxActions.postNewFolder(newFolder);
+				projectMetadata.setProjectValidationSchemasFolder(newValidationSchemasFolder);
 			}
 
 			const schemaFolder = subcollectionData

@@ -199,5 +199,9 @@ export default {
 		FOLDER: "folder",
 		USER: "user",
 		COLLECTION: "collection"
+	},
+	MODEL_TYPE: {
+		FOLDER: "folder",
+		ITEM: "item"
 	}
 };
