@@ -1,21 +1,19 @@
 Image Organizer app that uses the Webix Toolkit to interact with a Girder server.
 
-Steps to run application:
+Steps to run app:
+* Install Docker-compose (usually installs with Docker)
+* modify / create a .env file
+  - Example of contents: SERVER_LIST=[{"id":"#","value":"Label shown in GUI","hostAPI":"http://servername:8080/api/v1"},{...}]
+  - Keep contents of .env file in a single line
+* docker build -t dsaio .
+* docker run -p####:80  # choose desired port
+* App will run in localhost:####
 
-1. Install [docker compose](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04) (Ubuntu 20.04)
-2. Create .env file in root of repo (```$ vim .env```, or similar)
-3. Add RECOGNITION_SERVICE and SERVER_LIST to .env. Example:
-```
-RECOGNITION_SERVICE=http://localhost:4000
-SERVER_LIST=[{"id":"#","value":"A name","hostAPI":"http://servername:8080/api/v1"}]
-```
-4. Build with docker compose: ```$ docker compose build```
-5. Run the service: ```$ docker compose up```
-  * in the event of error:
+Known error:
 ```
 Error starting userland proxy: listen tcp4 0.0.0.0:80: bind: address already in use
 ```
-  * Run ```$ sudo service apache2 stop``` and try again
-* To stop running: ```docker compose stop```
+* solutions: ```$ sudo service apache2 stop```
 
-* By default tagger service runs in port 2000 and image organizer service in 3000
+
+* To stop running: ```docker compose stop```
