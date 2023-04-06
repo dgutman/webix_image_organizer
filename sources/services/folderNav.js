@@ -75,7 +75,10 @@ export default class FolderNav {
 
 	isLastFolderToSelect(folder) {
 		// check if folder is last in URL folder names and if it has selected child items
-		const compareNames = utils.compareURLStrings(folder.name, this.urlFolderNames[this.urlFolderNames.length - 1]);
+		const compareNames = utils.compareURLStrings(
+			folder.name,
+			this.urlFolderNames[this.urlFolderNames.length - 1]
+		);
 		const selectedItem = this.finder.getSelectedItem();
 		let selectedItemQualifier = true;
 		if (selectedItem) {
@@ -83,7 +86,7 @@ export default class FolderNav {
 			const isFolderHasSelectedItem = !isFolder && +selectedItem.$parent === folder.id;
 			selectedItemQualifier = selectedItem.id !== folder.id && !isFolderHasSelectedItem;
 		}
-		
+
 		return selectedItemQualifier && compareNames;
 	}
 
