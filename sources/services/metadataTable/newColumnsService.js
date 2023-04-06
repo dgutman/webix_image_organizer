@@ -1,5 +1,5 @@
-import metadataTableModel from "../../models/metadataTableModel";
 import constants from "../../constants";
+import metadataTableModel from "../../models/metadataTableModel";
 
 const buttonDeleteIcon = "fas fa-times";
 const buttonPlusIcon = "fas fa-plus";
@@ -26,7 +26,8 @@ export default class NewColumnsClass {
 
 					const currentFieldForm = $$(columnConfig.id);
 					const newFieldsForms = this.newColumnsForm.queryView({view: "form"}, "all");
-					const isNotUnique = newFieldsForms.find(form => form.getValues().itemField === value && form !== currentFieldForm);
+					const isNotUnique = newFieldsForms.find(form => form.getValues().itemField === value
+						&& form !== currentFieldForm);
 					const initialColumnIds = Object.values(constants.INITIAL_COLUMNS_IDS);
 					return result && result[0] === value &&
 						!metadataTableModel.metadataDotObject.hasOwnProperty(value) &&
@@ -113,7 +114,8 @@ export default class NewColumnsClass {
 		const scrollview = this.root.queryView({view: "scrollview"});
 		this.showOrHideNewColumnsLayout();
 		// scroll to bottom
-		scrollview.scrollTo(0, (this.newColumnsLayout.$height + this.mainForm.$height) - scrollview.$height);
+		scrollview.scrollTo(0,
+			(this.newColumnsLayout.$height + this.mainForm.$height) - scrollview.$height);
 	}
 
 	removeNewColumn(columnId) {

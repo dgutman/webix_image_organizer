@@ -1,19 +1,25 @@
+import downloadFiles from "../../models/downloadFiles";
 import metadataTableModel from "../../models/metadataTableModel";
-import authService from "../authentication";
-import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
-import ajaxActions from "../ajaxActions";
+import patientsDataModel from "../../models/patientsDataModel";
 import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
-import downloadFiles from "../../models/downloadFiles";
 import EditColumnsWindow from "../../views/subviews/metadataTable/windows/editColumnsWindow";
-import patientsDataModel from "../../models/patientsDataModel";
+import UniqueValuesWindow from "../../views/subviews/metadataTable/windows/uniqueValuesWindow";
+import ajaxActions from "../ajaxActions";
+import authService from "../authentication";
 
 let editUniqueClick;
 let editValue;
 let movedColumnsArray = [];
 
 class MetadataTableService {
-	constructor(view, metadataTable, editColumnButton, exportButton, metadataTableThumbnailsTemplate) {
+	constructor(
+		view,
+		metadataTable,
+		editColumnButton,
+		exportButton,
+		metadataTableThumbnailsTemplate
+	) {
 		this._view = view;
 		this._metadataTable = metadataTable;
 		this._editColumnButton = editColumnButton;
@@ -55,7 +61,8 @@ class MetadataTableService {
 
 		this._editColumnsWindow.getRoot().attachEvent("onHide", () => {
 			this._clearDatatableFilters();
-			const [itemsDatatableColumns, patientDatatableCollumns] = metadataTableModel.getColumnsForDatatable();
+			const [itemsDatatableColumns, patientDatatableCollumns] = metadataTableModel
+				.getColumnsForDatatable();
 			this._setColspansForColumnsHeader(itemsDatatableColumns);
 			metadataTableModel.putInLocalStorage(itemsDatatableColumns, authService.getUserInfo()._id);
 			this._setColspansForColumnsHeader(patientDatatableCollumns);
@@ -217,7 +224,9 @@ class MetadataTableService {
 		this._metadataTable.attachEvent("onKeyPress", (keyCode) => {
 			if (keyCode === 38 || keyCode === 40) {
 				const editor = this._metadataTable.getEditor();
-				const selectedId = this._metadataTable.getSelectedId() ? this._metadataTable.getSelectedId() : this._metadataTable.getFirstId();
+				const selectedId = this._metadataTable.getSelectedId()
+					? this._metadataTable.getSelectedId()
+					: this._metadataTable.getFirstId();
 				if (editor) {
 					const rowId = editor.row;
 					const columnId = editor.column;
@@ -225,7 +234,9 @@ class MetadataTableService {
 					if (!columnConfig.editor) {
 						return false;
 					}
-					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(rowId) : this._metadataTable.getNextId(rowId);
+					const nextRowId = keyCode === 38
+						? this._metadataTable.getPrevId(rowId)
+						: this._metadataTable.getNextId(rowId);
 					if (nextRowId) {
 						this._metadataTable.edit({
 							column: columnId,
@@ -234,14 +245,16 @@ class MetadataTableService {
 					}
 				}
 				else {
-					const nextRowId = keyCode === 38 ? this._metadataTable.getPrevId(selectedId) : this._metadataTable.getNextId(selectedId);
+					const nextRowId = keyCode === 38
+						? this._metadataTable.getPrevId(selectedId)
+						: this._metadataTable.getNextId(selectedId);
 					if (nextRowId) this._selectDatatableItem(nextRowId);
 				}
 			}
 		});
 
 		this._metadataTableThumbnailsTemplate.define("onClick", {
-			"datatable-template-image": (e, id) => {
+			"datatable-template-image": (e/* , id */) => {
 				const imageType = e.srcElement.getAttribute("imageType");
 				const selectedObj = this._metadataTableThumbnailsTemplate.getValues();
 				const imageWindow = webixViews.getImageWindow();
@@ -252,7 +265,12 @@ class MetadataTableService {
 				if (imageType === "label-image") {
 					selectedObj.label = true;
 				}
-				downloadFiles.openOrDownloadFiles(selectedObj, imageWindow, pdfViewerWindow, csvViewerWindow);
+				downloadFiles.openOrDownloadFiles(
+					selectedObj,
+					imageWindow,
+					pdfViewerWindow,
+					csvViewerWindow
+				);
 			}
 		});
 	}

@@ -152,7 +152,7 @@ export default class ItemsModel {
 		return this.dataCollection;
 	}
 
-	parseDataToViews(data, linearData, folderId, isChildFolderExists) {
+	parseDataToViews(data, isLinearData, folderId, isChildFolderExists) {
 		if (
 			folderId
 			&& this.selectedItem?.id
@@ -164,7 +164,7 @@ export default class ItemsModel {
 			if (!pager.isVisible() && dataview.isVisible()) {
 				pager.show();
 			}
-			if (!linearData) {
+			if (!isLinearData) {
 				this.dataCollection.clearAll();
 			}
 
@@ -172,15 +172,23 @@ export default class ItemsModel {
 				data = [data];
 			}
 
-			data.forEach((item) => {
+			const dataToParse = data.map((item) => {
 				item.starColor = this.findStarColorForItem(item);
 				item.highlightedValues = this.findHighlightedValues(item);
+				// TODO: delete after test
+				// start
+				const [updatedItem, isUpdated] = this.getItemWithRegionList(item);
+				if (isUpdated) {
+					ajaxActions.updateItemMetadata(updatedItem._id, updatedItem.meta, updatedItem._modelType);
+				}
+				// end
+				return updatedItem;
 			});
 
-			this.dataCollection.parse(data);
+			this.dataCollection.parse(dataToParse);
 			dataview.refresh();
-			let dataForFilter = data;
-			if (linearData) {
+			let dataForFilter = dataToParse;
+			if (isLinearData) {
 				dataForFilter = this.dataCollection.data.serialize();
 			}
 
@@ -385,6 +393,22 @@ export default class ItemsModel {
 		this.parseItems(caseFolders, folderId);
 		// const linearData = false;
 		// this.parseDataToViews(webix.copy(caseFolders), linearData, folderId);
+	}
+
+	/**
+	 * Function which get item and return new item with regionList if npSchema.regionName exists
+	 * @param item item with npSchema.regionName property
+	 * @returns {any} updated item with regionNameList property
+	 */
+	getItemWithRegionList(item) {
+		const newItem = webix.copy(item);
+		let isUpdated = false;
+		if (newItem.meta.npSchema?.regionName) {
+			newItem.meta.npSchema.regionNameList = [];
+			newItem.meta.npSchema.regionNameList.push(newItem.meta.npSchema.regionName);
+			isUpdated = true;
+		}
+		return [newItem, isUpdated];
 	}
 
 	destroy() {
