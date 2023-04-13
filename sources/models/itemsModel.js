@@ -2,6 +2,8 @@ import dot from "dot-object";
 
 import projectMetadata from "./projectMetadata";
 import constants from "../constants";
+import ajaxActions from "../services/ajaxActions";
+import findAndFixErrors from "../services/gallery/fixValidationErrors";
 import validate from "../services/gallery/npValidator";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();
@@ -320,6 +322,11 @@ export default class ItemsModel {
 					incorrectKeys.forEach((incorrectKeyObject) => {
 						highlight.add((incorrectKeyObject.incorrectKey.replaceAll("/", ".")).slice(1));
 					});
+					const fixedItem = findAndFixErrors(item);
+					if (fixedItem?.meta) {
+						Object.assign(item.meta, fixedItem.meta);
+						ajaxActions.updateItemMetadata(item._id, fixedItem.meta, item._modelType);
+					}
 				}
 			}
 			catch (err) {
