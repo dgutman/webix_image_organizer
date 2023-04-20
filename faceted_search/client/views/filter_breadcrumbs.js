@@ -1,9 +1,8 @@
 define([
         "app",
         "models/filter",
-        "helpers/authentication",
+        "helpers/authentication"
     ], function(app, filtersCollection, auth) {
-
     function getScrollState() {
         const crumbsTemplateNode = $$("crumbsTemplate").getNode();
         const cont = crumbsTemplateNode.querySelector(".crumbs-scroll-cont");
@@ -26,7 +25,7 @@ define([
         crumbsTemplate.setValues(data);
     }
 
-    let keysDelimiter = '|';
+    const keysDelimiter = '|';
 
     // will contain breadcrumbs data
     let crumbsArr = {};
@@ -53,10 +52,10 @@ define([
             return HTMLstring;
         },
         onClick: {
-            "delete-crumb": function (e, id, element) {
+            "delete-crumb": function(e, id, element) {
                 crumbClickHandler(crumbsArr[element.id], element.id);
             },
-            "clear-all-crumbs": function (e, id, element) {
+            "clear-all-crumbs": function(e, id, element) {
                 const entryArr = Object.entries(crumbsArr);
                 entryArr.forEach(([id, data]) => {
                     crumbClickHandler(data, id, true);
@@ -78,7 +77,7 @@ define([
         filtersConfig = filtersCollection.getFilters().serialize();
     });
 
-    let getConfigForFilter = function(key) {
+    const getConfigForFilter = function(key) {
         let config;
         for(let groupIndex = 0; groupIndex<filtersConfig.length; groupIndex++) {
             for(let filterIndex = 0; filterIndex<filtersConfig[groupIndex].data.length; filterIndex++) {
@@ -91,11 +90,11 @@ define([
     };
 
     // remove crumb
-    let crumbClickHandler = function(data, key, blockEvent) {
+    const crumbClickHandler = function(data, key, blockEvent) {
         switch(data.view) {
             case 'toggle':
             case 'checkbox':
-                let ids = [];
+                const ids = [];
                 for(let i = 0; i<crumbsArr[key].value.length; i++) {
                     ids.push(key + keysDelimiter + crumbsArr[key].value[i]);
                 }
@@ -130,101 +129,103 @@ define([
         setCrumbs(crumbsArr);
     };
 
-    let parseIntArray = function(data) {
-        let parsed = [];
+    const parseIntArray = function(data) {
+        const parsed = [];
         for(let i = 0; i<data.length; i++) {
             parsed.push(parseInt(data[i]));
         }
         return parsed;
     };
 
-    let filtersChangedHandler = function(data) {
-        let key = data.key;
-        let show = false;
-        let parsedKey = key.split(keysDelimiter);
-        let name = parsedKey[parsedKey.length-1];
-        let crumbData = crumbsArr[key];
-        switch(data.view) {
-            case 'toggle':
-            case 'checkbox':
-                if(data.remove) {
-                    let valueIndex = crumbsArr[key].value.indexOf(data.value);
-                    if(valueIndex >= 0) crumbsArr[key].value.splice(valueIndex, 1);
-                    if(crumbsArr[key].value.length !== 0) {
-                        crumbsArr[key].name = `${name}: selected ${crumbsArr[key].value.length} items`;
-                        show = true;
+    const filtersChangedHandler = function(data) {
+        if (data) {
+            const key = data.key;
+            let show = false;
+            const parsedKey = key.split(keysDelimiter);
+            const name = parsedKey[parsedKey.length-1];
+            const crumbData = crumbsArr[key];
+            switch(data.view) {
+                case 'toggle':
+                case 'checkbox':
+                    if(data.remove) {
+                        const valueIndex = crumbsArr[key].value.indexOf(data.value);
+                        if(valueIndex >= 0) crumbsArr[key].value.splice(valueIndex, 1);
+                        if(crumbsArr[key].value.length !== 0) {
+                            crumbsArr[key].name = `${name}: selected ${crumbsArr[key].value.length} items`;
+                            show = true;
+                        }
+                    } else {
+                        if(!crumbData) {
+                            crumbsArr[key] = {
+                                value: [data.value],
+                                view: data.view,
+                                name: `${name}: selected 1 item`
+                            };
+                            show = true;
+                        } else {
+                            crumbData.value.push(data.value);
+                            crumbData.name = `${name}: selected ${crumbsArr[key].value.length} items`;
+                            show = true;
+                        }
                     }
-                } else {
+                    break;
+
+                case 'combo':
+                case 'radio':
                     if(!crumbData) {
                         crumbsArr[key] = {
-                            value: [data.value],
+                            value: data.value,
                             view: data.view,
-                            name: `${name}: selected 1 item`
+                            name: `${name}: ${data.value}`
+                        };
+                        show = true;
+                    } else if(data.value !== 'All') {
+                        crumbsArr[key].name = `${name}: ${data.value}`;
+                        show = true;
+                    }
+                    break;
+
+                case 'multiSlider':
+                    if(!crumbData) {
+                        const config = getConfigForFilter(key);
+                        const options = parseIntArray(config.options);
+                        const min = Math.min.apply(Math, options);
+                        const max = Math.max.apply(Math, options);
+                        crumbsArr[key] = {
+                            min: min,
+                            max: max,
+                            value: {min: data.min, max: data.max},
+                            view: data.view,
+                            name: `${name} : from ${data.min} to ${data.max}`
+                        };
+                        show = true;
+                    } else if(data.min !== crumbData.min || data.max !== crumbData.max) {
+                        crumbsArr[key].name = `${name} : from ${data.min} to ${data.max}`;
+                        show = true;
+                    }
+                    break;
+
+                case 'slider':
+                    if(!crumbData) {
+                        const config = getConfigForFilter(key);
+                        crumbsArr[key] = {
+                            value: data.value,
+                            view: data.view,
+                            minValue: config.options[0] - 1,
+                            name: `${name}: ${data.value}`
                         };
                         show = true;
                     } else {
-                        crumbData.value.push(data.value);
-                        crumbData.name = `${name}: selected ${crumbsArr[key].value.length} items`;
+                        crumbsArr[key].name = `${name}: ${data.value}`;
                         show = true;
                     }
-                }
-                break;
+            }
 
-            case 'combo':
-            case 'radio':
-                if(!crumbData) {
-                    crumbsArr[key] = {
-                        value: data.value,
-                        view: data.view,
-                        name: `${name}: ${data.value}`
-                    };
-                    show = true;
-                } else if(data.value !== 'All') {
-                    crumbsArr[key].name = `${name}: ${data.value}`;
-                    show = true;
-                }
-                break;
-
-            case 'multiSlider':
-                if(!crumbData) {
-                    let config = getConfigForFilter(key);
-                    let options = parseIntArray(config.options);
-                    let min = Math.min.apply(Math, options);
-                    let max = Math.max.apply(Math, options);
-                    crumbsArr[key] = {
-                        min: min,
-                        max: max,
-                        value: {min: data.min, max: data.max},
-                        view: data.view,
-                        name: `${name} : from ${data.min} to ${data.max}`
-                    };
-                    show = true;
-                } else if(data.min !== crumbData.min || data.max !== crumbData.max) {
-                    crumbsArr[key].name = `${name} : from ${data.min} to ${data.max}`;
-                    show = true;
-                }
-                break;
-
-            case 'slider':
-                if(!crumbData) {
-                    let config = getConfigForFilter(key);
-                    crumbsArr[key] = {
-                        value: data.value,
-                        view: data.view,
-                        minValue: config.options[0] - 1,
-                        name: `${name}: ${data.value}`
-                    };
-                    show = true;
-                } else {
-                    crumbsArr[key].name = `${name}: ${data.value}`;
-                    show = true;
-                }
+            if(!show) {
+                delete crumbsArr[key];
+            }
+            setCrumbs(crumbsArr);
         }
-
-        if(!show) {
-            delete crumbsArr[key];
-        }
-        setCrumbs(crumbsArr);
     };
 
     return {

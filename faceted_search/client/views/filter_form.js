@@ -7,15 +7,15 @@ define([
     "helpers/authentication",
     "constants"
 ], function(
-    app, 
-    Filter, 
-    Images, 
-    filterHelper, 
-    lodash, 
-    auth, 
+    app,
+    Filter,
+    Images,
+    filterHelper,
+    lodash,
+    auth,
     constants
 ) {
-    const scrollViewId = "scroll_view"; 
+    const scrollViewId = `scroll_view-${webix.uid()}`;
     const filterFormId = "filter_form";
     const ui = {
         view: "scrollview",
@@ -59,7 +59,7 @@ define([
                 .serialize(true)
                 .filter((image) => Images.filterSingleImage(image, filtersData))
                 .map((image) => image.facets);
-        } 
+        }
 
         let t = lodash.map(data, key);
         t = lodash.groupBy(t);

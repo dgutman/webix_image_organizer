@@ -2,7 +2,7 @@ define([
 	"app",
 	"constants",
 	"helpers/authentication",
-	"helpers/ajax", 
+	"helpers/ajax",
 	"models/upload"
 ], function(app, constants, auth, ajax, Upload) {
 	const uploadButtonId = "upload-btn";
@@ -64,7 +64,7 @@ define([
 		id: deleteButtonId,
 		value: "Clear database"
 	};
-	
+
 	return {
 		$ui: {
 			rows: [
@@ -84,7 +84,6 @@ define([
 							]
 						}
 					]
-					
 				}
 			]
 		},
@@ -107,7 +106,7 @@ define([
 				.finally(() => {
 					tree.hideProgress();
 				});
-			
+
 			tree.attachEvent("onDataRequest", (id) => {
 				const item = tree.getItem(id);
 				tree.showProgress();
@@ -212,9 +211,10 @@ define([
 					ajax.getDownloadedResources()
 						.then((resourceData) => {
 							downloadedResources = resourceData;
+							tree.unselectAll();
+							toggleUploadButtonState();
+							tree.refresh();
 						});
-					downloadedResources.push(selectedItem._id);
-					tree.refresh();
 				}
 
 				$$(statusTemplateId).setValues(data || {title: "Done!"});
@@ -224,7 +224,7 @@ define([
 			app.attachEvent("uploaderList:loadingActions", function(data) {
 				$$(statusTemplateId).setValues(data);
 			});
-		
+
 			app.attachEvent("uploaderList:clearAfterSave", function() {
 				$$(statusTemplateId).setValues({title: "Done!"});
 			});

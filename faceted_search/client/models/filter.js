@@ -1,19 +1,19 @@
 define([
     "app"
-],function(app) {
-    var filtersCollection = new webix.DataCollection({}),
-        filters = [],
-        isImagesLoaded = false;
+], function(app) {
+    const filtersCollection = new webix.DataCollection({});
+    const filters = [];
+    let isImagesLoaded = false;
 
     filtersCollection.loadFilters = function() {
         isImagesLoaded = false;
         webix.ajax().get(app.config.defaultAPIPath + "/facets/filters", {data: {}})
             .then(function(response) {
-                var data = response.json();
-                filters = [];
-                data = data && Object.keys(data).length > 0 ? data : [];
+                const data = response.json();
+                filters.length = 0;
+                const dataToParse = data && Object.keys(data).length > 0 ? data : [];
                 filtersCollection.clearAll();
-                filtersCollection.parse(data);
+                filtersCollection.parse(dataToParse);
                 callAfterLoadEvent();
             })
             .fail(function() {
@@ -23,8 +23,8 @@ define([
             });
     };
 
-    var callAfterLoadEvent = function () {
-        if(isImagesLoaded){
+    function callAfterLoadEvent() {
+        if(isImagesLoaded) {
             filtersCollection.callEvent("filtersLoaded", []);
             app.callEvent("filtersLoaded", []);
         }
@@ -44,12 +44,16 @@ define([
     };
 
     filtersCollection.clearSelectedFiltersData = function() {
-        filters = [];
+        filters.length = 0;
     };
 
     app.attachEvent("filtersChanged", function(data) {
-        var i, j, foundIn = false, index, skipThisId = null;
-        switch(data.view) {
+        let i;
+        let j;
+        let foundIn = false;
+        let index;
+        let skipThisId = null;
+        switch(data?.view) {
             case "radio":
             case "combo":
             case "slider":
@@ -78,7 +82,6 @@ define([
                                         filters.splice(i, 1);
                                         break;
                                     }
-
                                 }
                             }
                         }
@@ -100,7 +103,7 @@ define([
                             "value": [data.value],
                             "remove": data.remove,
                             "status": data.status
-                        })
+                        });
                     }
                 }
                 break;

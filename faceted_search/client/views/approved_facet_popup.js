@@ -23,7 +23,7 @@ define([
 			}
 		});
 	};
-	
+
 	const filterFacetPopup = {
 		view: 'popup',
 		id: constants.SELECT_FACET_POPUP_ID,
@@ -71,7 +71,7 @@ define([
 					},
 					{
 						view: "button",
-						id: "confurm-button",
+						id: "confirm-facets-button",
 						value: "Confirm",
 						click: function() {
 							approvedFacetModel.saveApprovedFacets(

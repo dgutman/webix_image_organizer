@@ -1,5 +1,6 @@
 define([
 	"app",
+	"constants",
 	"models/images",
 	"views/filter_breadcrumbs",
 	"views/toolbar",
@@ -9,6 +10,7 @@ define([
 	"windows/export_csv_window"
 ], function(
 	app,
+	constants,
 	Images,
 	breadcrumbs,
 	modeToolbar,
@@ -17,9 +19,11 @@ define([
 	VideoWindow,
 	ExportCSVWindow
 ) {
+	// window.img = Images;
 	const toolbarId = "filter_toolbar";
-	const rowViewButtonId = 'row_view_button_id';
-	const colViewButtonId = 'col_view_button_id';
+	const smallImageTemplateButtonId = 'small_template_button_id';
+	const mediumImageTemplateButtonId = 'medium_template_button_id';
+	const largeImageTemplateButtonId = 'large_template_button_id';
 	const tutorialButtonId = 'tutorial_button_id';
 	const exportButtonId = 'export_button_id';
 
@@ -60,22 +64,35 @@ define([
 							},
 							{
 								view: "icon",
-								id: rowViewButtonId,
-								icon: "mdi mdi-table",
+								id: smallImageTemplateButtonId,
+								icon: "mdi mdi-table-large",
 								click: function() {
-									Images.changeImagesViewState(false);
+									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.SMALL);
 									this.disable();
-									$$(colViewButtonId).enable();
+									$$(mediumImageTemplateButtonId).enable();
+									$$(largeImageTemplateButtonId).enable();
 								}
 							},
 							{
 								view: "icon",
-								id: colViewButtonId,
+								id: mediumImageTemplateButtonId,
+								icon: "mdi mdi-table",
+								click: function() {
+									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.MEDIUM);
+									this.disable();
+									$$(smallImageTemplateButtonId).enable();
+									$$(largeImageTemplateButtonId).enable();
+								}
+							},
+							{
+								view: "icon",
+								id: largeImageTemplateButtonId,
 								icon: "mdi mdi-table-column",
 								click: function() {
-									Images.changeImagesViewState(true);
+									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.LARGE);
 									this.disable();
-									$$(rowViewButtonId).enable();
+									$$(smallImageTemplateButtonId).enable();
+									$$(mediumImageTemplateButtonId).enable();
 								}
 							},
 							modeToolbar,
@@ -103,15 +120,31 @@ define([
 		$ui: ui,
 		$oninit: function() {
 			const state = Images.getImagesViewState();
-			if(state) {
-				$$(rowViewButtonId).enable();
-				$$(colViewButtonId).disable();
-			}else{
-				$$(rowViewButtonId).disable();
-				$$(colViewButtonId).enable();
+			switch (state) {
+				case constants.TEMPLATE_IMAGE_SIZE.SMALL:
+					$$(smallImageTemplateButtonId).disable();
+					$$(mediumImageTemplateButtonId).enable();
+					$$(largeImageTemplateButtonId).enable();
+					break;
+				case constants.TEMPLATE_IMAGE_SIZE.MEDIUM:
+					$$(smallImageTemplateButtonId).enable();
+					$$(mediumImageTemplateButtonId).disable();
+					$$(largeImageTemplateButtonId).enable();
+					break;
+				case constants.TEMPLATE_IMAGE_SIZE.LARGE:
+					$$(smallImageTemplateButtonId).enable();
+					$$(mediumImageTemplateButtonId).enable();
+					$$(largeImageTemplateButtonId).disable();
+					break;
+				default:
+					$$(smallImageTemplateButtonId).disable();
+					$$(mediumImageTemplateButtonId).enable();
+					$$(largeImageTemplateButtonId).enable();
+					break;
 			}
-			$$(rowViewButtonId).render();
-			$$(colViewButtonId).render();
+			$$(smallImageTemplateButtonId).render();
+			$$(mediumImageTemplateButtonId).render();
+			$$(largeImageTemplateButtonId).render();
 		}
 	};
 });
