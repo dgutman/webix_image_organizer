@@ -1,12 +1,10 @@
-const expressJwt = require("express-jwt");
-const jwtBlacklist = require("express-jwt-blacklist");
+const {expressjwt: expressJwt} = require("express-jwt");
 
 function jwt() {
 	const secret = process.env.SECRET_KEY || "my-test-secret";
 	return expressJwt({
 		secret,
 		algorithms: ['HS256'],
-		isRevoked: jwtBlacklist.isRevoked,
 		getToken: (req) => req.headers["local-jwt"]
 	}).unless({
 		path: [
