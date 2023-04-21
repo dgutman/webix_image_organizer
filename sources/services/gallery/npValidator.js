@@ -13,9 +13,6 @@ const findErrors = (errors) => {
 			case "required":
 				missedKeys.push(`${error.instancePath}/${error.params.missingProperty}`);
 				break;
-			case "pattern":
-				incorrectKeys.push(error.instancePath);
-				break;
 			default:
 				incorrectKeys.push(error.instancePath);
 				break;
@@ -40,11 +37,12 @@ const validate = (data) => {
 	let isDataValid = true;
 	schemas.forEach((schema) => {
 		const ajv = new Ajv({strict: "log", allErrors: true});
-		const validator = ajv.compile(schema);
-		const valid = validator(data);
+		const validateSchema = ajv.compile(schema);
+		const valid = validateSchema(data);
 		if (!valid) {
 			isDataValid = false;
-			const errors = findErrors(validator.errors);
+			const errors = findErrors(validateSchema.errors, data);
+			console.log(errors);
 			missedKeys.push(...errors.missedKeys.map(
 				missedKey => ({
 					schemaId: schema.$id,

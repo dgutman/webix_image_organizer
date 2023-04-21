@@ -247,6 +247,23 @@ function setObjectProperty(obj, path, value) {
 	curStep[finalStep] = value;
 }
 
+/**
+ * Create copy of given object with new property
+ * Set the value for the object copy for the given path
+ * where the path can be a nested key represented with dot notation
+ *
+ * @param {object} obj   The object on which to set the given value
+ * @param {string} path  The dot notation path to the nested property where the value should be set
+ * @param {mixed}  value The value that should be set
+ * @return {object} Object with updated property
+ *
+ */
+function setPropertyAndGetNewObject(obj, path, value) {
+	const objCopy = webix.copy(obj);
+	setObjectProperty(objCopy, path, value);
+	return objCopy;
+}
+
 function createElementFromHTML(htmlString) {
 	const div = document.createElement("div");
 	div.innerHTML = htmlString.trim();
@@ -367,6 +384,7 @@ export default {
 	setLocalStorageSettingsValues,
 	getLocalStorageSettingsValues,
 	setObjectProperty,
+	setPropertyAndGetNewObject,
 	createElementFromHTML,
 	isNode,
 	isElement,
