@@ -152,13 +152,15 @@ define([
 	const getLabels = function() {
 		const displayedLabels = [];
 		const approvedFacetsLabels = approvedFacetModel.getApprovedFacetsLabels();
-		approvedFacetsLabels.forEach((approvedFacetLabel) => {
-			itemsLabels.forEach((itemsLabel) => {
-				if(approvedFacetLabel === itemsLabel.value) {
-					displayedLabels.push(itemsLabel);
-				}
+		if (Array.isArray(approvedFacetsLabels)) {
+			approvedFacetsLabels.forEach((approvedFacetLabel) => {
+				itemsLabels.forEach((itemsLabel) => {
+					if(approvedFacetLabel === itemsLabel.value) {
+						displayedLabels.push(itemsLabel);
+					}
+				});
 			});
-		});
+		}
 		return displayedLabels;
 	};
 

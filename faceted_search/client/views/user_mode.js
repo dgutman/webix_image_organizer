@@ -2,12 +2,14 @@ define([
 	"views/images_dataview",
 	"views/filter_form",
 	"views/filter_button",
+	"views/case_form",
 	"helpers/authentication",
 	"constants"
 ], function(
 	imagesView,
 	filterFormView,
 	filterButtonView,
+	caseForm,
 	auth,
 	constants
 ) {
@@ -26,6 +28,7 @@ define([
 				rows: [
 					filterFormLabel,
 					filterFormView,
+					caseForm,
 					filterButtonView
 				]
 			},

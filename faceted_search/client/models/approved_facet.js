@@ -1,17 +1,27 @@
 define([
 	"app",
-	"constants"
+	"constants",
+	"helpers/approved_facet"
 ], function(
 	app,
-	constants
+	constants,
+	approvedFacetsHelper
 ) {
 	const approvedFacetURL = `${constants.LOCAL_API}/facets/approved-facet`;
 	let approvedFacetsData = [];
-	let approvedFacetsLabels = [];
+	const approvedFacetsLabels = [];
 
 	app.attachEvent("approvedFacet:loadApprovedFacetData", function() {
 		_loadData(approvedFacetURL);
 	});
+
+	function parseApprovedFacetsForLocalStorage(approvedFacetsData) {
+		const cachedData = approvedFacetsData.map((approvedFacetItem) => ({
+			facetId: approvedFacetItem.id,
+			hidden: approvedFacetItem.hidden
+		}));
+		return cachedData;
+	};
 
 	const _loadData = (url) => {
 		app.callEvent("editForm:doProgressOnApprovedFacet");
@@ -19,13 +29,19 @@ define([
 			.then(function(response) {
 				const data = response.json();
 				if(data) {
-					approvedFacetsData = data;
+					const cachedData = approvedFacetsHelper.getLocalApprovedFacetData();
+					if (Array.isArray(cachedData)) {
+						approvedFacetsData = mergeDataWithCache(data, cachedData);
+					} else {
+						approvedFacetsData = data;
+					}
 				}
-				approvedFacetsLabels = [];
-				parseForFilter(approvedFacetsLabels, approvedFacetsData);
-				app.callEvent("editForm:onApprovedFacetLoaded");
+				console.log(`approvedFacetsData: ${JSON.stringify(approvedFacetsData)}`);
+				approvedFacetsLabels.length = 0;
+				approvedFacetsLabels.push(...parseForFilter(approvedFacetsData));
 				app.callEvent("editForm:approvedFacetDataLoaded");
 				app.callEvent("editForm:loadDataForFilters", approvedFacetsLabels);
+				app.callEvent("editForm:onApprovedFacetLoaded");
 			})
 			.catch((reason) => {
 				console.error(reason);
@@ -43,7 +59,9 @@ define([
 
 	const saveApprovedFacets = async (data) => {
 		try{
-			approvedFacetsData = data;
+			approvedFacetsData = webix.copy(data);
+			const cachedApprovedFacets = parseApprovedFacetsForLocalStorage(approvedFacetsData);
+			approvedFacetsHelper.setLocalApprovedFacetData(cachedApprovedFacets);
 			const response = await webix.ajax().post(approvedFacetURL, {data: data});
 			return response.text();
 		} catch(err) {
@@ -51,19 +69,38 @@ define([
 				type: "message",
 				text: err.response
 			});
+		} finally {
+			app.callEvent("editForm:reloadOptions");
 		}
 	};
 
-	const parseForFilter = (approvedFacetsLabels, approvedFacetsData) => {
+	const parseForFilter = (approvedFacetsData) => {
+		const approvedFacetsLabels = [];
 		approvedFacetsData.forEach((approvedFacetData) => {
 			if(!approvedFacetData.hidden) {
 				approvedFacetsLabels.push(approvedFacetData.facetId.replace(/\|/g, ' \\ '));
 			}
 			if(approvedFacetData.data
 				&& approvedFacetData.data.length > 0) {
-				parseForFilter(approvedFacetsLabels, approvedFacetData.data);
+				approvedFacetsLabels.push(...parseForFilter(approvedFacetData.data));
 			}
 		});
+		return approvedFacetsLabels;
+	};
+
+	function mergeDataWithCache(approvedFacetsData, cachedData) {
+		const cachedDataIds = cachedData.map((data) => data.facetId);
+		const result = approvedFacetsData.map((approvedFacetData) => {
+			const cachedDataIndex = cachedDataIds.indexOf(approvedFacetData.facetId);
+			if (cachedDataIndex !== -1) {
+				approvedFacetData.hidden = cachedData[cachedDataIndex].hidden;
+			}
+			if (cachedDataIndex !== -1 && approvedFacetData.data?.length > 0) {
+				approvedFacetData.data = mergeDataWithCache(approvedFacetData.data, cachedData[cachedDataIndex].data);
+			}
+			return approvedFacetData;
+		});
+		return result;
 	};
 
 	return {

@@ -1,6 +1,6 @@
 const fs = require('fs');
 const crypto = require('crypto');
-const tarGz = require('tar.gz');
+const tar = require('tar');
 const path = require('path');
 const archive_upload_path = require('../../../config').archive_upload_path;
 
@@ -22,7 +22,7 @@ const parseArchive = (filename, message) => {
 
             fs.mkdirSync(path_to_extract_folder);
 
-            tarGz().extract(path_to_archive, path_to_extract_folder)
+            tar().extract(path_to_archive, path_to_extract_folder)
                 .then(() => {
                     fs.unlink(path_to_archive, function () {
                         message('[Archive]: archive is deleted');

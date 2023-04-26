@@ -27,6 +27,11 @@ define([], function() {
 		},
 		USER_MODE: 1,
 		ADMIN_MODE: 0,
+		TEMPLATE_IMAGE_SIZE: {
+			SMALL: 0,
+			MEDIUM: 1,
+			LARGE: 2
+		},
 		// begin approved-metadata popup
 		APPROVED_METADATA_POPUP_ID: "edit_approved_metadata_popup_id",
 		METADATA_GROUPLIST_ID: "metadata-grouplist-id",

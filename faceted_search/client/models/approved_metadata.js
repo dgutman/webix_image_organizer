@@ -19,7 +19,7 @@ define([
 					setProps(data);
 				}
 				app.callEvent("editForm:onApprovedMetadataLoaded");
-				app.callEvent("editForm:approvedMetadataDataLoaded");
+				app.callEvent("editForm:approvedMetadataLoaded");
 			})
 			.catch((reason) => {
 				console.error(reason);

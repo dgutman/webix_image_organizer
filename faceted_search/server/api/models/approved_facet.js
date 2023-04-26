@@ -52,21 +52,11 @@ class ApprovedFacet {
 			}
 			const approvedFacets = await approvedFacetModel.find({}).exec();
 			if(approvedFacets) {
-				approvedFacets.forEach((approvedFacetItem) => {
-					lodash.remove(facetIds, (facetId) => {
-						return facetId === approvedFacetItem.facetId;
-					});
-				});
 				const facetsToAdd = [];
 				lodash.forEach(facetIds, (facetId) => {
 					this._findFacetsToAdd(facetIds, facetId, facetsToAdd);
 				});
 				await this.deleteAllDocuments();
-				approvedFacets.forEach((approvedFacetItem) => {
-					lodash.remove(facetsToAdd, (facetToAdd) => {
-						return facetToAdd.facetId === approvedFacetItem.facetId;
-					});
-				});
 				const saveDocPromises = facetsToAdd.map((facetToAdd) => {
 					const doc = new approvedFacetModel({
 						facetId: facetToAdd.facetId,

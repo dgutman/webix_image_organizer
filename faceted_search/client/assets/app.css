@@ -70,6 +70,15 @@
     font-size: 28px;
 }
 
+.panel-header {
+    background: #3498db;
+    color: #FFFFFF;
+    font-size: 28px;
+    vertical-align: middle;
+    height: 100%;
+    padding-left: 10px;
+}
+
 .app-logo {
     width: auto;
     height: 100%;

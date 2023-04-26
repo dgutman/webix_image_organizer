@@ -10,7 +10,7 @@ define([
 	function setColorTemplateData(colorTemplateData) {
 		webix.storage.local.put(`colorTemplate-${auth.getUserId() || "unregistered"}`, colorTemplateData);
 	}
-	
+
 	return {
 		getColorTemplateData,
 		setColorTemplateData

@@ -23,17 +23,18 @@ const parseDataForGroupList = (data) => {
 	data.forEach((item) => {
 		item['name'] = null;
 	});
-	const roots = [];
 	const map = {};
 
-	data = data.map((item, i) => {
+	const facets = data.map((item, i) => {
 		map[item.facetId] = i;
 		item.data = [];
 		item.name = lodash.last(item.facetId.split('|'));
 		return item;
 	});
 
-	data.forEach((node, index, dataArray) => {
+	const roots = [];
+
+	facets.forEach((node, index, dataArray) => {
 		if(node.parentId !== "") {
 			dataArray[map[node.parentId]]?.data.push(node);
 		} else {

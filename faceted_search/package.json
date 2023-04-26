@@ -14,11 +14,11 @@
     "axios": "^0.21.2",
     "bluebird": "3.4.6",
     "body-parser": "^1.20.1",
-    "busboy": "0.2.13",
+    "busboy": "^1.6.0",
     "connect-mongo": "^3.2.0",
     "cors": "2.8.5",
-    "express": "4.18.2",
-    "express-jwt": "^6.0.0",
+    "express": "^4.18.2",
+    "express-jwt": "^7.7.7",
     "express-jwt-blacklist": "^1.1.0",
     "express-session": "^1.17.1",
     "fs-promise": "2.0.2",
@@ -33,15 +33,15 @@
     "pug": "^3.0.2",
     "socket.io": "^2.4.1",
     "socket.io-stream": "0.9.1",
-    "tar.gz": "1.0.5"
+    "tar": "^6.1.12"
   },
   "devDependencies": {
+    "@babel/cli": "^7.19.3",
     "@babel/core": "^7.13.15",
     "@babel/eslint-parser": "^7.13.14",
     "@babel/preset-env": "^7.13.15",
-    "babel-cli": "6.26.0",
     "eslint": "^7.24.0",
     "eslint-config-google": "0.7.1",
-    "nodemon": "2.0.20"
+    "nodemon": "^2.0.20"
   }
 }

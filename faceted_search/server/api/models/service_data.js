@@ -7,7 +7,7 @@ const DATA_TYPES = {
     IMG_HASH: 'images_hash',
     HOSTS: 'hosts',
 	DOWNLOADED_RESOURCES: 'downloaded resources'
-}
+};
 
 const ServiceDataSchema = new Schema({
     name: { type: String },

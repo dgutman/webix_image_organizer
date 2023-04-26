@@ -231,6 +231,7 @@ define([
 		const approvedFacetsData = approvedFacetModel.getApprovedFacetsData();
 		$$(constants.FACET_FILTER_GROUPLIST_ID).clearAll();
 		$$(constants.FACET_FILTER_GROUPLIST_ID).parse(approvedFacetsData);
+		$$(constants.FACET_FILTER_GROUPLIST_ID).refresh();
 	};
 
 	const areFiltersNotChanged = function() {
@@ -256,7 +257,7 @@ define([
 	});
 	app.attachEvent("editForm:reloadOptions", reloadSelectsData);
 	app.attachEvent("editForm:doAfterItemRemoved", itemRemoved);
-	app.attachEvent("editForm:approvedMetadataDataLoaded", loadApprovedMetadataData);
+	app.attachEvent("editForm:approvedMetadataLoaded", loadApprovedMetadataData);
 	app.attachEvent("editForm:approvedFacetDataLoaded", loadApprovedFacetData);
 
 	app.ui(approvedMetadataPopup);
