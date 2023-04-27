@@ -1,5 +1,5 @@
-import state from "../models/state";
 import ajax from "./ajaxActions";
+import state from "../models/state";
 
 function getHostId() {
 	let hostId = webix.storage.local.get("hostId");
