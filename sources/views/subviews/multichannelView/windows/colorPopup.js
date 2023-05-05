@@ -1,7 +1,7 @@
 import {JetView} from "webix-jet";
 
 import constants from "../../../../constants";
-import tilesCollection from "../../../../models/imageTilesCollection";
+// import tilesCollection from "../../../../models/imageTilesCollection";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import ajaxActions from "../../../../services/ajaxActions";
 import TimedOutBehavior from "../../../../utils/timedOutBehavior";
@@ -198,10 +198,16 @@ export default class ColorPickerWindow extends JetView {
 			return null;
 		}
 		const {min, max} = this.getHistogramForm().getValues();
-		const tileInfo = await tilesCollection.getImageTileInfo(this._image);
+		// TODO: switch to image size
+		/* const tileInfo = await tilesCollection.getImageTileInfo(this._image);
 		const binSettings = {
 			width: tileInfo.sizeX,
 			height: tileInfo.sizeY,
+			rangeMin: min,
+			rangeMax: max
+		};
+		 */
+		const binSettings = {
 			rangeMin: min,
 			rangeMax: max
 		};

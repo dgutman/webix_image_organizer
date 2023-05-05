@@ -1,18 +1,20 @@
+import lodash from "lodash";
 import {JetView} from "webix-jet";
 
-import constants from "../../../constants";
-import tilesCollection from "../../../models/imageTilesCollection";
-import ItemsModel from "../../../models/itemsModel";
-import stateStore from "../../../models/multichannelView/stateStore";
-import DragAndDropMediator from "../../../services/multichannelView/dragAndDropMediator";
-import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../../../services/multichannelView/groupsLoader";
-import TilesService from "../../../services/multichannelView/tilesService";
-import TimedOutBehavior from "../../../utils/timedOutBehavior";
 import ChannelList from "./channelList";
 import GroupsPanel from "./groupsPanel";
 import MultichannelOSDViewer from "./osdViewer";
 import ViewportCoordinates from "./viewportCoordinates";
 import GroupColorTemplateWindow from "./windows/groupColorTemplateWindow";
+import constants from "../../../constants";
+import tilesCollection from "../../../models/imageTilesCollection";
+import ItemsModel from "../../../models/itemsModel";
+import stateStore from "../../../models/multichannelView/stateStore";
+import ajax from "../../../services/ajaxActions";
+import DragAndDropMediator from "../../../services/multichannelView/dragAndDropMediator";
+import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../../../services/multichannelView/groupsLoader";
+import TilesService from "../../../services/multichannelView/tilesService";
+import TimedOutBehavior from "../../../utils/timedOutBehavior";
 
 export default class MultichannelView extends JetView {
 	constructor(app) {
@@ -128,6 +130,8 @@ export default class MultichannelView extends JetView {
 		const tileSources = await this._tileService.getTileSources(image);
 		this.getRoot().hideProgress();
 
+		await this.changeBitImage();
+
 		this._osdViewer.createViewer({tileSources});
 	}
 
@@ -197,6 +201,21 @@ export default class MultichannelView extends JetView {
 				}
 			});
 		});
+	}
+
+	async changeBitImage() {
+		let max = lodash.get(this._image, "meta.ioparams.max");
+		if (!max) {
+			const imageId = this._image._id;
+			const [histogramData] = await ajax.getImageTilesHistogram(imageId, 0, {});
+			max = histogramData.max;
+		}
+		if (max > constants.MAX_EDGE_FOR_8_BIT) {
+			stateStore.bit = constants.SIXTEEN_BIT;
+		}
+		else {
+			stateStore.bit = constants.EIGHT_BIT;
+		}
 	}
 
 	_compositeFrames(channels, compositeType = "difference") {

@@ -10,8 +10,8 @@ const validationSchemas = projectMetadata.getValidationSchemas();
 
 /**
  *
- * @param errors Array of errors
- * @param item Item where errors must be fixed
+ * @param {ErrorObject[]} errors Array of errors
+ * @param {*} item Item where errors must be fixed
  * @returns {{object}|null} Object with fixed meta
  */
 function fixErrors(errors, item) {
@@ -77,7 +77,7 @@ function fixErrors(errors, item) {
 
 /**
  *
- * @param item Item to udpate
+ * @param {{object}|null} item Item to udpate
  * @returns {{object}|null} Object with updated meta
  */
 function findAndFixErrors(item) {
