@@ -1,5 +1,5 @@
 define([
-	"helpers/base_jet_view",
+	"helpers/base_jet_view"
 ], function(BaseJetView) {
 	'use strict';
 	const SORT_TEMPLATE_ALPHA = "alpha-sort";
@@ -97,5 +97,5 @@ define([
 				}
 			};
 		}
-	}
+	};
 });

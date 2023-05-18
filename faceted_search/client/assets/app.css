@@ -335,6 +335,10 @@ body.compact-skin .webix_slider_box .webix_slider_handle {
     align-items: center;
 }
 
+.logout-menu {
+    padding-top: 5px;
+}
+
 .window-header-toolbar .window-header-toolbar-text .webix_template {
     padding: 5px !important;
     font-size: 15px;

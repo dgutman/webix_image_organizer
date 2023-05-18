@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const facetImages = require('../models/facet_images');
 const lodash = require('lodash');
-const ObjectID = require('mongodb').ObjectID;
 
 const approvedFacetSchema = new mongoose.Schema({
 	facetId: String,

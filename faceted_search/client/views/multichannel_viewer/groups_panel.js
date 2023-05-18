@@ -3,8 +3,16 @@ define([
 	"helpers/math_calculations",
 	"models/multichannel_view/state_store",
 	"windows/color_picker_window",
-	"constants"
-], function(BaseJetView, MathCalculations, stateStore, ColorPickerWindow, constants) {
+	"constants",
+	"libs/hotkeys-js/dist/hotkeys"
+], function(
+	BaseJetView,
+	MathCalculations,
+	stateStore,
+	ColorPickerWindow,
+	constants,
+	hotkeys
+) {
 	'use strict';
 	const GROUPS_LIST_ID = "groups-list";
 	const GROUP_CHANNELS_LIST_ID = "groups-channels-list";
@@ -13,13 +21,16 @@ define([
 	const UPLOADER_API_ID = "uploader-api";
 	const GROUPS_TITLE_TEMPLATE = "groups-title";
 	const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
-
+	const GROUP_CHANNELS_OPACITY_SLIDER_ID = "group-channels-opacity-slider";
 
 	return class GroupsPanel extends BaseJetView {
 		constructor(app, config = {}, colorWindow) {
 			super(app);
 
 			this._cnf = config;
+			this._channelsSlidersContainersIds = new Map();
+			this._hotkeyCounter = 1;
+
 			this.$oninit = () => {
 				const view = this.getRoot();
 
@@ -64,12 +75,16 @@ define([
 						localId: GROUPS_TITLE_TEMPLATE,
 						borderless: true,
 						template: () => `Groups: <div>
-								<span class="upload icon mdi mdi-upload" title="upload groups"></span>
+								<span class="export icon mdi mdi-download" webix_tooltip="download groups"></span>
+								<span class="import icon mdi mdi-upload" title="import groups from file"></span>
 							</div>`,
 						height: 30,
 						onClick: {
-							upload: () => {
-								this.uploadGroups();
+							export: () => {
+								this.exportGroups();
+							},
+							import: () => {
+								this.importGroups();
 							}
 						}
 					},
@@ -85,7 +100,6 @@ define([
 									if (!value) {
 										return true;
 									}
-	
 									return name.toLowerCase().includes(value.toLowerCase());
 								});
 							}
@@ -131,28 +145,70 @@ define([
 								view: "list",
 								localId: GROUP_CHANNELS_LIST_ID,
 								css: "groups-channels-list",
-								drag: true,
+								drag: false,
 								scroll: "auto",
 								navigation: false,
 								select: false,
-								template: ({name, color, opacity}) => {
+								template: ({name, color, opacity, id}) => {
 									const showIcon = opacity ? "mdi mdi-eye" : "mdi mdi-eye-off";
-									return `<span class="channel-item__name name">${name}</span>
-									<div class="icons">
-										<span style="color: ${color};" class="icon palette mdi mdi-square"></span>
-										<span class="icon show ${showIcon}"></span>
-										<span class="icon delete mdi mdi-minus-circle"></span>
+									const focusIcon = "mdi mdi-radiobox-blank";
+									const containerId = webix.uid();
+									this._channelsSlidersContainersIds.set(id, containerId);
+									const iconElementId = webix.uid();
+									this.setHotkeyToIcon(iconElementId);
+									// Save focusHotkey value before call incrementHotkeyCounter 	function
+									const focusHotkey = this._hotkeyCounter;
+									this.incrementHotkeyCounter();
+									return `<div class="channel-item">
+										<div class="channel-item__row-one">
+											<span class="channel-item__name name">${name}</span>
+											<div class="icons">
+												<span style="color: ${color};" class="icon palette mdi mdi-square"></span>
+												<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}" id="${iconElementId}"></span>
+												<span class="icon show ${showIcon}"></span>
+												<span class="icon delete mdi mdi-minus-circle"></span>
+											</div>
+										</div>
+										<div class="channel-item__row-two" style="height: 27px">
+											<div class="channel-item__range-opacity" id="${containerId}"></div>
+											<div class="icons channel-item__position-controls">
+												<span class="icon up mdi mdi-chevron-up"></span>
+												<span class="icon down mdi mdi-chevron-down"></span>
+											</div>
+										</div>
 									</div>`;
+								},
+								type: {
+									height: 80
+								},
+								on: {
+									onAfterRender: () => {
+										this.createChannelsSliders();
+									},
+									onDataUpdate: (/* id */) => {
+										this.resetHotkeyCounter();
+										this.clearHotkeys();
+										this.getGroupsChannelsList().refresh();
+									}
 								},
 								onClick: {
 									show: (ev, id) => {
 										this.showOrHideChannel(id);
+									},
+									focus: (ev, id) => {
+										this.focusOnChannel(id);
 									},
 									delete: (ev, id) => {
 										this.removeChannel(id);
 									},
 									palette: (ev, id) => {
 										this.showPaletteWindow(id);
+									},
+									up: (ev, id) => {
+										this.moveChannelUp(id);
+									},
+									down: (ev, id) => {
+										this.moveChannelDown(id);
 									}
 								}
 							}
@@ -169,7 +225,74 @@ define([
 				]
 			};
 		}
+
+		createChannelsSliders() {
+			const channelList = this.getGroupsChannelsList();
+			const channels = channelList.serialize();
+			channels.forEach((channel) => {
+				const containerId = this._channelsSlidersContainersIds.get(channel.id);
+				const sliderContainerElement = document.getElementById(containerId);
+				sliderContainerElement.innerHTML = "";
+				const channelId = channel.id;
+				const sliderView = this.createSlider(containerId, channel.opacity);
+				sliderView.attachEvent("onChange", (newValue) => {
+					const channelIndex = channelList.getIndexById(channelId);
+					channelList.updateItem(channelId, {opacity: newValue});
+					this.updateChannelOpacity(channelIndex, newValue);
+				});
+			});
+		}
 	
+		createSlider(containerId, opacity) {
+			const slider = {
+				view: "slider",
+				id: `${GROUP_CHANNELS_OPACITY_SLIDER_ID}-${webix.uid()}`,
+				container: `${containerId}`,
+				name: "opacity",
+				max: 1,
+				min: 0,
+				step: 0.01,
+				value: opacity,
+				width: 100,
+				height: 50
+			};
+			const sliderView = webix.ui(slider);
+			return sliderView;
+		}
+	
+		refreshChannelsSliders() {
+			const channelList = this.getGroupsChannelsList();
+			channelList.refresh();
+		}
+	
+		updateChannelOpacity(channelIndex, newValue) {
+			this.getRoot().callEvent("changeChannelOpacity", [channelIndex, newValue]);
+		}
+	
+		moveChannelUp(id) {
+			const channelsList = this.getGroupsChannelsList();
+			const channelIndex = channelsList.getIndexById(id);
+			if (channelIndex > 0) {
+				channelsList.moveUp(id, 1);
+				const newChannelIndex = channelsList.getIndexById(id);
+				this.handleChannelsOrderChange(newChannelIndex, channelIndex);
+				this.refreshChannelsSliders();
+			}
+		}
+	
+		moveChannelDown(id) {
+			const channelsList = this.getGroupsChannelsList();
+			const channelIndex = channelsList.getIndexById(id);
+			channelsList.moveDown(id, 1);
+			const newChannelIndex = channelsList.getIndexById(id);
+			this.handleChannelsOrderChange(newChannelIndex, channelIndex);
+			this.refreshChannelsSliders();
+		}
+	
+		handleChannelsOrderChange(newChannelIndex, oldChannelIndex) {
+			this.getRoot().callEvent("channelOrderChange", [newChannelIndex, oldChannelIndex]);
+		}
+
 		updateSelectedGroupTiles() {
 			const groupsList = this.getGroupsList();
 			const channelsList = this.getGroupsChannelsList();
@@ -191,7 +314,7 @@ define([
 			}
 			const count = group.channels.length;
 			const newChannels = channels
-				.filter(({index}) => !group.channels.find(channel => channel.index === index))
+				.filter(({index}) => !group.channels.find((channel) => channel.index === index))
 				.map((channel, i, arr) => {
 					const color = this.createColorByIndex(count + i, arr.length + count);
 					if(stateStore.bit == constants.SIXTEEN_BIT) {
@@ -279,8 +402,37 @@ define([
 			return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 		}
 	
-		uploadGroups() {
+		importGroups() {
 			this.getRoot().callEvent("uploadGroups");
+		}
+
+		setHotkeyToIcon(iconElementId) {
+			if (this._hotkeyCounter !== 0) {
+				hotkeys(`${this._hotkeyCounter}`, (/* event, handler */) => {
+					const iconElement = document.getElementById(iconElementId);
+					iconElement?.click();
+				});
+			}
+		}
+	
+		incrementHotkeyCounter() {
+			switch (this._hotkeyCounter) {
+				case 9:
+					break;
+				default:
+					this._hotkeyCounter++;
+					break;
+			}
+		}
+	
+		resetHotkeyCounter() {
+			this._hotkeyCounter = 1;
+		}
+	
+		clearHotkeys() {
+			for (let i = 1; i < 10; i++) {
+				hotkeys.unbind(`${i}`);
+			}
 		}
 	
 		getGroupsList() {

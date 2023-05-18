@@ -2,11 +2,10 @@
 
 function togglePasswordVisibility(elem) {
 	if (elem.config.icon === "mdi mdi-eye-off") {
-		elem.define("type", "password");
-		elem.define("icon", "mdi mdi-eye");
-	}
-	else {
 		elem.define("type", "base");
+		elem.define("icon", "mdi mdi-eye");
+	} else {
+		elem.define("type", "password");
 		elem.define("icon", "mdi mdi-eye-off");
 	}
 	elem.refresh();
@@ -74,7 +73,7 @@ function getWindowConfig() {
 						css: "btn-contour",
 						width: 80,
 						name: "cancelButton",
-						value: "Cancel",
+						value: "Cancel"
 						// click: () => this.cancelLogic()
 					},
 					{width: 20},
@@ -84,7 +83,7 @@ function getWindowConfig() {
 						width: 80,
 						name: "loginButton",
 						value: "Login",
-						hotkey: "enter",
+						hotkey: "enter"
 						// click: () => this.loginButtonClick()
 					}
 				]
@@ -123,7 +122,7 @@ function getWindowConfig() {
 					hotkey: "esc",
 					width: 30,
 					height: 30,
-					align: "right",
+					align: "right"
 					// click: () => this.cancelLogic()
 				},
 				{width: 5}
@@ -145,7 +144,7 @@ function getWindowConfig() {
 define([
 	"app",
 	"helpers/authentication"
-], function (app, authService) {
+], function(app, authService) {
 	const window = webix.ui(getWindowConfig());
 	webix.extend(window, webix.ProgressBar);
 
@@ -195,6 +194,6 @@ define([
 	loginButton.attachEvent("onItemClick", () => { loginButtonClick(); });
 	cancelButton.attachEvent("onItemClick", () => { cancelLogic(); });
 
-	return window
+	return window;
 });
 
