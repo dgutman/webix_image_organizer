@@ -3,6 +3,7 @@
 
 const express = require('express');
 const fs = require('fs');
+const errorHandler = require("../etc/errorHandler");
 
 const ServiceData = require('./models/service_data');
 
@@ -51,10 +52,7 @@ function handleIndexRoutes(req, res, next) {
 module.exports = function(app) {
     const apiRouter = express.Router();
 
-    app.use((err, req, res, next) => {
-        console.error(err.stack);
-        res.status(500).send('Internal error');
-    });
+    app.use(errorHandler);
 
     fs.readdir('./server/api/routes', (error, files) => {
         if (error) {

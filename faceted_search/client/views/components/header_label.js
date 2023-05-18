@@ -14,6 +14,7 @@ define([
 				...this._cnf,
 				id: this._rootId,
 				cols: [
+					{gravity: 1, height: 44},
 					{
 						view: "label",
 						width: 155,

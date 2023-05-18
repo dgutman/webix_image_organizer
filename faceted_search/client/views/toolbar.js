@@ -4,10 +4,10 @@ define([
     "helpers/switch_mode_confirm",
     "helpers/authentication",
     "constants"
-], function (app, editFormView, switchModeConfirm, auth, constants) {
+], function(app, editFormView, switchModeConfirm, auth, constants) {
     const ui = {
         view: "toolbar",
-        width: 150,
+        width: 160,
         borderless: true,
         cols: [
             {
@@ -15,9 +15,10 @@ define([
                 name: "switchViews",
                 hidden: !auth.isAdmin(),
                 label: "Admin/User",
+                labelWidth: 100,
                 value: (window.location.hash.indexOf("user_mode") > -1 ? constants.USER_MODE : constants.ADMIN_MODE),
                 on: {
-                    onChange: function (id, oldId) {
+                    onChange: function(id, oldId) {
                         if (window.location.hash.indexOf("admin_mode") > -1 && oldId === constants.ADMIN_MODE && !editFormView.areFiltersNotChanged()) {
                             switchModeConfirm((result) => {
                                 if (result) {
@@ -33,7 +34,7 @@ define([
                                     this.setValue(0);
                                     this.unblockEvent();
                                 }
-                            })
+                            });
                         }
                         else {
                             if(id === constants.USER_MODE){
@@ -51,5 +52,4 @@ define([
     return {
         $ui: ui
     };
-
 });

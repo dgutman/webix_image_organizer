@@ -30,6 +30,7 @@ async function login(hostApi, authHeader) {
 				${errorMessage}\n
 				Status Code: ${response.status}`
 			);
+			error.name = "UnauthorizedError";
 			throw error;
 		});
 }

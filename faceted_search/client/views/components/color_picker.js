@@ -31,7 +31,7 @@ define([
 
 			this.$oninit = () => {
 				this._initPicker();
-			}
+			};
 		}
 	
 		get $ui() {
@@ -80,5 +80,5 @@ define([
 			});
 			return picker;
 		}
-	}
+	};
 });

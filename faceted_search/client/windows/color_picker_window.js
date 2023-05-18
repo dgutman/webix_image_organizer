@@ -26,6 +26,7 @@ define([
 	'use strict';
 	const FORM_ID = `${constants.FORM_ID}-${webix.uid()}`;
 	const HISTOGRAM_FORM_ID = `${constants.HISTOGRAM_FORM_ID}-${webix.uid()}`;
+	const HISTOGRAM_CHART_ID = `histogram-chart-${webix.uid()}`;
 	const chartOverlay = "<div class='chart-overlay'></div>";
 
 	return class ColorPickerWindow extends BaseJetView {
@@ -33,15 +34,18 @@ define([
 			super(app);
 	
 			this._colorPicker = new ColorPicker(app, {name: "color", width: 300});
-			const initialMaxEdge = stateStore.bit == constants.EIGHT_BIT ?
-				constants.MAX_EDGE_FOR_8_BIT : constants.MAX_EDGE_FOR_16_BIT;
-			this._rangeSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
-			this._rangeSwitch = new RangeSwitch(app, {hidden: true}, initialMaxEdge, this._rangeSlider);
-			this._histogramChart = new HistogramChart(app, {width: 330, height: 210});
-			this._histogramSlider = new RangeSlider(app, {}, initialMaxEdge, 0);
+			this._histogramChart = new HistogramChart(
+				this.app,
+				{width: 530, height: 410, localId: HISTOGRAM_CHART_ID}
+			);
+			const initialMaxEdge = stateStore.bit == constants.EIGHT_BIT
+				? constants.MAX_EDGE_FOR_8_BIT
+				: constants.MAX_EDGE_FOR_16_BIT;
+			this._visibleRangeSlider = new RangeSlider(app, {hidden: true}, initialMaxEdge, 0);
+			
 			this._scaleTypeToggle = new ScaleTypeToggle(
 				app, 
-				{value: constants.LINEAR_SCALE_VALUE}
+				{value: constants.LOGARITHMIC_SCALE_VALUE}
 			);
 
 			this.$oninit = () => {
@@ -52,34 +56,18 @@ define([
 				this._colorPicker.$pickerTemplate().attachEvent("onColorChange", () => {
 					this.getRoot().callEvent("colorChanged", [form.getValues()]);
 				});
-		
+
+				const debounce = new Debouncer(200);
 				form.attachEvent("onChange", async () => {
 					const values = this.getForm().getValues();
 					this.getRoot().callEvent("colorChanged", [values]);
+					debounce.execute(this.updateHistogramHandler, this);
 				});
 
-
-				const toggleRangeSwitchVisibility = () => {
-					const rangeSwitchRoot = this._rangeSwitch.getRoot();
-					const isVisible = rangeSwitchRoot.isVisible();
-					if (isVisible) {
-						rangeSwitchRoot.hide();
-					} else {
-						rangeSwitchRoot.show();
-					}
-					return false; 
-				};
-				this.getRoot().attachEvent("onShow", () => {
-					webix.UIManager.addHotKey("Shift+S", toggleRangeSwitchVisibility);
-				});
-				this.getRoot().attachEvent("onHide", () => {
-					webix.UIManager.removeHotKey("Shift+S", toggleRangeSwitchVisibility);
-				});
 
 				const histogramForm = this.getHistogramForm();
-				const debounce = new Debouncer(400);
 				histogramForm.attachEvent("onChange", async () => {
-					debounce.execute(this.updateHistorgamHandler, this);
+					debounce.execute(this.updateHistogramHandler, this);
 				});
 			};
 		}
@@ -91,8 +79,8 @@ define([
 				id: this._rootId,
 				move: true,
 				modal: false,
-				height: 1050,
-				width: 700,
+				height: 850,
+				width: 900,
 				body: {
 					cols: [
 						{
@@ -100,7 +88,6 @@ define([
 							localId: HISTOGRAM_FORM_ID,
 							elements: [
 								this._histogramChart,
-								this._histogramSlider,
 								this._scaleTypeToggle
 							]
 						},
@@ -109,8 +96,7 @@ define([
 							localId: FORM_ID,
 							elements: [
 								this._colorPicker,
-								this._rangeSlider,
-								this._rangeSwitch,
+								this._visibleRangeSlider,
 								{
 									cols: [
 										{
@@ -163,7 +149,7 @@ define([
 					}
 					const [histogram] = data;
 					this.setHistogramValues(histogram);
-					this.setMinAndMaxValuesByHistogram(histogram.min, histogram.max);
+					this.setMinAndMaxValuesByHistogram(histogram);
 				})
 				.finally(() => {
 					this._histogramChart.getRoot().hideOverlay();
@@ -186,7 +172,7 @@ define([
 			this.getRoot().callEvent("applyColorChange", [form.getValues()]);
 		}
 	
-		updateHistorgamHandler() {
+		updateHistogramHandler() {
 			this._histogramChart.getRoot().showOverlay(chartOverlay);
 			this._getHistogramInfo().then((data) => {
 				if (!data) {
@@ -221,12 +207,18 @@ define([
 				return {value, name};
 			});
 			this._histogramChart.makeChart(chartValues, yScale);
+			const histogramChartDiv = this._histogramChart.getHistogramDiv();
+			histogramChartDiv.on("plotly_relayout", (eventData) => {
+				const min = eventData["xaxis.range[0]"];
+				const max = eventData["xaxis.range[1]"];
+				const values = {min, max};
+				this.getForm().setValues(values);
+				this.getRoot().callEvent("colorChanged", [values]);
+			});
 		}
 	
-		setMinAndMaxValuesByHistogram(min = 0, max) {
-			this._rangeSlider.setEdges(min, max);
-			this._histogramSlider.setEdges(min, max);
-			this._rangeSwitch.setMaxRange(max);
+		setMinAndMaxValuesByHistogram({min, max}) {
+			this._visibleRangeSlider.setEdges(min, max);
 		}
 	
 		async _getHistogramInfo(initial) {
@@ -239,10 +231,17 @@ define([
 				rangeMax: max
 			};
 	
-			return ajaxActions
-				.getImageTilesHistogram(this._image._id, this._channel.index, initial ? null : binSettings);
+			return ajaxActions.getImageTilesHistogram(
+				this._image._id,
+				this._channel.index,
+				initial ? null : binSettings
+			);
 		}
-	
+
+		getHistogramChart() {
+			return this.$$(HISTOGRAM_CHART_ID);
+		}
+
 		getForm() {
 			return this.$$(FORM_ID);
 		}

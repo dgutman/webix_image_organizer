@@ -16,8 +16,8 @@ const api = require('./api');
 const jwt = require("./etc/jwt");
 const errorHandler = require("./etc/errorHandler");
 const Backend = require('./api/extensions/socket_backend').Backend;
-const serveSkins = require('./api/extensions/serve_skins.js')();
-const serveHosts = require('./api/extensions/serve_hosts.js')();
+require('./api/extensions/serve_skins.js')();
+require('./api/extensions/serve_hosts.js')();
 
 const app = express();
 app.server = http.createServer(app);
@@ -38,7 +38,6 @@ app.socket_backend = new Backend(socket);
 
 app.use(express.static('./client'));
 app.use(cors());
-app.use(errorHandler);
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({
     'extended': 'true',
@@ -51,6 +50,7 @@ app.use(bodyParser.json({
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(jwt());
 app.use('/api', api(app));
+app.use(errorHandler);
 
 db(() => {
     process.on('SIGINT', () => {
