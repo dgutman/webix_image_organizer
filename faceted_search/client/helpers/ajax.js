@@ -133,7 +133,7 @@ define(["app", "constants"], function(app, constants) {
 				.then((result) => this._parseData(result));
 		}
 
-		getFolder(parentType, parentId) {
+		getSubFolders(parentType, parentId) {
 			const params = {
 				limit: 0,
 				parentType,

@@ -10,7 +10,7 @@ function handleIndexRoutes(req, res, next) {
     let adminMode = false;
     if(req.url === '/admin') adminMode = true;
     const currentSkin = adminMode ? req.session.admin_skin : req.session.user_skin;
-   
+
     Promise.all([
             ServiceData.getSkinsList(),
             ServiceData.getSkinExtensionsList(),
@@ -26,17 +26,17 @@ function handleIndexRoutes(req, res, next) {
         if(adminMode) {
             if(!currentSkin || !skinsList.includes(currentSkin)) req.session.admin_skin = defaultSkin;
             Object.assign(data, {
-                skin: req.session.admin_skin, 
-                skinExtension: skinsExtensionsList.includes(req.session.admin_skin) || false, 
-                skinsList: skinsList, 
+                skin: req.session.admin_skin,
+                skinExtension: skinsExtensionsList.includes(req.session.admin_skin) || false,
+                skinsList: skinsList,
                 userMode: false
             });
         } else {
             if(!currentSkin || !skinsList.includes(currentSkin)) req.session.user_skin = defaultSkin;
             Object.assign(data, {
                 skin: req.session.user_skin,
-                skinExtension: skinsExtensionsList.includes(req.session.user_skin) || false, 
-                skinsList: skinsList, 
+                skinExtension: skinsExtensionsList.includes(req.session.user_skin) || false,
+                skinsList: skinsList,
                 userMode: true
             });
         }
@@ -61,7 +61,7 @@ module.exports = function(app) {
             throw error;
         } else {
             files.forEach((file) => {
-                require('./routes/' + file.substr(0, file.lastIndexOf('.')))(apiRouter);
+                require('./routes/' + file.substring(0, file.lastIndexOf('.')))(apiRouter);
             });
         }
     });

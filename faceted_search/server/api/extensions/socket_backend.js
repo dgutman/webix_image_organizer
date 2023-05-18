@@ -46,7 +46,7 @@ class Backend {
         loadImagesFileFromGirderFolder(data)
             .then((images) => {
                 this._message('[Uploading]: finished');
-                return this._parseData(images, data.host, data.id);
+                return this._parseData(images, data.host);
             })
             .catch((error) => {
                 this._message(`[Error]: something went wrong`);
@@ -88,6 +88,10 @@ class Backend {
     async deleteResource(data) {
         this._message('[Looking images]: started');
         const images = await loadImagesFileFromGirderFolder(data);
+        const resourcesIds = this.getImagesResources(images);
+        if (data?.id) {
+            resourcesIds.push(data?.id);
+        }
         this._message('[Delete]: started');
         let imagesCount = 0;
         const ids = images ? images.map((image) => {
@@ -95,18 +99,21 @@ class Backend {
             return image._id;
         }) : 0;
         const deletedCount = await facetImages.removeImages(ids);
+        await serviceData.deleteDownloadedResource(resourcesIds);
         if(imagesCount === deletedCount) {
             this._message('[Delete]: finished successfully');
             this.socket.emit('finishLoading', {});
+            this.socket.emit('updateUploadedResources');
         } else {
             this._message('[Delete]: something went wrong');
             this.socket.emit('finishLoading', {});
+            this.socket.emit('updateUploadedResources');
         }
     }
 
-    async _parseData(images, host, id) {
+    async _parseData(images, host) {
         this._message('[Parse]: started');
-        const resourceId = id;
+        const resourcesIds = this.getImagesResources(images);
         return parseImages(images, host, this._message)
             .then((data) => {
                 this._message('[Parse]: finished');
@@ -118,7 +125,7 @@ class Backend {
             .then((convertedData) => fsp.writeFile(IMAGES_PATH, JSON.stringify(convertedData)))
             .then((result) => md5(IMAGES_PATH))
             .then((hash) => serviceData.updateImagesHash(hash))
-            .then(() => serviceData.addResource(resourceId))
+            .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => {
                 this.socket.emit('finishLoading', {});
@@ -129,6 +136,16 @@ class Backend {
                 console.log(err);
                 return Promise.resolve();
             });
+    }
+
+    getImagesResources(images) {
+        const resourcesIds = Array.from(images.reduce((resourcesIdsSet, currentImage) => {
+            if (currentImage.folderId) {
+                resourcesIdsSet.add(currentImage.folderId);
+            }
+            return resourcesIdsSet;
+        }, new Set()));
+        return resourcesIds;
     }
 }
 

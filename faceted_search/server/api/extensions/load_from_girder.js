@@ -1,4 +1,5 @@
 const axios = require("axios");
+const serviceData = require("../models/service_data");
 const facetImagesModel = require("../models/facet_images");
 
 async function getFoldersByIds({host, ids, token}) {
@@ -44,6 +45,8 @@ async function loadImagesFileFromGirderFolder({host, id, token}) {
 		const imageFolderIds = Array.from(images.reduce((set, image) => set.add(image.folderId), new Set()));
 		const folders = await getFoldersByIds({host, ids: imageFolderIds, token});
 		images = addParentMetaToImages(images, folders);
+		// function addResources accept array
+		serviceData.addResources([id]);
 		return images;
 	} catch(err) {
 		console.log(err.response || err);

@@ -10,7 +10,7 @@ define([
 	const statusTemplateId = "status-template";
 	const deleteButtonId = "delete-btn";
 	const localApi = constants.LOCAL_API;
-	let downloadedResources = [];
+	const downloadedResources = [];
 
 	const treeView = {
 		view: "tree",
@@ -96,7 +96,10 @@ define([
 			tree.showProgress();
 			ajax.getDownloadedResources()
 				.then((data) => {
-					downloadedResources = data;
+					downloadedResources.length = 0;
+					if (Array.isArray(data)) {
+						downloadedResources .push(...data);
+					}
 				});
 
 			ajax.getCollection()
@@ -110,7 +113,7 @@ define([
 			tree.attachEvent("onDataRequest", (id) => {
 				const item = tree.getItem(id);
 				tree.showProgress();
-				ajax.getFolder(item._modelType, item._id)
+				ajax.getSubFolders(item._modelType, item._id)
 					.then((data) => {
 						tree.parse({parent: id, data});
 					})
@@ -179,9 +182,12 @@ define([
 								}
 								ajax.getDownloadedResources()
 									.then((data) => {
-									downloadedResources = data;
+										downloadedResources.length = 0;
+										if (Array.isArray(data)) {
+											downloadedResources.push(...data);
+										}
 								});
-								tree.refresh();
+								tree.render();
 								tree.hideProgress();
 							}, (err) => {
 								webix.message({type: "error", text: `${err.responseText}`, expire: 10000});
@@ -210,10 +216,13 @@ define([
 
 					ajax.getDownloadedResources()
 						.then((resourceData) => {
-							downloadedResources = resourceData;
+							downloadedResources.length = 0;
+							if(Array.isArray(resourceData)) {
+								downloadedResources.push(...resourceData);
+							}
 							tree.unselectAll();
 							toggleUploadButtonState();
-							tree.refresh();
+							tree.render();
 						});
 				}
 
@@ -229,22 +238,24 @@ define([
 				$$(statusTemplateId).setValues({title: "Done!"});
 			});
 
-			app.attachEvent("deleteResource:clearAfterDelete", function() {
-				tree.refresh();
+			app.attachEvent("deleteResource:clearAfterDelete", async function() {
+				tree.showProgress();
+				const resourceData = await ajax.getDownloadedResources();
+				downloadedResources.length = 0;
+				if(Array.isArray(resourceData)) {
+					downloadedResources.push(...resourceData);
+				}
+				tree.hideProgress();
+				tree.render();
 			});
 
-			tree.on_click.delicon = function(e, id, trg) {
+			tree.on_click.delicon = async function(e, id, trg) {
 				tree.showProgress();
 				const obj = tree.getItem(id);
 				const token = auth.getToken();
 				const host = ajax.getHostApiUrl();
 				Upload.deleteResource(obj._id, host, token);
-				ajax.deleteResource(obj._id);
-				const downloadedIndex = downloadedResources.indexOf(obj._id);
-				if (downloadedIndex !== -1) {
-					downloadedResources.splice(downloadedIndex, 1);
-				}
-				tree.refresh();
+				tree.render();
 			};
 		}
     };

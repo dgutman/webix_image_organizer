@@ -139,7 +139,7 @@ define([
 					dataToDisplay[filter.value] = data[filter.value];
 				}
 			});
-			return dataToDisplay;
+			return JSON.stringify(dataToDisplay);
 		}
 
 		checkData(id, data, check) {

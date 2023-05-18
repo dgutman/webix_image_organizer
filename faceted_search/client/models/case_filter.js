@@ -56,6 +56,10 @@ define([
 
 	function getFilters() {
 		const filters = webix.storage.local.get(`cases-filters-${auth.getUserId()}`);
+		if (!filters) {
+			setFilters([]);
+			return [];
+		}
 		return filters;
 	}
 
