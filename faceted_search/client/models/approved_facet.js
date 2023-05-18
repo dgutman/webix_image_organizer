@@ -36,7 +36,6 @@ define([
 						approvedFacetsData = data;
 					}
 				}
-				console.log(`approvedFacetsData: ${JSON.stringify(approvedFacetsData)}`);
 				approvedFacetsLabels.length = 0;
 				approvedFacetsLabels.push(...parseForFilter(approvedFacetsData));
 				app.callEvent("editForm:approvedFacetDataLoaded");

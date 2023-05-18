@@ -101,12 +101,12 @@ define([
 	imagesCollection.filterSingleImage = function(obj, data) {
 		const show = {};
 		const filteredCases = CaseFilter.getFilteredCases();
-		const imagesFilteredByCases = CaseFilter.getFilteredImagesIds()
+		const imagesFilteredByCasesIds = CaseFilter.getFilteredImagesIds();
 		const caseFilters = CaseFilter.getFilters();
 		const criterionsCount = caseFilters?.length;
 		if (criterionsCount === 0
 			|| (filteredCases?.includes(obj?.data?.meta?.npSchema?.caseID)
-				&& imagesFilteredByCases.includes(obj.id))
+				&& imagesFilteredByCasesIds.includes(obj.id))
 		) {
 			for(let i = 0; i < data.length; i++) {
 				show[data[i].key] = false;
@@ -148,73 +148,15 @@ define([
 			return isOk;
 		});
 		imagesCollection.callEvent("imagesFiltered", []);
+		// app.callEvent("caseForm: filtersChanged");
 		app.callEvent("reloadFormAfterCalculating", [arr, skipId]);
 	});
 
-	function isCriterionsFit(criterions, image) {
-		const isOk = criterions.reduce((isOk, criteria, currentCriterions) => {
-			if (isOk) {
-				return true;
-			} else if (
-				((image.data?.meta?.npSchema?.regionName || image.data?.meta?.npSchema?.region) === criteria.region)
-				&& image.data?.meta?.npSchema?.stainID === criteria.stain
-			) {
-				CaseFilter.addCaseCriteria(
-					image.data?.meta?.npSchema?.caseID,
-					`${criteria.region}-${criteria.stain}`
-				);
-				return true;
-			}
-			return false;
-		}, false);
-		return isOk;
-	}
-
-	imagesCollection.filterByCriterions = function(criterions) {
-		const casesSet = new Set();
-		const allImages = getAllImages();
-		allImages.forEach((image) => casesSet.add(image.data?.meta?.npSchema?.caseID));
-		CaseFilter.clearCases();
-		const filteredImagesByCriterions = allImages.filter((image) => {
-			const isOk = criterions
-				? isCriterionsFit(criterions, image)
-				: true;
-			return isOk;
-		});
-		const filteredImagesId = filteredImagesByCriterions.map((filteredImage) => filteredImage.id);
-		const filteredCases = Array.from(casesSet).filter((caseName) => {
-			return CaseFilter.isCaseFit(caseName, criterions.length);
-		});
-		CaseFilter.setFilteredCases(filteredCases);
-		CaseFilter.setFilteredImagesIds(filteredImagesId);
-		app.callEvent("filtersChanged");
-	};
-
-	imagesCollection.getCriterionCount = function(criterion) {
-		const allImages = getAllImages();
-		const imagesFitsCriteria = allImages.filter((image) => {
-			const isOk = image.facets["meta|npSchema|stainID"] === criterion.stain
-				&& (image.facets["meta|npSchema|regionName"] || image.facets["meta|npSchema|region"]) === criterion.region;
-			return isOk;
-		});
-		const count = imagesFitsCriteria.length;
-		return count;
-	};
-
-	function getAllImages() {
+	imagesCollection.getAllImages = function() {
 		const cloneImages = webix.clone(imagesCollection);
 		cloneImages.filter(() => true);
 		const images = cloneImages.serialize();
 		return images;
-	}
-
-	imagesCollection.getCasesCount = function() {
-		const images = this.serialize();
-		const result = new Set();
-		images.forEach((image) => {
-			result.add(image.data.meta.npSchema.caseID);
-		});
-		return result.size;
 	};
 
 	return imagesCollection;

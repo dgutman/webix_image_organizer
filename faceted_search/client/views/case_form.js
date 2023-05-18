@@ -1,18 +1,20 @@
 define([
 	"app",
+	"models/case_filter",
 	"models/filter",
 	"models/images",
+	"helpers/case",
 	"helpers/filters",
 	"helpers/authentication",
-	"models/case_filter",
 	"constants"
 ], function(
 	app,
+	CaseFilter,
 	Filter,
 	Images,
+	caseHelper,
 	filterHelper,
 	auth,
-	CaseFilter,
 	constants
 ) {
 	const appliedFiltersId = `case-applied-filters-${webix.uid()}`;
@@ -74,7 +76,7 @@ define([
 		id: appliedFiltersId,
 		gravity: 10,
 		template: (obj, common) => {
-			const criteriaCount = Images.getCriterionCount({region: obj.region, stain: obj.stain});
+			const criteriaCount = caseHelper.getCriterionCount({region: obj.region, stain: obj.stain});
 			return `<div>
 				<span class="delbtn mdi mdi-minus-circle"></span>
 				count: (${criteriaCount}), stain="${obj.stain}", region="${obj.region}"
@@ -88,7 +90,8 @@ define([
 				const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
 				CaseFilter.setFilters(filters);
 				// app.callEvent("images:wsiFilterImagesView", [filter]);
-				Images.filterByCriterions(filters);
+				// Images.filterByCriterions(filters);
+				caseHelper.filterByCriterions(filters);
 			}
 		}
 	};
@@ -106,23 +109,31 @@ define([
 	};
 
 	Images.attachEvent("imagesLoaded", function() {
-		const imagesCollection = this.getImages();
+		const imagesCollection = Images.getImages();
 		const images = imagesCollection.serialize();
 		app.callEvent("casesFilter:setRegionsAndStains", [images]);
 		const imagesRegions = CaseFilter.getImagesRegions();
 		const imagesStaines = CaseFilter.getImagesStains();
-		$$(casesCountId).data.count = this.getCasesCount();
+		const filters = CaseFilter.getFilters();
+		if(filters?.length > 0) {
+			$$(appliedFiltersId).parse(filters);
+		}
+		$$(casesCountId).data.count = caseHelper.getCasesCount();
 		$$(casesCountId).render();
 		$$(regionSelectId).define("options", imagesRegions);
 		$$(regionSelectId).render();
 		$$(stainSelectId).define("options", imagesStaines);
 		$$(stainSelectId).render();
+		$$(appliedFiltersId).hideProgress();
+		$$(casesCountId).hideProgress();
+		$$(caseFilterID).hideProgress();
 	});
 
 	app.attachEvent("caseForm: filtersChanged", function() {
 		const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
-		Images.filterByCriterions(filters);
-		$$(casesCountId).data.count = Images.getCasesCount();
+		// Images.filterByCriterions(filters);
+		caseHelper.filterByCriterions(filters);
+		$$(casesCountId).data.count = caseHelper.getCasesCount();
 		$$(casesCountId).render();
 	});
 
@@ -138,10 +149,13 @@ define([
 	return {
 		$ui: ui,
 		$oninit: function() {
-			const filters = CaseFilter.getFilters();
-			if(filters?.length > 0) {
-				$$(appliedFiltersId).parse(filters);
-			}
+			const viewsIDsForProgressBar = [casesCountId, appliedFiltersId, caseFilterID];
+			viewsIDsForProgressBar.forEach((viewId) => {
+				webix.extend($$(viewId), webix.ProgressBar);
+				$$(viewId).showProgress({
+					type: "icon"
+				});
+			});
 		}
 	};
 });

@@ -104,16 +104,20 @@ ServiceDataSchema.statics.getDownloadedResources = function() {
 	return this.findOne({type: DATA_TYPES.DOWNLOADED_RESOURCES}).lean();
 };
 
-ServiceDataSchema.statics.addResource = function(resource) {
+/**
+ *
+ * @param {[]}newResources
+ * @return {*}
+ */
+ServiceDataSchema.statics.addResources = function(newResources) {
 	return this.getDownloadedResources()
 	.then((result) => {
+		const resources = Array.isArray(result?.data)
+			? Array.from(new Set([].concat(result.data, newResources)))
+			: Array.from(new Set(newResources));
 		if(result) {
-			const resources = [...result.data];
-			resources.push(resource);
 			return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
 		} else {
-			const resources = [];
-			resources.push(resource);
 			const doc = new this({
 				name: 'Downloaded resources',
 				type: DATA_TYPES.DOWNLOADED_RESOURCES,
@@ -129,16 +133,13 @@ ServiceDataSchema.statics.clearDownloadedResources = async function() {
 	return result.ok;
 };
 
-ServiceDataSchema.statics.deleteDownloadedResource = async function(id) {
+ServiceDataSchema.statics.deleteDownloadedResource = async function(ids) {
 	return this.getDownloadedResources()
 	.then((result) => {
-		if(result && result.data) {
+		if(result?.data) {
 			const resources = [...result.data];
-			const index = result.data.indexOf(id);
-			if(index !== -1) {
-				resources.splice(index, 1);
-			}
-			return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
+			const filteredResources = resources.filter((resourceId) => !ids.includes(resourceId));
+			return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: filteredResources});
 		}
 	});
 };
