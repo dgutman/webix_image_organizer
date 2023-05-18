@@ -154,108 +154,63 @@ export default class FilterModel {
 		const filterNames = Object.keys(this.filters);
 		if (!filterNames.length) {
 			this.dataCollection.filter();
+			this.metadataTableCollection.filter();
 		}
 		else {
 			if (this.filters.hasOwnProperty("modelType")) {
 				this.setItemsByModelType("folder");
 			}
-			this.metadataTableCollection.filter((item) => {
-				const condition = filterNames.every((name) => {
-					let doesItFit = false;
-					const value = this.filters[name].value;
-					const itemFiledValue = dot.pick(name, item) || this.returnString(dot.pick(name, item.meta)) || "";
-					switch (this.filters[name].type) {
-						case "date": {
-							const formatToSting = webix.Date.dateToStr("%m/%d/%y");
-							const dateString = formatToSting(new Date(itemFiledValue));
-							doesItFit = dateString.includes(value);
-							break;
-						}
-						case "itemType": {
-							const itemType = utils.searchForFileType(item);
-							doesItFit = (value === "all" || itemType === value);
-							break;
-						}
-						case "select": {
-							if (value === "empty_value") {
-								doesItFit = !itemFiledValue;
+			// TODO: synchronise dataCollection and metadataTableCollection
+			[this.metadataTableCollection, this.dataCollection].forEach((dataCollection) => {
+				dataCollection.filter((item) => {
+					const condition = filterNames.every((name) => {
+						let doesItFit = false;
+						const value = this.filters[name].value;
+						const itemFiledValue = dot.pick(name, item) || this.returnString(dot.pick(name, item.meta)) || "";
+						switch (this.filters[name].type) {
+							case "date": {
+								const formatToSting = webix.Date.dateToStr("%m/%d/%y");
+								const dateString = formatToSting(new Date(itemFiledValue));
+								doesItFit = dateString.includes(value);
+								break;
 							}
-							else {
+							case "itemType": {
+								const itemType = utils.searchForFileType(item);
+								doesItFit = (value === "all" || itemType === value);
+								break;
+							}
+							case "select": {
+								if (value === "empty_value") {
+									doesItFit = !itemFiledValue;
+								}
+								else {
+									doesItFit = itemFiledValue
+										.toString().toLowerCase() === value.toString().toLowerCase();
+								}
+								break;
+							}
+							case "warning": {
+								doesItFit = itemFiledValue;
+								break;
+							}
+							case "star": {
+								doesItFit = itemFiledValue === value.substr(0, value.indexOf(" "));
+								break;
+							}
+							case "modelType": {
+								doesItFit = true;
+								break;
+							}
+							default: {
 								doesItFit = itemFiledValue
-									.toString().toLowerCase() === value.toString().toLowerCase();
+									.toString().toLowerCase().includes(value.toString().toLowerCase());
+								break;
 							}
-							break;
 						}
-						case "warning": {
-							doesItFit = itemFiledValue;
-							break;
-						}
-						case "star": {
-							doesItFit = itemFiledValue === value.substr(0, value.indexOf(" "));
-							break;
-						}
-						case "modelType": {
-							doesItFit = true;
-							break;
-						}
-						default: {
-							doesItFit = itemFiledValue
-								.toString().toLowerCase().includes(value.toString().toLowerCase());
-							break;
-						}
-					}
-					return doesItFit;
+						return doesItFit;
+					});
+					return condition;
 				});
-				return condition;
-			});
-			this.dataCollection.filter((item) => {
-				const condition = filterNames.every((name) => {
-					let doesItFit = false;
-					const value = this.filters[name].value;
-					const itemFiledValue = dot.pick(name, item) || this.returnString(dot.pick(name, item.meta)) || "";
-					switch (this.filters[name].type) {
-						case "date": {
-							const formatToSting = webix.Date.dateToStr("%m/%d/%y");
-							const dateString = formatToSting(new Date(itemFiledValue));
-							doesItFit = dateString.includes(value);
-							break;
-						}
-						case "itemType": {
-							const itemType = utils.searchForFileType(item);
-							doesItFit = (value === "all" || itemType === value);
-							break;
-						}
-						case "select": {
-							if (value === "empty_value") {
-								doesItFit = !itemFiledValue;
-							}
-							else {
-								doesItFit = itemFiledValue
-									.toString().toLowerCase() === value.toString().toLowerCase();
-							}
-							break;
-						}
-						case "warning": {
-							doesItFit = itemFiledValue;
-							break;
-						}
-						case "star": {
-							doesItFit = itemFiledValue === value.substr(0, value.indexOf(" "));
-							break;
-						}
-						case "modelType": {
-							doesItFit = true;
-							break;
-						}
-						default: {
-							doesItFit = itemFiledValue
-								.toString().toLowerCase().includes(value.toString().toLowerCase());
-							break;
-						}
-					}
-					return doesItFit;
-				});
-				return condition;
 			});
 		}
 	}
