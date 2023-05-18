@@ -160,7 +160,6 @@ export default class FilterModel {
 			if (this.filters.hasOwnProperty("modelType")) {
 				this.setItemsByModelType("folder");
 			}
-			// TODO: synchronise dataCollection and metadataTableCollection
 			[this.metadataTableCollection, this.dataCollection].forEach((dataCollection) => {
 				dataCollection.filter((item) => {
 					const condition = filterNames.every((name) => {

@@ -42,7 +42,6 @@ const validate = (data) => {
 		if (!valid) {
 			isDataValid = false;
 			const errors = findErrors(validateSchema.errors, data);
-			console.log(errors);
 			missedKeys.push(...errors.missedKeys.map(
 				missedKey => ({
 					schemaId: schema.$id,
