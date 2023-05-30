@@ -96,11 +96,24 @@ def getImageHistogram(gc, imageId, minIntensity=None, maxIntensity=None):
         urlString = f"/item/{imageId}/tiles/histogram?width=2048&height=2048"
         if maxIntensity:
             urlString += "&rangeMax=%s" % maxIntensity
+        if minIntensity:
+            urlString += "&rangeMin=%s" % minIntensity
         imageHist = gc.get(urlString)
         return imageHist
     except:
         print("HISTOGRAM FAILED??")
         pass
+
+
+def computeImageThresholds( gc, imageId, minIntensity=1,maxIntensity=None,threshold=0.002):
+    imageInfo = gc.get(f'item/{imageId}/tiles')
+    # print(imageInfo['dtype'])
+    imageHist = getImageHistogram(gc, imageId, minIntensity, maxIntensity)
+    
+    imageMax = histogramThreshold(imageHist[0], threshold, fromMax=True)
+    
+    
+    return  minIntensity, imageMax, imageHist
 
 
 def processImageMetadataFile(gc, itemId, csvFileName="CONTENTS.csv"):
@@ -117,7 +130,7 @@ def processImageMetadataFile(gc, itemId, csvFileName="CONTENTS.csv"):
 
             m = gc.get("file/%s/download?contentDisposition=inline" % f["_id"], jsonResp=False)
             fio.seek(0)
-            csvraw = m.content.decode("utf-8")
+            csvraw = m.content.decode("utf-8-sig") ## Needt omake this more robust
 
             cr = csv.reader(csvraw.splitlines(), delimiter=",")
             my_list = list(cr)
@@ -159,20 +172,72 @@ def generateDSA_yamlFile(gc, metadataItem):
     for r in imageMeta_df.to_dict(orient="records"):
         if r["TYPE"] == "IMAGE":
             ## Make sure the image referenced in the image list exists
+
+
+            ## Compute min and max for initial settings of the image
             if r["FILE"] in fileSetDict:
                 channelImageId = fileSetDict[r["FILE"]]["_id"]
+            
+                imgMin, imgMax, imageHist = computeImageThresholds(gc, channelImageId)
+
+                
                 channelColor = OTHER_COLORS[frameNumber]
                 channelName = r["DESCRIPTION"]
                 channelDef = {
                     "path": f"girder://{channelImageId}",
                     "channel": channelName,
                     "z": 0,
-                    "style": {"min": 0, "max": "auto", "palette": channelColor},
+                    "style": {"min": imgMin, "max": imgMax, "palette": channelColor},
                 }
                 frameNumber += 1
                 yamlDict["sources"].append(channelDef)
+            else:
+                print("Could not find one of the input images",r['FILE'])
 
     return yamlDict, imageName
+
+
+_recentThresholds = {}
+
+
+def histogramThreshold(histogram, threshold, fromMax=False):
+    """
+    Given a histogram and a threshold on a scale of [0, 1], return the bin
+    edge that excludes no more than the specified threshold amount of values.
+    For instance, a threshold of 0.02 would exclude at most 2% of the values.
+
+    :param histogram: a histogram record for a specific channel.
+    :param threshold: a value from 0 to 1.
+    :param fromMax: if False, return values excluding the low end of the
+        histogram; if True, return values from excluding the high end of the
+        histogram.
+    :returns: the value the excludes no more than the threshold from the
+        specified end.
+    """
+    key = (id(histogram), threshold, fromMax)
+    if key in _recentThresholds:
+        return _recentThresholds[key]
+    hist = histogram['hist']
+    edges = histogram['bin_edges']
+    samples = histogram['samples'] if not histogram.get('density') else 1
+    if fromMax:
+        hist = hist[::-1]
+        edges = edges[::-1]
+    tally = 0
+    result = edges[-1]
+    for idx in range(len(hist)):
+        if tally + hist[idx] > threshold * samples:
+            if not idx:
+                result = histogram['min' if not fromMax else 'max']
+            else:
+                result = edges[idx]
+            break
+        tally += hist[idx]
+    if len(_recentThresholds) > 10000:
+        _recentThresholds.empty()
+    _recentThresholds[key] = result
+    return result
+
 
 
 def processVandyImageFolder(gc, folderId):
