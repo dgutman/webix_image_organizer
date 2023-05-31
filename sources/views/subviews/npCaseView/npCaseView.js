@@ -113,7 +113,8 @@ export default class NPCaseViewClass extends ScenesView {
 							? obj.meta.npSchema.regionName === $$(id).config.value
 							: false;
 					});
-					npPanel.getNpPanelView().getChildViews().forEach((button) => {
+					const buttons = npPanel.getButtons();
+					buttons.forEach((button) => {
 						const buttonNode = button.getNode();
 						buttonNode.classList.remove("np_button_active");
 						buttonNode.classList.add("np_button");

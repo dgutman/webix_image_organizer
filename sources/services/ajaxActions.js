@@ -43,6 +43,10 @@ class AjaxActions {
 		return webix.storage.local.get("hostAPI");
 	}
 
+	getImagesHostUrl() {
+		return webix.storage.local.get("imagesHost");
+	}
+
 	setTokenIntoUrl(token, symbol) {
 		return token ? `${symbol}token=${token}` : "";
 	}
@@ -354,6 +358,10 @@ class AjaxActions {
 			.post(`${this.getHostApiUrl()}/folder`, params)
 			.catch(parseError)
 			.then(result => this._parseData(result));
+	}
+
+	openImageInNewTab(id) {
+		window.open(`${this.getImagesHostUrl()}/histomics#?image=${id}`, "_blank");
 	}
 }
 
