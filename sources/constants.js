@@ -203,5 +203,9 @@ export default {
 	MODEL_TYPE: {
 		FOLDER: "folder",
 		ITEM: "item"
-	}
+	},
+	SEGMENT_CHANNELS: [
+		"SEGMENTATION",
+		"DAPI"
+	]
 };

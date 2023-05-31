@@ -1,17 +1,19 @@
-// TODO: move groupChannel component here
+import hotkeys from "hotkeys-js";
 import {JetView} from "webix-jet";
 
 import stateStore from "../../../models/multichannelView/stateStore";
 
 const GROUP_CHANNEL_LAYOUT_ID = `group-channel-layout-${webix.uid()}`;
-const GROUP_CHANNEL_TEMPLATE_ID = `group-channel-template-${webix.uid()}`;
+const GROUP_CHANNELS_LIST_ID = `group-channel-list-${webix.uid()}`;
+const GROUP_CHANNELS_OPACITY_SLIDER_ID = "group-channels-opacity-slider";
 
 export default class GroupChannels extends JetView {
-	constructor(app, channel, colorWindow, groupsPanel) {
+	constructor(app, groupsPanel, groupName, isHotkey) {
 		super(app);
-		this._channel = channel;
-		this._colorWindow = colorWindow;
+		this._hotkeyCounter = isHotkey ? 1 : null;
 		this._groupsPanel = groupsPanel;
+		this._channelsGroupName = groupName;
+		this._channelsSlidersContainersIds = new Map();
 	}
 
 	config() {
@@ -20,73 +22,118 @@ export default class GroupChannels extends JetView {
 			hidden: true,
 			rows: [
 				{
-					view: "template",
-					localId: GROUP_CHANNEL_TEMPLATE_ID,
-					name: "channel",
-					template: ({name, color, opacity}) => {
+					template: this._channelsGroupName,
+					height: 30
+				},
+				{
+					view: "list",
+					localId: GROUP_CHANNELS_LIST_ID,
+					css: "groups-channels-list",
+					drag: false,
+					dragscroll: false,
+					scroll: "auto",
+					navigation: false,
+					select: false,
+					template: ({name, color, opacity, id}) => {
 						const showIcon = opacity ? "fas fa-eye" : "fas fa-eye-slash";
-						return `<span class="channel-item__name name">${name}</span>
-						<div class="icons">
-							<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
-							<span class="icon show ${showIcon}"></span>
-							<span class="icon delete fas fa-minus-circle"></span>
-						</div>`;
+						const focusIcon = "fas fa-dot-circle";
+						const containerId = webix.uid();
+						this._channelsSlidersContainersIds.set(id, containerId);
+						const iconElementId = webix.uid();
+						this.setHotkeyToIcon(iconElementId);
+						// Save focusHotkey value before call incrementHotkeyCounter function
+						const focusHotkey = this._hotkeyCounter;
+						const focusTooltip = this._hotkeyCounter !== null
+							? `<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}" id="${iconElementId}"></span>`
+							: "";
+						this.incrementHotkeyCounter();
+						return `<div class="channel-item">
+									<div class="channel-item__row-one">
+										<span class="channel-item__name name">${name}</span>
+										<div class="icons">
+											<span style="color: ${color};" class="icon palette fas fa-square-full"></span>
+											${focusTooltip}
+											<span class="icon show ${showIcon}"></span>
+											<span class="icon delete fas fa-minus-circle"></span>
+										</div>
+									</div>
+									<div class="channel-item__row-two" style="height: 27px">
+										<div class="channel-item__range-opacity" id="${containerId}"></div>
+										<div class="icons channel-item__position-controls">
+											<span class="icon up fas fa-chevron-up"></span>
+											<span class="icon down fas fa-chevron-down"></span>
+										</div>
+									</div>
+								</div>`;
+					},
+					type: {
+						height: 80
+					},
+					on: {
+						onAfterRender: () => {
+							this.createChannelsSliders();
+						},
+						onDataUpdate: (/* id */) => {
+							this.resetHotkeyCounter();
+							this.clearHotkeys();
+							this.getChannelsList().refresh();
+						}
 					},
 					onClick: {
 						show: (ev, id) => {
 							this.showOrHideChannel(id);
+						},
+						focus: (ev, id) => {
+							this.focusOnChannel(id);
 						},
 						delete: (ev, id) => {
 							this.removeChannel(id);
 						},
 						palette: (ev, id) => {
 							this.showPaletteWindow(id);
+						},
+						up: (ev, id) => {
+							this.moveChannelUp(id);
+						},
+						down: (ev, id) => {
+							this.moveChannelDown(id);
 						}
 					}
-				},
-				{
-					cols: [
-						{
-							view: "slider",
-							name: "opacity",
-							value: this._channel.opacity,
-							min: 0,
-							max: 1
-						},
-						{
-							view: "template",
-							template: `<span class="down fas fa-angle-down"></span>
-							<span class="up fas fa-angle-up"></span>`,
-							onClick: {
-								down: (ev, id) => {
-									this.moveDown(id);
-								},
-								up: (ev, id) => {
-									this.moveUp(id);
-								}
-							}
-						},
-						{
-							view: "button",
-							name: "moveDown",
-							type: "icon",
-							click: this.moveDown
-						}
-					]
 				}
 			]
 		};
 	}
 
+	init(/* view */) {
+		const channelsList = this.getChannelsList();
+		this.on(channelsList.data, "onStoreUpdated", () => {
+			const count = channelsList.count();
+			const channelsLayout = this.getChannelsLayout();
+			if (count) {
+				channelsLayout.show();
+			}
+			else {
+				channelsLayout.hide();
+			}
+		});
+	}
+
 	ready() {
-		const template = this.getChannelTemplate();
-		template.parse(this._channel);
+		webix.TooltipControl.addTooltip(this.$$(GROUP_CHANNELS_LIST_ID).$view);
+		hotkeys("0", (/* event, handler */) => {
+			const channelList = this.getChannelsList();
+			channelList?.data?.each((channel) => {
+				const channelOpacity = 1;
+				channelList.updateItem(channel.id, {opacity: channelOpacity});
+				this.updateChannelOpacity(channel.channelIndexInGroup, channelOpacity);
+			});
+		});
 	}
 
 	showOrHideChannel(id) {
-		const channelList = this._groupsPanel.getGroupsChannelsList();
+		const channelList = this.getChannelsList();
 		const channel = channelList.getItem(id);
-		const channelIndex = channelList.getIndexById(id);
+		const channelIndex = channel.channelIndexInGroup;
 
 		const channelOpacity = channel.opacity ? 0 : 1;
 
@@ -95,42 +142,182 @@ export default class GroupChannels extends JetView {
 		this._groupsPanel.getRoot().callEvent("changeChannelOpacity", [channelIndex, channelOpacity]);
 	}
 
-	removeChannel(id) {
-		const channelList = this.getTemplateChannelList();
-		const channelIndex = channelList.getIndexById(id);
+	focusOnChannel(id) {
+		const channelList = this.getChannelsList();
+		channelList.data.each((channel) => {
+			const channelOpacity = 0;
+			channelList.updateItem(channel.id, {opacity: channelOpacity});
+			this.updateChannelOpacity(channel.channelIndexInGroup, channelOpacity);
+		});
+		const focusedChannel = channelList.getItem(id);
+		const focusedChannelIndex = focusedChannel.channelIndexInGroup;
+		const channelOpacity = 1;
+		channelList.updateItem(id, {opacity: channelOpacity});
+		this.updateChannelOpacity(focusedChannelIndex, channelOpacity);
+	}
 
-		this._template.channels.splice(channelIndex, 1);
+	_waitForChangesFromPaletteWindow(channel) {
+		const channelList = this.getChannelsList();
+		const colorWindow = this._groupsPanel.getColorWindow();
+		const colorWindowRoot = colorWindow.getRoot();
+
+		const changesAppliedEventId = colorWindowRoot.attachEvent("applyColorChange", (values) => {
+			channelList.updateItem(channel.id, values);
+			colorWindowRoot.detachEvent(changesAppliedEventId);
+		});
+		const colorChangedEventId = colorWindowRoot.attachEvent("colorChanged", (values) => {
+			channelList.updateItem(channel.id, values);
+		});
+		const hideEventId = colorWindowRoot.attachEvent("onHide", () => {
+			colorWindowRoot.detachEvent(changesAppliedEventId);
+			colorWindowRoot.detachEvent(colorChangedEventId);
+			colorWindowRoot.detachEvent(hideEventId);
+			this._groupsPanel.getRoot().callEvent("channelColorAdjustEnd", [channel]);
+		});
+	}
+
+	removeChannel(id) {
+		const channelList = this.getChannelsList();
+		const channel = channelList.getItem(id);
+		const channelIndex = channel.channelIndexInGroup;
 		channelList.remove(id);
 		this._groupsPanel.getRoot().callEvent("removeChannel", [channelIndex]);
 	}
 
 	showPaletteWindow(id) {
-		const channelList = this.getTemplateChannelList();
+		const channelList = this.getChannelsList();
 		const channel = channelList.getItem(id);
 		const channelNode = channelList.getItemNode(id);
 		const {color, max, min} = channel;
 
 		stateStore.adjustedChannel = channel;
-		this._colorWindow.showWindow({color, max, min}, channelNode, "left");
+		const colorWindow = this._groupsPanel.getColorWindow();
+		colorWindow.showWindow({color, max, min}, channelNode, "left");
 		this._groupsPanel.getRoot().callEvent("channelColorAdjustStart", [channel]);
 		this._waitForChangesFromPaletteWindow(channel);
 	}
 
-	moveUp() {
-		// TODO: implement
+	createChannelsSliders() {
+		const channelList = this.getChannelsList();
+		const channels = channelList.serialize();
+		channels.forEach((channel) => {
+			const containerId = this._channelsSlidersContainersIds.get(channel.id);
+			const sliderContainerElement = document.getElementById(containerId);
+			sliderContainerElement.innerHTML = "";
+			const channelId = channel.id;
+			const sliderView = this.createSlider(containerId, channel.opacity);
+			this.on(sliderView, "onChange", (newValue) => {
+				const channelIndex = channelList.getIndexById(channelId);
+				channelList.updateItem(channelId, {opacity: newValue});
+				this.updateChannelOpacity(channelIndex, newValue);
+			});
+		});
 	}
 
-	moveDown() {
-		// TODO: implement
+	createSlider(containerId, opacity) {
+		const slider = {
+			view: "slider",
+			id: `${GROUP_CHANNELS_OPACITY_SLIDER_ID}-${webix.uid()}`,
+			container: `${containerId}`,
+			name: "opacity",
+			max: 1,
+			min: 0,
+			step: 0.01,
+			value: opacity,
+			width: 100,
+			height: 50
+		};
+		const sliderView = webix.ui(slider);
+		return sliderView;
 	}
 
-	getChannelTemplate() {
-		// TODO: implement
-		return this.$$(GROUP_CHANNEL_TEMPLATE_ID);
+	refreshChannelsSliders() {
+		const channelList = this.getChannelsList();
+		channelList.refresh();
 	}
 
-	getChannelLayout() {
-		// TODO: implement
+	updateChannelOpacity(channelIndex, newValue) {
+		this._groupsPanel.getRoot().callEvent("changeChannelOpacity", [channelIndex, newValue]);
+	}
+
+	moveChannelUp(id) {
+		const channelsList = this.getChannelsList();
+		const channelIndex = channelsList.getIndexById(id);
+		const channel = channelsList.getItem(id);
+		const channelIndexInGroup = channel.channelIndexInGroup;
+		if (channelIndex > 0) {
+			channelsList.moveUp(id, 1);
+			const switchedChannelId = channelsList.getIdByIndex(channelIndex);
+			const switchedChannel = channelsList.getItem(switchedChannelId);
+			const newChannelIndexInGroup = switchedChannel.channelIndexInGroup;
+			channel.channelIndexInGroup = newChannelIndexInGroup;
+			switchedChannel.channelIndexInGroup = channelIndexInGroup;
+			this.handleChannelsOrderChange(newChannelIndexInGroup, channelIndexInGroup);
+			this.refreshChannelsSliders();
+		}
+	}
+
+	moveChannelDown(id) {
+		const channelsList = this.getChannelsList();
+		const channelIndex = channelsList.getIndexById(id);
+		const channel = channelsList.getItem(id);
+		const channelIndexInGroup = channel.channelIndexInGroup;
+		if (channelIndex < channelsList.count()) {
+			channelsList.moveDown(id, 1);
+			const switchedChannelId = channelsList.getIdByIndex(channelIndex);
+			const switchedChannel = channelsList.getItem(switchedChannelId);
+			const newChannelIndexInGroup = switchedChannel.channelIndexInGroup;
+			channel.channelIndexInGroup = newChannelIndexInGroup;
+			switchedChannel.channelIndexInGroup = channelIndexInGroup;
+			this.handleChannelsOrderChange(newChannelIndexInGroup, channelIndexInGroup);
+			this.refreshChannelsSliders();
+		}
+	}
+
+	setHotkeyToIcon(iconElementId) {
+		if (this._hotkeyCounter !== null && this._hotkeyCounter !== 0) {
+			hotkeys(`${this._hotkeyCounter}`, (/* event, handler */) => {
+				const iconElement = document.getElementById(iconElementId);
+				iconElement?.click();
+			});
+		}
+	}
+
+	incrementHotkeyCounter() {
+		if (this._hotkeyCounter !== null) {
+			switch (this._hotkeyCounter) {
+				case 9:
+					break;
+				default:
+					this._hotkeyCounter++;
+					break;
+			}
+		}
+	}
+
+	resetHotkeyCounter() {
+		if (this._hotkeyCounter !== null) {
+			this._hotkeyCounter = 1;
+		}
+	}
+
+	clearHotkeys() {
+		if (this._hotkeyCounter !== null) {
+			for (let i = 1; i < 10; i++) {
+				hotkeys.unbind(`${i}`);
+			}
+		}
+	}
+
+	handleChannelsOrderChange(newChannelIndex, oldChannelIndex) {
+		this._groupsPanel.handleChannelsOrderChange(newChannelIndex, oldChannelIndex);
+	}
+
+	getChannelsList() {
+		return this.$$(GROUP_CHANNELS_LIST_ID);
+	}
+
+	getChannelsLayout() {
 		return this.$$(GROUP_CHANNEL_LAYOUT_ID);
 	}
 }
