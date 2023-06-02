@@ -1,8 +1,10 @@
 import {JetView} from "webix-jet";
+
+import downloadFiles from "../../../models/downloadFiles";
 import galleryImageUrl from "../../../models/galleryImageUrls";
 import nonImageUrls from "../../../models/nonImageUrls";
+import ajaxActions from "../../../services/ajaxActions";
 import ImageThumbnailLoader from "../../../services/gallery/imageThumbnailLoader";
-import downloadFiles from "../../../models/downloadFiles";
 
 const SLIDER_ID = "sliderList";
 const NEXT_BTN_ID = "sliderNavNext";
@@ -69,7 +71,10 @@ export default class ImagesRowSlider extends JetView {
 										<div class="slider-images-info">
 											<div class="slider-images-header">
 												<div class="slider-images-checkbox"> <i class="checkbox-icon ${common.checkboxState(obj, common)}"></i></div>
-												<div class="download-icon"><span class="webix_icon ${downloadButtonState} fa fa-download"></span></div>
+												<div style="display: flex; justify-content: space-around">
+													<div class="download-icon"><span class="webix_icon ${downloadButtonState} fa fa-download"></span></div>
+													<div class="open-image-icon"><span class="webix_icon open-image fa fa-external-link-alt"></span></div>
+												</div>
 											</div>
 										</div>
 										<div class="slider-image-wrap" style="height: 100%">
@@ -90,6 +95,9 @@ export default class ImagesRowSlider extends JetView {
 						},
 						"checkbox-icon": (ev, id) => {
 							this._handleSelect(id);
+						},
+						"open-image": (ev, id) => {
+							this._openImageInNewTab(id);
 						}
 					},
 					type: {
@@ -234,6 +242,13 @@ export default class ImagesRowSlider extends JetView {
 		else {
 			list.select(id, true);
 		}
+	}
+
+	_openImageInNewTab(id) {
+		const list = this.$sliderList();
+		const item = list.getItem(id);
+		const imageId = item._id;
+		ajaxActions.openImageInNewTab(imageId);
 	}
 
 	toogleMode(mode) {

@@ -131,7 +131,11 @@ export default class ColorPickerWindow extends JetView {
 			this._histogramChart.getRoot().showOverlay(chartOverlay);
 			const getHistogramInfoPromise = this._getHistogramInfo();
 			getHistogramInfoPromise
-				.then(([histogram]) => {
+				.then((data) => {
+					if (!data) {
+						return;
+					}
+					const [histogram] = data;
 					this.setHistogramValues(histogram);
 					this.setMinAndMaxValuesByHistogram(histogram);
 				})
@@ -162,7 +166,11 @@ export default class ColorPickerWindow extends JetView {
 
 	updateHistogramHandler() {
 		this._histogramChart.getRoot().showOverlay(chartOverlay);
-		this._getHistogramInfo().then(([histogram]) => {
+		this._getHistogramInfo().then((data) => {
+			if (!data) {
+				return;
+			}
+			const [histogram] = data;
 			this.setHistogramValues(histogram);
 		})
 			.finally(() => {

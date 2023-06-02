@@ -112,8 +112,10 @@ class HeaderService {
 	putValuesAfterHostChange(hostId) {
 		const hostBoxItem = this._hostBox.getList().getItem(hostId);
 		const hostAPI = hostBoxItem.hostAPI;
+		const imagesHost = hostBoxItem.imagesHost;
 		webix.storage.local.put("hostId", hostId);
 		webix.storage.local.put("hostAPI", hostAPI);
+		webix.storage.local.put("imagesHost", imagesHost);
 	}
 
 	// setting hosts value and parsing data to collection and tree

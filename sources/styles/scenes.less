@@ -27,7 +27,7 @@
 				  text-overflow: ellipsis;
 			}
 		}
-	
+
 		.active-item {
 			height: 100%;
 			background-color: rgba(0, 0, 0, 0.1);
@@ -35,27 +35,27 @@
 				background-color: unset;
 			}
 		}
-	
+
 		.slider-images-container {
 			position: relative;
 			cursor: pointer;
 			height: 100px;
 			.border-radius(3px);
 			text-align: center;
-		
+
 			.slider-image-wrap {
 				box-sizing: border-box;
 				width: 94%;
 				margin: 0 auto;
 				background: @main-bg;
 			}
-		
+
 			.slider-image {
 				display: inline-block;
 				vertical-align: bottom;
 				height: 100%;
 			}
-	
+
 			.slider-images-info {
 				background: rgba(255,255,255, .6);
 				position: absolute;
@@ -66,13 +66,13 @@
 				height: 100%;
 				display: none;
 			}
-	
+
 			&:hover {
 				.slider-images-info {
 					display: block;
 				}
 			}
-		  
+
 			&.is-checked {
 				.slider-images-info {
 					  display: block;
@@ -85,16 +85,22 @@
 				}
 			}
 		}
-	
+
 		.slider-images-header {
 			padding-bottom: 5px;
-		
+
 			.download-icon {
 				color: rgba(0,0,0,0.8);
 				line-height: 20px;
 				margin-right: 35px;
 				padding: 5px 0 0 15px;
 				text-align: left;
+			}
+			.open-image-icon {
+				color: rgba(0,0,0,0.8);
+				line-height: 20px;
+				padding: 5px 0 0 15px;
+				text-align: right;
 			}
 			.webix_icon {
 				visibility: hidden;
@@ -117,7 +123,7 @@
 				}
 			}
 		}
-	
+
 		.slider-images-checkbox {
 			.checkbox-ctrl {
 				.webix_el_group {
@@ -136,4 +142,3 @@
 	}
 }
 
-  

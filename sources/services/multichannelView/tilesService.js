@@ -1,5 +1,5 @@
-import ajaxActions from "../ajaxActions";
 import tilesCollection from "../../models/imageTilesCollection";
+import ajaxActions from "../ajaxActions";
 
 export default class TilesSourcesService {
 	constructor() {

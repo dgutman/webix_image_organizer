@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
-import Slider from "../../components/slider";
+
 import BaseSliderTitle from "../../../utils/templates/slider/baseSliderTitle";
+import Slider from "../../components/slider";
 
 const CONTROL_FORM_ID = "control-form-id";
 

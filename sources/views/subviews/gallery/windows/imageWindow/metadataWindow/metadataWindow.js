@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import MetadataTableView from "./metadataTable";
 
 export default class MetadataPopup extends JetView {

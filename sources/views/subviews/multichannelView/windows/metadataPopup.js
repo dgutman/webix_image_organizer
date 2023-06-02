@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import stateStore from "../../../../models/multichannelView/stateStore";
 import PropertyAccordion from "../../../components/propertyAccordion";
 

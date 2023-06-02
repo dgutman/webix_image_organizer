@@ -1,9 +1,9 @@
 import {JetView} from "webix-jet";
 
+import SortTemplate from "./sortChannelsTemplate";
 import constants from "../../../constants";
 import SelectedItems from "../../../models/selectedItems";
 import ajaxActions from "../../../services/ajaxActions";
-import SortTemplate from "./sortChannelsTemplate";
 
 const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
 const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;
@@ -53,9 +53,9 @@ export default class ChannelList extends JetView {
 					navigation: false,
 					select: false,
 					drag: "source",
-					template: (obj, common) => `${common.checkboxState(obj.id)}
-					<span class="channel-item__name name">${obj.name}</span>
-					<span class="channel-item__index index">(${obj.index})</span>`,
+					template: ({name, id, index}, common) => `${common.checkboxState(id)}
+					<span class="channel-item__name name">${name}</span>
+					<span class="channel-item__index index">(${index})</span>`,
 					type: {
 						checkboxState: (id) => {
 							const icon = this._selectedChannelsModel.isSelected(id) ? "checked fas fa-check-square" : "unchecked far fa-square";

@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 
+import ColorPickerWindow from "./colorPopup";
 import constants from "../../../../constants";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import TilesSourcesService from "../../../../services/multichannelView/tilesService";
@@ -7,7 +8,6 @@ import MathCalculations from "../../../../utils/mathCalculations";
 import utils from "../../../../utils/utils";
 import ChannelList from "../channelList";
 import TemplateList from "../templateList";
-import ColorPickerWindow from "./colorPopup";
 
 // TODO: move IDs  to constants
 const CLOSE_BUTTON_ID = `close-color-template-window-button-${webix.uid()}`;

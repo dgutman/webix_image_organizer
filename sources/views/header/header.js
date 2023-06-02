@@ -1,12 +1,12 @@
 import {JetView, plugins} from "webix-jet";
 
+import LogoutPanel from "./parts/logoutPanel";
 import constants from "../../constants";
 import ajax from "../../services/ajaxActions";
 import authService from "../../services/authentication";
 import HeaderService from "../../services/header/headerService";
 import utils from "../../utils/utils";
 import LoginWindow from "../authWindows/loginWindow";
-import LogoutPanel from "./parts/logoutPanel";
 
 const LOGOUT_PANEL_NAME = "logout-panel";
 const LOGIN_PANEL_NAME = "login-panel";
@@ -87,7 +87,7 @@ export default class Header extends JetView {
 			options: {
 				body: {
 					css: "ellipsis-text",
-					template: obj => `<span title='${obj.name}'>${obj.name}</span>` || "",
+					template: obj => `<span title='${obj.name}'>${obj.name}</span>` || ""
 				}
 			}
 		};
