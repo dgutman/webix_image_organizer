@@ -155,7 +155,9 @@ export default class MultichannelView extends JetView {
 		const selectedChannels = this._channelList.getSelectedChannels();
 		const coloredChannels = this._groupsPanel.getColoredChannels(selectedChannels)
 			.map((channel) => {
-				const defaultChannelSettings = constants.DEFAULT_CHANNEL_SETTINGS;
+				const defaultChannelSettings = stateStore.bit === constants.EIGHT_BIT
+					? constants.DEFAULT_8_BIT_CHANNEL_SETTINGS
+					: constants.DEFAULT_CHANNEL_SETTINGS;
 
 				return {...defaultChannelSettings, ...channel};
 			});
@@ -385,10 +387,11 @@ export default class MultichannelView extends JetView {
 		if (parseInt(id) !== channel.id) {
 			return;
 		}
+		const [min, max] = stateStore.bit === constants.EIGHT_BIT ? [0, 255] : [500, 30000];
 		const colorSettings = {
 			palette2: channel.color,
-			min: channel.min || 500, // default value
-			max: channel.max || 30000 // default value
+			min: channel.min || min, // default value
+			max: channel.max || max // default value
 		};
 
 

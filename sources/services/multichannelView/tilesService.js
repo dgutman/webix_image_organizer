@@ -1,5 +1,7 @@
-import ajaxActions from "../ajaxActions";
+import constants from "../../constants";
 import tilesCollection from "../../models/imageTilesCollection";
+import stateStore from "../../models/multichannelView/stateStore";
+import ajaxActions from "../ajaxActions";
 
 export default class TilesSourcesService {
 	constructor() {
@@ -65,10 +67,11 @@ export default class TilesSourcesService {
 
 	async getColoredTileSources(channels) {
 		return Promise.all(channels.map((channel) => {
+			const [min, max] = stateStore.bit === constants.EIGHT_BIT ? [0, 255] : [500, 30000];
 			const colorSettings = {
 				palette2: channel.color,
-				min: channel.min || 500, // default value
-				max: channel.max || 30000 // default value
+				min: channel.min || min, // default value
+				max: channel.max || max // default value
 			};
 			return this.getColoredChannelTileSource(this._image, channel.index, colorSettings);
 		}));

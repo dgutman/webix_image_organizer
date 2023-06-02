@@ -45,11 +45,13 @@ export default class PlotlyChart extends JetView {
 			yaxis: yScaleType === constants.LOGARITHMIC_SCALE_VALUE
 				? {
 					type: "log",
-					autorange: true
+					autorange: true,
+					fixedrange: true
 				}
 				: {
 					type: "linear",
-					autorange: true
+					autorange: true,
+					fixedrange: true
 				},
 			margin: {
 				l: 40,

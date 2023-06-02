@@ -68,8 +68,10 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 		const updateZoom = () => {
 			const zoom = viewer.viewport.getZoom(true);
 			const tiledImage = viewer.world.getItemAt(0);
-			const imageZoom = tiledImage.viewportToImageZoom(zoom);
-			this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
+			if (tiledImage) {
+				const imageZoom = tiledImage?.viewportToImageZoom(zoom);
+				this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
+			}
 		};
 		viewer.addHandler("open", () => {
 			const tracker = new OpenSeadragon.MouseTracker({
@@ -78,9 +80,11 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 					const webPoint = event.position;
 					const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
 					const tiledImage = viewer.world.getItemAt(0);
-					const imagePoint = tiledImage.viewportToImageCoordinates(viewportPoint);
-					updateZoom();
-					this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint]);
+					if (tiledImage) {
+						const imagePoint = tiledImage.viewportToImageCoordinates(viewportPoint);
+						updateZoom();
+						this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint]);
+					}
 				}
 			});
 			tracker.setTracking(true);

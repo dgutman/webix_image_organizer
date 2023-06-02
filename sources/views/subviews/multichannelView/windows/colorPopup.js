@@ -27,7 +27,7 @@ export default class ColorPickerWindow extends JetView {
 		const initialMaxEdge = stateStore.bit === constants.EIGHT_BIT
 			? constants.MAX_EDGE_FOR_8_BIT
 			: constants.MAX_EDGE_FOR_16_BIT;
-		this._visibleRangeSlider = new RangeSlider(app, {hidden: true}, initialMaxEdge, 0);
+		this._visibleRangeSlider = new RangeSlider(app, initialMaxEdge, 0);
 		this._scaleTypeToggle = new ScaleTypeToggle(
 			app,
 			{value: constants.LOGARITHMIC_SCALE_VALUE}
@@ -135,7 +135,9 @@ export default class ColorPickerWindow extends JetView {
 					if (!data) {
 						return;
 					}
-					const [histogram] = data;
+					const histogram = Array.isArray(data)
+						? data.find(element => element.bin_edges[1] === 1)
+						: {};
 					this.setHistogramValues(histogram);
 					this.setMinAndMaxValuesByHistogram(histogram);
 				})
@@ -170,7 +172,9 @@ export default class ColorPickerWindow extends JetView {
 			if (!data) {
 				return;
 			}
-			const [histogram] = data;
+			const histogram = Array.isArray(data)
+				? data.find(element => element.bin_edges[1] === 1)
+				: {};
 			this.setHistogramValues(histogram);
 		})
 			.finally(() => {
