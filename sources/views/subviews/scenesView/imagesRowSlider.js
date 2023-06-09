@@ -11,7 +11,7 @@ const NEXT_BTN_ID = "sliderNavNext";
 const PREV_BTN_ID = "sliderNavPrev";
 
 export default class ImagesRowSlider extends JetView {
-	constructor(app, config) {
+	constructor(app, config, npCaseView) {
 		super(app, config);
 
 		this._cnf = config || {};
@@ -20,6 +20,7 @@ export default class ImagesRowSlider extends JetView {
 		this._prevBtnId = `${PREV_BTN_ID}-${webix.uid()}`;
 		this._isSingle = true;
 		this._highlightedId = null;
+		this._npCaseView = npCaseView;
 	}
 
 	config() {
@@ -61,12 +62,19 @@ export default class ImagesRowSlider extends JetView {
 
 						this._loadImagePreview(obj);
 
+						let dsaStainOrRegionTag;
+						if (this._npCaseView) {
+							const switcher = this._npCaseView.getSwitcherView();
+							dsaStainOrRegionTag = switcher.getValue()
+								? obj.meta?.npSchema?.regionName
+								: obj.meta?.npSchema?.stainID;
+						}
 						const dsaStainTag = obj.meta && obj.meta.dsaStainTag;
 						const downloadButtonState = isSelected ? "download-icon-button-active" : "";
 						const activeState = !this._isSingle && this._highlightedId === obj.id ? "active-item" : "";
 
 						return `<div title='${obj.name}' class='unselectable-dataview-items ${activeState}'>
-									<div class="thumbnails-name ellipsis-text">${dsaStainTag || obj.name}</div>
+									<div class="thumbnails-name ellipsis-text">${dsaStainOrRegionTag || dsaStainTag || obj.name}</div>
 									<div class="slider-images-container ${checkedClass}">
 										<div class="slider-images-info">
 											<div class="slider-images-header">

@@ -51,7 +51,6 @@ class AjaxActions {
 		return token ? `${symbol}token=${token}` : "";
 	}
 
-
 	_ajax() {
 		return webix.ajax();
 	}

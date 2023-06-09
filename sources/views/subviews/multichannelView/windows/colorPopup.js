@@ -1,3 +1,4 @@
+import Plotly from "plotly.js-dist-min";
 import {JetView} from "webix-jet";
 
 import constants from "../../../../constants";
@@ -106,7 +107,13 @@ export default class ColorPickerWindow extends JetView {
 		this.on(form, "onChange", async () => {
 			const values = this.getForm().getValues();
 			this.getRoot().callEvent("colorChanged", [values]);
-			debounce.execute(this.updateHistogramHandler, this);
+			const {min, max} = values;
+			const update = {
+				"xaxis.range[0]": min,
+				"xaxis.range[1]": max
+			};
+			const histogramChartDiv = this._histogramChart.getHistogramDiv();
+			Plotly.relayout(histogramChartDiv, update);
 		});
 
 		const histogramForm = this.getHistogramForm();
@@ -193,8 +200,11 @@ export default class ColorPickerWindow extends JetView {
 		this._histogramChart.makeChart(chartValues, yScale);
 		const histogramChartDiv = this._histogramChart.getHistogramDiv();
 		histogramChartDiv.on("plotly_relayout", (eventData) => {
-			const min = eventData["xaxis.range[0]"];
-			const max = eventData["xaxis.range[1]"];
+			const min = eventData["xaxis.range[0]"] || 0;
+			const initialMaxEdge = stateStore.bit === constants.EIGHT_BIT
+				? constants.MAX_EDGE_FOR_8_BIT
+				: constants.MAX_EDGE_FOR_16_BIT;
+			const max = eventData["xaxis.range[1]"] || initialMaxEdge;
 			const values = {min, max};
 			this.getForm().setValues(values);
 			this.getRoot().callEvent("colorChanged", [values]);
