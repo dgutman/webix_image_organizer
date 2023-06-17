@@ -3,6 +3,7 @@ import {DataCollection} from "webix";
 import NpPanel from "./npPanel";
 import NPTableView from "./npTableView";
 import collapser from "../../components/collapser";
+import ImagesRowSlider from "../scenesView/imagesRowSlider";
 import ScenesView from "../scenesView/scenesView";
 
 const npPanelCollapserName = "npPanelCollapser";
@@ -13,6 +14,7 @@ export default class NPCaseViewClass extends ScenesView {
 		super(app, config);
 		this._npPanel = new NpPanel(app, {scroll: "x"});
 		this._npTableView = new NPTableView(app);
+		this._imagesSlider = new ImagesRowSlider(app, {height: 160}, this);
 	}
 
 	config() {
