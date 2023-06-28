@@ -75,7 +75,11 @@ define([], function() {
 
 		// begin ColorPickerWindow
 		FORM_ID: "color-form",
-		HISTOGRAM_FORM_ID: "histogram-form"
+		HISTOGRAM_FORM_ID: "histogram-form",
 		// end ColorPickerWindow
+		SEGMENT_CHANNELS: [
+			"SEGMENTATION",
+			"DAPI"
+		]
 	};
 });
