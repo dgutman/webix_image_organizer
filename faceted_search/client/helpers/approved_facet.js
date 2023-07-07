@@ -6,11 +6,11 @@ define([
 	const localStorageApprovedFacetsId = "approvedFacets";
 
 	function getLocalStorageId() {
-		return `${localStorageApprovedFacetsId}-${auth.getUserId() || "unregistered"}`
+		return `${localStorageApprovedFacetsId}-${auth.getUserId() || "unregistered"}`;
 	}
 
 	function setLocalApprovedFacetData(data) {
-		webix.storage.local.put(getLocalStorageId(), data)
+		webix.storage.local.put(getLocalStorageId(), data);
 	}
 
 	function getLocalApprovedFacetData() {

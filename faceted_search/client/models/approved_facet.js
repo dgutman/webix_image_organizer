@@ -16,10 +16,13 @@ define([
 	});
 
 	function parseApprovedFacetsForLocalStorage(approvedFacetsData) {
-		const cachedData = approvedFacetsData.map((approvedFacetItem) => ({
-			facetId: approvedFacetItem.id,
-			hidden: approvedFacetItem.hidden
-		}));
+		const cachedData = [];
+		approvedFacetsData.forEach((approvedFacetItem) => {
+			if (approvedFacetItem.data) {
+				cachedData.push(...parseApprovedFacetsForLocalStorage(approvedFacetItem.data));
+			}
+			cachedData.push({facetId: approvedFacetItem.facetId, hidden: approvedFacetItem.hidden});
+		});
 		return cachedData;
 	};
 
@@ -95,7 +98,7 @@ define([
 				approvedFacetData.hidden = cachedData[cachedDataIndex].hidden;
 			}
 			if (cachedDataIndex !== -1 && approvedFacetData.data?.length > 0) {
-				approvedFacetData.data = mergeDataWithCache(approvedFacetData.data, cachedData[cachedDataIndex].data);
+				approvedFacetData.data = mergeDataWithCache(approvedFacetData.data, cachedData);
 			}
 			return approvedFacetData;
 		});
