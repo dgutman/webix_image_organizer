@@ -490,6 +490,10 @@ define([
 					});
 			});
 
+			groupsPanel.attachEvent("exportGroups", (groups) => {
+				groupsLoader.downloadGroup(this._image.name, this._image._id, groups);
+			});
+
 			groupsPanel.attachEvent("addGroupFromTemplate", (groupName, channels) => {
 				this._addNewGroup(groupName, channels);
 			});
