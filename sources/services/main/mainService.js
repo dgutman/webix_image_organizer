@@ -189,7 +189,7 @@ class MainService {
 			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 			await actionPanel.multichannelViewOptionToggle(image);
 			multichannelViewCell.show();
-			multichannelViewCell.setImage(image);
+			this._finder.select(image.id);
 		});
 
 		// disable context menu for webix elements
@@ -1404,6 +1404,7 @@ class MainService {
 				projectMetadata.setProjectValidationSchemasFolder(newValidationSchemasFolder);
 			}
 
+			// TODO: think about folder name for patient data
 			const schemaFolder = subcollectionData
 				.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
 			patientsDataCollection.clearAll();

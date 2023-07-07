@@ -207,7 +207,7 @@ export default class GroupChannels extends JetView {
 			const channelId = channel.id;
 			const sliderView = this.createSlider(containerId, channel.opacity);
 			this.on(sliderView, "onChange", (newValue) => {
-				const channelIndex = channelList.getIndexById(channelId);
+				const channelIndex = channel.channelIndexInGroup;
 				channelList.updateItem(channelId, {opacity: newValue});
 				this.updateChannelOpacity(channelIndex, newValue);
 			});
@@ -307,6 +307,12 @@ export default class GroupChannels extends JetView {
 				hotkeys.unbind(`${i}`);
 			}
 		}
+	}
+
+	clearList() {
+		const list = this.getChannelsList();
+		list.clearAll();
+		this.resetHotkeyCounter();
 	}
 
 	handleChannelsOrderChange(newChannelIndex, oldChannelIndex) {

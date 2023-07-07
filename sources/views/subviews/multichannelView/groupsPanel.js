@@ -5,12 +5,15 @@ import ColorPickerWindow from "./windows/colorPopup";
 import constants from "../../../constants";
 import stateStore from "../../../models/multichannelView/stateStore";
 import MathCalculations from "../../../utils/mathCalculations";
+import collapser from "../../components/collapser";
 
 const GROUPS_LIST_ID = "groups-list";
 const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 const UPLOADER_API_ID = "uploader-api";
 const GROUPS_TITLE_TEMPLATE = "groups-title";
 const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
+const GROUP_COLLAPSER_NAME = "group-collapser-name";
+const GROUPS_LAYOUT_ID = "groups-layout-id";
 
 export default class GroupsPanel extends JetView {
 	constructor(app, config = {}) {
@@ -22,71 +25,79 @@ export default class GroupsPanel extends JetView {
 	}
 
 	config() {
+		const groupsCollapser = collapser.getConfig(GROUPS_LAYOUT_ID, {type: "top", closed: false}, GROUP_COLLAPSER_NAME);
 		return {
 			...this._cnf,
 			rows: [
 				{
-					css: "groups-panel__groups-header groups-header",
-					localId: GROUPS_TITLE_TEMPLATE,
-					template: () => `Groups: <div>
-							<span class="export icon fas fa-download" webix_tooltip="download groups"></span>
-							<span class="import icon fas fa-upload" webix_tooltip="import groups from file"></span>
-						</div>`,
-					height: 30,
-					onClick: {
-						export: () => {
-							this.exportGroups();
-						},
-						import: () => {
-							this.importGroups();
-						}
-					}
-				},
-				{
-					view: "text",
-					css: "text-field",
-					placeholder: "Search...",
-					localId: GROUPS_TEXT_SEARCH_ID,
-					on: {
-						onTimedKeyPress: () => {
-							const value = this.getGroupsSearch().getValue();
-							this.getGroupsList().filter(({name}) => {
-								if (!value) {
-									return true;
-								}
-								return name.toLowerCase().includes(value.toLowerCase());
-							});
-						}
-					}
-				},
-				{
-					view: "list",
-					localId: GROUPS_LIST_ID,
-					css: "groups-list",
-					drag: "target",
-					scroll: "auto",
-					navigation: false,
-					select: true,
-					tooltip: ({name}) => name,
-					template: ({name}) => `<span class="group-item__name name ellipsis-text">${name}</span>
-						<div class="icons">
-							<span class="icon delete fas fa-minus-circle"></span>
-						</div>`,
-					onClick: {
-						delete: (ev, id) => {
-							this.removeGroup(id);
-						}
-					}
-				},
-				{
-					cols: [
+					id: GROUPS_LAYOUT_ID,
+					rows: [
 						{
-							view: "button",
-							id: GENERATE_SCENE_FROM_TEMPLATE_ID,
-							value: "Generate Scene From Template"
+							css: "groups-panel__groups-header groups-header",
+							localId: GROUPS_TITLE_TEMPLATE,
+							template: () => `Groups: <div>
+								<span class="export icon fas fa-download" webix_tooltip="download groups"></span>
+								<span class="import icon fas fa-upload" webix_tooltip="import groups from file"></span>
+							</div>`,
+							height: 30,
+							onClick: {
+								export: () => {
+									this.exportGroups();
+								},
+								import: () => {
+									this.importGroups();
+								}
+							}
+						},
+						{
+							view: "text",
+							css: "text-field",
+							placeholder: "Search...",
+							localId: GROUPS_TEXT_SEARCH_ID,
+							on: {
+								onTimedKeyPress: () => {
+									const value = this.getGroupsSearch().getValue();
+									this.getGroupsList().filter(({name}) => {
+										if (!value) {
+											return true;
+										}
+										return name.toLowerCase().includes(value.toLowerCase());
+									});
+								}
+							}
+						},
+						{
+							view: "list",
+							localId: GROUPS_LIST_ID,
+							css: "groups-list",
+							drag: "target",
+							scroll: "auto",
+							navigation: false,
+							select: true,
+							tooltip: ({name}) => name,
+							template: ({name}) => `<span class="group-item__name name ellipsis-text">${name}</span>
+							<div class="icons">
+								<span class="icon delete fas fa-minus-circle"></span>
+							</div>`,
+							onClick: {
+								delete: (ev, id) => {
+									this.removeGroup(id);
+								}
+							}
+						},
+						{
+							cols: [
+								{
+									view: "button",
+									id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+									value: "Generate Scene From Template"
+								}
+							]
 						}
 					]
 				},
+				groupsCollapser,
+				{gravity: 0},
 				this._groupChannelsList,
 				this._segmentChannelsList,
 				{
@@ -218,10 +229,8 @@ export default class GroupsPanel extends JetView {
 	}
 
 	clearGroupChannelsList() {
-		const channelsList = this.getGroupsChannelsList();
-		const segmentationList = this.getSegmentalChannelsList();
-		channelsList.clearAll();
-		segmentationList.clearAll();
+		this._groupChannelsList.clearList();
+		this._segmentChannelsList.clearList();
 	}
 
 	getGroupsList() {
