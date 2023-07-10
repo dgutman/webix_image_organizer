@@ -15,7 +15,8 @@
             "required": [
                 "blockID",
                 "caseID",
-                "stainID"
+                "stainID",
+                "verified"
             ],
             "properties": {
                 "blockID": {
@@ -23,8 +24,9 @@
                     "default": "",
                     "title": "The blockID Schema",
                     "examples": [
-                        "10"
-                    ]
+                        "10", "A1", "1A"
+                    ],
+                    "pattern": "^(A\\d{1,2}|control|control[-+])$"
                 },
                 "caseID": {
                     "type": "string",
@@ -33,7 +35,17 @@
                     "examples": [
                         "E18-7"
                     ],
-                    "pattern": "^(E|A)\\d\\d-\\d+"
+                    "pattern": "^(E|A)\\d\\d-\\d+$"
+                },
+                "verified": {
+                    "type": "string",
+                    "default": "",
+                    "title": "Verification of Metadata",
+                    "examples": [
+                        "yes", 
+                        "no"
+                    ],
+                    "enum": ["yes", "no"]
                 },
                 "stainID": {
                     "type": "string",
@@ -54,14 +66,18 @@
                         "LFB",
                         "FUS",
                         "TDP-43",
-                        "GFAP"
+                        "GFAP",
+                        "control",
+                        "control+",
+                        "control-"
                     ]
                 }
             },
             "examples": [{
                 "blockID": "10",
                 "caseID": "E18-7",
-                "stainID": "Tau"
+                "stainID": "Tau",
+                "verified": "yes"
             }]
         }
     },
@@ -69,7 +85,8 @@
         "npSchema": {
             "blockID": "10",
             "caseID": "E18-7",
-            "stainID": "Tau"
+            "stainID": "Tau",
+            "verified": "yes"
         }
     }]
 }
