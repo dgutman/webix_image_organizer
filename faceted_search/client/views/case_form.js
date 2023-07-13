@@ -9,8 +9,8 @@ define([
 	"constants"
 ], function(
 	app,
-	CaseFilter,
-	Filter,
+	CaseFilterModel,
+	FilterModel,
 	Images,
 	caseHelper,
 	filterHelper,
@@ -52,7 +52,7 @@ define([
 			$$(appliedFiltersId).add({region, stain});
 			$$(appliedFiltersId).refresh();
 			const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
-			CaseFilter.setFilters(filters);
+			CaseFilterModel.setFilters(filters);
 			app.callEvent("caseForm: filtersChanged");
 		}
 	};
@@ -88,7 +88,7 @@ define([
 				appliedFiltersList.remove(id);
 				appliedFiltersList.refresh();
 				const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
-				CaseFilter.setFilters(filters);
+				CaseFilterModel.setFilters(filters);
 				// app.callEvent("images:wsiFilterImagesView", [filter]);
 				// Images.filterByCriterions(filters);
 				caseHelper.filterByCriterions(filters);
@@ -112,21 +112,30 @@ define([
 		const imagesCollection = Images.getImages();
 		const images = imagesCollection.serialize();
 		app.callEvent("casesFilter:setRegionsAndStains", [images]);
-		const imagesRegions = CaseFilter.getImagesRegions();
-		const imagesStaines = CaseFilter.getImagesStains();
-		const filters = CaseFilter.getFilters();
+		const imagesRegions = CaseFilterModel.getImagesRegions();
+		const imagesStaines = CaseFilterModel.getImagesStains();
+		const filters = CaseFilterModel.getFilters();
 		if(filters?.length > 0) {
 			$$(appliedFiltersId).parse(filters);
 		}
-		$$(casesCountId).data.count = caseHelper.getCasesCount();
-		$$(casesCountId).render();
-		$$(regionSelectId).define("options", imagesRegions);
-		$$(regionSelectId).render();
-		$$(stainSelectId).define("options", imagesStaines);
-		$$(stainSelectId).render();
-		$$(appliedFiltersId).hideProgress();
-		$$(casesCountId).hideProgress();
-		$$(caseFilterID).hideProgress();
+
+		const casesCount = $$(casesCountId);
+		const regionSelect = $$(regionSelectId);
+		const stainSelect = $$(stainSelectId);
+		const appliedFilters = $$(appliedFiltersId);
+		const caseFilter = $$(caseFilterID);
+
+		if (casesCount) {
+			casesCount.data.count = caseHelper.getCasesCount();
+			casesCount.render();
+		}
+		regionSelect?.define("options", imagesRegions);
+		regionSelect?.render();
+		stainSelect?.define("options", imagesStaines);
+		stainSelect?.render();
+		appliedFilters?.hideProgress();
+		casesCount?.hideProgress();
+		caseFilter?.hideProgress();
 	});
 
 	app.attachEvent("caseForm: filtersChanged", function() {
