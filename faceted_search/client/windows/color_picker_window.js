@@ -9,7 +9,8 @@ define([
 	"helpers/ajax",
 	"models/multichannel_view/state_store",
 	"models/multichannel_view/tiles_collection",
-	"constants"
+	"constants",
+	"libs/plotly.js-dist-min/plotly.min",
 ], function(
 	BaseJetView,
 	ColorPicker,
@@ -21,7 +22,8 @@ define([
 	ajaxActions,
 	stateStore,
 	tilesCollection,
-	constants
+	constants,
+	Plotly
 ) {
 	'use strict';
 	const FORM_ID = `${constants.FORM_ID}-${webix.uid()}`;
@@ -41,7 +43,7 @@ define([
 			const initialMaxEdge = stateStore.bit == constants.EIGHT_BIT
 				? constants.MAX_EDGE_FOR_8_BIT
 				: constants.MAX_EDGE_FOR_16_BIT;
-			this._visibleRangeSlider = new RangeSlider(app, {hidden: true}, initialMaxEdge, 0);
+			this._visibleRangeSlider = new RangeSlider(app, initialMaxEdge, 0);
 			
 			this._scaleTypeToggle = new ScaleTypeToggle(
 				app, 
@@ -61,7 +63,14 @@ define([
 				form.attachEvent("onChange", async () => {
 					const values = this.getForm().getValues();
 					this.getRoot().callEvent("colorChanged", [values]);
-					debounce.execute(this.updateHistogramHandler, this);
+					// debounce.execute(this.updateHistogramHandler, this);
+					const {min, max} = values;
+					const update = {
+						"xaxis.range[0]": min,
+						"xaxis.range[1]": max
+					};
+					const histogramChartDiv = this._histogramChart.getHistogramDiv();
+					Plotly.relayout(histogramChartDiv, update);
 				});
 
 
@@ -147,7 +156,10 @@ define([
 					if (!data) {
 						return;
 					}
-					const [histogram] = data;
+					// const [histogram] = data;
+					const histogram = Array.isArray(data)
+						? data.find(element => element.bin_edges[1] === 1)
+						: {};
 					this.setHistogramValues(histogram);
 					this.setMinAndMaxValuesByHistogram(histogram);
 				})
@@ -178,7 +190,9 @@ define([
 				if (!data) {
 					return;
 				}
-				const [histogram] = data;
+				const histogram = Array.isArray(data)
+					? data.find(element => element.bin_edges[1] === 1)
+					: {};
 				this.setHistogramValues(histogram);
 			})
 				.finally(() => {

@@ -12,5 +12,6 @@ module.exports = {
         "meta.ioparams.channelmap",
         "meta.ioparams.thumbnailUrl",
         "largeImage"
-    ]
+    ],
+    RESYNC: "[RESYNC]"
 };
