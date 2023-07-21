@@ -35,7 +35,7 @@
                     "examples": [
                         "E18-7"
                     ],
-                    "pattern": "^(E|A)\\d\\d-\\d+$"
+                    "pattern": "^((E|A)\\d\\d-\\d+|OS-\\d{6})$"
                 },
                 "verified": {
                     "type": "string",
@@ -64,12 +64,19 @@
                         "Syn",
                         "p62",
                         "LFB",
+                        "LFB-PAS",
                         "FUS",
                         "TDP-43",
                         "GFAP",
                         "control",
                         "control+",
-                        "control-"
+                        "control-",
+                        "CD20",
+                        "CD3",
+                        "CD68",
+                        "NeuN",
+                        "NF",
+                        "Huntingtin"
                     ]
                 }
             },
