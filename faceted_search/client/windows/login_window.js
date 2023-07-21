@@ -175,8 +175,7 @@ define([
 					}
 					window.hideProgress();
 				});
-		}
-		else {
+		} else {
 			window.hideProgress();
 		}
 	}

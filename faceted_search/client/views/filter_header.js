@@ -40,7 +40,6 @@ define([
 						responsive: "a1",
 						cols: [
 							headerLabel,
-							{gravity: 10, height: 1},
 							{
 								view: "button",
 								id: exportButtonId,
@@ -54,60 +53,69 @@ define([
 									exportWindow.showWindow(dataToExport);
 								}
 							},
-							{width: 10},
 							{
-								view: "label",
-								id: "view_label",
-								label: "View",
-								align: "left",
-								width: 50
-							},
-							{
-								view: "icon",
-								id: smallImageTemplateButtonId,
-								icon: "mdi mdi-table-large",
-								click: function() {
-									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.SMALL);
-									this.disable();
-									$$(mediumImageTemplateButtonId).enable();
-									$$(largeImageTemplateButtonId).enable();
-								}
-							},
-							{
-								view: "icon",
-								id: mediumImageTemplateButtonId,
-								icon: "mdi mdi-table",
-								click: function() {
-									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.MEDIUM);
-									this.disable();
-									$$(smallImageTemplateButtonId).enable();
-									$$(largeImageTemplateButtonId).enable();
-								}
-							},
-							{
-								view: "icon",
-								id: largeImageTemplateButtonId,
-								icon: "mdi mdi-table-column",
-								click: function() {
-									Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.LARGE);
-									this.disable();
-									$$(smallImageTemplateButtonId).enable();
-									$$(mediumImageTemplateButtonId).enable();
-								}
-							},
-							modeToolbar,
-							{
-								view: "button",
-								id: tutorialButtonId,
-								label: "Tutorial",
-								width: 100,
-								click: function() {
-									const videoWindow = new VideoWindow(app);
-									app.ui(videoWindow);
-									videoWindow.showWindow();
-								}
-							},
-							userPanel
+								cols: [
+									{gravity: 1},
+									{
+										view: "label",
+										id: "view_label",
+										label: "View",
+										align: "left",
+										width: 50
+									},
+									{
+										view: "icon",
+										id: smallImageTemplateButtonId,
+										icon: "mdi mdi-table-large",
+										click: function() {
+											Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.SMALL);
+											this.disable();
+											$$(mediumImageTemplateButtonId).enable();
+											$$(largeImageTemplateButtonId).enable();
+										}
+									},
+									{
+										view: "icon",
+										id: mediumImageTemplateButtonId,
+										icon: "mdi mdi-table",
+										click: function() {
+											Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.MEDIUM);
+											this.disable();
+											$$(smallImageTemplateButtonId).enable();
+											$$(largeImageTemplateButtonId).enable();
+										}
+									},
+									{
+										view: "icon",
+										id: largeImageTemplateButtonId,
+										icon: "mdi mdi-table-column",
+										click: function() {
+											Images.changeImagesViewState(constants.TEMPLATE_IMAGE_SIZE.LARGE);
+											this.disable();
+											$$(smallImageTemplateButtonId).enable();
+											$$(mediumImageTemplateButtonId).enable();
+										}
+									},
+											{width: 0}
+									]},
+									{
+										cols: [
+											{gravity: 1},
+											modeToolbar,
+									{
+										view: "button",
+										id: tutorialButtonId,
+										label: "Tutorial",
+										width: 100,
+										click: function() {
+											const videoWindow = new VideoWindow(app);
+											app.ui(videoWindow);
+											videoWindow.showWindow();
+										}
+									},
+									userPanel
+								]
+							}
 						]
 					}
 				]
