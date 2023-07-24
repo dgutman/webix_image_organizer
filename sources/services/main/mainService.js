@@ -190,7 +190,7 @@ class MainService {
 			await actionPanel.multichannelViewOptionToggle(image);
 			this._finder.select(image.id);
 			multichannelViewCell.show();
-			multichannelViewCell.setImage(image);
+			this._finder.select(image.id);
 		});
 
 		// disable context menu for webix elements
