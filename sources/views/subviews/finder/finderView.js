@@ -41,6 +41,10 @@ export default class FinderViewClass extends JetView {
 						obj.webix_kids = true;
 					}
 				}
+			},
+			tooltip: {
+				template: "#name#",
+				delay: 500
 			}
 		};
 

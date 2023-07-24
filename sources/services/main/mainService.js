@@ -188,6 +188,7 @@ class MainService {
 		this._view.attachEvent(constants.OPEN_MULTICHANNEL_VIEW_EVENT, async (image) => {
 			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 			await actionPanel.multichannelViewOptionToggle(image);
+			this._finder.select(image.id);
 			multichannelViewCell.show();
 			multichannelViewCell.setImage(image);
 		});
@@ -1404,6 +1405,7 @@ class MainService {
 				projectMetadata.setProjectValidationSchemasFolder(newValidationSchemasFolder);
 			}
 
+			// TODO: think about folder name for patient data
 			const schemaFolder = subcollectionData
 				.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
 			patientsDataCollection.clearAll();
