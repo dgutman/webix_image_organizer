@@ -10,8 +10,8 @@ define([
     };
 
     const getLabelUI = function(filterLabel, fullPath) {
-        const label = fullPath[1] === "parentMeta" 
-            ? `${filterLabel.toUpperCase()} (parent's)` 
+        const label = fullPath[1] === "parentMeta"
+            ? `${filterLabel.toUpperCase()} (parent's)`
             : filterLabel.toUpperCase();
         return {
             view: "label",
@@ -56,7 +56,7 @@ define([
                         filterChannelText
                     ]
                 },
-                
+
                 {
                     id: data.id,
                     css: "radio-css",
@@ -99,7 +99,7 @@ define([
                         filterChannelText
                     ]
                 },
-                
+
                 {
                     height: 60,
                     cols: [
@@ -174,7 +174,7 @@ define([
                         filterChannelText
                     ]
                 },
-                
+
                 {
                     cols: [
                         {width: 40},
@@ -212,7 +212,19 @@ define([
                             css: "checkbox-label",
                             label: data.name
                         },
-                        filterChannelText
+                        filterChannelText,
+                        {
+                            view: "checkbox",
+                            on: {
+                                onChange: function(status) {
+                                    app.callEvent("app:filter_form:showProgress");
+                                    data.options.forEach((option) => {
+                                        $$(`${data.id}|${option}`).setValue(status);
+                                    });
+                                    app.callEvent("app:filter_form:hideProgress");
+                                }
+                            }
+                        }
                     ]
                 },
                 {
@@ -324,7 +336,7 @@ define([
                         },
                         filterChannelText
                     ]
-                }                
+                }
             ]
         };
 

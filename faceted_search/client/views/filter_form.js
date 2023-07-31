@@ -90,9 +90,9 @@ define([
         const tmpData = getDataWithCounts(arr);
         const elements = filterHelper.transformToFormFormat(tmpData);
         for(let i = 0; i < elements.length; i++) {
-            $$(filterFormId).addView(elements[i]);
+            $$(filterFormId)?.addView(elements[i]);
         }
-        $$(scrollViewId).hideProgress();
+        $$(scrollViewId)?.hideProgress();
     });
 
     app.attachEvent("reloadFormAfterCalculating", function(data, skipId) {
@@ -101,16 +101,23 @@ define([
     });
 
     app.attachEvent("updateForm", function(id, prop, val) {
-        $$(id).define(prop, val);
-        $$(id).refresh();
+        $$(id)?.define(prop, val);
+        $$(id)?.refresh();
     });
 
+    app.attachEvent("app:filter_form:showProgress", function() {
+        $$(scrollViewId)?.showProgress();
+    });
+
+    app.attachEvent("app:filter_form:hideProgress", function() {
+        $$(scrollViewId)?.hideProgress();
+    });
 
     return {
         $ui: ui,
         $oninit: function() {
             webix.extend($$(scrollViewId), webix.ProgressBar);
-            $$(scrollViewId).showProgress({
+            $$(scrollViewId)?.showProgress({
                 type: "icon"
             });
             Filter.loadFilters();
