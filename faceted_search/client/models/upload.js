@@ -14,12 +14,13 @@ define([
 	const socketStream = window.ss;
 	const socketConnect = socketIO.connect('/backend');
 
-	socketConnect.on('message', function(data) {
-		app.callEvent("uploaderList:loadingActions", [{title: data}]);
+	socketConnect.on('message', function(msg, folderName) {
+		// app.callEvent("uploaderList:loadingActions", [{title: data}]);
+		app.callEvent("uploaderList:loadingActions", [msg, folderName]);
 	});
 
-	socketConnect.on('finishLoading', function() {
-		app.callEvent("editForm:finishLoading", []);
+	socketConnect.on('finishLoading', function(folderName) {
+		app.callEvent("editForm:finishLoading", [folderName]);
 		app.callEvent("approvedMetadata:loadData");
 		app.callEvent("approvedFacet:loadApprovedFacetData");
 	});
@@ -29,8 +30,9 @@ define([
 	});
 
 	const uploadJSONFile = function(file) {
-		socketConnect.on('message', function(data) {
-			app.callEvent("uploaderList:loadingActions", [{title: data}]);
+		socketConnect.on('message', function(msg, folderName) {
+			// app.callEvent("uploaderList:loadingActions", [{title: data}]);
+			app.callEvent("uploaderList:loadingActions", [msg, folderName]);
 		});
 
 		let size = 0;
@@ -68,8 +70,8 @@ define([
 		socketStream(socketConnect).emit('resyncUploadedData', {host, token});
 	};
 
-	const deleteResource = function(folderId, host, token) {
-		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token});
+	const deleteResource = function(folderId, host, token, folderName) {
+		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token, folderName});
 	};
 
 	socketStream(socketConnect).on("error", (err) => {

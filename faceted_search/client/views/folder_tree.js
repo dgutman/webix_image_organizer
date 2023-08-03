@@ -7,9 +7,11 @@ define([
 ], function(app, constants, auth, ajax, Upload) {
 	const uploadButtonId = "upload-btn";
 	const resyncButtonId = "resync-btn";
-	const statusTemplateId = "status-template";
+	const statusTabViewId = "status-tab-view-id";
 	const deleteButtonId = "delete-btn";
 	const localApi = constants.LOCAL_API;
+	const statusTabId = constants.STATUS_TAB_ID;
+	const resyncTabId = constants.RESYNC_ID;
 	const downloadedResources = [];
 
 	const treeView = {
@@ -36,10 +38,22 @@ define([
 	};
 
 	const statusTemplate = {
-		template: (obj) => obj.title || "",
-		borderless: true,
-		id: statusTemplateId,
-		height: 50
+		view: "tabview",
+		id: statusTabViewId,
+		height: 100,
+		tabbar: {
+			close: true
+		},
+		cells: [
+			{
+				hidden: true,
+				id: statusTabId,
+				body: {
+					id: resyncTabId,
+					template: ""
+				}
+			}
+		]
 	};
 
 	const resyncButton = {
@@ -63,6 +77,22 @@ define([
 		view: "button",
 		id: deleteButtonId,
 		value: "Clear database"
+	};
+
+	const addNewTab = function(tabId) {
+		const tabView = $$(statusTabViewId);
+		const cell = tabView.getMultiview().queryView({id: `${tabId}-cell`});
+		if (!cell) {
+			const newTab = {
+				header: tabId,
+				body: {
+					id: `${tabId}-cell`,
+					template: `Status for ${tabId}`
+				}
+			};
+			tabView.addView(newTab);
+			tabView.getMultiview().setValue(`${tabId}-cell`);
+		}
 	};
 
 	return {
@@ -139,11 +169,11 @@ define([
 			uploadButton.attachEvent("onItemClick", async () => {
 				const uploadButton = $$(uploadButtonId);
 				const selectedItem = tree.getSelectedItem();
+				addNewTab(selectedItem.name);
 				const folder = selectedItem._modelType === "folder" ? selectedItem : null;
 				const collection = selectedItem._modelType === "collection" ? selectedItem : null;
 				const token = auth.getToken();
 
-				tree.showProgress();
 				uploadButton.disable();
 				if (folder) {
 					Upload.getImagesFromGirderFolder(ajax.getHostApiUrl(), folder._id, folder.name, token);
@@ -187,6 +217,7 @@ define([
 											downloadedResources.push(...data);
 										}
 								});
+								// tree.refresh();
 								tree.render();
 								tree.hideProgress();
 							}, (err) => {
@@ -205,7 +236,7 @@ define([
 				Upload.resyncImagesFromGirder(token);
 			});
 
-			app.attachEvent("editForm:finishLoading", function(data) {
+			app.attachEvent("editForm:finishLoading", function(folderName) {
 				const resyncButton = $$(resyncButtonId);
 				const tree = $$(constants.FOLDER_TREE_ID);
 
@@ -222,23 +253,56 @@ define([
 							}
 							tree.unselectAll();
 							toggleUploadButtonState();
+							// tree.refresh();
 							tree.render();
 						});
 				}
 
-				$$(statusTemplateId).setValues(data || {title: "Done!"});
+				const tabView = $$(statusTabViewId);
+				let cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+				if (cell) {
+					cell.define("template", "Done!");
+				}
+				else {
+					addNewTab(folderName);
+					cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+					cell?.define("template", "Done!");
+				}
+				cell?.refresh();
 				tree.hideProgress();
 			});
 
-			app.attachEvent("uploaderList:loadingActions", function(data) {
-				$$(statusTemplateId).setValues(data);
+			app.attachEvent("uploaderList:loadingActions", function(msg, folderName) {
+				const tabView = $$(statusTabViewId);
+				let cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+				if (cell) {
+					cell.define("template", msg);
+				}
+				else {
+					addNewTab(folderName);
+					cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+					cell?.define("template", msg);
+				}
+				cell.refresh();
 			});
 
-			app.attachEvent("uploaderList:clearAfterSave", function() {
-				$$(statusTemplateId).setValues({title: "Done!"});
+			app.attachEvent("uploaderList:clearAfterSave", function(tabId) {
+				const currentId = tabId ? tabId : resyncTabId;
+				const tabView = $$(statusTabViewId);
+				let cell = tabView.getMultiview().queryView({id: `${currentId}-cell`});
+				if (cell) {
+					cell.define("Done!");
+				}
+				else {
+					addNewTab(resyncTabId);
+					cell = tabView.getMultiview().queryView({id: `${currentId}-cell`});
+					cell?.define("template", "Done!");
+				}
+				cell?.refresh();
 			});
 
 			app.attachEvent("deleteResource:clearAfterDelete", async function() {
+				// tree.refresh();
 				tree.showProgress();
 				const resourceData = await ajax.getDownloadedResources();
 				downloadedResources.length = 0;
@@ -254,7 +318,8 @@ define([
 				const obj = tree.getItem(id);
 				const token = auth.getToken();
 				const host = ajax.getHostApiUrl();
-				Upload.deleteResource(obj._id, host, token);
+				Upload.deleteResource(obj._id, host, token, obj.name);
+				// tree.refresh();
 				tree.render();
 			};
 		}

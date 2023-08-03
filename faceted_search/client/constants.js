@@ -80,6 +80,8 @@ define([], function() {
 		SEGMENT_CHANNELS: [
 			"SEGMENTATION",
 			"DAPI"
-		]
+		],
+		RESYNC_ID: "resync-id",
+		STATUS_BAR_ID: "status-bar-id"
 	};
 });
