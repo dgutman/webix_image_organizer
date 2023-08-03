@@ -1,10 +1,11 @@
 import {JetView} from "webix-jet";
-import MetadataTableCell from "../metadataTable/metadataTable";
+
 import GalleryCell from "../gallery/gallery";
-import Zstack from "../zstackView/zstackView";
-import ScenesView from "../scenesView/scenesView";
+import MetadataTableCell from "../metadataTable/metadataTable";
 import MultiChannelView from "../multichannelView/multichannelView";
 import NPCaseView from "../npCaseView/npCaseView";
+import ScenesView from "../scenesView/scenesView";
+import Zstack from "../zstackView/zstackView";
 
 export default class MultiDataviewClass extends JetView {
 	constructor(app) {

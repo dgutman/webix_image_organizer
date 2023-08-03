@@ -85,6 +85,8 @@ define([
 							click: () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
 								const filteredExportData = this.exportData.map((image) => this.filterData(image, exportMetadata));
+								filteredExportData[0] = "[" + filteredExportData[0];
+								filteredExportData[filteredExportData.length - 1] += "]";
 								const list = webix.ui({
 									view: "list"
 								});

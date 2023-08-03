@@ -25,7 +25,7 @@ define([
 		webix.ajax().get(app.config.defaultAPIPath + "/facets/images", params)
 			.then(function(response) {
 				let data = response.json();
-				data = data && data.length > 0 ? data : [];
+				data = data?.length > 0 ? data : [];
 				imagesCollection.clearAll();
 				imagesCollection.parse(data);
 				imagesCollection.callEvent("imagesLoaded", []);

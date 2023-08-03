@@ -162,6 +162,7 @@ class AjaxActions {
 			width: 2048,
 			height: 2048,
 			bins: 256,
+			resample: false,
 			...binsSettings
 		};
 		const urlSearchParams = new URLSearchParams();

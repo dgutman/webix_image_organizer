@@ -310,7 +310,7 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 			columnConfigToAdd,
 			columnConfigToAdd.imageSize
 		);
-		columnConfigToAdd.tooltip = getImageColumnTemplate(columnConfigToAdd, 64);
+		columnConfigToAdd.tooltip = getImageColumnTemplate(columnConfigToAdd, 400);
 	}
 	else {
 		const filterType = columnConfigToAdd.filterType;
