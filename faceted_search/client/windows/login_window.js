@@ -1,5 +1,15 @@
 // import authService from "../../services/authentication";
 
+const NAME_PASSWORD_INPUT = "passwordInput";
+const NAME_LOGIN_FORM = "loginForm";
+const NAME_ERROR_LABEL = "error-label";
+const NAME_USER_NAME = "username";
+const NAME_PASSWORD = "password";
+const NAME_CANCEL_BUTTON = "cancelButton";
+const NAME_LOGIN_BUTTON = "loginButton";
+const NAME_CLOSE_LOGIN_WINDOW_BUTTON = "closeLoginWindowButton";
+
+
 function togglePasswordVisibility(elem) {
 	if (elem.config.icon === "mdi mdi-eye-off") {
 		elem.define("type", "base");
@@ -12,7 +22,7 @@ function togglePasswordVisibility(elem) {
 }
 
 webix.protoUI({
-	name: "passwordInput",
+	name: NAME_PASSWORD_INPUT,
 	$cssName: "search",
 	$init() {
 		this.attachEvent("onSearchIconClick", (ev) => {
@@ -28,7 +38,7 @@ webix.protoUI({
 function getWindowConfig() {
 	const loginForm = {
 		view: "form",
-		name: "loginForm",
+		name: NAME_LOGIN_FORM,
 		width: 600,
 		rules: {
 			username: webix.rules.isNotEmpty,
@@ -37,7 +47,7 @@ function getWindowConfig() {
 		elements: [
 			{
 				view: "label",
-				name: "error-label",
+				name: NAME_ERROR_LABEL,
 				css: "label-error",
 				label: "",
 				align: "center",
@@ -46,7 +56,7 @@ function getWindowConfig() {
 			{
 				view: "text",
 				css: "text-field",
-				name: "username",
+				name: NAME_USER_NAME,
 				label: "Username",
 				placeholder: "Enter username",
 				invalidMessage: "Enter username",
@@ -57,7 +67,7 @@ function getWindowConfig() {
 			{
 				view: "passwordInput",
 				css: "search-field",
-				name: "password",
+				name: NAME_PASSWORD,
 				label: "Password",
 				placeholder: "Enter password",
 				invalidMessage: "Enter password",
@@ -72,7 +82,7 @@ function getWindowConfig() {
 						view: "button",
 						css: "btn-contour",
 						width: 80,
-						name: "cancelButton",
+						name: NAME_CANCEL_BUTTON,
 						value: "Cancel"
 						// click: () => this.cancelLogic()
 					},
@@ -81,7 +91,7 @@ function getWindowConfig() {
 						view: "button",
 						css: "btn",
 						width: 80,
-						name: "loginButton",
+						name: NAME_LOGIN_BUTTON,
 						value: "Login",
 						hotkey: "enter"
 						// click: () => this.loginButtonClick()
@@ -117,6 +127,7 @@ function getWindowConfig() {
 				{gravity: 0.1},
 				{
 					view: "button",
+					name: NAME_CLOSE_LOGIN_WINDOW_BUTTON,
 					type: "icon",
 					icon: "mdi mdi-close",
 					hotkey: "esc",
@@ -137,7 +148,7 @@ function getWindowConfig() {
 // 		const loginValue = this.getLoginTextView().getValue();
 // 		const passwordValue = this.getPasswordTextView().getValue();
 // 		if (!loginValue && !passwordValue) {
-// 			form.elements["error-label"].hide();
+// 			form.elements[NAME_ERROR_LABEL].hide();
 // 		}
 // 	}
 
@@ -148,11 +159,12 @@ define([
 	const window = webix.ui(getWindowConfig());
 	webix.extend(window, webix.ProgressBar);
 
-	const form = window.queryView({name: "loginForm"});
-	const usernameField = form.queryView({name: "username"});
-	const passwordField = form.queryView({name: "password"});
-	const loginButton = form.queryView({name: "loginButton"});
-	const cancelButton = form.queryView({name: "cancelButton"}); 
+	const form = window.queryView({name: NAME_LOGIN_FORM});
+	const usernameField = form.queryView({name: NAME_USER_NAME});
+	const passwordField = form.queryView({name: NAME_PASSWORD});
+	const loginButton = form.queryView({name: NAME_LOGIN_BUTTON});
+	const cancelButton = form.queryView({name: NAME_CANCEL_BUTTON});
+	const closeButton = window.queryView({name: NAME_CLOSE_LOGIN_WINDOW_BUTTON});
 
 	function loginButtonClick() {
 		window.showProgress();
@@ -160,18 +172,18 @@ define([
 			authService.login(form.getValues())
 				.then(() => {
 					form.clear();
-					form.elements["error-label"].hide();
+					form.elements[NAME_ERROR_LABEL].hide();
 					window.hideProgress();
 					cancelLogic();
 				})
 				.fail((xhr) => {
 					if (xhr.status === 401) {
-						const errorLabel = form.elements["error-label"];
+						const errorLabel = form.elements[NAME_ERROR_LABEL];
 						errorLabel.setValue("Login failed");
 						errorLabel.show();
 
-						form.markInvalid("username", "Enter correct username");
-						form.markInvalid("password", "Enter correct password");
+						form.markInvalid(NAME_USER_NAME, "Enter correct username");
+						form.markInvalid(NAME_PASSWORD, "Enter correct password");
 					}
 					window.hideProgress();
 				});
@@ -184,7 +196,7 @@ define([
 		form.clearValidation();
 		form.clear();
 		window.hide();
-		form.elements["error-label"].hide();
+		form.elements[NAME_ERROR_LABEL].hide();
 
 		usernameField.config.invalidMessage = "Enter username";
 		passwordField.config.invalidMessage = "Enter password";
@@ -192,6 +204,7 @@ define([
 
 	loginButton.attachEvent("onItemClick", () => { loginButtonClick(); });
 	cancelButton.attachEvent("onItemClick", () => { cancelLogic(); });
+	closeButton.attachEvent("onItemClick", () => { cancelLogic(); });
 
 	return window;
 });
