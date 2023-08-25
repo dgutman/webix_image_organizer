@@ -26,6 +26,7 @@ define([
 	const largeImageTemplateButtonId = 'large_template_button_id';
 	const tutorialButtonId = 'tutorial_button_id';
 	const exportButtonId = 'export_button_id';
+	const pushToServerButtonId = 'push_to_server_id';
 
 	const headerLabel = new HeaderLabel(app);
 
@@ -51,6 +52,20 @@ define([
 									const exportWindow = new ExportCSVWindow(app);
 									app.ui(exportWindow);
 									exportWindow.showWindow(dataToExport);
+								}
+							},
+							{
+								view: "button",
+								id: pushToServerButtonId,
+								label: "Push to Dataset",
+								width: 150,
+								click: function() {
+									const images = Images.getImages().serialize();
+									const dataToExport = images.map((image) => image.data);
+									const exportWindow = new ExportCSVWindow(app);
+									app.ui(exportWindow);
+									const isDatasetPush = true;
+									exportWindow.showWindow(dataToExport, isDatasetPush);
 								}
 							},
 							{

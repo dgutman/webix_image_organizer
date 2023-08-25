@@ -82,6 +82,13 @@ define([], function() {
 			"DAPI"
 		],
 		RESYNC_ID: "resync-id",
-		STATUS_BAR_ID: "status-bar-id"
+		STATUS_BAR_ID: "status-bar-id",
+
+		// begin export dataset
+		DATASET_COLLECTION_NAME: "NeuroTK",
+		DATASET_FOLDER_NAME: "Datasets",
+		PRIVATE_DATASET_FOLDER_NAME: "Private",
+		PUBLIC_DATASET_FOLDER_NAME: "Public"
+		// end export dataset
 	};
 });
