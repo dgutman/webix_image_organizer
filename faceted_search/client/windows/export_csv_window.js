@@ -163,7 +163,8 @@ define([
 							value: "Confirm",
 							click: async () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
-								const appliedFilters = Filter.getFilters().data.pull;
+								// const appliedFilters = Filter.getFilters().data.pull;
+								const appliedFilters = "";
 								const datasetName = $$(FILE_NAME_TEXT_ID).getValue() || "Dataset";
 								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID).getValue() === PERMISSION_FOLDER.PUBLIC ? true : false;
 								const filteredExportData = this.exportData.map((image, index, array) => {
