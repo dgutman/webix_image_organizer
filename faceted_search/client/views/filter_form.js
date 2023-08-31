@@ -67,7 +67,7 @@ define([
     };
 
     const getDataWithCounts = function(data) {
-        const filters = Filter.getFilters().data.pull;
+        const filters = Filter.getFiltersCollection().data.pull;
         const keys = Object.keys(filters);
         for(let i = 0; i < keys.length; i++) {
             for(let j = 0; j < filters[keys[i]].data.length; j++) {

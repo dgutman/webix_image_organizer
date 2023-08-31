@@ -74,7 +74,7 @@ define([
 
     app.attachEvent("filtersLoaded", function() {
         crumbsArr = {};
-        filtersConfig = filtersCollection.getFilters().serialize();
+        filtersConfig = filtersCollection.getFiltersCollection().serialize();
     });
 
     const getConfigForFilter = function(key) {

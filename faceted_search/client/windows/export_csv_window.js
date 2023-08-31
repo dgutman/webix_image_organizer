@@ -4,7 +4,6 @@ define([
 	"models/approved_metadata",
 	"models/filter",
 	"helpers/authentication",
-	"helpers/enum",
 	"helpers/ajax"
 ], function(
 	app,
@@ -12,7 +11,6 @@ define([
 	approvedMetadataModel,
 	Filter,
 	auth,
-	Enum,
 	ajaxActions
 ) {
 	"user strict";
@@ -24,18 +22,18 @@ define([
 	const FILE_NAME_TEXT_ID = "file-name-text-id";
 	const FILE_FORMAT_RADIO_ID = "file-format-radio-id";
 	const PERMISSION_FOLDER_RADIO_ID = "permission-folder-radio-id";
-	const FILE_FORMAT = Enum({
+	const FILE_FORMAT = {
 		CSV: "csv",
 		JSON: "json"
-	});
-	const EXPORT_METHOD = Enum({
+	};
+	const EXPORT_METHOD = {
 		PUSH_TO_DATASET: "push-to-dataset",
 		EXPORT_CSV: "export-csv"
-	});
-	const PERMISSION_FOLDER = Enum({
+	};
+	const PERMISSION_FOLDER = {
 		PUBLIC: "Public",
 		PRIVATE: "Private"
-	});
+	};
 
 	return class ExportCSVWindow extends BaseJetView {
 		constructor(app) {
@@ -163,18 +161,18 @@ define([
 							value: "Confirm",
 							click: async () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
-								// const appliedFilters = Filter.getFilters().data.pull;
-								const appliedFilters = "";
+								const appliedFilters = Filter.getSelectedFiltersData().map((obj) => {
+									return {key: obj.key, values: obj.values};
+								});
 								const datasetName = $$(FILE_NAME_TEXT_ID).getValue() || "Dataset";
-								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID).getValue() === PERMISSION_FOLDER.PUBLIC ? true : false;
+								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID) === PERMISSION_FOLDER.PUBLIC ? true : false;
 								const filteredExportData = this.exportData.map((image, index, array) => {
-									if (index === 0) {
-										return `[${this.filterData(image, exportMetadata)}`;
-									} else if (index === array.length - 1) {
-										return `${this.filterData(image, exportMetadata)}]`;
-									} else {
-										return this.filterData(image, exportMetadata);
-									}
+									const filteredData = {
+										name: image.name,
+										_id: image._id
+									};
+									Object.assign(filteredData, this.filterData(image, exportMetadata));
+									return filteredData;
 								});
 								const list = webix.ui({
 									view: "list"
@@ -184,12 +182,6 @@ define([
 									const dataset = list.serialize();
 									try {
 										const result = await ajaxActions.postDataset(dataset, datasetName, appliedFilters, isPublic);
-										if (result?.name) {
-											webix.message(`Dataset with name "${result.name}" is created`);
-										}
-										else {
-											webix.message("Dataset is not created")
-										}
 									} catch (err) {
 										console.error(JSON.stringify(err));
 									}
@@ -224,10 +216,7 @@ define([
 			const dataToDisplay = {};
 			exportMetadata.forEach((filter) => {
 				if(filter.checked === false) {
-					let dataForChecking;
-					if(data.hasOwnProperty(filter.value)) {
-						dataForChecking = data[filter.value];
-					}
+					const dataForChecking = data.hasOwnProperty(filter.value) ? data[filter.value] : null;
 					if(Array.isArray(dataForChecking)) {
 						filter.data.forEach((item, i) => {
 							if(item.checked) {
@@ -239,22 +228,26 @@ define([
 						});
 					} else {
 						if(dataForChecking && typeof(dataForChecking) === "object" && !Array.isArray(dataForChecking)) {
-							if(filter?.data?.length > 0) {
-								dataForChecking = this.filterData(dataForChecking, filter.data);
-							}
-							const checkingDataLength = Object.keys(dataForChecking).length > 0
-								? Object.keys(dataForChecking).length
+							const childrenDataForChecking = filter?.data?.length > 0
+								? this.filterData(dataForChecking, filter.data)
+								: null;
+
+							const childrenDataForCheckingLength = Object.keys(childrenDataForChecking ?? {}).length > 0
+								? Object.keys(childrenDataForChecking).length
 								: 0;
-							if(checkingDataLength > 0) {
-								dataToDisplay[filter.value] = dataForChecking;
+							if(childrenDataForCheckingLength > 0) {
+								const childrenDataForCheckingKeys = Object.keys(childrenDataForChecking);
+								childrenDataForCheckingKeys.forEach((key) => {
+									dataToDisplay[key] = childrenDataForChecking[key];
+								});
 							}
 						}
 					}
 				} else if(data.hasOwnProperty(filter.value)) {
-					dataToDisplay[filter.value] = data[filter.value];
+					dataToDisplay[(filter.id).replaceAll("|", ".").replace(/^meta\w*./, "")] = data[filter.value];
 				}
 			});
-			return JSON.stringify(dataToDisplay);
+			return dataToDisplay;
 		}
 
 		checkData(id, data, check) {

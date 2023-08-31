@@ -35,7 +35,7 @@ define([
         callAfterLoadEvent();
     });
 
-    filtersCollection.getFilters = function() {
+    filtersCollection.getFiltersCollection = function() {
         return filtersCollection;
     };
 

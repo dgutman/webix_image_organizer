@@ -40,13 +40,13 @@ function showValidationErrors(arr) {
 	});
 }
 
-define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
+define(["app", "constants"], function(app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
-	const PARENT_TYPES = Enum({
+	const PARENT_TYPES = {
 		folder: "folder",
 		collection: "collection",
 		user: "user"
-	});
+	};
 
 	class AjaxActions {
 		constructor() {
@@ -150,6 +150,16 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 				.then((result) => this._parseData(result));
 		}
 
+		getCollectionByName(name) {
+			const params = {
+				text: name
+			};
+			return this._ajax()
+				.get(`${this.getHostApiUrl()}/collection`, params)
+				.fail(this._parseError)
+				.then((result) => this._parseData(result));
+		}
+
 		getSubFolders(parentType, parentId) {
 			const params = {
 				limit: 0,
@@ -158,16 +168,6 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 			};
 			return this._ajax()
 				.get(`${this.getHostApiUrl()}/folder`, params)
-				.fail(this._parseError)
-				.then((result) => this._parseData(result));
-		}
-
-		getCollectionByName(name) {
-			const params = {
-				text: name
-			};
-			return this._ajax()
-				.get(`${this.getHostApiUrl()}/collection`, params)
 				.fail(this._parseError)
 				.then((result) => this._parseData(result));
 		}
@@ -235,7 +235,7 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 
 		getImageTileUrl(itemId, z, x, y, params = {}) {
 			// HACK
-			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// TODO: style parameter not working. message from server: "Style is not a valid json object."
 			// const styleParam = getStyleParam(params);
 			const urlSearchParams = new URLSearchParams();
 			urlSearchParams.set("edge", "crop");
@@ -251,7 +251,7 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 
 		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
 			// HACK
-			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// TODO: style parameter not working. message from server: "Style is not a valid json object."
 			// const styleParam = getStyleParam(params);
 			const searchParams = new URLSearchParams();
 			searchParams.set("token", getToken());
@@ -335,10 +335,33 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 		}
 
 		getDownloadedResources() {
-			return this._ajax()
-				.get(`${LOCAL_API}/resources/downloaded-resources`)
-				.fail(this._parseError)
-				.then((result) => this._parseData(result));
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/resources/downloaded-resources`)
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
+		}
+
+		getApprovedFacetData() {
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/facets/approved-facet`, {})
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
+		}
+
+		getApprovedMetadatata() {
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/facets/approved-metadata`)
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
 		}
 
 		deleteResource(id) {
@@ -356,21 +379,25 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 						dataset,
 						appliedFilters
 					});
-					const collections = await this.getCollectionByName(constants.DATASET_COLLECTION_NAME);
-					const collection = collections.find((item) => { return item.name === constants.DATASET_COLLECTION_NAME; });
-					const subFolders = await this.getSubFolders(PARENT_TYPES.collection, collection?._id);
-					const datasetFolder = subFolders?.find((item) => { return item.name === constants.DATASET_FOLDER_NAME; });
-					const datasetSubFolders = await this.getSubFolders(PARENT_TYPES.folder, datasetFolder?._id);
-					const parentFolder = datasetSubFolders.find((item) => {
-						return isPublic
-							? item.name === constants.PUBLIC_DATASET_FOLDER_NAME
-							: item.name === constants.PRIVATE_DATASET_FOLDER_NAME;
-					});
+					const publicOrPrivateFolder = await this.getDatasetPublicOrPrivateFolder(isPublic);
 					const userInfo = await this.getUserInfo();
 					const userLogin = userInfo.login;
-					const userFolder = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/folder?parentType=${PARENT_TYPES.folder}&parentId=${parentFolder._id}&name=${userLogin}&reuseExisting=true&public=${!!isPublic}`));
-					const item = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/item?folderId=${userFolder._id}&name=${datasetName}&metadata=${metadata}`));
-					return item;
+					const userFolderParams = {
+						parentType: PARENT_TYPES.folder,
+						parentId: publicOrPrivateFolder._id,
+						name: userLogin,
+						reuseExisting: true
+					};
+					const userFolder = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/folder`, userFolderParams));
+					const itemParams = {
+						folderId: userFolder?._id,
+						name: datasetName,
+						metadata
+					};
+					const item = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/item`, itemParams));
+					if (item.name) {
+						webix.message(`dataset with name "${item.name}" is created`);
+					}
 				}
 				catch (err) {
 					this._parseError(err.xhr);
@@ -378,6 +405,18 @@ define(["app", "constants", "helpers/enum"], function(app, constants, Enum) {
 				}
 			}
 			return Promise.resolve();
+		}
+		async getDatasetPublicOrPrivateFolder(isPublic) {
+			const collections = await this.getCollectionByName(constants.DATASET_COLLECTION_NAME);
+			const datasetCollection = collections.find((item) => { return item.name === constants.DATASET_COLLECTION_NAME; });
+			const subFolders = await this.getSubFolders(PARENT_TYPES.collection, datasetCollection?._id);
+			const datasetFolder = subFolders?.find((item) => { return item.name === constants.DATASET_FOLDER_NAME; });
+			const datasetSubFolders = await this.getSubFolders(PARENT_TYPES.folder, datasetFolder?._id);
+			return datasetSubFolders.find((item) => {
+				return isPublic
+					? item.name === constants.PUBLIC_DATASET_FOLDER_NAME
+					: item.name === constants.PRIVATE_DATASET_FOLDER_NAME;
+			});
 		}
 	}
 

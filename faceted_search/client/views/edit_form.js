@@ -52,7 +52,7 @@ define([
 										width: 200,
 										type: "form",
 										click: function() {
-											$$(constants.SELECT_FACET_POPUP_ID).show(this.getNode());
+											$$(constants.SELECT_FACET_POPUP_ID)?.show(this.getNode());
 										}
 									},
 									{
@@ -67,16 +67,16 @@ define([
 										type: "form",
 										width: 230,
 										click: function() {
-											const type = $$(selectTypeId).getValue();
-											const facet = $$(selectFacetId).getValue();
+											const type = $$(selectTypeId)?.getValue();
+											const facet = $$(selectFacetId)?.getValue();
 											let canBeAdded = false;
 											let message = "Facet can't be added for selected type";
 											if (type && facet) {
 												canBeAdded = EditForm.checkAbilityToAdd(facet, type);
 												if (canBeAdded) {
 													const view = EditForm.addItem(facet, type);
-													$$(previewFormId).show();
-													$$(previewFormId).addView(view);
+													$$(previewFormId)?.show();
+													$$(previewFormId)?.addView(view);
 													updateFormSize();
 													reloadSelectsData();
 												} else {
@@ -106,7 +106,7 @@ define([
 										width: 200,
 										type: "form",
 										click: function() {
-											$$(constants.APPROVED_METADATA_POPUP_ID).show(this.getNode());
+											$$(constants.APPROVED_METADATA_POPUP_ID)?.show(this.getNode());
 										}
 									}
 								]
@@ -168,31 +168,31 @@ define([
 	};
 
 	app.attachEvent("editForm:dataLoaded", function(views) {
-		const childViews = $$(previewFormId).getChildViews();
+		const childViews = $$(previewFormId)?.getChildViews();
 		let i;
 		if(childViews) {
 			for(i = 0; i < childViews.length; i++) {
-				$$(previewFormId).removeView(childViews[i]);
+				$$(previewFormId)?.removeView(childViews[i]);
 				i--;
 			}
 		}
 		if(views && views.length) {
-			$$(previewFormId).show();
+			$$(previewFormId)?.show();
 			for(i = 0; i < views.length; i++) {
-				$$(previewFormId).addView(views[i]);
+				$$(previewFormId)?.addView(views[i]);
 			}
 		}
-		$$(scrollViewId).resize();
-		$$(previewFormId).resize();
+		$$(scrollViewId)?.resize();
+		$$(previewFormId)?.resize();
 		reloadSelectsData();
 	});
 
 	app.attachEvent("editForm:clearForm", function() {
-		const childViews = $$(previewFormId).getChildViews();
+		const childViews = $$(previewFormId)?.getChildViews();
 		let i;
 		if(childViews) {
 			for(i = 0; i < childViews.length; i++) {
-				$$(previewFormId).removeView(childViews[i]);
+				$$(previewFormId)?.removeView(childViews[i]);
 				i--;
 			}
 		}
@@ -200,38 +200,38 @@ define([
 
 	const reloadSelectsData = function(reloadOnlyLabels) {
 		if(!reloadOnlyLabels) {
-			$$(selectTypeId).define("options", EditForm.getItemTypes());
-			$$(selectTypeId).render();
+			$$(selectTypeId)?.define("options", EditForm.getItemTypes());
+			$$(selectTypeId)?.render();
 		}
-		$$(selectFacetId).define("options", EditForm.getLabels());
-		$$(selectFacetId).render();
+		$$(selectFacetId)?.define("options", EditForm.getLabels());
+		$$(selectFacetId)?.render();
 	};
 
 
 	const updateFormSize = function() {
-		$$(scrollViewId).resize();
-		$$(previewFormId).render();
+		$$(scrollViewId)?.resize();
+		$$(previewFormId)?.render();
 	};
 
 	const itemRemoved = function(id) {
 		const countOfAddedItems = EditForm.getCountOfAddedItems();
-		$$(previewFormId).removeView(id);
+		$$(previewFormId)?.removeView(id);
 		updateFormSize();
 		if(!countOfAddedItems) {
-			$$(previewFormId).hide();
+			$$(previewFormId)?.hide();
 		}
 	};
 
 	const loadApprovedMetadataData = function() {
 		const props = approvedMetadataModel.getProps();
-		$$(constants.METADATA_GROUPLIST_ID).parse(props);
+		$$(constants.METADATA_GROUPLIST_ID)?.parse(props);
 	};
 
 	const loadApprovedFacetData = function() {
 		const approvedFacetsData = approvedFacetModel.getApprovedFacetsData();
-		$$(constants.FACET_FILTER_GROUPLIST_ID).clearAll();
-		$$(constants.FACET_FILTER_GROUPLIST_ID).parse(approvedFacetsData);
-		$$(constants.FACET_FILTER_GROUPLIST_ID).refresh();
+		$$(constants.FACET_FILTER_GROUPLIST_ID)?.clearAll();
+		$$(constants.FACET_FILTER_GROUPLIST_ID)?.parse(approvedFacetsData);
+		$$(constants.FACET_FILTER_GROUPLIST_ID)?.refresh();
 	};
 
 	const areFiltersNotChanged = function() {
@@ -243,12 +243,12 @@ define([
 		const canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
 		if (canBeAdded) {
 			view = EditForm.addItem(data.facet, data.newType);
-			$$(previewFormId).show();
+			$$(previewFormId)?.show();
 			webix.ui(view, $$(previewFormId), $$(data.formId));
 		} else {
-			$$(data.comboId).blockEvent();
-			$$(data.comboId).setValue(data.oldType);
-			$$(data.comboId).unblockEvent();
+			$$(data.comboId)?.blockEvent();
+			$$(data.comboId)?.setValue(data.oldType);
+			$$(data.comboId)?.unblockEvent();
 			webix.message({
 				type: "message",
 				text: "Facet can't be changed to selected type"
@@ -264,25 +264,35 @@ define([
 	app.ui(approvedFacetPopup);
 
 	app.attachEvent("editForm:doProgressOnApprovedMetadata", function() {
-		webix.extend($$(constants.APPROVED_METADATA_POPUP_ID), webix.ProgressBar);
-		$$(constants.APPROVED_METADATA_POPUP_ID).showProgress({
-			type: "icon"
-		});
+		const approvedMetadataPopup = $$(constants.APPROVED_METADATA_POPUP_ID);
+		if (approvedMetadataPopup) {
+			webix.extend($$(constants.APPROVED_METADATA_POPUP_ID), webix.ProgressBar);
+			$$(constants.APPROVED_METADATA_POPUP_ID)?.showProgress({
+				type: "icon"
+			});
+		}
 	});
 
 	app.attachEvent("editForm:onApprovedMetadataLoaded", function() {
-		$$(constants.APPROVED_METADATA_POPUP_ID).hideProgress();
+		if ($$(constants.APPROVED_METADATA_POPUP_ID)?.hideProgress) {
+			$$(constants.APPROVED_METADATA_POPUP_ID)?.hideProgress();
+		}
 	});
 
 	app.attachEvent("editForm:doProgressOnApprovedFacet", function() {
-		webix.extend($$(constants.SELECT_FACET_POPUP_ID), webix.ProgressBar);
-		$$(constants.SELECT_FACET_POPUP_ID).showProgress({
-			type: "icon"
-		});
+		const selectFacetPopup = $$(constants.SELECT_FACET_POPUP_ID);
+		if (selectFacetPopup) {
+			webix.extend($$(constants.SELECT_FACET_POPUP_ID), webix.ProgressBar);
+			selectFacetPopup.showProgress({
+				type: "icon"
+			});
+		}
 	});
 
 	app.attachEvent("editForm:onApprovedFacetLoaded", function() {
-		$$(constants.SELECT_FACET_POPUP_ID).hideProgress();
+		if ($$(constants.SELECT_FACET_POPUP_ID)?.hideProgress) {
+			$$(constants.SELECT_FACET_POPUP_ID)?.hideProgress();
+		}
 	});
 
 	return {
