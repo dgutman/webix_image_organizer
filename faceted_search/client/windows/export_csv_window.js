@@ -1,16 +1,39 @@
 define([
 	"app",
 	"helpers/base_jet_view",
-	"models/approved_metadata"
+	"models/approved_metadata",
+	"models/filter",
+	"helpers/authentication",
+	"helpers/ajax"
 ], function(
 	app,
 	BaseJetView,
-	approvedMetadataModel
+	approvedMetadataModel,
+	Filter,
+	auth,
+	ajaxActions
 ) {
 	"user strict";
 	app.callEvent("approvedMetadata:loadData");
 	webix.csv.delimiter.cols = ', ';
 	const METADATA_EXPORT_ID = "metadata-export-id";
+	const EXPORT_CSV_LABEL_ID = "export-csv-label-id";
+	const EXPORT_TO_DATASET_LABEL_ID = "export-csv-to-server-label-id";
+	const FILE_NAME_TEXT_ID = "file-name-text-id";
+	const FILE_FORMAT_RADIO_ID = "file-format-radio-id";
+	const PERMISSION_FOLDER_RADIO_ID = "permission-folder-radio-id";
+	const FILE_FORMAT = {
+		CSV: "csv",
+		JSON: "json"
+	};
+	const EXPORT_METHOD = {
+		PUSH_TO_DATASET: "push-to-dataset",
+		EXPORT_CSV: "export-csv"
+	};
+	const PERMISSION_FOLDER = {
+		PUBLIC: "Public",
+		PRIVATE: "Private"
+	};
 
 	return class ExportCSVWindow extends BaseJetView {
 		constructor(app) {
@@ -19,6 +42,7 @@ define([
 				return this.destroy();
 			};
 			this.exportData;
+			this.exportMethod;
 		}
 
 		get $ui() {
@@ -36,7 +60,15 @@ define([
 						{gravity: 1},
 						{
 							view: "label",
-							label: "Export CSV"
+							label: "Export CSV",
+							id: EXPORT_CSV_LABEL_ID,
+							hidden: true
+						},
+						{
+							view: "label",
+							label: "Push to Dataset",
+							id: EXPORT_TO_DATASET_LABEL_ID,
+							hidden: true
 						},
 						{gravity: 1},
 						{
@@ -50,6 +82,50 @@ define([
 				},
 				body: {
 					rows: [
+						{
+							view: "radio",
+							id: FILE_FORMAT_RADIO_ID,
+							value: FILE_FORMAT.CSV,
+							labelWidth: 120,
+							label: "File extension",
+							hidden: true,
+							options: [
+								{
+									id: FILE_FORMAT.CSV,
+									value: "csv "
+								},
+								{
+									id: FILE_FORMAT.JSON,
+									value: "json"
+								}
+							]
+						},
+						{
+							view: "radio",
+							id: PERMISSION_FOLDER_RADIO_ID,
+							value: PERMISSION_FOLDER.PRIVATE,
+							labelWidth: 120,
+							label: "Permission",
+							hidden: true,
+							options: [
+								{
+									id: PERMISSION_FOLDER.PRIVATE,
+									value: "Private"
+								},
+								{
+									id: PERMISSION_FOLDER.PUBLIC,
+									value: "Public"
+								}
+							]
+						},
+						{
+							view: "text",
+							id: FILE_NAME_TEXT_ID,
+							width: 400,
+							label: "File name",
+							placeholder: "Dataset"
+						},
+						{height: 15},
 						{
 							// TODO: add grouplist to component
 							view: "grouplist",
@@ -79,19 +155,39 @@ define([
 								}
 							}
 						},
+
 						{
 							view: "button",
 							value: "Confirm",
-							click: () => {
+							click: async () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
-								const filteredExportData = this.exportData.map((image) => this.filterData(image, exportMetadata));
-								filteredExportData[0] = "[" + filteredExportData[0];
-								filteredExportData[filteredExportData.length - 1] += "]";
+								const appliedFilters = Filter.getSelectedFiltersData().map((obj) => {
+									return {key: obj.key, values: obj.values};
+								});
+								const datasetName = $$(FILE_NAME_TEXT_ID).getValue() || "Dataset";
+								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID) === PERMISSION_FOLDER.PUBLIC ? true : false;
+								const filteredExportData = this.exportData.map((image, index, array) => {
+									const filteredData = {
+										name: image.name,
+										_id: image._id
+									};
+									Object.assign(filteredData, this.filterData(image, exportMetadata));
+									return filteredData;
+								});
 								const list = webix.ui({
 									view: "list"
 								});
 								list.parse(filteredExportData);
-								webix.toCSV(list);
+								if (this.exportMethod === EXPORT_METHOD.PUSH_TO_DATASET) {
+									const dataset = list.serialize();
+									try {
+										const result = await ajaxActions.postDataset(dataset, datasetName, appliedFilters, isPublic);
+									} catch (err) {
+										console.error(JSON.stringify(err));
+									}
+								} else {
+									webix.toCSV(list);
+								}
 							}
 						}
 					]
@@ -99,11 +195,20 @@ define([
 			};
 		};
 
-		showWindow(data) {
+		showWindow(data, isDatasetPush) {
 			const approvedProps = approvedMetadataModel.getProps();
 			$$(METADATA_EXPORT_ID).clearAll();
 			$$(METADATA_EXPORT_ID).parse(approvedProps);
 			this.exportData = data;
+			if (isDatasetPush) {
+				this.exportMethod = EXPORT_METHOD.PUSH_TO_DATASET;
+				$$(EXPORT_TO_DATASET_LABEL_ID).show();
+				$$(PERMISSION_FOLDER_RADIO_ID).show();
+			}
+			else {
+				this.exportMethod = EXPORT_METHOD.EXPORT_CSV;
+				$$(EXPORT_CSV_LABEL_ID).show();
+			}
 			this.getRoot().show();
 		}
 
@@ -111,10 +216,7 @@ define([
 			const dataToDisplay = {};
 			exportMetadata.forEach((filter) => {
 				if(filter.checked === false) {
-					let dataForChecking;
-					if(data.hasOwnProperty(filter.value)) {
-						dataForChecking = data[filter.value];
-					}
+					const dataForChecking = data.hasOwnProperty(filter.value) ? data[filter.value] : null;
 					if(Array.isArray(dataForChecking)) {
 						filter.data.forEach((item, i) => {
 							if(item.checked) {
@@ -126,22 +228,26 @@ define([
 						});
 					} else {
 						if(dataForChecking && typeof(dataForChecking) === "object" && !Array.isArray(dataForChecking)) {
-							if(filter?.data?.length > 0) {
-								dataForChecking = this.filterData(dataForChecking, filter.data);
-							}
-							const checkingDataLength = Object.keys(dataForChecking).length > 0
-								? Object.keys(dataForChecking).length
+							const childrenDataForChecking = filter?.data?.length > 0
+								? this.filterData(dataForChecking, filter.data)
+								: null;
+
+							const childrenDataForCheckingLength = Object.keys(childrenDataForChecking ?? {}).length > 0
+								? Object.keys(childrenDataForChecking).length
 								: 0;
-							if(checkingDataLength > 0) {
-								dataToDisplay[filter.value] = dataForChecking;
+							if(childrenDataForCheckingLength > 0) {
+								const childrenDataForCheckingKeys = Object.keys(childrenDataForChecking);
+								childrenDataForCheckingKeys.forEach((key) => {
+									dataToDisplay[key] = childrenDataForChecking[key];
+								});
 							}
 						}
 					}
 				} else if(data.hasOwnProperty(filter.value)) {
-					dataToDisplay[filter.value] = data[filter.value];
+					dataToDisplay[(filter.id).replaceAll("|", ".").replace(/^meta\w*./, "")] = data[filter.value];
 				}
 			});
-			return JSON.stringify(dataToDisplay);
+			return dataToDisplay;
 		}
 
 		checkData(id, data, check) {

@@ -11,6 +11,18 @@ function getToken() {
 	return tokenObj ? tokenObj.token : null;
 }
 
+function getUserInfo() {
+	return webix.storage.local.get(`user-${getHostId()}`);
+}
+
+function getLocalJWT() {
+	return webix.storage.local.get(`localJWT-${getHostId()}`);
+}
+
+function isLoggedIn() {
+	return getToken() && getUserInfo() && getLocalJWT();
+}
+
 function getStyleParam(params) {
 	let styleParam = "";
 	if (params.style) {
@@ -30,6 +42,11 @@ function showValidationErrors(arr) {
 
 define(["app", "constants"], function(app, constants) {
 	const LOCAL_API = constants.LOCAL_API;
+	const PARENT_TYPES = {
+		folder: "folder",
+		collection: "collection",
+		user: "user"
+	};
 
 	class AjaxActions {
 		constructor() {
@@ -133,6 +150,16 @@ define(["app", "constants"], function(app, constants) {
 				.then((result) => this._parseData(result));
 		}
 
+		getCollectionByName(name) {
+			const params = {
+				text: name
+			};
+			return this._ajax()
+				.get(`${this.getHostApiUrl()}/collection`, params)
+				.fail(this._parseError)
+				.then((result) => this._parseData(result));
+		}
+
 		getSubFolders(parentType, parentId) {
 			const params = {
 				limit: 0,
@@ -208,7 +235,7 @@ define(["app", "constants"], function(app, constants) {
 
 		getImageTileUrl(itemId, z, x, y, params = {}) {
 			// HACK
-			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// TODO: style parameter not working. message from server: "Style is not a valid json object."
 			// const styleParam = getStyleParam(params);
 			const urlSearchParams = new URLSearchParams();
 			urlSearchParams.set("edge", "crop");
@@ -224,7 +251,7 @@ define(["app", "constants"], function(app, constants) {
 
 		getImageUrl(imageId, imageType = 'thumbnail', params = {}) {
 			// HACK
-			// TO DO: style parameter not working. message from server: "Style is not a valid json object."
+			// TODO: style parameter not working. message from server: "Style is not a valid json object."
 			// const styleParam = getStyleParam(params);
 			const searchParams = new URLSearchParams();
 			searchParams.set("token", getToken());
@@ -308,10 +335,33 @@ define(["app", "constants"], function(app, constants) {
 		}
 
 		getDownloadedResources() {
-			return this._ajax()
-				.get(`${LOCAL_API}/resources/downloaded-resources`)
-				.fail(this._parseError)
-				.then((result) => this._parseData(result));
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/resources/downloaded-resources`)
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
+		}
+
+		getApprovedFacetData() {
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/facets/approved-facet`, {})
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
+		}
+
+		getApprovedMetadatata() {
+			if (isLoggedIn()) {
+				return this._ajax()
+					.get(`${LOCAL_API}/facets/approved-metadata`)
+					.fail(this._parseError)
+					.then((result) => this._parseData(result));
+			}
+			return Promise.resolve();
 		}
 
 		deleteResource(id) {
@@ -320,6 +370,53 @@ define(["app", "constants"], function(app, constants) {
 			];
 			Promise.all(promises)
 				.then((results) => this._parseData(results));
+		}
+
+		async postDataset(dataset, datasetName, appliedFilters, isPublic) {
+			if (isLoggedIn()) {
+				try {
+					const metadata = JSON.stringify({
+						dataset,
+						appliedFilters
+					});
+					const publicOrPrivateFolder = await this.getDatasetPublicOrPrivateFolder(isPublic);
+					const userInfo = await this.getUserInfo();
+					const userLogin = userInfo.login;
+					const userFolderParams = {
+						parentType: PARENT_TYPES.folder,
+						parentId: publicOrPrivateFolder._id,
+						name: userLogin,
+						reuseExisting: true
+					};
+					const userFolder = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/folder`, userFolderParams));
+					const itemParams = {
+						folderId: userFolder?._id,
+						name: datasetName,
+						metadata
+					};
+					const item = this._parseData(await this._ajax().post(`${this.getHostApiUrl()}/item`, itemParams));
+					if (item.name) {
+						webix.message(`dataset with name "${item.name}" is created`);
+					}
+				}
+				catch (err) {
+					this._parseError(err.xhr);
+					return null;
+				}
+			}
+			return Promise.resolve();
+		}
+		async getDatasetPublicOrPrivateFolder(isPublic) {
+			const collections = await this.getCollectionByName(constants.DATASET_COLLECTION_NAME);
+			const datasetCollection = collections.find((item) => { return item.name === constants.DATASET_COLLECTION_NAME; });
+			const subFolders = await this.getSubFolders(PARENT_TYPES.collection, datasetCollection?._id);
+			const datasetFolder = subFolders?.find((item) => { return item.name === constants.DATASET_FOLDER_NAME; });
+			const datasetSubFolders = await this.getSubFolders(PARENT_TYPES.folder, datasetFolder?._id);
+			return datasetSubFolders.find((item) => {
+				return isPublic
+					? item.name === constants.PUBLIC_DATASET_FOLDER_NAME
+					: item.name === constants.PRIVATE_DATASET_FOLDER_NAME;
+			});
 		}
 	}
 

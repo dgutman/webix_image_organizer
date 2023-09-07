@@ -1,11 +1,13 @@
 define([
 	"app",
 	"constants",
-	"helpers/approved_facet"
+	"helpers/approved_facet",
+	"helpers/ajax"
 ], function(
 	app,
 	constants,
-	approvedFacetsHelper
+	approvedFacetsHelper,
+	ajaxActions
 ) {
 	const approvedFacetURL = `${constants.LOCAL_API}/facets/approved-facet`;
 	let approvedFacetsData = [];
@@ -28,9 +30,8 @@ define([
 
 	const _loadData = (url) => {
 		app.callEvent("editForm:doProgressOnApprovedFacet");
-		webix.ajax().get(url, {})
-			.then(function(response) {
-				const data = response.json();
+		ajaxActions.getApprovedFacetData()
+			.then((data) => {
 				if(data) {
 					const cachedData = approvedFacetsHelper.getLocalApprovedFacetData();
 					if (Array.isArray(cachedData)) {

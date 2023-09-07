@@ -1,7 +1,8 @@
 define([
 	"app",
-	"constants"
-], function(app, constants) {
+	"constants",
+	"helpers/ajax"
+], function(app, constants, ajaxActions) {
 	const approvedMetadataURL = `${constants.LOCAL_API}/facets/approved-metadata`;
 
 	let props = [];
@@ -12,9 +13,8 @@ define([
 
 	const _loadData = (url) => {
 		app.callEvent("editForm:doProgressOnApprovedMetadata");
-		webix.ajax().get(url, {})
-			.then(function(response) {
-				const data = response.json();
+		ajaxActions.getApprovedMetadatata()
+			.then((data) => {
 				if(data) {
 					setProps(data);
 				}
