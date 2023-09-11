@@ -8,6 +8,7 @@ define([
 
     filtersCollection.loadFilters = function() {
         isImagesLoaded = false;
+        let isAfterLoadEventCalled = false;
         webix.ajax().get(app.config.defaultAPIPath + "/facets/filters", {data: {}})
             .then(function(response) {
                 const data = response.json();
@@ -15,34 +16,46 @@ define([
                 const dataToParse = data && Object.keys(data).length > 0 ? data : [];
                 filtersCollection.clearAll();
                 filtersCollection.parse(dataToParse);
+                isAfterLoadEventCalled = true;
                 callAfterLoadEvent();
             })
             .fail(function() {
                 filtersCollection.clearAll();
                 filtersCollection.parse([]);
-                callAfterLoadEvent();
+                if (!isAfterLoadEventCalled) {
+                    callAfterLoadEvent();
+                }
             });
     };
 
     function callAfterLoadEvent() {
+        const keysDelimiter = '|';
         if(isImagesLoaded) {
             filters.length = 0;
             filtersCollection.callEvent("filtersLoaded", filters);
             app.callEvent("filtersLoaded", filters);
             const appliedFilters = AppliedFilters.getAppliedFilters();
             appliedFilters.forEach((filter) => {
-                filter?.value?.forEach((value) => {
-                    app.callEvent("filtersChanged", [{
-                        view: filter.view,
-                        key: filter.key,
-                        value,
-                        remove: filter.remove,
-                        status: filter.status
-                    }]);
-                });
+                switch(filter.view) {
+                    case 'toggle':
+                    case 'checkbox':
+                        filter?.value?.forEach((value) => {
+                            $$(`${filter.key}${keysDelimiter}${value}`)?.toggle();
+                        });
+                        break;
+                    case "combo":
+                    case "radio":
+                        $$(`${filter.key}`)?.setValue(filter.value);
+                        break;
+                    case "multiSlider":
+                        $$(`${filter.key}${keysDelimiter}start`)?.setValue(filter.min);
+                        $$(`${filter.key}${keysDelimiter}end`)?.setValue(filter.max);
+                        break;
+                    case "slider":
+                        $$(`${filter.key}`)?.setValue(filter.value);
+                        break;
+                }
             });
-            // filtersCollection.callEvent("filtersLoaded", []);
-            // app.callEvent("filtersLoaded", []);
         }
     };
 
