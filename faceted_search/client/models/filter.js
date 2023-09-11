@@ -1,6 +1,7 @@
 define([
-    "app"
-], function(app) {
+    "app",
+    "models/applied_filters"
+], function(app, AppliedFilters) {
     const filtersCollection = new webix.DataCollection({});
     const filters = [];
     let isImagesLoaded = false;
@@ -25,8 +26,23 @@ define([
 
     function callAfterLoadEvent() {
         if(isImagesLoaded) {
-            filtersCollection.callEvent("filtersLoaded", []);
-            app.callEvent("filtersLoaded", []);
+            filters.length = 0;
+            filtersCollection.callEvent("filtersLoaded", filters);
+            app.callEvent("filtersLoaded", filters);
+            const appliedFilters = AppliedFilters.getAppliedFilters();
+            appliedFilters.forEach((filter) => {
+                filter?.value?.forEach((value) => {
+                    app.callEvent("filtersChanged", [{
+                        view: filter.view,
+                        key: filter.key,
+                        value,
+                        remove: filter.remove,
+                        status: filter.status
+                    }]);
+                });
+            });
+            // filtersCollection.callEvent("filtersLoaded", []);
+            // app.callEvent("filtersLoaded", []);
         }
     };
 
@@ -108,6 +124,7 @@ define([
                 }
                 break;
         }
+        AppliedFilters.setAppliedFilters(filters);
         app.callEvent("images:FilterImagesView", [filters, skipThisId]);
     });
 

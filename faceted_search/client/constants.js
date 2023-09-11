@@ -88,7 +88,12 @@ define([], function() {
 		DATASET_COLLECTION_NAME: "NeuroTK",
 		DATASET_FOLDER_NAME: "Datasets",
 		PRIVATE_DATASET_FOLDER_NAME: "Private",
-		PUBLIC_DATASET_FOLDER_NAME: "Public"
+		PUBLIC_DATASET_FOLDER_NAME: "Public",
 		// end export dataset
+
+		// begin filters local storage
+		APPLIED_FILTERS_LOCAL_STORAGE_KEY: "applied-filters",
+		CASE_FILTERS_LOCAL_STORAGE_KEY: "case-filters"
+		// end filters local storage
 	};
 });

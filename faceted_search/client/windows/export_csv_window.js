@@ -4,14 +4,16 @@ define([
 	"models/approved_metadata",
 	"models/filter",
 	"helpers/authentication",
-	"helpers/ajax"
+	"helpers/ajax",
+	"models/applied_filters"
 ], function(
 	app,
 	BaseJetView,
 	approvedMetadataModel,
 	Filter,
 	auth,
-	ajaxActions
+	ajaxActions,
+	AppliedFilters
 ) {
 	"user strict";
 	app.callEvent("approvedMetadata:loadData");
@@ -164,6 +166,11 @@ define([
 								const appliedFilters = Filter.getSelectedFiltersData().map((obj) => {
 									return {key: obj.key, values: obj.values};
 								});
+								const caseFilters = AppliedFilters.getCaseFilters();
+								const filters = {
+									appliedFilters,
+									caseFilters
+								};
 								const datasetName = $$(FILE_NAME_TEXT_ID).getValue() || "Dataset";
 								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID) === PERMISSION_FOLDER.PUBLIC ? true : false;
 								const filteredExportData = this.exportData.map((image, index, array) => {
@@ -181,7 +188,7 @@ define([
 								if (this.exportMethod === EXPORT_METHOD.PUSH_TO_DATASET) {
 									const dataset = list.serialize();
 									try {
-										const result = await ajaxActions.postDataset(dataset, datasetName, appliedFilters, isPublic);
+										const result = await ajaxActions.postDataset(dataset, datasetName, filters, isPublic);
 									} catch (err) {
 										console.error(JSON.stringify(err));
 									}
@@ -231,8 +238,7 @@ define([
 							const childrenDataForChecking = filter?.data?.length > 0
 								? this.filterData(dataForChecking, filter.data)
 								: null;
-
-							const childrenDataForCheckingLength = Object.keys(childrenDataForChecking ?? {}).length > 0
+							const childrenDataForCheckingLength = Object.keys(childrenDataForChecking).length > 0
 								? Object.keys(childrenDataForChecking).length
 								: 0;
 							if(childrenDataForCheckingLength > 0) {
