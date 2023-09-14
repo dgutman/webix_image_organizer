@@ -372,12 +372,12 @@ define(["app", "constants"], function(app, constants) {
 				.then((results) => this._parseData(results));
 		}
 
-		async postDataset(dataset, datasetName, appliedFilters, isPublic) {
+		async postDataset(dataset, datasetName, filters, isPublic) {
 			if (isLoggedIn()) {
 				try {
 					const metadata = JSON.stringify({
 						dataset,
-						appliedFilters
+						filters
 					});
 					const publicOrPrivateFolder = await this.getDatasetPublicOrPrivateFolder(isPublic);
 					const userInfo = await this.getUserInfo();

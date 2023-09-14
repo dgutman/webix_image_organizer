@@ -274,13 +274,13 @@ define([
 
 			app.attachEvent("uploaderList:loadingActions", function(msg, folderName) {
 				const tabView = $$(statusTabViewId);
-				let cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+				let cell = tabView?.getMultiview()?.queryView({id: `${folderName}-cell`});
 				if (cell) {
 					cell.define("template", msg);
 				}
 				else {
 					addNewTab(folderName);
-					cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
+					cell = tabView?.getMultiview()?.queryView({id: `${folderName}-cell`});
 					cell?.define("template", msg);
 				}
 				cell.refresh();
@@ -289,13 +289,13 @@ define([
 			app.attachEvent("uploaderList:clearAfterSave", function(tabId) {
 				const currentId = tabId ? tabId : resyncTabId;
 				const tabView = $$(statusTabViewId);
-				let cell = tabView.getMultiview().queryView({id: `${currentId}-cell`});
+				let cell = tabView?.getMultiview()?.queryView({id: `${currentId}-cell`});
 				if (cell) {
 					cell.define("Done!");
 				}
 				else {
 					addNewTab(resyncTabId);
-					cell = tabView.getMultiview().queryView({id: `${currentId}-cell`});
+					cell = tabView?.getMultiview()?.queryView({id: `${currentId}-cell`});
 					cell?.define("template", "Done!");
 				}
 				cell?.refresh();

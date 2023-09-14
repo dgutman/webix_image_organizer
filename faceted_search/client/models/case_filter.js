@@ -1,9 +1,11 @@
 define([
 	"app",
-	"helpers/authentication"
+	"helpers/authentication",
+	"models/applied_filters"
 ], function(
 	app,
-	auth
+	auth,
+	AppliedFilters
 ) {
 	const regionPath = "meta|npSchema|region";
 	const oldRegionPath = "meta|npSchema|regionName";
@@ -55,7 +57,7 @@ define([
 	}
 
 	function getFilters() {
-		const filters = webix.storage.local.get(`cases-filters-${auth.getUserId()}`);
+		const filters = AppliedFilters.getCaseFilters() ?? [];
 		if (!filters) {
 			setFilters([]);
 			return [];
@@ -64,7 +66,7 @@ define([
 	}
 
 	function setFilters(filters) {
-		webix.storage.local.put(`cases-filters-${auth.getUserId()}`, filters);
+		AppliedFilters.setCaseFilters(filters);
 	}
 
 	function addCaseCriteria(caseName, criteriaName) {

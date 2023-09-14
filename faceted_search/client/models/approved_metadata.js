@@ -55,7 +55,7 @@ define([
 	};
 
 	const getProps = function() {
-		return props;
+		return props.map((prop) => ({...prop}));
 	};
 
 	return {

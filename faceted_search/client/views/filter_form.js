@@ -80,7 +80,9 @@ define([
     };
 
     Filter.attachEvent("filtersLoaded", function() {
-        let images = Images.getImages(); const arr = []; let key;
+        let images = Images.getImages();
+        const arr = [];
+        let key;
         images = images.data.pull;
         for(key in images) {
             if(images.hasOwnProperty(key)) {
