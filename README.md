@@ -1,5 +1,11 @@
 Image Organizer app that uses the Webix Toolkit to interact with a Girder server.
 
+## New Instructions from JC
+* Clone the repo
+* npm install
+* npm run start
+* App by defaul runs in localhost port 5000
+
 Steps to run app:
 * Install Docker-compose (usually installs with Docker)
 * modify / create a .env file
