@@ -164,7 +164,7 @@ define([
 							click: async () => {
 								const exportMetadata = $$(METADATA_EXPORT_ID).data.serialize();
 								const appliedFilters = Filter.getSelectedFiltersData().map((obj) => {
-									return {key: obj.key, values: obj.values};
+									return {key: obj.key, value: obj.value};
 								});
 								const caseFilters = AppliedFilters.getCaseFilters();
 								const filters = {
@@ -189,6 +189,7 @@ define([
 									const dataset = list.serialize();
 									try {
 										const result = await ajaxActions.postDataset(dataset, datasetName, filters, isPublic);
+										console.log(JSON.stringify(result));
 									} catch (err) {
 										console.error(JSON.stringify(err));
 									}
@@ -238,7 +239,7 @@ define([
 							const childrenDataForChecking = filter?.data?.length > 0
 								? this.filterData(dataForChecking, filter.data)
 								: null;
-							const childrenDataForCheckingLength = Object.keys(childrenDataForChecking).length > 0
+							const childrenDataForCheckingLength = childrenDataForChecking && Object.keys(childrenDataForChecking).length > 0
 								? Object.keys(childrenDataForChecking).length
 								: 0;
 							if(childrenDataForCheckingLength > 0) {

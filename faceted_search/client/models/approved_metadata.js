@@ -55,7 +55,7 @@ define([
 	};
 
 	const getProps = function() {
-		return props.map((prop) => ({...prop}));
+		return JSON.parse(JSON.stringify(props));
 	};
 
 	return {
