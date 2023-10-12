@@ -188,7 +188,6 @@ class MainService {
 		this._view.attachEvent(constants.OPEN_MULTICHANNEL_VIEW_EVENT, async (image) => {
 			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 			await actionPanel.multichannelViewOptionToggle(image);
-			this._finder.select(image.id);
 			multichannelViewCell.show();
 			this._finder.select(image.id);
 		});
@@ -236,8 +235,8 @@ class MainService {
 		// prevent select for datatable
 		this._metadataTable.attachEvent("onBeforeSelect", () => false);
 
-		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir) => {
-			this._metadataTableDataCollection.sort(by, dir);
+		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir, as) => {
+			this._metadataTableDataCollection.sort(by, dir, as);
 			return false;
 		});
 
