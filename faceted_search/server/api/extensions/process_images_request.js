@@ -12,12 +12,16 @@ class ProcessImagesRequest {
 				approvedMetadataModel.getApprovedMetadata()
 			])
 			.then(([hashObj, approvedMetadata]) => {
-				const approvedMetadataHash = crypto.createHash('sha256');
-				approvedMetadataHash.update(approvedMetadata.updatedAt.toString());
+				if (!hashObj) {
+					return Promise.reject({code: 'ENOENT'});
+				}
+				if (!approvedMetadata) {
+					return Promise.resolve(false);
+				}
 				let promise;
-				if(!hashObj) {
-					promise = Promise.reject({code: 'ENOENT'});
-				} else if(clientHash === hashObj.data + approvedMetadataHash.digest('hex').slice(0, 10)) {
+				const approvedMetadataHash = crypto.createHash('sha256');
+				approvedMetadataHash.update(approvedMetadata?.updatedAt?.toString());
+				if(clientHash === hashObj.data + approvedMetadataHash.digest('hex').slice(0, 10)) {
 					promise = Promise.resolve(true);
 				} else {
 					promise = Promise.resolve(false);
