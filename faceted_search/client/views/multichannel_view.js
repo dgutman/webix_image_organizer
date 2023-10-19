@@ -317,7 +317,9 @@ define([
 			}
 			const channelList = this._channelList.getList();
 			channelList.unselectAll();
-			await this.showColoredChannels(group.channels);
+			if (group.channels?.length > 0) {
+				await this.showColoredChannels(group.channels);
+			}
 		}
 
 		async showColoredChannels(channels) {
@@ -441,11 +443,13 @@ define([
 			const groupsPanel = this._groupsPanel.getRoot();
 
 			groupsPanel.attachEvent("groupSelectChange", (group) => {
-				this._changeURLGroupIndex(group);
-				this._selectGroupHandler(group);
+				if (group) {
+					this._changeURLGroupIndex(group);
+					this._selectGroupHandler(group);
 
-				const channels = this._channelList.getSelectedChannels();
-				this._channelList.changeButtonVisibility(channels.length && group);
+					const channels = this._channelList.getSelectedChannels();
+					this._channelList.changeButtonVisibility(channels.length && group);
+				}
 			});
 
 			groupsPanel.attachEvent("generateSceneFromTemplate", (groupId) => {

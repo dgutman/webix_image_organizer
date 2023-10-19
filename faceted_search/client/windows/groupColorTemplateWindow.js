@@ -230,7 +230,7 @@ define([
 			this._templateChannelCollection.clearAll();
 			this._template = template;
 	
-			if(template) {
+			if(template.channels?.length > 0) {
 				this._templateChannelCollection.parse(template.channels);
 			}
 	

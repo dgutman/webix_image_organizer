@@ -3,8 +3,9 @@ define([
 	"constants",
 	"helpers/authentication",
 	"helpers/ajax",
-	"models/upload"
-], function(app, constants, auth, ajax, Upload) {
+	"models/upload",
+	"models/applied_filters"
+], function(app, constants, auth, ajax, Upload, AppliedFilters) {
 	const uploadButtonId = "upload-btn";
 	const resyncButtonId = "resync-btn";
 	const statusTabViewId = "status-tab-view-id";
@@ -226,6 +227,7 @@ define([
 							});
 					})
 					.fail(function() {});
+					AppliedFilters.clearFilters();
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {
@@ -323,6 +325,6 @@ define([
 				tree.render();
 			};
 		}
-    };
+	};
 });
 

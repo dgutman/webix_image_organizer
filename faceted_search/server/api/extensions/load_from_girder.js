@@ -93,20 +93,21 @@ async function getAllowedFolders(host, token) {
 		const existedFolderIds = await facetImagesModel.getImagesFolderIds(host);
 		const allowedFolders = [];
 		const existedFolderIdsCount = existedFolderIds.length;
+		const promises = [];
 		for(let i = 0; i < existedFolderIdsCount; i++) {
-			const folder = await axios.get(`${url}/${existedFolderIds[i]}`, options)
-				.then((response) => {
-					return response.data;
-				})
-				.catch((err) => {
-					console.log(err.response || err);
-				});
-			if(folder && folder._id) {
-				allowedFolders.push(existedFolderIds[i]);
-			} else {
-				console.log(`${existedFolderIds[i]} does not fit`);
-			}
+			promises.push(axios.get(`${url}/${existedFolderIds[i]}`, options));
 		}
+		const results = await Promise.allSettled(promises);
+		results.forEach((result, i) => {
+			if (result.status === "fulfilled") {
+				const folder = result.value.data;
+				if(folder && folder._id) {
+					allowedFolders.push(existedFolderIds[i]);
+				} else {
+					console.log(`${existedFolderIds[i]} does not fit`);
+				}
+			}
+		});
 		return allowedFolders;
 	} catch(err) {
 		console.error(err.response || err);

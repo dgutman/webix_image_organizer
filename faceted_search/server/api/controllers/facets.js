@@ -21,6 +21,8 @@ exports.getImagesData = (req, res) => {
 		]);
 	})
 	.then(([hash, images, approvedMetadataData, allowedFolders]) => {
+		let filteredImages;
+		let hostImages;
 		if(hash) {
 			const approvedMetadataHash = crypto.createHash('sha256');
 			approvedMetadataHash.update(approvedMetadataData?.updatedAt?.toString() ?? '');
@@ -30,13 +32,15 @@ exports.getImagesData = (req, res) => {
 				'ETag': hash.data + approvedMetadataHash.digest('hex').slice(0, 10)
 			});
 			if (host) {
-				images = JSON.parse(images).filter((obj) => obj.host === host);
+				hostImages = JSON.parse(images).filter((obj) => obj.host === host);
 			}
-			if (allowedFolders) {
-				images = images.filter((obj) => lodash.includes(allowedFolders, obj.data.folderId));
-			}
+		} else {
+			hostImages = images;
 		}
-		return [hash, images];
+		if (allowedFolders) {
+			filteredImages = hostImages?.filter((obj) => lodash.includes(allowedFolders, obj.data.folderId));
+		}
+		return [hash, filteredImages];
 	});
 };
 
@@ -52,8 +56,8 @@ exports.getImageData = (req, res, next) => {
 	.then(([image, approvedMetadataData]) => {
 		if (host) {
 			if(image.host === host) {
-				image = filterImageData(image, approvedMetadataData.data);
-				res.status(200).send(image);
+				const filteredImageData = filterImageData(image, approvedMetadataData.data);
+				res.status(200).send(filteredImageData);
 			} else {
 				res.status(404);
 			}

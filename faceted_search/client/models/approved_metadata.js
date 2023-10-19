@@ -22,7 +22,6 @@ define([
 				app.callEvent("editForm:approvedMetadataLoaded");
 			})
 			.catch((reason) => {
-				console.error(reason);
 				app.callEvent("editForm:onApprovedMetadataLoaded");
 			});
 	};
