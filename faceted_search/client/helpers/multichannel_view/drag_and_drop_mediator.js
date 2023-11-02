@@ -92,7 +92,7 @@ define([], function() {
 		}
 	
 		get $groupsChannelsList() {
-			return this._groupsPanel.getGroupsChannelsList();
+			return this._groupsPanel.getGroupChannelsList();
 		}
 	
 		get $groupsList() {

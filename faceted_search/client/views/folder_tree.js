@@ -3,8 +3,9 @@ define([
 	"constants",
 	"helpers/authentication",
 	"helpers/ajax",
-	"models/upload"
-], function(app, constants, auth, ajax, Upload) {
+	"models/upload",
+	"models/applied_filters"
+], function(app, constants, auth, ajax, Upload, AppliedFilters) {
 	const uploadButtonId = "upload-btn";
 	const resyncButtonId = "resync-btn";
 	const statusTabViewId = "status-tab-view-id";
@@ -42,7 +43,8 @@ define([
 		id: statusTabViewId,
 		height: 100,
 		tabbar: {
-			close: true
+			close: true,
+			optionWidth: 280
 		},
 		cells: [
 			{
@@ -153,11 +155,10 @@ define([
 			});
 
 			function toggleUploadButtonState(treeItem) {
-				const uploadButton = $$(uploadButtonId);
 				if (treeItem?._modelType === "folder" || treeItem?._modelType === "collection") {
-					uploadButton.enable();
+					uploadButton?.enable();
 				} else {
-					uploadButton.disable();
+					uploadButton?.disable();
 				}
 			}
 
@@ -166,7 +167,7 @@ define([
 				toggleUploadButtonState(item);
 			});
 
-			uploadButton.attachEvent("onItemClick", async () => {
+			uploadButton?.attachEvent("onItemClick", async () => {
 				const uploadButton = $$(uploadButtonId);
 				const selectedItem = tree.getSelectedItem();
 				addNewTab(selectedItem.name);
@@ -178,7 +179,7 @@ define([
 				if (folder) {
 					Upload.getImagesFromGirderFolder(ajax.getHostApiUrl(), folder._id, folder.name, token);
 				} else if (collection) {
-					Upload.getImagesFromGirderCollection(ajax.getHostApiUrl(), collection._id, token);
+					Upload.getImagesFromGirderCollection(ajax.getHostApiUrl(), collection._id, collection.name, token);
 				}
 			});
 
@@ -194,7 +195,7 @@ define([
 							webix.ajax().del(`${localApi}/resources/downloaded-resources`)
 						];
 						Promise.all(promises)
-							.then((results) => {
+							.then(async (results) => {
 								let hasAllResults = true;
 								if(results) {
 									results.forEach((result) => {
@@ -210,15 +211,15 @@ define([
 								} else {
 									webix.message({type: "error", text: `Internal Error`, expire: 10000});
 								}
-								ajax.getDownloadedResources()
+								await ajax.getDownloadedResources()
 									.then((data) => {
 										downloadedResources.length = 0;
 										if (Array.isArray(data)) {
 											downloadedResources.push(...data);
 										}
-								});
-								// tree.refresh();
-								tree.render();
+										// tree.refresh();
+										tree.render();
+									});
 								tree.hideProgress();
 							}, (err) => {
 								webix.message({type: "error", text: `${err.responseText}`, expire: 10000});
@@ -226,6 +227,7 @@ define([
 							});
 					})
 					.fail(function() {});
+					AppliedFilters.clearFilters();
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {
@@ -236,6 +238,11 @@ define([
 				Upload.resyncImagesFromGirder(token);
 			});
 
+			app.attachEvent("editForm:finishResync", function() {
+				const resyncButton = $$(resyncButton);
+				resyncButton.enable();
+			});
+
 			app.attachEvent("editForm:finishLoading", function(folderName) {
 				const resyncButton = $$(resyncButtonId);
 				const tree = $$(constants.FOLDER_TREE_ID);
@@ -243,7 +250,6 @@ define([
 				const selectedItem = tree.getSelectedItem();
 				if (selectedItem) {
 					toggleUploadButtonState(selectedItem);
-					resyncButton.enable();
 
 					ajax.getDownloadedResources()
 						.then((resourceData) => {
@@ -257,6 +263,7 @@ define([
 							tree.render();
 						});
 				}
+				resyncButton.enable();
 
 				const tabView = $$(statusTabViewId);
 				let cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
@@ -272,15 +279,17 @@ define([
 				tree.hideProgress();
 			});
 
-			app.attachEvent("uploaderList:loadingActions", function(msg, folderName) {
+			app.attachEvent("uploaderList:loadingActions", function(msg, folderName, collectionName) {
+				if (!folderName) return;
+				const name = collectionName ?? folderName;
 				const tabView = $$(statusTabViewId);
-				let cell = tabView?.getMultiview()?.queryView({id: `${folderName}-cell`});
+				let cell = tabView?.getMultiview()?.queryView({id: `${name}-cell`});
 				if (cell) {
 					cell.define("template", msg);
 				}
 				else {
-					addNewTab(folderName);
-					cell = tabView?.getMultiview()?.queryView({id: `${folderName}-cell`});
+					addNewTab(name);
+					cell = tabView?.getMultiview()?.queryView({id: `${name}-cell`});
 					cell?.define("template", msg);
 				}
 				cell.refresh();
@@ -303,26 +312,39 @@ define([
 
 			app.attachEvent("deleteResource:clearAfterDelete", async function() {
 				// tree.refresh();
-				tree.showProgress();
-				const resourceData = await ajax.getDownloadedResources();
-				downloadedResources.length = 0;
-				if(Array.isArray(resourceData)) {
-					downloadedResources.push(...resourceData);
+				try {
+					tree.showProgress();
+					const resourceData = await ajax.getDownloadedResources();
+					downloadedResources.length = 0;
+					if(Array.isArray(resourceData)) {
+						downloadedResources.push(...resourceData);
+					}
 				}
-				tree.hideProgress();
-				tree.render();
+				catch (error) {
+					console.error(error);
+				}
+				finally {
+					tree.hideProgress();
+					tree.render();
+				}
 			});
 
 			tree.on_click.delicon = async function(e, id, trg) {
-				tree.showProgress();
-				const obj = tree.getItem(id);
-				const token = auth.getToken();
-				const host = ajax.getHostApiUrl();
-				Upload.deleteResource(obj._id, host, token, obj.name);
-				// tree.refresh();
-				tree.render();
+				try {
+					const obj = tree.getItem(id);
+					const token = auth.getToken();
+					const host = ajax.getHostApiUrl();
+					Upload.deleteResource(obj._id, host, token, obj.name);
+				}
+				catch (error) {
+					console.error(error);
+				}
+				finally {
+					// tree.refresh();
+					tree.render();
+				}
 			};
 		}
-    };
+	};
 });
 

@@ -53,8 +53,8 @@ define([
 						cols: [
 							{view: "button", label: "Save", click: this.saveName},
 							{view: "button", label: "Clear", click: function() {
-webix.$$(FORM_ID).clear();
-}}
+								webix.$$(FORM_ID).clear();
+							}}
 						]
 					}
 				],

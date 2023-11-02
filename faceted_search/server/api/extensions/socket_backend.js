@@ -37,27 +37,34 @@ class Backend {
             });
         });
 
-        this._message = (msg, folderName) => {
-            this.socket.emit('message', msg, folderName);
+        this._message = (msg, folderName, collectionName) => {
+            this.socket.emit('message', msg, folderName, collectionName);
         };
     }
 
     loadGirderFolder(data) {
-        const folderName = data.name;
-        this._message('[Uploading]: started', folderName);
-        loadImagesFileFromGirderFolder(data)
+        const {name: folderName, collectionName} = data;
+        // TODO: move message generator to separate service
+        let msg = collectionName
+            ? `[Uploading "${folderName}"]: started`
+            : '[Uploading]: started';
+        this._message(msg, folderName, collectionName);
+        return loadImagesFileFromGirderFolder(data)
             .then((images) => {
-                this._message('[Uploading]: finished', folderName);
-                return this._parseData(images, data.host, folderName);
+                msg = collectionName
+                    ? `[Uploading "${folderName}"]: finished`
+                    : '[Uploading]: finished';
+                this._message(msg, folderName, collectionName);
+                return this._parseData(images, data.host, folderName, collectionName);
             })
             .catch((error) => {
-                this._message(`[Error]: something went wrong`, folderName);
+                this._message(`[Error]: something went wrong`, folderName, collectionName);
                 console.log(error);
             });
     }
 
     async loadGirderCollection(data) {
-        const {host, id, token, name} = data;
+        const {host, id, token, name: collectionName} = data;
         const url = `${host}/folder?parentType=collection&parentId=${id}`;
         const options = {
             headers: {
@@ -66,13 +73,19 @@ class Backend {
         };
         try {
             const folders = await axios.get(url, options).then((response) => response.data);
-            this._message('[Uploading]: started', name);
+            this._message('[Uploading]: started', collectionName);
+            const promises = [];
             if (folders) {
                 folders.forEach((folder) => {
                     const id = folder._id;
-                    this.loadGirderFolder({host, id, token});
+                    const name = folder.name;
+                    promises.push(this.loadGirderFolder({host, id, name, token, collectionName}));
                 });
             }
+            await Promise.all(promises);
+            this._message('[Uploading]: finished', collectionName);
+            serviceData.addResources([id]);
+            this.socket.emit('finishLoading', collectionName);
         } catch(err) {
             console.log(err.response || err);
         }
@@ -84,6 +97,9 @@ class Backend {
             .then((images) => {
                 this._message('[Resync]: finished', RESYNC);
                 return this._parseData(images, host, RESYNC);
+            })
+            .then(() => {
+                this.socket.emit("finishResync");
             });
     }
 
@@ -113,12 +129,18 @@ class Backend {
         }
     }
 
-    async _parseData(images, host, folderName) {
-        this._message('[Parse]: started', folderName);
+    async _parseData(images, host, folderName, collectionName) {
+        let msg = collectionName
+            ? `[Parse folder "${folderName}"]: started`
+            : '[Parse]: started';
+        this._message(msg, folderName, collectionName);
         const resourcesIds = this.getImagesResources(images);
         return parseImages(images, host, this._message)
             .then((data) => {
-                this._message('[Parse]: finished', folderName);
+                msg = collectionName
+                    ? `[Parse folder "${folderName}"]: finished`
+                    : '[Parse]: finished';
+                this._message(msg, folderName, collectionName);
                 return uniqFilter(data);
             })
             .then((data) => this.socket.emit('data', data))
@@ -130,7 +152,9 @@ class Backend {
             .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => {
-                this.socket.emit('finishLoading', folderName);
+                if (!collectionName) {
+                    this.socket.emit('finishLoading', folderName);
+                }
                 console.log('response for images collection is cached');
             })
             .catch((err) => {

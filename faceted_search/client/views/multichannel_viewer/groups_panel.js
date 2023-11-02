@@ -141,7 +141,7 @@ define([
 
 		updateSelectedGroupTiles() {
 			const groupsList = this.getGroupsList();
-			const channelsList = this.getGroupsChannelsList();
+			const channelsList = this.getGroupChannelsList();
 			const segmentationList = this.getSegmentalChannelsList();
 
 			const group = groupsList.getSelectedItem();
@@ -223,7 +223,7 @@ define([
 		}
 
 		clearGroupChannelsList() {
-			const channelsList = this.getGroupsChannelsList();
+			const channelsList = this.getGroupChannelsList();
 			const segmentationList = this.getSegmentalChannelsList();
 			channelsList.clearAll();
 			segmentationList.clearAll();
@@ -233,7 +233,7 @@ define([
 			return this.$$(GROUPS_LIST_ID);
 		}
 
-		getGroupsChannelsList() {
+		getGroupChannelsList() {
 			return this._groupChannelsList.getChannelsList();
 		}
 

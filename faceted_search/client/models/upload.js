@@ -14,9 +14,8 @@ define([
 	const socketStream = window.ss;
 	const socketConnect = socketIO.connect('/backend');
 
-	socketConnect.on('message', function(msg, folderName) {
-		// app.callEvent("uploaderList:loadingActions", [{title: data}]);
-		app.callEvent("uploaderList:loadingActions", [msg, folderName]);
+	socketConnect.on('message', function(msg, folderName, collectionName) {
+		app.callEvent("uploaderList:loadingActions", [msg, folderName, collectionName]);
 	});
 
 	socketConnect.on('finishLoading', function(folderName) {
@@ -27,6 +26,10 @@ define([
 
 	socketConnect.on('updateUploadedResources', function() {
 		app.callEvent("deleteResource:clearAfterDelete");
+	});
+
+	socketConnect.on('finishResync', function() {
+		app.callEvent("editForm:finishResync");
 	});
 
 	const uploadJSONFile = function(file) {
@@ -61,8 +64,8 @@ define([
 		socketStream(socketConnect).emit('loadGirderFolder', {host, id: folderId, name: folderName, token});
 	};
 
-	const getImagesFromGirderCollection = function(host, collectionId, token) {
-		socketStream(socketConnect).emit('loadGirderCollection', {host, id: collectionId, token});
+	const getImagesFromGirderCollection = function(host, collectionId, collectionName, token) {
+		socketStream(socketConnect).emit('loadGirderCollection', {host, id: collectionId, name: collectionName, token});
 	};
 
 	const resyncImagesFromGirder = (token) => {
