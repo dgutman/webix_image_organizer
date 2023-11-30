@@ -211,9 +211,10 @@ define([
 	
 		applyTemplateHandler(id) {
 			const templateList = this._templateList.getList();
-			const {name, channels} = templateList.getItem(id);
+			const {channels} = templateList.getItem(id);
+			const newName = channels.map(((channel) => channel.name)).join("_");
 
-			this._groupsPanel.getRoot().callEvent("addGroupFromTemplate", [name, channels]);
+			this._groupsPanel.getRoot().callEvent("addGroupFromTemplate", [newName, channels]);
 		}
 	
 		deleteTemplate() {
@@ -230,7 +231,7 @@ define([
 			this._templateChannelCollection.clearAll();
 			this._template = template;
 	
-			if(template) {
+			if(template.channels?.length > 0) {
 				this._templateChannelCollection.parse(template.channels);
 			}
 	

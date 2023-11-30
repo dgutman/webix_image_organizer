@@ -51,7 +51,7 @@ define([
 					return imageTemplate.getTemplate(data);
 				},
 				tooltip: (data) => {
-					return data.data && data.data.name ? data.data.name : "";
+					return data.data && data.data.name ? data.data.name : "no image";
 				}
 			}
 		]

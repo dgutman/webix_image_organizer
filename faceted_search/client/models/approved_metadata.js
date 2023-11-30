@@ -30,9 +30,9 @@ define([
 		props = data;
 	};
 
-	const saveApprovedMetadata = function(approvedMetadata) {
+	const saveApprovedMetadata = async function(approvedMetadata) {
 		deleteUnnecessaryProperties(approvedMetadata);
-		webix.ajax().post(approvedMetadataURL, {data: approvedMetadata});
+		await webix.ajax().post(approvedMetadataURL, {data: approvedMetadata});
 		app.callEvent("approvedMetadata:loadData");
 	};
 
