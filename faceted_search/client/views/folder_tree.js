@@ -241,6 +241,7 @@ define([
 							app.callEvent("editForm:loadDataForFilters");
 					})
 					.fail(function() {});
+					AppliedFilters.clearFilters();
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {
