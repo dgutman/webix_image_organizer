@@ -4,8 +4,17 @@ define([
 	"helpers/authentication",
 	"helpers/ajax",
 	"models/upload",
-	"models/applied_filters"
-], function(app, constants, auth, ajax, Upload, AppliedFilters) {
+	"models/applied_filters",
+	"models/approved_facet"
+], function(
+	app,
+	constants,
+	auth,
+	ajax,
+	Upload,
+	AppliedFilters,
+	ApprovedFacets
+) {
 	const uploadButtonId = "upload-btn";
 	const resyncButtonId = "resync-btn";
 	const statusTabViewId = "status-tab-view-id";
@@ -220,11 +229,16 @@ define([
 										// tree.refresh();
 										tree.render();
 									});
+								AppliedFilters.clearFilters();
+								ApprovedFacets.clearApprovedFacets();
+								app.callEvent("approvedMetadata:loadData");
+								app.callEvent("approvedFacet:loadApprovedFacetData");
 								tree.hideProgress();
 							}, (err) => {
 								webix.message({type: "error", text: `${err.responseText}`, expire: 10000});
 								tree.hideProgress();
 							});
+							app.callEvent("editForm:loadDataForFilters");
 					})
 					.fail(function() {});
 					AppliedFilters.clearFilters();
@@ -239,11 +253,11 @@ define([
 			});
 
 			app.attachEvent("editForm:finishResync", function() {
-				const resyncButton = $$(resyncButton);
+				const resyncButton = $$(resyncButtonId);
 				resyncButton.enable();
 			});
 
-			app.attachEvent("editForm:finishLoading", function(folderName) {
+			app.attachEvent("editForm:finishLoading", function(folderName, operation) {
 				const resyncButton = $$(resyncButtonId);
 				const tree = $$(constants.FOLDER_TREE_ID);
 
@@ -267,13 +281,17 @@ define([
 
 				const tabView = $$(statusTabViewId);
 				let cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
-				if (cell) {
-					cell.define("template", "Done!");
-				}
-				else {
+				if (!cell) {
 					addNewTab(folderName);
 					cell = tabView.getMultiview().queryView({id: `${folderName}-cell`});
-					cell?.define("template", "Done!");
+				}
+				switch(operation) {
+					case constants.FOLDER_TREE_ACTION.upload:
+						cell?.define("template", "[Upload]: Done!");
+						break;
+					case constants.FOLDER_TREE_ACTION.delete:
+						cell?.define("template", "[Delete]: Done");
+						break;
 				}
 				cell?.refresh();
 				tree.hideProgress();

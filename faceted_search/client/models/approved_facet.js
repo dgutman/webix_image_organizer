@@ -1,3 +1,4 @@
+
 define([
 	"app",
 	"constants",
@@ -106,9 +107,14 @@ define([
 		return result;
 	};
 
+	function clearApprovedFacets() {
+		approvedFacetsHelper.clear();
+	}
+
 	return {
 		getApprovedFacetsData: getApprovedFacetsData,
 		saveApprovedFacets: saveApprovedFacets,
-		getApprovedFacetsLabels: getApprovedFacetsLabels
+		getApprovedFacetsLabels: getApprovedFacetsLabels,
+		clearApprovedFacets
 	};
 });

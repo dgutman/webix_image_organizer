@@ -111,7 +111,7 @@ define([
 		css: "button-text",
 		height: 50,
 		id: casesCountId,
-		template: "<div class='found-button'>Cases #count#<span class='webix_icon button-icon mdi mdi-close-circle'></span></div>",
+		template: "<div class='found-button'>Cases #count#</div>",
 		data: {
 			count: 0
 		}

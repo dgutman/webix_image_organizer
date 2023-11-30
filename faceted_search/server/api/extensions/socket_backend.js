@@ -120,11 +120,11 @@ class Backend {
         await serviceData.deleteDownloadedResource(resourcesIds);
         if(imagesCount === deletedCount) {
             this._message('[Delete]: finished successfully', data?.folderName);
-            this.socket.emit('finishLoading', data?.folderName);
+            this.socket.emit('finishDelete', data?.folderName);
             this.socket.emit('updateUploadedResources');
         } else {
             this._message('[Delete]: something went wrong', data?.folderName);
-            this.socket.emit('finishLoading', data?.folderName);
+            this.socket.emit('finishDelete', data?.folderName);
             this.socket.emit('updateUploadedResources');
         }
     }

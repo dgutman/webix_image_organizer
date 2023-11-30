@@ -19,7 +19,13 @@ define([
 	});
 
 	socketConnect.on('finishLoading', function(folderName) {
-		app.callEvent("editForm:finishLoading", [folderName]);
+		app.callEvent("editForm:finishLoading", [folderName, constants.FOLDER_TREE_ACTION.upload]);
+		app.callEvent("approvedMetadata:loadData");
+		app.callEvent("approvedFacet:loadApprovedFacetData");
+	});
+
+	socketConnect.on('finishDelete', function(folderName) {
+		app.callEvent("editForm:finishLoading", [folderName, constants.FOLDER_TREE_ACTION.delete]);
 		app.callEvent("approvedMetadata:loadData");
 		app.callEvent("approvedFacet:loadApprovedFacetData");
 	});

@@ -13,16 +13,9 @@ define([
                 align: 'center',
                 css: "button-text",
                 id: templateId,
-                template: "<div class='found-button'>Found #count# results!<span class='webix_icon button-icon mdi mdi-close-circle'></span></div>",
+                template: "<div class='found-button'>Found #count# results!</div>",
                 data: {
                     count: 0
-                },
-                onClick: {
-                    "button-icon": () => {
-                        $$(buttonId).hide();
-                        $$(buttonId).destructor();
-                        visible = false;
-                    }
                 }
             }
         ],
