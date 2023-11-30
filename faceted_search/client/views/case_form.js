@@ -49,10 +49,18 @@ define([
 		click: () => {
 			const region = $$(regionSelectId).getValue();
 			const stain = $$(stainSelectId).getValue();
-			$$(appliedFiltersId).add({region, stain});
-			$$(appliedFiltersId).refresh();
-			const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
-			CaseFilterModel.setFilters(filters);
+			const values = $$(appliedFiltersId).serialize();
+			const isFound = values.find((value) => {
+				if (value.region === region && value.stain === stain) {
+					return true;
+				}
+			});
+			if (!isFound) {
+				$$(appliedFiltersId).add({region, stain});
+				$$(appliedFiltersId).refresh();
+				const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
+				CaseFilterModel.setFilters(filters);
+			}
 			app.callEvent("caseForm: filtersChanged");
 		}
 	};
@@ -92,6 +100,7 @@ define([
 				// app.callEvent("images:wsiFilterImagesView", [filter]);
 				// Images.filterByCriterions(filters);
 				caseHelper.filterByCriterions(filters);
+				app.callEvent("caseForm: filtersChanged");
 			}
 		}
 	};
@@ -102,7 +111,7 @@ define([
 		css: "button-text",
 		height: 50,
 		id: casesCountId,
-		template: "<div class='found-button'>Cases #count#<span class='webix_icon button-icon mdi mdi-close-circle'></span></div>",
+		template: "<div class='found-button'>Cases #count#</div>",
 		data: {
 			count: 0
 		}

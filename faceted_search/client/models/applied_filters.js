@@ -21,11 +21,17 @@ define([
 	function setCaseFilters(caseFilters) {
 		webix.storage.local.put(`${constants.CASE_FILTERS_LOCAL_STORAGE_KEY}-${auth.getUserId()}`, caseFilters);
 	}
+	
+	function clearFilters() {
+		webix.storage.local.put(`${constants.CASE_FILTERS_LOCAL_STORAGE_KEY}-${auth.getUserId()}`, []);
+		webix.storage.local.put(`${constants.APPLIED_FILTERS_LOCAL_STORAGE_KEY}-${auth.getUserId()}`, []);
+	}
 
 	return {
 		getAppliedFilters,
 		setAppliedFilters,
 		getCaseFilters,
-		setCaseFilters
+		setCaseFilters,
+		clearFilters
 	};
 });

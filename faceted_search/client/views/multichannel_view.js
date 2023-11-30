@@ -317,7 +317,9 @@ define([
 			}
 			const channelList = this._channelList.getList();
 			channelList.unselectAll();
-			await this.showColoredChannels(group.channels);
+			if (group.channels?.length > 0) {
+				await this.showColoredChannels(group.channels);
+			}
 		}
 
 		async showColoredChannels(channels) {
@@ -375,7 +377,7 @@ define([
 		_attachChannelsListEvents() {
 			const channelList = this._channelList.getList();
 			const groupsList = this._groupsPanel.getGroupsList();
-			const groupsChannelList = this._groupsPanel.getGroupsChannelsList();
+			const groupsChannelList = this._groupsPanel.getGroupChannelsList();
 
 			channelList.attachEvent("onAfterSelect", async (id) => {
 				groupsList.unselectAll();
@@ -441,11 +443,13 @@ define([
 			const groupsPanel = this._groupsPanel.getRoot();
 
 			groupsPanel.attachEvent("groupSelectChange", (group) => {
-				this._changeURLGroupIndex(group);
-				this._selectGroupHandler(group);
+				if (group) {
+					this._changeURLGroupIndex(group);
+					this._selectGroupHandler(group);
 
-				const channels = this._channelList.getSelectedChannels();
-				this._channelList.changeButtonVisibility(channels.length && group);
+					const channels = this._channelList.getSelectedChannels();
+					this._channelList.changeButtonVisibility(channels.length && group);
+				}
 			});
 
 			groupsPanel.attachEvent("generateSceneFromTemplate", (groupId) => {
@@ -501,7 +505,7 @@ define([
 
 		startChannelAdjusting(channel) {
 			const groupsPanel = this._groupsPanel.getRoot();
-			const groupChannelList = this._groupsPanel.getGroupsChannelsList();
+			const groupChannelList = this._groupsPanel.getGroupChannelsList();
 
 			this._osdViewer.removeAllTiles();
 			this.showColoredChannels([{...channel, opacity: 1}]);
@@ -552,7 +556,7 @@ define([
 
 			if (isSelected) {
 				groupsList.unselectAll();
-				this._groupsPanel.getGroupsChannelsList().clearAll();
+				this._groupsPanel.getGroupChannelsList().clearAll();
 				const firstId = groupsList.getFirstId();
 				groupsList.select(firstId);
 				if (!firstId) {

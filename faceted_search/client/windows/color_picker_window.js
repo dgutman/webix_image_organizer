@@ -158,7 +158,7 @@ define([
 					}
 					// const [histogram] = data;
 					const histogram = Array.isArray(data)
-						? data.find(element => element.bin_edges[1] === 1)
+						? data.find(element => element.bin_edges[1] === 1) || data[0]
 						: {};
 					this.setHistogramValues(histogram);
 					this.setMinAndMaxValuesByHistogram(histogram);
