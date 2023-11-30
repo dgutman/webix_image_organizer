@@ -287,10 +287,10 @@ define([
 				}
 				switch(operation) {
 					case constants.FOLDER_TREE_ACTION.upload:
-						cell?.define("template", "[Upload]: Done!");
+						cell.define("template", "[Upload]: Done!");
 						break;
 					case constants.FOLDER_TREE_ACTION.delete:
-						cell?.define("template", "[Delete]: Done");
+						cell.define("template", "[Delete]: Done");
 						break;
 				}
 				cell?.refresh();
