@@ -186,6 +186,8 @@ define([
 			const channel = channelList.getItem(id);
 			const channelIndex = channel.channelIndexInGroup;
 			channelList.remove(id);
+			const currentGroup = this._groupsPanel.getGroupsList()?.getSelectedItem();
+			currentGroup.channels?.splice(channelIndex, 1);
 			this._groupsPanel.getRoot().callEvent("removeChannel", [channelIndex]);
 		}
 

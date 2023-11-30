@@ -377,7 +377,7 @@ define([
 		_attachChannelsListEvents() {
 			const channelList = this._channelList.getList();
 			const groupsList = this._groupsPanel.getGroupsList();
-			const groupsChannelList = this._groupsPanel.getGroupsChannelsList();
+			const groupsChannelList = this._groupsPanel.getGroupChannelsList();
 
 			channelList.attachEvent("onAfterSelect", async (id) => {
 				groupsList.unselectAll();
@@ -505,7 +505,7 @@ define([
 
 		startChannelAdjusting(channel) {
 			const groupsPanel = this._groupsPanel.getRoot();
-			const groupChannelList = this._groupsPanel.getGroupsChannelsList();
+			const groupChannelList = this._groupsPanel.getGroupChannelsList();
 
 			this._osdViewer.removeAllTiles();
 			this.showColoredChannels([{...channel, opacity: 1}]);
@@ -556,7 +556,7 @@ define([
 
 			if (isSelected) {
 				groupsList.unselectAll();
-				this._groupsPanel.getGroupsChannelsList().clearAll();
+				this._groupsPanel.getGroupChannelsList().clearAll();
 				const firstId = groupsList.getFirstId();
 				groupsList.select(firstId);
 				if (!firstId) {

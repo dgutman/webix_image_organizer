@@ -17,8 +17,13 @@ define([
 		return webix.storage.local.get(getLocalStorageId());
 	}
 
+	function clear() {
+		webix.storage.local.put(getLocalStorageId(), []);
+	}
+
 	return {
 		getLocalApprovedFacetData,
-		setLocalApprovedFacetData
+		setLocalApprovedFacetData,
+		clear
 	};
 });

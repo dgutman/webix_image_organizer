@@ -144,3 +144,7 @@ exports.updateCache = (req, res, next) => {
 		res.status(500).send({'status': 'server error'});
 	});
 };
+
+exports.deleteImages = () => {
+	
+};

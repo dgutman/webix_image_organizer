@@ -93,7 +93,12 @@ define([], function() {
 
 		// begin filters local storage
 		APPLIED_FILTERS_LOCAL_STORAGE_KEY: "applied-filters",
-		CASE_FILTERS_LOCAL_STORAGE_KEY: "case-filters"
+		CASE_FILTERS_LOCAL_STORAGE_KEY: "case-filters",
 		// end filters local storage
+
+		FOLDER_TREE_ACTION: {
+			upload: 1,
+			delete: 2,
+		}
 	};
 });
