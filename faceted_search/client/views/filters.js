@@ -3,6 +3,15 @@ define([
     "helpers/authentication"
 ], function(app, auth) {
     const value = "All";
+    const SELECTED_STATE = {
+        all: 0,
+        partial: 1,
+        none: 2
+    };
+    const aggregateCheckboxName = "aggregate-checkbox";
+    const aggregateIconName = "aggregate-icon";
+
+    Object.freeze(SELECTED_STATE);
 
     const filterChannelText = {
         view: "text",
@@ -203,6 +212,17 @@ define([
 
     const getCheckboxUI = function(data) {
         filterChannelText.name = 'checkboxTextFilter';
+        const getShowCheckboxStatus = () => {
+            const result = data.options.reduce((selectedCount, currentValue) => {
+                const checkbox = $$(`${data.id}|${currentValue}`);
+                if (checkbox?.getValue() === 1) {
+                    selectedCount++;
+                }
+                return selectedCount;
+            }, 0);
+            return result === 0 || result === data.options.length;
+        };
+        
         const view = {
             rows: [
                 {
@@ -215,6 +235,7 @@ define([
                         filterChannelText,
                         {
                             view: "checkbox",
+                            id: `${data.id}-${aggregateCheckboxName}`,
                             on: {
                                 onChange: function(status) {
                                     app.callEvent("app:filter_form:showProgress");
@@ -222,8 +243,48 @@ define([
                                         $$(`${data.id}|${option}`).setValue(status);
                                     });
                                     app.callEvent("app:filter_form:hideProgress");
+                                },
+                                onAfterRender: function() {
+                                    const showCheckboxFlag = getShowCheckboxStatus();
+                                    const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
+                                    const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
+                                    if (showCheckboxFlag) {
+                                        if (!aggregateCheckbox?.isVisible()) {
+                                            aggregateCheckbox?.show();
+                                        }
+                                        if (aggregateIcon.isVisible()) {
+                                            aggregateIcon?.hide();
+                                        }
+                                    }
+                                    else if (!aggregateIcon?.isVisible()) {
+                                        aggregateIcon?.show();
+                                        if (aggregateCheckbox.isVisible()) {
+                                            aggregateCheckbox?.hide();
+                                        }
+                                    }
                                 }
-                            }
+                            },
+                        },
+                        {
+                            id: `${data.id}-${aggregateIconName}`,
+                            gravity: 1,
+                            cols: [
+                                {
+                                    view: "icon",
+                                    icon: "wxi-minus-square",
+                                    click: function() {
+                                        app.callEvent("app:filter_form:showProgress");
+                                        data.options.forEach((option) => {
+                                            $$(`${data.id}|${option}`).setValue(1);
+                                        });
+                                        $$(`${data.id}-${aggregateCheckboxName}`)?.show();
+                                        $$(`${data.id}-${aggregateIconName}`)?.hide();
+                                        app.callEvent("app:filter_form:hideProgress");
+                                    }
+                                },
+                                {gravity: 1}
+                            ]
+                            
                         }
                     ]
                 },
@@ -253,6 +314,19 @@ define([
                                 "remove": !status,
                                 "status": "equals"
                             }]);
+                        },
+                        onItemClick: function() {
+                            const showCheckboxFlag = getShowCheckboxStatus();
+                            const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
+                            const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
+                            if (showCheckboxFlag) {
+                                aggregateCheckbox?.show();
+                                aggregateIcon?.hide();
+                            }
+                            else {
+                                aggregateCheckbox?.hide();
+                                aggregateIcon?.show();
+                            }
                         }
                     }
                 }

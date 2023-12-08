@@ -78,10 +78,10 @@ define([
 			webix.extend($$(dataviewId), webix.OverlayBox);
 			const sizes = Images.getImagesSize($$(dataviewId).$width);
 			$$(dataviewId).define("type", sizes);
-				$$(dataviewId).showProgress({
-					type: "icon"
-				});
-				Images.loadImages();
+			$$(dataviewId).showProgress({
+				type: "icon"
+			});
+			Images.loadImages();
 		}
 	};
 });
