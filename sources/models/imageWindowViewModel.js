@@ -1,6 +1,7 @@
 import lodash from "lodash";
-import validate from "../services/gallery/annotationValidator";
+
 import ajax from "../services/ajaxActions";
+import validate from "../services/gallery/annotationValidator";
 
 export default class imageWindowViewModel {
 	constructor(imageWindowView) {
@@ -66,7 +67,7 @@ export default class imageWindowViewModel {
 			if (idArray.length !== 0) {
 				const lastId = Math.max(...idArray);
 				let currentLayerIndex = 0;
-				model.treeannotations.some((treeannotation, treeannotationIndex, treeannotations) => {
+				model.treeannotations.some((treeannotation, treeannotationIndex/* , treeannotations */) => {
 					if (treeannotation.id === model.currentLayerId) {
 						currentLayerIndex = treeannotationIndex;
 						treeannotation.data.some((treeannotationItem) => {
@@ -277,7 +278,8 @@ export default class imageWindowViewModel {
 		let geoIdArray = [];
 		let labelId = [];
 		if (!lodash.isEmpty(this.annotations)) {
-			this.annotations = this.annotations.filter(annotation => annotation.annotation.attributes.dsalayers);
+			this.annotations = this.annotations
+				.filter(annotation => annotation.annotation.attributes.dsalayers);
 			this.annotations.forEach((annotation) => {
 				const dsalayers = annotation.annotation.attributes.dsalayers;
 				if (dsalayers
@@ -599,8 +601,7 @@ export default class imageWindowViewModel {
 			checkedIds = table.getChecked();
 			this.selectedData = checkedIds;
 			this.treeannotations.forEach((treeannotation) => {
-				treeannotation.checked = checkedIds.includes(treeannotation.id)
-					? true : false;
+				treeannotation.checked = !!checkedIds.includes(treeannotation.id);
 				treeannotation.data.forEach((treeannotationItem) => {
 					const annotation = this.layer.annotationById(treeannotationItem.geoid);
 					if (!annotation) {

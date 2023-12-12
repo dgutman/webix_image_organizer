@@ -1,8 +1,9 @@
 import {JetView} from "webix-jet";
-import PathologyReportPopup from "./pathologyReportWindow/pathologyReportWindow";
-import MetadataPopup from "./metadataWindow/metadataWindow";
+
 import AnnotationView from "./annotationWindow/annotation";
 import ApplyFiltersView from "./applyFiltersWindow/applyFilters";
+import MetadataPopup from "./metadataWindow/metadataWindow";
+import PathologyReportPopup from "./pathologyReportWindow/pathologyReportWindow";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, imageWindowViewModel, imageWindowView) {
@@ -52,8 +53,7 @@ export default class ToolbarView extends JetView {
 				{view: "button", value: "Aperio Annotations", name: "aperioAnnotations"}
 			],
 			borderless: true,
-			disabled: true,
-			hidden: true
+			disabled: true
 		};
 
 		const drawingToolbar = {

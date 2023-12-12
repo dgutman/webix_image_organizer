@@ -1,4 +1,3 @@
-import OpenSeadragon from "openseadragon";
 import {JetView} from "webix-jet";
 import "openseadragon-filtering";
 import "../../libs/openseadragon-svg-overlay/openseadragon-svg-overlay";

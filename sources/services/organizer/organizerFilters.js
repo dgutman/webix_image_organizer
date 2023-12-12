@@ -1,4 +1,3 @@
-import OpenSeadragon from "openseadragon";
 import MathCalculations from "../../utils/mathCalculations";
 
 export default class OrganizerFilters {

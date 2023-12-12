@@ -4,20 +4,25 @@ import {JetView} from "webix-jet";
 import ControlsEventsService from "./controlsEventsService";
 import ControlsView from "./controlsView";
 import ImageTemplateEventsService from "./imageTemplateEventService";
+import {AnnotationToolkit} from "./osd-paperjs-annotation/annotationtoolkit";
+import PaperJSTools from "./paperjsTools";
+import RightPanel from "./rightPanel";
 import ToolbarEventServices from "./toolbarEventService";
 import ToolbarView from "./toolbarView";
+import ImageWindowViewModel from "../../../../../models/annotations/imageWindowViewModelPaperJS";
 import galleryImageUrl from "../../../../../models/galleryImageUrls";
-import ImageWindowViewModel from "../../../../../models/imageWindowViewModel";
 import nonImageUrls from "../../../../../models/nonImageUrls";
 import ajax from "../../../../../services/ajaxActions";
 import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import collapser from "../../../../components/collapser";
+import Layers from "./layerView";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
 const LEFT_PANEL_ID = "#left-window-panel-id";
 const CONTROLS_PANEL_ID = "#openseadragon-viewer-controls-id";
+const RIGHT_PANEL_ID = `right-window-panel-id-${webix.uid()}`;
 const WINDOW_TITLE_ID = "#window-title-id";
 const IMAGE_CONTAINER_ID = "#image-container-id";
 
@@ -27,7 +32,8 @@ export default class ImageWindowView extends JetView {
 
 		this._controlsView = new ControlsView(this.app);
 		this._imageWindowViewModel = new ImageWindowViewModel(this);
-		this._toolbarView = new ToolbarView(this.app, {}, this._imageWindowViewModel, this);
+		this._toolbarView = new ToolbarView(this.app, {}, /* this._imageWindowViewModel, */ this);
+		this._rightPanel = new RightPanel(this.app);
 	}
 
 	config() {
@@ -36,6 +42,12 @@ export default class ImageWindowView extends JetView {
 				CONTROLS_PANEL_ID,
 				{type: "left", closed: false},
 				"controlsCollapserName"
+			);
+		const rightPanelCollapser = collapser
+			.getConfig(
+				RIGHT_PANEL_ID,
+				{type: "right", closed: true},
+				"rightPanelCollapserName"
 			);
 
 		return {
@@ -153,6 +165,19 @@ export default class ImageWindowView extends JetView {
 										borderless: true
 									}
 								]
+							},
+							{
+								cols: [
+									rightPanelCollapser,
+									{
+										id: RIGHT_PANEL_ID,
+										width: 250,
+										cols: [
+											this._rightPanel
+										],
+										hidden: true
+									}
+								]
 							}
 						]
 					}
@@ -167,17 +192,17 @@ export default class ImageWindowView extends JetView {
 
 		let imageTemplate = document.querySelector(".absolute-centered-image-template");
 		imageTemplate.addEventListener("dblclick", () => {
-			if (window.annotationLayer.annotations().length
-				=== this._imageWindowViewModel.annotationsLength
-				&& this._imageWindowViewModel.currentShape) {
-				this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
-			}
+			// if (window.annotationLayer.annotations().length
+			// 	=== this._imageWindowViewModel.annotationsLength
+			// 	&& this._imageWindowViewModel.currentShape) {
+			// 	this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
+			// }
 		});
 
 		imageTemplate.addEventListener("click", () => {
-			if (this._imageWindowViewModel.isAnnotationAdd) {
-				this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
-			}
+			// if (this._imageWindowViewModel.isAnnotationAdd) {
+			// 	this.app.callEvent("drawFigure", [this._imageWindowViewModel.currentShape]);
+			// }
 		});
 
 		window.showAttentionPopup = (callBack) => {
@@ -201,15 +226,15 @@ export default class ImageWindowView extends JetView {
 		this._controlsEventsService = new ControlsEventsService(this, this._controlsView);
 
 		if (this.getRoot().queryView({name: "drawing_toolbar"})) {
-			this._toolbarEventService =
-				new ToolbarEventServices(this, this._toolbarView, this._imageWindowViewModel);
-			this._toolbarEventService.init();
+			// this._toolbarEventService =
+			// 	new ToolbarEventServices(this, this._toolbarView, this._imageWindowViewModel);
+			// this._toolbarEventService.init();
 		}
 
 		if (this.getRoot().queryView({name: "imageTemplate"})) {
-			this._imageTemplateEventServices =
-				new ImageTemplateEventsService(this, this._imageWindowViewModel);
-			this._imageTemplateEventServices.init();
+			// this._imageTemplateEventServices =
+			// 	new ImageTemplateEventsService(this, this._imageWindowViewModel);
+			// this._imageTemplateEventServices.init();
 		}
 
 		this.app.callEvent("enableButtons", [true]);
@@ -246,7 +271,11 @@ export default class ImageWindowView extends JetView {
 		return this._$controlsPanel;
 	}
 
-	showWindow(obj, viewerType) {
+	get $toolkit() {
+		return this._tk;
+	}
+
+	async showWindow(obj, viewerType) {
 		this.$leftPanel.hide();
 		this.$windowTitle.parse(obj);
 
@@ -262,25 +291,20 @@ export default class ImageWindowView extends JetView {
 
 		if (viewerType === "seadragon") {
 			this.view.showProgress();
-			ajax.getImageTiles(obj._id)
-				.then((data) => {
-					this.tiles = data; // for geojs
-					this.$leftPanel.show();
-					this.$controlsPanel.show();
-					const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
-					this.createOpenSeadragonViewer(obj, layerOfViewer, templateNode)
-						.then(() => {
-							// for setBound()
-							window.viewer = this._openSeadragonViewer;
-							const slide = this;
-							this.refreshSlide(window.viewer, slide);
-							this._controlsEventsService
-								.init(this._openSeadragonViewer, layerOfViewer);
-						});
-				})
-				.finally(() => {
-					this.view.hideProgress();
-				});
+			const data = await ajax.getImageTiles(obj._id);
+			this.tiles = data; // for geojs
+			this.$leftPanel.show();
+			this.$controlsPanel.show();
+			const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
+			await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
+			// for setBound()
+			this._tk = new AnnotationToolkit(this._openSeadragonViewer);
+			this._imageWindowViewModel.setToolKit(this._tk);
+			const toolbarControls = this._toolbarView.getToolbarControls();
+			this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
+			await this._imageWindowViewModel.asyncSetAnnotation();
+			this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer);
+			this.view.hideProgress();
 		}
 		else if (viewerType === "jsonviewer") {
 			this.view.showProgress();
@@ -309,7 +333,7 @@ export default class ImageWindowView extends JetView {
 		});
 	}
 
-	createOpenSeadragonViewer(obj, layer, templateNode) {
+	createOpenSeadragonViewer(layer, templateNode) {
 		this._openSeadragonViewer = new OpenSeadragon.Viewer({
 			element: templateNode,
 			crossOriginPolicy: "Anonymous",
@@ -318,8 +342,6 @@ export default class ImageWindowView extends JetView {
 			imageLoaderLimit: 1,
 			tileSources: layer
 		});
-
-		this._openSeadragonViewer.svgOverlay();
 
 		return new Promise((resolve, reject) => {
 			this._openSeadragonViewer.addOnceHandler("open", resolve);
@@ -350,9 +372,17 @@ export default class ImageWindowView extends JetView {
 	refreshSlide(viewer, sd) {
 		if (viewer && sd) {
 			this.app.callEvent("setSlide", [sd]);
-			window.viewer.viewport.zoomTo(3);
-			window.viewer.viewport.goHome(true);
+			this._openSeadragonViewer.viewport.zoomTo(3);
+			this._openSeadragonViewer.viewport.goHome(true);
 		}
 		this.app.callEvent("setBounds", []);
+	}
+
+	setNewLayer(newLayer) {
+		// TODO: implement
+	}
+
+	setNewItem(newItem) {
+		// TODO: implement
 	}
 }
