@@ -1,12 +1,13 @@
 import JSONFormatter from "json-formatter-js";
 import {JetView} from "webix-jet";
 
-import ControlsEventsService from "./controlsEventsService";
 import ControlsView from "./controlsView";
-import ImageTemplateEventsService from "./imageTemplateEventService";
 import {AnnotationToolkit} from "./osd-paperjs-annotation/annotationtoolkit";
 import PaperJSTools from "./paperjsTools";
 import RightPanel from "./rightPanel";
+import ControlsEventsService from "./services/controlsEventsService";
+import ImageTemplateEventsService from "./services/imageTemplateEventService";
+import RightPanelEventsService from "./services/rightPanelEventsService";
 import ToolbarEventServices from "./toolbarEventService";
 import ToolbarView from "./toolbarView";
 import ImageWindowViewModel from "../../../../../models/annotations/imageWindowViewModelPaperJS";
@@ -16,7 +17,6 @@ import ajax from "../../../../../services/ajaxActions";
 import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import collapser from "../../../../components/collapser";
-import Layers from "./layerView";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -303,7 +303,8 @@ export default class ImageWindowView extends JetView {
 			const toolbarControls = this._toolbarView.getToolbarControls();
 			this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
 			await this._imageWindowViewModel.asyncSetAnnotation();
-			this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer);
+			this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
+			this._rightPanelEventsService = new RightPanelEventsService(this, this._rightPanel, this._tk);
 			this.view.hideProgress();
 		}
 		else if (viewerType === "jsonviewer") {

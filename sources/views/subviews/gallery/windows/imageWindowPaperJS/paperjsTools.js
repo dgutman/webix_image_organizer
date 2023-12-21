@@ -20,11 +20,6 @@ export default class PaperJSTools {
 		this.setModelTimeout = null;
 		this.tools = {};
 
-		let toolLayer = new this.paperScope.Layer();
-		toolLayer.isGeoJSONFeatureCollection = false;
-		toolLayer.name = "toolLayer";
-		this.paperScope.project.addLayer(toolLayer);
-
 		this.toolConstructors = {};
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.rectangle] = RectangleTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.ellipse] = EllipseTool;
@@ -58,12 +53,15 @@ export default class PaperJSTools {
 			"item-selected": () => {
 				this.setMode();
 			},
+
 			"item-deselected": () => {
 				this.setMode();
 			},
+
 			"item-removed": () => {
 				this.setMode();
 			},
+
 			"items-changed": () => {
 				this.setMode();
 			}

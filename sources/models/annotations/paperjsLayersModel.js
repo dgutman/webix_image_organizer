@@ -5,7 +5,7 @@ export default class PaperJSLayersModel {
 			this._layers = [];
 			this._activeLayer = null;
 			// this._layer = paperScope.createFeatureCollectionLayer();
-			// this._layer = this.createLayer;
+			// this._layer = this.createLayer();
 			PaperJSLayersModel.instance = this;
 		}
 		return PaperJSLayersModel.instance;
@@ -28,10 +28,6 @@ export default class PaperJSLayersModel {
 		return layer;
 	}
 
-	clearLayers() {
-		// TODO: implement
-	}
-
 	addItemToLayer(item) {
 		this._activeLayer?.addChild(item);
 		item.style = this._activeLayer.defaultStyle;
@@ -40,7 +36,9 @@ export default class PaperJSLayersModel {
 	}
 
 	getLayersList() {
-		return this._layers;
+		return this._paperScope.project.layers.filter(
+			l => l.isGeoJSONFeatureCollection
+		);
 	}
 
 	addLayerToList(layer) {
@@ -48,10 +46,17 @@ export default class PaperJSLayersModel {
 	}
 
 	getActiveLayer() {
-		return this._activeLayer;
+		return this._paperScope.project.activeLayer;
 	}
 
 	setActiveLayer(layer) {
 		this._activeLayer = layer;
+	}
+
+	updateLayerName(id, name) {
+		const layerToUpdate = this.getLayersList().find(
+			l => l.id === id
+		);
+		layerToUpdate.name = name;
 	}
 }

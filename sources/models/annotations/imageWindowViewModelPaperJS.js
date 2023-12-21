@@ -1,5 +1,6 @@
 import lodash from "lodash";
 
+import AnnotationsModel from "./annotationsModel";
 import PaperScopeModel from "./paperScopeModel";
 import ItemsModel from "./paperjsItemsModel";
 import LayersModel from "./paperjsLayersModel";
@@ -39,12 +40,28 @@ export default class imageWindowViewModel {
 		return this.tk;
 	}
 
-	createNewLayer() {
-		return this.layersModel.createLayer();
+	createNewLayer(displayName) {
+		return this.layersModel.createLayer(displayName);
 	}
 
 	createNewItem() {
 		return this.itemsModel.createNewItem();
+	}
+
+	addLayer(layer) {
+		this.layersModel.addLayerToList(layer);
+	}
+
+	addAnnotation(annotation) {
+		this.annotationModel.addAnnotation(annotation);
+	}
+
+	createAnnotation(name) {
+		this.annotationModel.createAnnotation(name);
+	}
+
+	updateLayerName(id, name) {
+		this.layersModel.updateLayerName(id, name);
 	}
 
 	async asyncSetAnnotation() {
@@ -148,11 +165,70 @@ export default class imageWindowViewModel {
 		let geoIdArray = [];
 		let labelId = [];
 		if (!lodash.isEmpty(this.annotations)) {
+			this.annotations = this.annotations
+				.filter(annotation => annotation?.annotation?.attributes?.dsalayers);
+			this.annotations.forEach((annotation) => {
+				const dsalayers = annotation.annotation.attributes.dsalayers;
+				if (dsalayers?.length) {
+					dsalayers.forEach((dsalayer) => {
+						this.dsalayers.push(dsalayer);
+						this.treeannotations.push(dsalayer);
+						allShapesLength += dsalayer.data.length;
+						dsalayer.data.forEach((dsalayerData) => {
+							geoIdArray.push(dsalayerData.geoid);
+							if (dsalayerData.labelId) {
+								labelId.push(dsalayerData.labelId);
+							}
+						});
+					});
+					if (labelId.length !== 0) {
+						labelId = labelId.sort();
+						this.lastLabelNumber = labelId[labelId.length - 1];
+					}
+					else if (geoIdArray.length !== 0) {
+						this.lastLabelNumber = Math.max(...geoIdArray);
+					}
+					else this.lastLabelNumber = 0;
+					this.reloadAnnotationsTable();
+				}
+				else {
+					this.reinitializeTreeLayers();
+				}
+				// Reload existing annotations.
+				if (annotation.annotation.attributes.geojslayer
+					&& !this.isEmpty(annotation.annotation.attributes.geojslayer)
+					&& annotation.annotation.attributes.geojslayer.features
+					&& !this.isEmpty(annotation.annotation.attributes.geojslayer.features)) {
+					let features = annotation.annotation.attributes.geojslayer.features;
+					if (allShapesLength > features.length) {
+						this.dsalayers = this.dsalayers.filter((dsalayer) => {
+							dsalayer.data = dsalayer.data.filter((dsalayerData) => {
+								let count = 0;
+								features.forEach((feature) => {
+									if (dsalayerData.geoid !== feature.properties.annotationId) {
+										count++;
+									}
+								});
+								return count !== features.length;
+							});
+							return dsalayer.data.length !== 0;
+						});
+					}
+					let geojsJSON = annotation.annotation.attributes.geojslayer;
+					this.geoJSON = annotation.annotation.attributes.geojslayer;
+					this.layer.geojson(geojsJSON, "update");
+				}
+				else {
+					this.geoJSON = {};
+					this.layer.geojson(this.geoJSON, "update");
+				}
+			});
+
 			// this.annotations = this.annotations
-			// 	.filter(annotation => annotation.annotation.attributes.dsalayers);
-			// TODO: rewrite according structure
+			// 	.filter(annotation => annotation.annotation.attributes.imagesOrganizer);
+			// // TODO: rewrite according structure
 			// this.annotations.forEach((annotation) => {
-			// 	const dsalayers = annotation.annotation.attributes.dsalayers;
+			// 	const dsalayers = annotation.annotation.elements;
 			// 	if (dsalayers?.length) {
 			// 		dsalayers.forEach((dsalayer) => {
 			// 			this.dsalayers.push(dsalayer);
@@ -173,10 +249,6 @@ export default class imageWindowViewModel {
 			// 			this.lastLabelNumber = Math.max(...geoIdArray);
 			// 		}
 			// 		else this.lastLabelNumber = 0;
-			// 		this.reloadAnnotationsTable();
-			// 	}
-			// 	else {
-			// 		this.reinitializeTreeLayers();
 			// 	}
 			// 	// Reload existing annotations.
 			// 	if (annotation.annotation.attributes.geojslayer

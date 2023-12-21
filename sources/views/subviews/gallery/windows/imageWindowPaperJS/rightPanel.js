@@ -1,18 +1,19 @@
 import {JetView} from "webix-jet";
 
-import Items from "./itemView";
-import Layers from "./layerView";
+import ListView from "../../../../components/listView";
 
 export default class RightPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
-		this.layers = new Layers(app);
-		this.items = new Items(app);
+		this.annotations = new ListView(app, {name: "Annotations", newItemName: "Annotation"});
+		this.layers = new ListView(app, {name: "Layers", newItemName: "Layer"});
+		this.items = new ListView(app, {name: "Items", newItemName: "Item"});
 	}
 
 	config() {
 		return {
 			rows: [
+				// this.annotations,
 				this.layers,
 				this.items
 			]
@@ -23,5 +24,17 @@ export default class RightPanel extends JetView {
 
 	ready(view) {
 		this._view = view;
+	}
+
+	getItemsList() {
+		return this.items.getList();
+	}
+
+	getLayersList() {
+		return this.layers.getList();
+	}
+
+	getAnnotationsList() {
+		return this.annotations.getList();
 	}
 }

@@ -1,4 +1,4 @@
-import OrganizerFilters from "../../../../../services/organizer/organizerFilters";
+import OrganizerFilters from "../../../../../../services/organizer/organizerFilters";
 
 export default class ControlsEventsService {
 	constructor(rootScope, controlsView) {
@@ -11,7 +11,7 @@ export default class ControlsEventsService {
 		this._openSeadragonViewer = null;
 	}
 
-	init(openSeadragonViewer, layer) {
+	init(openSeadragonViewer, layer, /* tk */) {
 		this._openSeadragonViewer = openSeadragonViewer;
 		this._layer = layer;
 		this._layer.tiledImage = this._openSeadragonViewer
