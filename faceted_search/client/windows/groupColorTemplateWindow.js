@@ -170,10 +170,7 @@ define([
 							view: "icon",
 							id: CLOSE_BUTTON_ID,
 							icon: "wxi-close",
-							click: () => {
-								const currentWindow = this.getRoot();
-								currentWindow.hide();
-							}
+							click: this.closeWindow
 						}
 					]
 				},
@@ -293,6 +290,11 @@ define([
 			} catch(err) {
 				console.log(err);
 			}
+		}
+
+		closeWindow() {
+			const currentWindow = this.getRoot();
+			currentWindow.hide();
 		}
 	
 		getTemplateChannelList() {

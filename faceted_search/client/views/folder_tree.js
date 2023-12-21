@@ -23,6 +23,7 @@ define([
 	const statusTabId = constants.STATUS_TAB_ID;
 	const resyncTabId = constants.RESYNC_ID;
 	const downloadedResources = [];
+	let isItemUnselected = false;
 
 	const treeView = {
 		view: "tree",
@@ -36,7 +37,7 @@ define([
 			const [downloadedResourceIcon, deleteResourceIcon] = downloadedResources.includes(obj._id)
 				? [`<span class="webix_icon wxi-check dwnicon"></span>`, `<span class="webix_icon wxi-close-circle delicon"></span>`]
 				: [``, ``];
-			return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
+			return `${common.icon(obj, common) + common.folder(obj, common)}<span class="folder-tree__name">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
 		},
 		scheme: {
 			$init(obj) {
@@ -44,7 +45,12 @@ define([
 					obj.webix_kids = true;
 				}
 			}
-		}
+		},
+		tooltip: {
+			template: (obj) => `${obj.name}`, 
+			dx: 10, dy: 0,
+			delay: 100
+		},
 	};
 
 	const statusTemplate = {
@@ -105,6 +111,18 @@ define([
 			tabView.getMultiview().setValue(`${tabId}-cell`);
 		}
 	};
+
+	/**
+	 * 
+	 * @param {boolean} value 
+	 */
+	function changeIsItemSelectedFlag(value) {
+		isItemUnselected = value;
+	}
+
+	function getIsItemSelectedFlag() {
+		return isItemUnselected;
+	}
 
 	return {
 		$ui: {
@@ -172,8 +190,27 @@ define([
 			}
 
 			tree.attachEvent("onAfterSelect", (id) => {
-				const item = tree.getItem(id);
-				toggleUploadButtonState(item);
+				try {
+					if (getIsItemSelectedFlag()) {
+						tree.unselect(id);
+					}
+					else {
+						const item = tree.getItem(id);
+						toggleUploadButtonState(item);
+					}
+				} catch (e) {
+					console.error(e);
+				} finally {
+					changeIsItemSelectedFlag(false);
+				}
+			});
+
+			tree.attachEvent("onItemClick", (id, ev) => {
+				if (tree.isSelected(id)) {
+					changeIsItemSelectedFlag(true);
+					tree.unselect(id);
+					uploadButton?.disable();
+				}
 			});
 
 			uploadButton?.attachEvent("onItemClick", async () => {
@@ -241,7 +278,6 @@ define([
 							app.callEvent("editForm:loadDataForFilters");
 					})
 					.fail(function() {});
-					AppliedFilters.clearFilters();
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {

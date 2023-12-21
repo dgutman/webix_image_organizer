@@ -1,6 +1,6 @@
 .template-image-name {
     margin: 5px 0px 0px 5px;
-    height: 20px;
+    height: 30px;
     position: absolute;
     color: #e50000;
     text-overflow: ellipsis;
@@ -368,7 +368,21 @@ body.compact-skin .webix_slider_box .webix_slider_handle {
 .webix_icon.delicon {
     cursor: pointer;
 	color: red;
+    height: 20px;
+    position: absolute;
+    right: 15px;
 }
 .webix_icon.dwnicon {
     color: green;
+    height: 20px;
+    position: absolute;
+    right: 40px;
+}
+
+.folder-tree__name {
+    height: 40px;
+    display: inline-block;
+    width: 50%;
+    overflow-x: clip;
+    line-height: 20px;
 }
