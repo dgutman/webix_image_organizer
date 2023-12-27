@@ -23,6 +23,7 @@ define([
 	const statusTabId = constants.STATUS_TAB_ID;
 	const resyncTabId = constants.RESYNC_ID;
 	const downloadedResources = [];
+	let isItemUnselected = false;
 
 	const treeView = {
 		view: "tree",
@@ -106,6 +107,18 @@ define([
 		}
 	};
 
+	/**
+	 * 
+	 * @param {boolean} value 
+	 */
+	function changeIsItemSelectedFlag(value) {
+		isItemUnselected = value;
+	}
+
+	function getIsItemSelectedFlag() {
+		return isItemUnselected;
+	}
+
 	return {
 		$ui: {
 			rows: [
@@ -172,8 +185,27 @@ define([
 			}
 
 			tree.attachEvent("onAfterSelect", (id) => {
-				const item = tree.getItem(id);
-				toggleUploadButtonState(item);
+				try {
+					if (getIsItemSelectedFlag()) {
+						tree.unselect(id);
+					}
+					else {
+						const item = tree.getItem(id);
+						toggleUploadButtonState(item);
+					}
+				} catch (e) {
+					console.error(e);
+				} finally {
+					changeIsItemSelectedFlag(false);
+				}
+			});
+
+			tree.attachEvent("onItemClick", (id, ev) => {
+				if (tree.isSelected(id)) {
+					changeIsItemSelectedFlag(true);
+					tree.unselect(id);
+					uploadButton?.disable();
+				}
 			});
 
 			uploadButton?.attachEvent("onItemClick", async () => {
@@ -241,7 +273,6 @@ define([
 							app.callEvent("editForm:loadDataForFilters");
 					})
 					.fail(function() {});
-					AppliedFilters.clearFilters();
 			});
 
 			resyncButton.attachEvent("onItemClick", () => {

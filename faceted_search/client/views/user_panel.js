@@ -69,7 +69,7 @@ define([
 				submenu: [
 					{
 						id: "toggle_skin_id",
-						value: "skin",
+						value: "Skin",
 						subMenuPos: "left",
 						submenu: skins
 						},
