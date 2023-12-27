@@ -186,14 +186,14 @@ export default class NewColumnsClass {
 			this.removeNewColumn(idsToDelete[obj.field]);
 			delete idsToDelete[obj.field];
 
-			return this.root.$scope.createFormElement({id: obj, header}, buttonPlusIcon);
+			return this.root.$scope.createFormElement({id: obj.field, header}, buttonPlusIcon);
 		});
 
 		if (itemFieldsConfig.length && !$$("users-section")) {
 			this.mainForm.addView({type: "section", template: "USER'S COLUMNS", id: "users-section"}, 0);
 		}
 		itemFieldsConfig.forEach((config) => {
-			this.mainForm.addView(config, 1);
+			this.mainForm.addView(config, 3);
 		});
 	}
 

@@ -207,5 +207,17 @@ export default {
 	SEGMENT_CHANNELS: [
 		"SEGMENTATION",
 		"DAPI"
-	]
+	],
+	ANNOTATION_TOOL_IDS: {
+		polygon: "polygon",
+		linestring: "linestring",
+		rectangle: "rectangle",
+		select: "select",
+		ellipse: "ellipse",
+		point: "point",
+		text: "text",
+		brush: "brush",
+		raster: "raster",
+		wand: "wand"
+	}
 };

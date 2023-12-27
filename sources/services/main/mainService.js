@@ -27,7 +27,8 @@ import BigCountNotificationWindow from "../../views/subviews/finder/windows/bigC
 import RecognitionServiceWindow from "../../views/subviews/finder/windows/recognitionServiceWindow";
 import SetDefaultViewWindow from "../../views/subviews/finder/windows/setDefaultViewWindow";
 import CsvViewerWindow from "../../views/subviews/gallery/windows/csvViewerWindow";
-import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
+// import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
+import ImageWindow from "../../views/subviews/gallery/windows/imageWindowPaperJS/index";
 import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
 import ajaxActions from "../ajaxActions";
 import authService from "../authentication";
@@ -188,7 +189,6 @@ class MainService {
 		this._view.attachEvent(constants.OPEN_MULTICHANNEL_VIEW_EVENT, async (image) => {
 			const actionPanel = this._view.$scope.getSubDataviewActionPanelView();
 			await actionPanel.multichannelViewOptionToggle(image);
-			this._finder.select(image.id);
 			multichannelViewCell.show();
 			this._finder.select(image.id);
 		});
@@ -236,8 +236,8 @@ class MainService {
 		// prevent select for datatable
 		this._metadataTable.attachEvent("onBeforeSelect", () => false);
 
-		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir) => {
-			this._metadataTableDataCollection.sort(by, dir);
+		this._metadataTable.data.attachEvent("onBeforeSort", (by, dir, as) => {
+			this._metadataTableDataCollection.sort(by, dir, as);
 			return false;
 		});
 

@@ -97,7 +97,9 @@ module.exports = (env) => {
 				patterns: [
 					{from: path.resolve(__dirname, "sources/images/"), to: "sources/images"},
 					{from: path.resolve(__dirname, "node_modules/webix/"), to: "webix"},
-					{from: path.resolve(__dirname, "index.html")}
+					{from: path.resolve(__dirname, "index.html")},
+					{from: path.resolve(__dirname, "node_modules/paper/"), to: "paper"},
+					{from: path.resolve(__dirname, "node_modules/openseadragon/"), to: "openseadragon"}
 				]
 			}),
 			new webpack.EnvironmentPlugin({

@@ -1,5 +1,5 @@
 const xbsEslint = require("eslint-config-xbsoftware");
-const {INDENT, QUOTES, PLUGINS} = require("eslint-config-xbsoftware/constants");
+const {INDENT, QUOTES /* , PLUGINS */} = require("eslint-config-xbsoftware/constants");
 
 module.exports = {
 	extends: [
@@ -23,7 +23,9 @@ module.exports = {
 		console: true,
 		require: true,
 		__dirname: true,
-		process: true
+		process: true,
+		OpenSeadragon: true,
+		paper: true
 	},
 	parserOptions: {
 		sourceType: "module",
@@ -32,6 +34,8 @@ module.exports = {
 	rules: {
 		"no-extra-parens": "warn",
 		"valid-jsdoc": "warn",
-		"no-console": "off"
+		"no-console": "off",
+		"no-use-before-define": "off",
+		"comma-dangle": "off"
 	}
 };

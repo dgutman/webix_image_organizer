@@ -1,12 +1,13 @@
-import ajaxActions from "../ajaxActions";
-import constants from "../../constants";
-import FolderNav from "../folderNav";
 import DatatableService from "./datatableService";
 import UploaderService from "./uploaderService";
-import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
+import constants from "../../constants";
+// import ImageWindow from "../../views/subviews/gallery/windows/imageWindow/index";
+import ImageWindow from "../../views/subviews/gallery/windows/imageWindowPaperJS/index";
 import PdfViewerWindow from "../../views/subviews/gallery/windows/pdfViewerWindow";
-import LoadingWindow from "../../views/uploadMetadata/windows/loadingWindow";
 import CompareMetadataWindow from "../../views/uploadMetadata/windows/compareWindow";
+import LoadingWindow from "../../views/uploadMetadata/windows/loadingWindow";
+import ajaxActions from "../ajaxActions";
+import FolderNav from "../folderNav";
 
 class MetadataUploadService {
 	constructor(view) {

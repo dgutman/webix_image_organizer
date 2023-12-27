@@ -1,5 +1,3 @@
-import OpenSeadragon from "openseadragon";
-
 import OpenSeadragonViewer from "../../components/openSeadragonViewer";
 
 const OSD_VIEWER_TEMPLATE = "osd-template";
