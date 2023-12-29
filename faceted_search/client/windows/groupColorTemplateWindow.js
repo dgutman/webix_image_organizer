@@ -133,7 +133,7 @@ define([
 						localId: ADD_TEMPLATE_BUTTON_ID,
 						label: "Add template",
 						click: () => {
-						this.addTemplate();
+							this.addTemplate();
 						}
 					},
 					{
@@ -141,7 +141,7 @@ define([
 						localId: SAVE_TEMPLATE_BUTTON_ID,
 						label: "Save templates",
 						click: () => {
-						this.saveTemplates();
+							this.saveTemplates();
 						}
 					}
 				]
@@ -171,8 +171,7 @@ define([
 							id: CLOSE_BUTTON_ID,
 							icon: "wxi-close",
 							click: () => {
-								const currentWindow = this.getRoot();
-								currentWindow.hide();
+								this.closeWindow();
 							}
 						}
 					]
@@ -293,6 +292,11 @@ define([
 			} catch(err) {
 				console.log(err);
 			}
+		}
+
+		closeWindow() {
+			const currentWindow = this.getRoot();
+			currentWindow.hide();
 		}
 	
 		getTemplateChannelList() {

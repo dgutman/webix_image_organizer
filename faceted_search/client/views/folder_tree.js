@@ -37,7 +37,7 @@ define([
 			const [downloadedResourceIcon, deleteResourceIcon] = downloadedResources.includes(obj._id)
 				? [`<span class="webix_icon wxi-check dwnicon"></span>`, `<span class="webix_icon wxi-close-circle delicon"></span>`]
 				: [``, ``];
-			return `${common.icon(obj, common) + common.folder(obj, common)}<span style="height: 40px">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
+			return `${common.icon(obj, common) + common.folder(obj, common)}<span class="folder-tree__name">${obj.name}</span> ${downloadedResourceIcon} ${deleteResourceIcon}`;
 		},
 		scheme: {
 			$init(obj) {
@@ -45,7 +45,12 @@ define([
 					obj.webix_kids = true;
 				}
 			}
-		}
+		},
+		tooltip: {
+			template: (obj) => `${obj.name}`, 
+			dx: 10, dy: 0,
+			delay: 100
+		},
 	};
 
 	const statusTemplate = {
