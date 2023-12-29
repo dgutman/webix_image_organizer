@@ -20,7 +20,6 @@ define([
 	const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 	const UPLOADER_API_ID = "uploader-api";
 	const GROUPS_TITLE_TEMPLATE = "groups-title";
-	const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
 
 	return class GroupsPanel extends BaseJetView {
 		constructor(app, config = {}, colorWindow) {
@@ -40,15 +39,9 @@ define([
 				this._colorWindow = colorWindow;
 
 				const groupsList = this.getGroupsList();
-				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
 
 				groupsList.attachEvent("onSelectChange", () => {
 					this.updateSelectedGroupTiles();
-				});
-
-				generateSceneFromTemplateButton.attachEvent("onItemClick", () => {
-					const groupId = this.getGroupsList().getSelectedId();
-					this.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
 				});
 			};
 		}
@@ -111,15 +104,6 @@ define([
 								this.removeGroup(id);
 							}
 						}
-					},
-					{
-						cols: [
-							{
-								view: "button",
-								id: GENERATE_SCENE_FROM_TEMPLATE_ID,
-								value: "Generate Scene From Template"
-							}
-						]
 					},
 					this._groupChannelsList,
 					this._segmentChannelsList,
@@ -247,10 +231,6 @@ define([
 
 		getColorWindow() {
 			return this._colorWindow;
-		}
-
-		getGenerateSceneFromTemplateButton() {
-			return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 		}
 
 		get _group() {

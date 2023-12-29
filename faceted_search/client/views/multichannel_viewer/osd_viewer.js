@@ -90,7 +90,15 @@ define([
 		zoomTo(value) {
 			this.$viewer().viewport.zoomTo(value);
 		}
-	
+
+		getBounds() {
+			return this.$viewer().viewport.getBounds();
+		}
+
+		setBounds(bounds) {
+			this.$viewer().viewport.fitBounds(bounds);
+		}
+
 		reset() {
 			this.getRoot().callEvent("resetMainFrameBtnClick");
 		}
@@ -155,6 +163,11 @@ define([
 	
 		getViewerTemplate() {
 			return this.$$(OSD_VIEWER_TEMPLATE);
+		}
+
+		updateViewport() {
+			const viewer = this.$viewer();
+			viewer.viewport.update();
 		}
 	};
 });

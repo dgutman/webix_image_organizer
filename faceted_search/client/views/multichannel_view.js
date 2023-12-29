@@ -55,6 +55,7 @@ define([
 
 	const MULTICHANNEL_WRAP_ID = "multichannel-wrap";
 	const SHOW_METADATA_BUTTON_ID = "show-metadata-button-id";
+	const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
 
 	class MultichannelView extends BaseJetView {
 		constructor(app) {
@@ -123,11 +124,24 @@ define([
 					const groupIndex = params.group || 0;
 					this._changeGroupByIndex(groupIndex);
 				});
+
+				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
+
+				if (!this._generateSceneFromTemplateEvent) {
+					this._generateSceneFromTemplateEvent = generateSceneFromTemplateButton.attachEvent("onItemClick", () => {
+						const groupId = this._groupsPanel.getGroupsList().getSelectedId();
+						this._groupsPanel.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
+					});
+				}
 			};
 
 			this.$ondestroy = () => {
 				this._image = null;
 				this._waitForViewerCreation = webix.promise.defer();
+				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
+				if (this._generateSceneFromTemplateEvent) {
+					generateSceneFromTemplateButton.detachEvent(this._generateSceneFromTemplateEvent);
+				}
 			};
 
 			this.$onurlchange = async (params) => {
@@ -191,7 +205,13 @@ define([
 										this._metadataPopup.setProperties();
 									}
 								}
-							}
+							},
+							{
+								view: "button",
+								id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+								width: 250,
+								value: "Generate Scene From Template"
+							},
 						]
 					},
 					{
@@ -388,8 +408,13 @@ define([
 				const channel = this._channelsCollection.getItem(id);
 				const layer = await this.getSingleOSDLayer(channel.index);
 
+				const boundValue = this._osdViewer.getBounds();
 				this._osdViewer.removeAllTiles();
 				this._osdViewer.addNewTile(layer.tileSource);
+				this._osdViewer._openseaDragonViewer.addOnceHandler("zoom", () => {
+					this._osdViewer.setBounds(boundValue);
+				});
+				this._osdViewer.updateViewport();
 			});
 
 			channelList.attachEvent("customSelectionChanged", (channels) => {
@@ -508,6 +533,10 @@ define([
 		startChannelAdjusting(channel) {
 			const groupsPanel = this._groupsPanel.getRoot();
 			const groupChannelList = this._groupsPanel.getGroupChannelsList();
+			const boundsValue = this._osdViewer.getBounds();
+			this._osdViewer.$viewer().addOnceHandler("zoom", () => {
+				this._osdViewer.setBounds(boundsValue);
+			});
 
 			this._osdViewer.removeAllTiles();
 			this.showColoredChannels([{...channel, opacity: 1}]);
@@ -637,6 +666,15 @@ define([
 			if (image && image._id) {
 				stateStore.loadedImages[image._id] = image;
 			}
+		}
+
+		getGenerateSceneFromTemplateButton() {
+			return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
+		}
+
+		callGenerateScene() {
+			const groupId = this._groupsPanel.getGroupsList().getSelectedId();
+			this._groupsPanel.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
 		}
 	}
 
