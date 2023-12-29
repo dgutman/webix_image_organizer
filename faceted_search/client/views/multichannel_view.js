@@ -166,6 +166,8 @@ define([
 								label: "Back",
 								click: () => {
 									const metadataPopupRoot = this._metadataPopup.getRoot();
+									this._groupColorTemplateWindow.closeWindow();
+									this._colorWindow.closeWindow();
 									if(metadataPopupRoot) {
 										if(metadataPopupRoot.isVisible()) {
 											metadataPopupRoot.hide();
