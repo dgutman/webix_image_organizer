@@ -199,4 +199,14 @@ export default class MultichannelOSDViewer extends OpenSeadragonViewer {
 	getViewerTemplate() {
 		return this.$$(OSD_VIEWER_TEMPLATE);
 	}
+
+	getBounds() {
+		const viewer = this.$viewer();
+		return viewer?.viewport.getBounds();
+	}
+
+	setBounds(bounds) {
+		const viewer = this.$viewer();
+		viewer.viewport.fitBounds(bounds);
+	}
 }

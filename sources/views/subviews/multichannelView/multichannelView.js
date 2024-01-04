@@ -177,6 +177,7 @@ export default class MultichannelView extends JetView {
 	}
 
 	async _selectGroupHandler(group) {
+		const boundsValue = this._osdViewer.getBounds();
 		this._osdViewer.removeAllTiles();
 		if (!group) {
 			return;
@@ -184,6 +185,7 @@ export default class MultichannelView extends JetView {
 		const channelList = this._channelList.getList();
 		channelList.unselectAll();
 		await this.showColoredChannels(group.channels);
+		this._osdViewer.getRoot().callEvent("restoreZoom", [boundsValue]);
 	}
 
 	async showColoredChannels(channels) {
@@ -249,8 +251,11 @@ export default class MultichannelView extends JetView {
 			const channel = this._channelsCollection.getItem(id);
 			const channelTileSource = await this._tileService
 				.getChannelTileSources(this._image, channel.index);
+
+			const boundsValue = this._osdViewer.getBounds();
 			this._osdViewer.removeAllTiles();
 			this._osdViewer.addNewTile(channelTileSource);
+			this._osdViewer.getRoot().callEvent("restoreZoom", [boundsValue]);
 		});
 
 		this.on(channelList, "customSelectionChanged", (channels) => {
@@ -294,6 +299,12 @@ export default class MultichannelView extends JetView {
 				.finally(() => {
 					this.getRoot().hideProgress();
 				});
+		});
+
+		this.on(osdViewerRoot, "restoreZoom", (boundsValue) => {
+			this._osdViewer._openseaDragonViewer.addOnceHandler("tile-loaded", (data) => {
+				this._osdViewer.setBounds(boundsValue);
+			});
 		});
 	}
 
@@ -366,6 +377,8 @@ export default class MultichannelView extends JetView {
 	startChannelAdjusting(channel) {
 		const groupsPanel = this._groupsPanel.getRoot();
 		const groupChannelList = this._groupsPanel.getGroupsChannelsList();
+		const boundsValue = this._osdViewer.getBounds();
+		this._osdViewer.getRoot().callEvent("restoreZoom", [boundsValue]);
 
 		this._osdViewer.removeAllTiles();
 		this.showColoredChannels([{...channel, opacity: 1}]);
