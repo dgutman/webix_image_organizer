@@ -333,6 +333,7 @@ define([
 		}
 
 		async _selectGroupHandler(group) {
+			const boundsValue = this._osdViewer.getBounds();
 			this._osdViewer.removeAllTiles();
 			if (!group) {
 				return;
@@ -342,6 +343,7 @@ define([
 			if (group.channels?.length > 0) {
 				await this.showColoredChannels(group.channels);
 			}
+			this._osdViewer.getRoot().callEvent("restoreZoom", [boundsValue]);
 		}
 
 		async showColoredChannels(channels) {
@@ -408,13 +410,10 @@ define([
 				const channel = this._channelsCollection.getItem(id);
 				const layer = await this.getSingleOSDLayer(channel.index);
 
-				const boundValue = this._osdViewer.getBounds();
+				const boundsValue = this._osdViewer.getBounds();
 				this._osdViewer.removeAllTiles();
 				this._osdViewer.addNewTile(layer.tileSource);
-				this._osdViewer._openseaDragonViewer.addOnceHandler("zoom", () => {
-					this._osdViewer.setBounds(boundValue);
-				});
-				this._osdViewer.updateViewport();
+				this._osdViewer.getRoot().callEvent("restoreZoom", [boundsValue]);
 			});
 
 			channelList.attachEvent("customSelectionChanged", (channels) => {
@@ -463,6 +462,12 @@ define([
 				if (name) {
 					this._addGroupHandler({name});
 				}
+			});
+
+			osdViewerRoot.attachEvent("restoreZoom", (boundsValue) => {
+				this._osdViewer._openseaDragonViewer.addOnceHandler("tile-loaded", (data) => {
+					this._osdViewer.setBounds(boundsValue);
+				});
 			});
 		}
 
