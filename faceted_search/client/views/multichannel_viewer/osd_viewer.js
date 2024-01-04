@@ -164,10 +164,5 @@ define([
 		getViewerTemplate() {
 			return this.$$(OSD_VIEWER_TEMPLATE);
 		}
-
-		updateViewport() {
-			const viewer = this.$viewer();
-			viewer.viewport.update();
-		}
 	};
 });
