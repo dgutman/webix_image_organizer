@@ -13,6 +13,7 @@ define([
 	const LIST_ID = `${constants.LIST_ID}-${webix.uid()}`;
 	const TEXT_SEARCH_ID = `${constants.TEXT_SEARCH_ID}-${webix.uid()}`;
 	const ADD_TO_GROUP_BUTTON_ID = `${constants.ADD_TO_GROUP_BUTTON_ID}-${webix.uid()}`;
+	const GENERATE_SCENE_FROM_TEMPLATE_ID = `${constants.GENERATE_SCENE_FROM_TEMPLATE_ID}-${webix.uid()}`;
 
 	return class ChannelList extends BaseJetView {
 		constructor(app, config = {}) {
@@ -97,6 +98,12 @@ define([
 						click: () => {
 							this.getList().callEvent("addToSelectedGroup", [this.getSelectedChannels()]);
 						}
+					},
+					{
+						view: "button",
+						id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+						width: 250,
+						value: "Generate Scene From Template"
 					}
 				]
 			};
@@ -158,6 +165,10 @@ define([
 
 		getAddToGroupButton() {
 			return this.$$(ADD_TO_GROUP_BUTTON_ID);
+		}
+
+		getGenerateSceneFromTemplateButton() {
+			return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 		}
 	};
 });
