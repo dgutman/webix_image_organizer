@@ -3,7 +3,6 @@ import {JetView} from "webix-jet";
 import ColorPickerWindow from "./colorPopup";
 import constants from "../../../../constants";
 import stateStore from "../../../../models/multichannelView/stateStore";
-import TilesSourcesService from "../../../../services/multichannelView/tilesService";
 import MathCalculations from "../../../../utils/mathCalculations";
 import utils from "../../../../utils/utils";
 import ChannelList from "../channelList";
@@ -18,10 +17,12 @@ const ADD_TEMPLATE_BUTTON_ID = `add-template-button-${webix.uid()}`;
 const DEFAULT_TEMPLATE = webix.copy(constants.DEFAULT_TEMPLATE);
 
 export default class GroupColorTemplateWindow extends JetView {
-	constructor(app, osdViewer, channelsCollection, groupsPanel) {
+	constructor(app, osdViewer, channelsCollection, groupsPanel, tileService, rootScope) {
 		super(app);
+		this._rootScope = rootScope;
 		this._osdViewer = osdViewer;
 		this._groupsPanel = groupsPanel;
+		this._tileService = tileService;
 
 		this._templateList = new TemplateList(this.app);
 		this._channelsList = new ChannelList(this.app, {gravity: 0.2, minWidth: 200});
@@ -140,9 +141,7 @@ export default class GroupColorTemplateWindow extends JetView {
 		};
 	}
 
-	init() {
-		this._tileService = new TilesSourcesService();
-	}
+	init() {}
 
 	ready() {
 		this._colorWindow = this.ui(new ColorPickerWindow(this.app));
@@ -206,7 +205,7 @@ export default class GroupColorTemplateWindow extends JetView {
 
 	addTemplate() {
 		const templateList = this._templateList.getList();
-		const newTemplate = {...DEFAULT_TEMPLATE};
+		const newTemplate = webix.copy(DEFAULT_TEMPLATE);
 		this._templatesCollection.add(newTemplate);
 		templateList.refresh();
 	}
@@ -265,16 +264,17 @@ export default class GroupColorTemplateWindow extends JetView {
 	}
 
 	removeTemplateHandler(id) {
-		const templateList = this._templateList.getList();
-		const isSelected = templateList.isSelected(id);
+		const templateListView = this._templateList.getList();
+		const isSelected = templateListView.isSelected(id);
 		this._templatesCollection.remove(id);
 		if (isSelected) {
-			this._templateList.unselectAll();
+			templateListView.unselectAll();
 			this.getTemplateChannelList().clearAll();
-			const firstId = this._templateList.getFirstId();
-			this._templateList.select(firstId);
+			const firstId = templateListView.getFirstId();
+			templateListView.select(firstId);
 			if (!firstId) {
-				this._osdViewer.setDefaultOSDImage();
+				this.addTemplate();
+				templateListView.select();
 			}
 		}
 	}
@@ -291,12 +291,17 @@ export default class GroupColorTemplateWindow extends JetView {
 				templates.push(...colorTemplateData);
 			}
 			else if (colorTemplateData.length === 0) {
-				this._template = {...DEFAULT_TEMPLATE};
+				this._template = webix.copy(DEFAULT_TEMPLATE);
 			}
 			else {
 				templates.push(...colorTemplateData);
 			}
 			this._templatesCollection.parse(templates);
+			if (templates.length === 0) {
+				this.addTemplate();
+			}
+			const templateListView = this._templateList.getList();
+			templateListView.select();
 			this.getRoot().show();
 		}
 		catch (err) {

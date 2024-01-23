@@ -45,24 +45,24 @@ function getConfig(collapsedViewId, config, collapserName) {
 			rows: [
 				{
 					view: "template",
-					template: config && config.type === "top" ?
+					template: config?.type === "top" ?
 						"<span class='webix_icon fas fa-angle-up'></span>" :
 						"<span class='webix_icon fas fa-angle-down'></span>",
 					css: "collapser-btn",
 					id: BTN_OPENED_STATE_ID,
-					hidden: config && config.closed,
+					hidden: config?.closed,
 					onClick: {
 						"collapser-btn": handleCollapse
 					}
 				},
 				{
 					view: "template",
-					template: config && config.type === "bottom" ?
+					template: config?.type === "bottom" ?
 						"<span class='webix_icon fas fa-angle-up'></span>" :
 						"<span class='webix_icon fas fa-angle-down'></span>",
 					css: "collapser-btn",
 					id: BTN_CLOSED_STATE_ID,
-					hidden: !(config && config.closed),
+					hidden: !(config?.closed),
 					onClick: {
 						"collapser-btn": handleExpand
 					}
@@ -85,24 +85,24 @@ function getConfig(collapsedViewId, config, collapserName) {
 		rows: [
 			{
 				view: "template",
-				template: config && config.type === "left" ?
+				template: config?.type === "left" ?
 					"<span class='webix_icon fas fa-angle-left'></span>" :
 					"<span class='webix_icon fas fa-angle-right'></span>",
 				css: "collapser-btn",
 				id: BTN_OPENED_STATE_ID,
-				hidden: config && config.closed,
+				hidden: config?.closed,
 				onClick: {
 					"collapser-btn": handleCollapse
 				}
 			},
 			{
 				view: "template",
-				template: config && config.type === "left" ?
+				template: config?.type === "left" ?
 					"<span class='webix_icon fas fa-angle-right'></span>" :
 					"<span class='webix_icon fas fa-angle-left'></span>",
 				css: "collapser-btn",
 				id: BTN_CLOSED_STATE_ID,
-				hidden: !(config && config.closed),
+				hidden: !(config?.closed),
 				onClick: {
 					"collapser-btn": handleExpand
 				}
