@@ -321,7 +321,7 @@ function convertPaperItemToAnnotation(annotationItem){
     annotationItem.setStyle(properties);
 
     //set fillOpacity property based on initial fillColor alpha value
-    item.fillOpacity = item.fillColor ? item.fillColor.alpha : 1;
+    item.fillOpacity = item.fillColor ? item.fillColor.alpha : 0.1;
 
     //displayName
     item.displayName = properties.label || annotationItem.getLabel();

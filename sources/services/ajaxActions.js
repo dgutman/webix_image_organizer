@@ -363,6 +363,68 @@ class AjaxActions {
 	openImageInNewTab(id) {
 		window.open(`${this.getImagesHostUrl()}/histomics#?image=${id}`, "_blank");
 	}
+
+	async getAnnotationsByItemId(id) {
+		let url = `${this.getHostApiUrl()}/annotation/item/${id}`;
+		try {
+			const data = await this._ajax().get(url);
+			return this._parseData(data);
+		}
+		catch (error) {
+			parseError(error);
+			return [];
+		}
+	}
+
+	async updateAnnotationById(annotationData) {
+		const annotationId = annotationData._id;
+		const annotationInfo = {
+			dsalayers: annotationData.elements
+		};
+		const params = JSON.stringify(annotationInfo);
+		if (annotationId) {
+			const url = `${this.getHostApiUrl()}/annotation/${annotationId}/metadata`;
+			const response = await this._ajax().headers({
+				"Accept": "application/json",
+				"Content-type": "application/json"
+			}).put(url, params);
+		}
+	}
+
+	async createAnnotation(itemId, annotationData) {
+		const annotationInfo = {
+			attributes: {
+				dsalayers: annotationData.elements
+			},
+			name: annotationData.name,
+			description: annotationData.description
+		};
+		const params = JSON.stringify(annotationInfo);
+		const url = `${this.getHostApiUrl()}/annotation?itemId=${itemId}`;
+		try {
+			const response = await this._ajax().headers({
+				"Content-type": "application/json"
+			}).post(url, params);
+			return this._parseData(response);
+		}
+		catch (error) {
+			parseError(error);
+			return null;
+		}
+	}
+
+	async deleteAnnotation(annotationData) {
+		try {
+			const id = annotationData._id;
+			const url = `${this.getHostApiUrl()}/annotation/${id}`;
+			await this._ajax().del(url);
+			return true;
+		}
+		catch (error) {
+			parseError(error);
+			return null;
+		}
+	}
 }
 
 const instance = new AjaxActions();

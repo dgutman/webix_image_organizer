@@ -33,7 +33,9 @@ export default class ListView extends JetView {
 									view: "button",
 									id: this.ID_ADD_BUTTON,
 									type: "form",
-									click: this.addItem,
+									click: () => {
+										this.addItem();
+									},
 									label: "+",
 									width: 24,
 									height: 24,
@@ -55,7 +57,9 @@ export default class ListView extends JetView {
 									view: "button",
 									id: this.ID_SAVE_BUTTON,
 									type: "icon",
-									click: this.saveForm,
+									click: () => {
+										this.saveForm();
+									},
 									icon: "fas fa-save",
 									width: 24,
 									height: 24,
@@ -64,7 +68,9 @@ export default class ListView extends JetView {
 									view: "button",
 									id: this.ID_CANCEL_BUTTON,
 									type: "icon",
-									click: this.cancelEdit,
+									click: () => {
+										this.cancelEdit();
+									},
 									icon: "fas fa-times-circle",
 									width: 24,
 									height: 24,
@@ -107,20 +113,25 @@ export default class ListView extends JetView {
 					id: this.ID_LIST,
 					template: obj => `<div style='padding-left:18px'>
 						${obj.name}
-					</div>
-					<span class="edit-item fas fa-edit"></span>`,
+						<span class="edit-item fas fa-edit"></span>
+						<span class="delete-item fas fa-times-circle"></span>
+					</div>`,
 					type: {
 						height: 30
 					},
 					onClick: {
-						"edit-item": this.editItem
+						"edit-item": () => {
+							this.editItem();
+						},
+						"delete-item": (event, id) => {
+							this.deleteItem(id);
+						}
 					},
 					select: true,
 					autowidth: true,
-					autoheight: true,
-					gravity: 1
+					gravity: 1,
+					scroll: true
 				},
-				{gravity: 1}
 			]
 		};
 	}
@@ -142,14 +153,14 @@ export default class ListView extends JetView {
 	}
 
 	saveForm() {
-		const form = this.$scope.getForm();
+		const form = this.getForm();
 		if (form.isDirty()) {
 			if (!form.validate()) {
 				webix.message("field shouldn't be empty", "warn", 5000);
 				return;
 			}
 			form.save();
-			this.$scope.cancelEdit();
+			this.cancelEdit();
 		}
 		else {
 			webix.message("field shouldn't be empty", "warn", 5000);
@@ -171,19 +182,24 @@ export default class ListView extends JetView {
 	}
 
 	cancelEdit() {
-		this.$scope.hideEditForm();
+		this.hideEditForm();
 	}
 
 	addItem() {
-		const list = this.$scope.getList();
+		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({name: `${this.$scope.newItemName} ${lastId + 1}`, id: Number(lastId) + 1});
+		list.add({name: `${this.newItemName} ${lastId + 1}`, id: Number(lastId) + 1});
 		list.select(`${lastId + 1}`);
-		this.$scope.showEditForm();
+		this.showEditForm();
 	}
 
 	editItem() {
-		this.$scope.showEditForm();
+		this.showEditForm();
+	}
+
+	deleteItem(id) {
+		const listView = this.getList();
+		listView.remove(id);
 	}
 
 	getForm() {

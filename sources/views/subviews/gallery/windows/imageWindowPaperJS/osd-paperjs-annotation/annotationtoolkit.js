@@ -112,6 +112,7 @@ paper.PaperScope.prototype.getActiveTool = function () { return this.tool ? this
  * @class
  * @memberof OSDPaperjsAnnotation
  * @extends OpenSeadragon.EventSource
+ * @typedef {AnnotationToolkit}
  */
 class AnnotationToolkit extends OpenSeadragon.EventSource {
 	/**
@@ -425,7 +426,7 @@ function createFeatureCollectionLayer(displayLabel = null) {
  */
 
 function updateFillOpacity() {
-	this._computedFillOpacity = this.hierarchy.filter(item => "fillOpacity" in item && (item._multiplyOpacity || item == this)).reduce((prod, item) => prod * item.fillOpacity, 1);
+	this._computedFillOpacity = this.hierarchy.filter(item => "fillOpacity" in item && (item._multiplyOpacity || item == this)).reduce((prod, item) => prod * item.fillOpacity, 0.1);
 	if (this.fillColor) {
 		this.fillColor.alpha = this._computedFillOpacity;
 	}

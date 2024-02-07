@@ -89,6 +89,18 @@ export default class ToolbarView extends JetView {
 						{
 							view: "button",
 							type: "icon",
+							localId: "default",
+							icon: "fas fa-hand-paper",
+							tooltip: "Default",
+							css: "drawing_buttons",
+							inputWidth: 40,
+							inputHeight: 40,
+							width: 40,
+							height: 40,
+						},
+						{
+							view: "button",
+							type: "icon",
 							localId: "polygon",
 							icon: "fab fa-connectdevelop",
 							tooltip: "Polygon",
@@ -533,6 +545,7 @@ export default class ToolbarView extends JetView {
 	}
 
 	getToolbarControls() {
+		const defaultControl = this.getRoot().queryView({localId: "default"});
 		const polygonControl = this.getRoot().queryView({localId: "polygon"});
 		const lineControl = this.getRoot().queryView({localId: "line"});
 		const rectangleControl = this.getRoot().queryView({localId: "rectangle"});
@@ -542,6 +555,7 @@ export default class ToolbarView extends JetView {
 		const textControl = this.getRoot().queryView({localId: "text"});
 		const brushControl = this.getRoot().queryView({localId: "brush"});
 		const toolbarControls = {};
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.default] = defaultControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.polygon] = polygonControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.rectangle] = rectangleControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.ellipse] = ellipseControl;

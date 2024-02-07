@@ -10,7 +10,11 @@ import ImageTemplateEventsService from "./services/imageTemplateEventService";
 import RightPanelEventsService from "./services/rightPanelEventsService";
 import ToolbarEventServices from "./toolbarEventService";
 import ToolbarView from "./toolbarView";
+import AnnotationsModel from "../../../../../models/annotations/annotationsModel";
 import ImageWindowViewModel from "../../../../../models/annotations/imageWindowViewModelPaperJS";
+import PaperProjectModel from "../../../../../models/annotations/paperjsProjectModel";
+import ItemsModel from "../../../../../models/annotations/paperjsItemsModel";
+import LayersModel from "../../../../../models/annotations/paperjsLayersModel";
 import galleryImageUrl from "../../../../../models/galleryImageUrls";
 import nonImageUrls from "../../../../../models/nonImageUrls";
 import ajax from "../../../../../services/ajaxActions";
@@ -26,13 +30,30 @@ const RIGHT_PANEL_ID = `right-window-panel-id-${webix.uid()}`;
 const WINDOW_TITLE_ID = "#window-title-id";
 const IMAGE_CONTAINER_ID = "#image-container-id";
 
+/**
+ * Description placeholder
+ *
+ * @export
+ * @class ImageWindowView
+ * @typedef {ImageWindowView}
+ * @extends {JetView}
+ */
 export default class ImageWindowView extends JetView {
+	
+	/**
+	 * Creates an instance of ImageWindowView.
+	 *
+	 * @constructor
+	 * @param {*} app
+	 * @param {*} config
+	 */
 	constructor(app, config) {
 		super(app, config);
 
 		this._controlsView = new ControlsView(this.app);
 		this._imageWindowViewModel = new ImageWindowViewModel(this);
 		this._toolbarView = new ToolbarView(this.app, {}, /* this._imageWindowViewModel, */ this);
+		/** @type {RightPanel} */
 		this._rightPanel = new RightPanel(this.app);
 	}
 
@@ -40,13 +61,13 @@ export default class ImageWindowView extends JetView {
 		const controlsCollapser = collapser
 			.getConfig(
 				CONTROLS_PANEL_ID,
-				{type: "left", closed: false},
+				{type: "left", closed: true},
 				"controlsCollapserName"
 			);
 		const rightPanelCollapser = collapser
 			.getConfig(
 				RIGHT_PANEL_ID,
-				{type: "right", closed: true},
+				{type: "right", closed: false},
 				"rightPanelCollapserName"
 			);
 
@@ -99,7 +120,8 @@ export default class ImageWindowView extends JetView {
 										width: 250,
 										cols: [
 											this._controlsView
-										]
+										],
+										hidden: true
 									},
 									controlsCollapser
 								]
@@ -174,8 +196,7 @@ export default class ImageWindowView extends JetView {
 										width: 250,
 										cols: [
 											this._rightPanel
-										],
-										hidden: true
+										]
 									}
 								]
 							}
@@ -291,20 +312,26 @@ export default class ImageWindowView extends JetView {
 
 		if (viewerType === "seadragon") {
 			this.view.showProgress();
+			// const annotationsData = await this._imageWindowViewModel.asyncLoadAnnotations();
+			const annotationsData = await this._imageWindowViewModel.getAndLoadAnnotations();
+			this.annotationModel = new AnnotationsModel(annotationsData);
+			const firstAnnotation = this.annotationModel.getAnnotationByID(1);
 			const data = await ajax.getImageTiles(obj._id);
 			this.tiles = data; // for geojs
-			this.$leftPanel.show();
-			this.$controlsPanel.show();
 			const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
 			await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
-			// for setBound()
 			this._tk = new AnnotationToolkit(this._openSeadragonViewer);
-			this._imageWindowViewModel.setToolKit(this._tk);
+			this.paperProjectModel = new PaperProjectModel(this._tk);
+			this.layersModel = new LayersModel(this._tk);
+			this.itemsModel = new ItemsModel(this._tk);
 			const toolbarControls = this._toolbarView.getToolbarControls();
 			this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
-			await this._imageWindowViewModel.asyncSetAnnotation();
 			this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
-			this._rightPanelEventsService = new RightPanelEventsService(this, this._rightPanel, this._tk);
+			this._rightPanelEventsService = new RightPanelEventsService(
+				this,
+				this._rightPanel,
+				this._tk,
+			);
 			this.view.hideProgress();
 		}
 		else if (viewerType === "jsonviewer") {
@@ -358,12 +385,13 @@ export default class ImageWindowView extends JetView {
 	close() {
 		// to clear setted template
 		// to destroy Open Seadragon viewer
-		if (this._openSeadragonViewer) {
-			this._openSeadragonViewer.destroy();
-		}
+		this._rightPanelEventsService.clearAll();
 		this.$imageContainer.parse({emptyObject: true});
 		this.getRoot().hide();
 		this._controlsView.reset();
+		this._tk.destroy();
+		this._paperJSTools.detachEvents();
+		this._paperJSTools = null;
 	}
 
 	getOSDViewer() {
@@ -379,11 +407,16 @@ export default class ImageWindowView extends JetView {
 		this.app.callEvent("setBounds", []);
 	}
 
-	setNewLayer(newLayer) {
-		// TODO: implement
+	saveAnnotation() {
+		const annotations = this.annotationModel.getAnnotations();
+		this._imageWindowViewModel.updateGirderWithAnnotationData(annotations);
 	}
 
-	setNewItem(newItem) {
-		// TODO: implement
+	async showAnnotation(annotationData) {
+		this._tk.addFeatureCollections(annotationData.elements, true);
+		const layers = this._tk.getFeatureCollectionLayers();
+		if (layers.length > 0) {
+			layers[0].activate();
+		}
 	}
 }
