@@ -2,20 +2,34 @@ import {JetView} from "webix-jet";
 
 import ListView from "../../../../components/listView";
 
+/**
+ * RightPanel
+ *
+ * @export
+ * @class RightPanel
+ * @typedef {RightPanel}
+ * @extends {JetView}
+ */
 export default class RightPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
 		this.annotations = new ListView(app, {name: "Annotations", newItemName: "Annotation"});
 		this.layers = new ListView(app, {name: "Layers", newItemName: "Layer"});
 		this.items = new ListView(app, {name: "Items", newItemName: "Item"});
+		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
 	}
 
 	config() {
 		return {
 			rows: [
-				// this.annotations,
+				this.annotations,
 				this.layers,
-				this.items
+				this.items,
+				{
+					view: "button",
+					label: "Save annotation",
+					id: this.ID_SAVE_BUTTON
+				}
 			]
 		};
 	}
@@ -36,5 +50,9 @@ export default class RightPanel extends JetView {
 
 	getAnnotationsList() {
 		return this.annotations.getList();
+	}
+
+	getSaveButton() {
+		return this.getRoot().queryView({id: this.ID_SAVE_BUTTON});
 	}
 }

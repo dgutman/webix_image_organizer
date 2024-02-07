@@ -4,6 +4,7 @@ export default class AnnotationTool {
 		this._toolControl = toolControl;
 		this._active = false;
 		this._items = [];
+		this._webixEvents = [];
 		this._item = null;
 		const self = this;
 
@@ -41,11 +42,6 @@ export default class AnnotationTool {
 			this.extensions.onKeyUp(ev);
 		};
 		this.listeners = {};
-		const tool = this.tool;
-		toolControl?.attachEvent("onItemClick", (/* ev */) => {
-			self.activate();
-			tool.activate();
-		});
 		if (toolControl) {
 			this.setToolbarControl(toolControl);
 		}
@@ -53,10 +49,17 @@ export default class AnnotationTool {
 	}
 
 	attachEvents() {
-		this._toolControl.attachEvent("onItemClick", (/* ev */) => {
+		const clickEvent = this._toolControl.attachEvent("onItemClick", (/* ev */) => {
 			this.createItem();
 			this.activate();
 			this.tool.activate();
+		});
+		this._webixEvents.push(clickEvent);
+	}
+
+	detachEvents() {
+		this._webixEvents.forEach((event) => {
+			this._toolControl.detachEvent(event);
 		});
 	}
 

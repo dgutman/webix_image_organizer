@@ -209,6 +209,7 @@ export default {
 		"DAPI"
 	],
 	ANNOTATION_TOOL_IDS: {
+		default: "default",
 		polygon: "polygon",
 		linestring: "linestring",
 		rectangle: "rectangle",

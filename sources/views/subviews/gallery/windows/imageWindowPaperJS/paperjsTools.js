@@ -1,5 +1,5 @@
 // import BrushTool from "./osd-paperjs-annotation/papertools/brush";
-// import {DefaultTool} from "./osd-paperjs-annotation/papertools/default";
+import DefaultTool from "./osd-paperjs-annotation/papertools/default";
 import EllipseTool from "./osd-paperjs-annotation/papertools/ellipse";
 // import LinestringTool from "./osd-paperjs-annotation/papertools/linestring";
 // import PointTool from "./osd-paperjs-annotation/papertools/point";
@@ -21,6 +21,7 @@ export default class PaperJSTools {
 		this.tools = {};
 
 		this.toolConstructors = {};
+		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.default] = DefaultTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.rectangle] = RectangleTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.ellipse] = EllipseTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.polygon] = PolygonTool;
@@ -47,23 +48,32 @@ export default class PaperJSTools {
 		// items emit events on the paper project; add listeners to update the toolbar status as needed
 		this.paperScope.project.on({
 			"item-replaced": () => {
+				console.log("item-replaced");
 				this.setMode();
 			},
 
 			"item-selected": () => {
+				console.log("item-selected");
 				this.setMode();
 			},
 
 			"item-deselected": () => {
+				console.log("item-deselected");
 				this.setMode();
 			},
 
 			"item-removed": () => {
+				console.log("item-removed");
 				this.setMode();
 			},
 
 			"items-changed": () => {
+				console.log("item-changed");
 				this.setMode();
+			},
+
+			"item-created": () => {
+				console.log("item-created");
 			}
 		});
 	}
@@ -75,7 +85,7 @@ export default class PaperJSTools {
 		}
 		this.setModeTimeout = setTimeout(() => {
 			this.setModeTimeout = null;
-			let selection = this.paperScope.findSelectedItems();
+			let selection = this.paperScope.project ? this.paperScope.findSelectedItems() : [];
 			let activeTool = this.paperScope.getActiveTool();
 			if (selection.length === 0) {
 				this.currentMode = "select";
@@ -92,7 +102,16 @@ export default class PaperJSTools {
 				this.currentMode = "multiselection";
 			}
 
-			activeTool.selectionChanged();
+			if (activeTool) {
+				activeTool.selectionChanged();
+			}
 		}, 0);
+	}
+
+	detachEvents() {
+		const toolsNames = Object.keys(this.tools);
+		toolsNames.forEach((name) => {
+			this.tools[name].detachEvents();
+		});
 	}
 }
