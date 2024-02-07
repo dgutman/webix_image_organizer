@@ -8,6 +8,9 @@ Image Organizer app that uses the Webix Toolkit to interact with a Girder server
   * Go to "Server configuration"
   * At the bottom set "Core Routes", "core_girder" to "/"
   * In "Advanced Settings" set "CORS Allowed Origins" to "*"
+* Create local .env file
+  * ```$ cp example.env .env```
+  * Modify .env file to include your DSA servers, keep contents of .env file in a single line (don't add new line characters!)
 
 ## Instructions with NPM
 * Install npm
@@ -18,9 +21,6 @@ Image Organizer app that uses the Webix Toolkit to interact with a Girder server
 
 ## Instructions with Docker Compose (not currently working!)
 * Install Docker-compose (usually installs with Docker)
-* modify / create a .env file
-  - Example of contents: SERVER_LIST=[{"id":"#","value":"Label shown in GUI","hostAPI":"http://servername:8080/api/v1"},{...}]
-  - Keep contents of .env file in a single line
 * docker build -t dsaio .
 * docker run -p####:80  # choose desired port
 * App will run in localhost:####
