@@ -16,6 +16,8 @@ import {downloadGroup, getImportedGroups, saveGroups, getSavedGroups} from "../.
 import TilesService from "../../../services/multichannelView/tilesService";
 import TimedOutBehavior from "../../../utils/timedOutBehavior";
 
+const GENERATE_SCENE_FROM_TEMPLATE_ID = "generate-scene-from-template";
+
 export default class MultichannelView extends JetView {
 	constructor(app) {
 		super(app);
@@ -40,6 +42,15 @@ export default class MultichannelView extends JetView {
 					gravity: 0.2,
 					rows: [
 						this._channelList,
+						{
+							cols: [
+								{
+									view: "button",
+									id: GENERATE_SCENE_FROM_TEMPLATE_ID,
+									value: "Generate Scene From Template"
+								}
+							]
+						},
 						this._viewportCoordinates
 					]
 				},
@@ -86,8 +97,16 @@ export default class MultichannelView extends JetView {
 			this.app,
 			this._osdViewer,
 			this._channelsCollection,
-			this._groupsPanel
+			this._groupsPanel,
+			this._tileService,
+			this
 		));
+
+		const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
+		this.on(generateSceneFromTemplateButton, "onItemClick", () => {
+			const groupId = groupsList.getSelectedId();
+			this._groupsPanel.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
+		});
 	}
 
 	show() {
@@ -457,5 +476,9 @@ export default class MultichannelView extends JetView {
 
 	set _image(image) {
 		stateStore.image = image;
+	}
+
+	getGenerateSceneFromTemplateButton() {
+		return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 	}
 }
