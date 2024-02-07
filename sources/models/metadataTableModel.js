@@ -197,11 +197,11 @@ function getInitialColumnsForDatatable() {
 		},
 		{
 			id: constants.INITIAL_COLUMNS_IDS.SIZE,
-			header: "Size",
+			header: "Size, B",
 			width: 160,
 			initial: true,
-			sort: "text",
-			template: obj => `${obj.size} B`
+			sort: "int",
+			template: obj => Number(obj.size)
 		}, {
 			id: constants.INITIAL_COLUMNS_IDS.MODEL_TYPE,
 			header: "Model type",
@@ -214,7 +214,7 @@ function getInitialColumnsForDatatable() {
 		{
 			id: constants.INITIAL_COLUMNS_IDS.CREATED,
 			header: "Created",
-			sort: "text",
+			sort: "date",
 			initial: true,
 			hidden: true,
 			width: 235,
@@ -223,7 +223,7 @@ function getInitialColumnsForDatatable() {
 		{
 			id: constants.INITIAL_COLUMNS_IDS.UPDATED,
 			header: "Updated",
-			sort: "text",
+			sort: "date",
 			initial: true,
 			hidden: true,
 			width: 235,

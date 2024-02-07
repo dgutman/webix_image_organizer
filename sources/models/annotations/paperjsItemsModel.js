@@ -1,10 +1,15 @@
+import PaperScope from "./paperjsScopeModel";
+
 export default class PaperItemsModel {
-	constructor(paperScope) {
+	constructor(tk) {
+		this._paperScopeModel = new PaperScope(tk);
+		this._paperScope = this._paperScopeModel.getPaperScope();
+		this._tk = tk;
 		if (!PaperItemsModel.instance) {
-			this._paperScope = paperScope;
-			this._items = paperScope?.project.getItems();
+			this._items = this._paperScope?.project.getItems();
 			PaperItemsModel.instance = this._items ? this : null;
 		}
+		PaperItemsModel.instance._tk = tk;
 		return PaperItemsModel.instance;
 	}
 

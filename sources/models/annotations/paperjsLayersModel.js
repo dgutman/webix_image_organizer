@@ -1,13 +1,16 @@
+import PaperScope from "./paperjsScopeModel";
+
 export default class PaperJSLayersModel {
-	constructor(paperScope) {
+	constructor(tk) {
+		this._tk = tk;
+		this._paperScopeModel = new PaperScope(tk);
+		this._paperScope = this._paperScopeModel.getPaperScope();
 		if (!PaperJSLayersModel.instance) {
-			this._paperScope = paperScope;
 			this._layers = [];
 			this._activeLayer = null;
-			// this._layer = paperScope.createFeatureCollectionLayer();
-			// this._layer = this.createLayer();
 			PaperJSLayersModel.instance = this;
 		}
+		PaperJSLayersModel.instance._tk = tk;
 		return PaperJSLayersModel.instance;
 	}
 

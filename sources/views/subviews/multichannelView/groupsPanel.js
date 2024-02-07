@@ -11,7 +11,6 @@ const GROUPS_LIST_ID = "groups-list";
 const GROUPS_TEXT_SEARCH_ID = "groups-search-field";
 const UPLOADER_API_ID = "uploader-api";
 const GROUPS_TITLE_TEMPLATE = "groups-title";
-const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
 const GROUP_COLLAPSER_NAME = "group-collapser-name";
 const GROUPS_LAYOUT_ID = "groups-layout-id";
 
@@ -85,15 +84,6 @@ export default class GroupsPanel extends JetView {
 								}
 							}
 						},
-						{
-							cols: [
-								{
-									view: "button",
-									id: GENERATE_SCENE_FROM_TEMPLATE_ID,
-									value: "Generate Scene From Template"
-								}
-							]
-						}
 					]
 				},
 				groupsCollapser,
@@ -116,15 +106,9 @@ export default class GroupsPanel extends JetView {
 		webix.extend(view, webix.OverlayBox);
 
 		const groupsList = this.getGroupsList();
-		const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
 
 		this.on(groupsList, "onSelectChange", () => {
 			this.updateSelectedGroupTiles();
-		});
-
-		this.on(generateSceneFromTemplateButton, "onItemClick", () => {
-			const groupId = this.getGroupsList().getSelectedId();
-			this.getRoot().callEvent("generateSceneFromTemplate", [groupId]);
 		});
 	}
 
@@ -251,10 +235,6 @@ export default class GroupsPanel extends JetView {
 
 	getColorWindow() {
 		return this._colorWindow;
-	}
-
-	getGenerateSceneFromTemplateButton() {
-		return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 	}
 
 	set _group(group) {

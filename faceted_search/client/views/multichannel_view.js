@@ -55,7 +55,6 @@ define([
 
 	const MULTICHANNEL_WRAP_ID = "multichannel-wrap";
 	const SHOW_METADATA_BUTTON_ID = "show-metadata-button-id";
-	const GENERATE_SCENE_FROM_TEMPLATE_ID = "apply-color-template-button";
 
 	class MultichannelView extends BaseJetView {
 		constructor(app) {
@@ -82,7 +81,9 @@ define([
 					app,
 					this._osdViewer,
 					this._channelsCollection,
-					this._groupsPanel
+					this._groupsPanel,
+					this._tileService,
+					this
 				)
 			);
 
@@ -125,7 +126,7 @@ define([
 					this._changeGroupByIndex(groupIndex);
 				});
 
-				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
+				const generateSceneFromTemplateButton = this._channelList.getGenerateSceneFromTemplateButton();
 
 				if (!this._generateSceneFromTemplateEvent) {
 					this._generateSceneFromTemplateEvent = generateSceneFromTemplateButton.attachEvent("onItemClick", () => {
@@ -138,7 +139,7 @@ define([
 			this.$ondestroy = () => {
 				this._image = null;
 				this._waitForViewerCreation = webix.promise.defer();
-				const generateSceneFromTemplateButton = this.getGenerateSceneFromTemplateButton();
+				const generateSceneFromTemplateButton = this._channelList.getGenerateSceneFromTemplateButton();
 				if (this._generateSceneFromTemplateEvent) {
 					generateSceneFromTemplateButton.detachEvent(this._generateSceneFromTemplateEvent);
 				}
@@ -205,12 +206,6 @@ define([
 										this._metadataPopup.setProperties();
 									}
 								}
-							},
-							{
-								view: "button",
-								id: GENERATE_SCENE_FROM_TEMPLATE_ID,
-								width: 250,
-								value: "Generate Scene From Template"
 							},
 						]
 					},
@@ -671,10 +666,6 @@ define([
 			if (image && image._id) {
 				stateStore.loadedImages[image._id] = image;
 			}
-		}
-
-		getGenerateSceneFromTemplateButton() {
-			return this.$$(GENERATE_SCENE_FROM_TEMPLATE_ID);
 		}
 
 		callGenerateScene() {
