@@ -51,8 +51,8 @@ define([
 					{view: "text", name: "name", label: "Name"},
 					{
 						cols: [
-							{view: "button", label: "Save", click: this.saveName},
-							{view: "button", label: "Clear", click: function() {
+							{view: "button", label: "Save Name", click: this.saveName},
+							{view: "button", label: "Clear name", click: function() {
 								webix.$$(FORM_ID).clear();
 							}}
 						]

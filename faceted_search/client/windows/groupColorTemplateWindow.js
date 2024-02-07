@@ -27,10 +27,19 @@ define([
 	const DEFAULT_TEMPLATE = webix.copy(constants.DEFAULT_TEMPLATE);
 
 	return class GroupColorTemplateWindow extends BaseJetView {
-		constructor(app, osdViewer, channelsCollection, groupsPanel) {
+		constructor(
+			app,
+			osdViewer,
+			channelsCollection,
+			groupsPanel,
+			tileService,
+			rootScope
+		) {
 			super(app);
 			this._osdViewer = osdViewer;
 			this._groupsPanel = groupsPanel;
+			this.tileService = tileService;
+			this._rootScope = rootScope;
 			this._colorWindow = this.ui(new ColorPickerWindow(this.app));
 
 			this._templateList = this.ui(new TemplateList(app));
@@ -46,7 +55,6 @@ define([
 				const channelList = this._channelsList.getList();
 				const templateList = this._templateList.getList();
 				const templateChannelList = this.getTemplateChannelList();
-				this._tileService = new TilesSourcesService();
 				channelList.sync(this._channelsCollection);
 				templateList.sync(this._templatesCollection);
 				templateChannelList.sync(this._templateChannelCollection);
@@ -193,7 +201,7 @@ define([
 
 		addTemplate() {
 			const templateList = this._templateList.getList();
-			const newTemplate = {...DEFAULT_TEMPLATE};
+			const newTemplate = webix.copy(DEFAULT_TEMPLATE);
 			this._templatesCollection.add(newTemplate);
 			templateList.refresh();
 		}
@@ -256,16 +264,17 @@ define([
 		}
 	
 		removeTemplateHandler(id) {
-			const templateList = this._templateList.getList();
-			const isSelected = templateList.isSelected(id);
+			const templateListView = this._templateList.getList();
+			const isSelected = templateListView.isSelected(id);
 			this._templatesCollection.remove(id);
 			if (isSelected) {
-				this._templateList.unselectAll();
+				templateListView.unselectAll();
 				this.getTemplateChannelList().clearAll();
-				const firstId = this._templateList.getFirstId();
-				this._templateList.select(firstId);
+				const firstId = templateListView.getFirstId();
+				templateListView.select(firstId);
 				if (!firstId) {
-					this._osdViewer.setDefaultOSDImage();
+					this.addTemplate();
+					templateListView.select();
 				}
 			}
 		}
@@ -282,13 +291,18 @@ define([
 					templates.push(...colorTemplateData);
 				} else {
 					if (colorTemplateData.length === 0) {
-						this._template = {...DEFAULT_TEMPLATE};
+						this._template = webix.copy(DEFAULT_TEMPLATE);
 					} else {
 						templates.push(...colorTemplateData);
 					}
 				}
 				this._templatesCollection.parse(templates);
 				this.getRoot().show();
+				if (templates.length === 0) {
+					this.addTemplate();
+				}
+				const templateListView = this._templateList.getList();
+				templateListView.select();
 			} catch(err) {
 				console.log(err);
 			}

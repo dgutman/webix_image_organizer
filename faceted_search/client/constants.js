@@ -99,6 +99,12 @@ define([], function() {
 		FOLDER_TREE_ACTION: {
 			upload: 1,
 			delete: 2,
+		},
+		GENERATE_SCENE_FROM_TEMPLATE_ID: "generate-scene-from-template-button",
+		CHECKBOX_STATE: {
+			blank: 0,
+			minus: 1,
+			checked: 2,
 		}
 	};
 });

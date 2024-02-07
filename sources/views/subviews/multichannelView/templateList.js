@@ -23,7 +23,7 @@ export default class TemplateList extends JetView {
 					<span title="saved" class="icon ${savedIcon}"></span>
 					<span title="apply template" class="icon apply fas fa-check"></span>
 					<span title="delete template" class="icon delete fas fa-minus-circle"></span>
-				</div>`
+				</div>`;
 			},
 			onClick: {
 				delete: (ev, id) => {
@@ -38,18 +38,18 @@ export default class TemplateList extends JetView {
 			view: "form",
 			id: FORM_ID,
 			elements: [
-				{view:"text", name: "name", label: "Name"},
+				{view: "text", name: "name", label: "Name"},
 				{
 					cols: [
-						{view:"button", label: "Save", click: this.saveName},
-						{view:"button", label: "Clear", click: function() {webix.$$(FORM_ID).clear()}}
+						{view: "button", label: "Save name", click: this.saveName},
+						{view: "button", label: "Clear name", click() { webix.$$(FORM_ID).clear(); }}
 					]
 				}
 			],
 			rules: {
 				name: webix.rules.isNotEmpty
 			}
-		}
+		};
 		return {
 			...this._config,
 			rows: [
@@ -83,8 +83,8 @@ export default class TemplateList extends JetView {
 
 	saveName() {
 		const form = $$(FORM_ID);
-		if(form.isDirty()) {
-			if(!form.validate()) {
+		if (form.isDirty()) {
+			if (!form.validate()) {
 				return false;
 			}
 			form.save();
