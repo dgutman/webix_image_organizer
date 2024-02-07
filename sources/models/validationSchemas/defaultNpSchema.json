@@ -26,7 +26,7 @@
                     "examples": [
                         "10", "A1", "1A"
                     ],
-                    "pattern": "^(A\\d{1,2}|\\d{1,2}|control|control[-+])$"
+                    "pattern": "^(A\\d{1,2}|\\d{1,2}|control|control[-+]|\\d\\w)$"
                 },
                 "caseID": {
                     "type": "string",
@@ -35,7 +35,7 @@
                     "examples": [
                         "E18-7"
                     ],
-                    "pattern": "^((E|A)\\d\\d-\\d+|OS-\\d{6})$"
+                    "pattern": "^((E|A)\\d\\d-\\d+|OS-\\d{6}|OS\\d{6})$"
                 },
                 "verified": {
                     "type": "string",
