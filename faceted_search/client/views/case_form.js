@@ -108,7 +108,7 @@ define([
 	const casesCount = {
 		view: 'template',
 		align: 'center',
-		css: "button-text",
+		css: "webixtype_base",
 		height: 50,
 		id: casesCountId,
 		template: "<div class='found-button'>Cases #count#</div>",
@@ -151,6 +151,10 @@ define([
 		const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
 		// Images.filterByCriterions(filters);
 		caseHelper.filterByCriterions(filters);
+		app.callEvent("caseForm: refreshCasesCount");
+	});
+
+	app.attachEvent("caseForm: refreshCasesCount", () => {
 		$$(casesCountId).data.count = caseHelper.getCasesCount();
 		$$(casesCountId).render();
 	});

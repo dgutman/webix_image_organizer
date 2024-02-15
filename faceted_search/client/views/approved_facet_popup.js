@@ -1,74 +1,14 @@
 define([
 	"app",
 	"models/approved_facet",
-	"constants"
+	"constants",
+	"helpers/checkboxStateService"
 ], function(
 	app,
 	approvedFacetModel,
-	constants
+	constants,
+	checkboxStateService
 ) {
-	function handleIconSelect(view, id) {
-		const element = view.getItem(id);
-		const data = view.data;
-		element.hidden = !element.hidden;
-		element.iconState = element.hidden ? constants.CHECKBOX_STATE.blank : constants.CHECKBOX_STATE.checked;
-		changeChildrenState(id, data, element.hidden);
-		const parent = view.getItem(element.$parent);
-		if (parent) {
-			setParentsElementIcon(view, parent);
-		}
-		view.render();
-	}
-
-	function changeChildrenState(id, data, check) {
-		data.eachChild(id, function(child) {
-			child.hidden = check;
-			child.iconState = child.hidden ? constants.CHECKBOX_STATE.blank : constants.CHECKBOX_STATE.checked;
-			if(data.getBranch(child.id).length > 0) {
-				changeChildrenState(child.id, data, check);
-			}
-		});
-	}
-
-	function setParentsElementIcon(view, element) {
-		setElementIcon(view, element);
-		const parent = view.getItem(element.$parent);
-		if (parent) {
-			setParentsElementIcon(view, parent);
-		}
-	}
-
-	// TODO: make a single module for approved facets and approved metadata
-	function setElementIcon(view, element) {
-		const data = view.data;
-		const children = data.getBranch(element.id);
-		if (children?.length) {
-			const hiddenChildrenCount = children.reduce((count, child) => {
-				if(child.hidden) {
-					count++;
-				}
-				return count;
-			}, 0);
-			const isMinus = !!(children.reduce((count, child) => {
-				return count + (child.iconState ?? 0); // blank state is 0
-			}, 0));
-			if (hiddenChildrenCount === 0) {
-				element.iconState = constants.CHECKBOX_STATE.checked;
-			}
-			else if (isMinus) {
-				element.iconState = constants.CHECKBOX_STATE.minus;
-			}
-			else {
-				element.iconState = constants.CHECKBOX_STATE.blank;
-			}
-		}
-		else {
-			element.iconState = element.hidden
-				? constants.CHECKBOX_STATE.blank
-				: constants.CHECKBOX_STATE.checked;
-		}
-	}
-
 	const filterFacetPopup = {
 		view: 'popup',
 		id: constants.SELECT_FACET_POPUP_ID,
@@ -102,9 +42,9 @@ define([
 						</div>`,
 						templateBack: ({name}) => `${name}`,
 						type: {
-							checkboxIconByState: (stateIcon) => {
+							checkboxIconByState: (iconState) => {
 								let icon;
-								switch(stateIcon) {
+								switch(iconState) {
 									case constants.CHECKBOX_STATE.blank:
 										icon = "checkbox mdi mdi-checkbox-blank-outline";
 										break;
@@ -126,7 +66,9 @@ define([
 						},
 						onClick: {
 							checkbox: function(ev, id) {
-								handleIconSelect(this, id);
+								const element = this.getItem(id);
+								const isInverse = true;
+								checkboxStateService.handleIconSelect(this, id, "hidden", isInverse);
 								return false;
 							}
 						},
@@ -134,8 +76,10 @@ define([
 							onAfterLoad: function() {
 								const view = this;
 								const data = view.data;
+								const isInverse = true;
 								data.each(function(element) {
-									setElementIcon(view, element);
+									const isChecked = !element.hidden;
+									checkboxStateService.setElementIcon(view, element, "hidden", isChecked, isInverse);
 								});
 							}
 						}
@@ -149,6 +93,7 @@ define([
 								.data
 								.serialize();
 							delete data.iconState;
+							delete data.checked;
 							approvedFacetModel.saveApprovedFacets(
 								$$(constants.FACET_FILTER_GROUPLIST_ID)
 									.data

@@ -43,6 +43,7 @@ define([
 										view: "select",
 										id: selectFacetId,
 										label: "Facet",
+										minWidth: 150,
 										options: []
 									},
 									{
@@ -59,6 +60,7 @@ define([
 										view: "select",
 										id: selectTypeId,
 										label: "Type",
+										minWidth: 150,
 										options: []
 									},
 									{
