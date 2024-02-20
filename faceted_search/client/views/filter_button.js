@@ -11,7 +11,7 @@ define([
             {
                 view: 'template',
                 align: 'center',
-                css: "button-text",
+                css: "webixtype_base",
                 id: templateId,
                 template: "<div class='found-button'>Found #count# results!</div>",
                 data: {

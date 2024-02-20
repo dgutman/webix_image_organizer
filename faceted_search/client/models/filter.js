@@ -139,6 +139,7 @@ define([
         }
         AppliedFilters.setAppliedFilters(filters);
         app.callEvent("images:FilterImagesView", [filters, skipThisId]);
+        app.callEvent("caseForm: refreshCasesCount");
     });
 
 

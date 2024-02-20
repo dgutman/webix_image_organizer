@@ -1,19 +1,23 @@
 define([
 	"app",
+	"constants",
 	"helpers/base_jet_view",
 	"models/approved_metadata",
 	"models/filter",
 	"helpers/authentication",
 	"helpers/ajax",
-	"models/applied_filters"
+	"models/applied_filters",
+	"helpers/checkboxStateService"
 ], function(
 	app,
+	constants,
 	BaseJetView,
 	approvedMetadataModel,
 	Filter,
 	auth,
 	ajaxActions,
-	AppliedFilters
+	AppliedFilters,
+	checkboxStateService
 ) {
 	"user strict";
 	app.callEvent("approvedMetadata:loadData");
@@ -137,8 +141,8 @@ define([
 							gravity: 10,
 							select: false,
 							drag: "source",
-							templateGroup: ({value, id, checked}, common) => `<div style="width:100%; display: flex">
-								<span class='metadata-grouplist__group-value'>${value}</span> ${common.checkboxState(checked)} <span style="padding-left:4px">Select all</span>
+							templateGroup: ({value, id, iconState}, common) => `<div style="width:100%; display: flex">
+								<span class='metadata-grouplist__group-value'>${value}</span> ${common.checkboxIconByState(iconState)} <span style="padding-left:4px">Select all</span>
 								</div>`,
 							templateItem: ({value, id, checked}, common) => `<div style="width: 100%; display: flex">
 								<span class='metadata-grouplist__item-value'>${value}</span> ${common.checkboxState(checked)}
@@ -147,13 +151,42 @@ define([
 									checkboxState: (checked) => {
 										const icon = checked ? "checkbox mdi mdi-checkbox-marked" : "checkbox mdi mdi-checkbox-blank-outline";
 										return `<span class='metadata-grouplist__checkbox ${icon}'></span>`;
-									}
+									},
+									checkboxIconByState: (iconState) => {
+										let icon;
+										switch(iconState) {
+											case constants.CHECKBOX_STATE.blank:
+												icon = "checkbox mdi mdi-checkbox-blank-outline";
+												break;
+											case constants.CHECKBOX_STATE.checked:
+												icon = "checkbox mdi mdi-checkbox-marked";
+												break;
+											case constants.CHECKBOX_STATE.minus:
+												icon = "checkbox mdi mdi-minus-box-outline";
+												break;
+											default:
+												break;
+										}
+										return `<span class='metadata-grouplist__checkbox ${icon}'></span>`;
+									},
 								},
 							onClick: {
 								checkbox: (ev, id) => {
 									const grouplistView = $$(METADATA_EXPORT_ID);
-									this.handleIconSelect(grouplistView, id);
+									const isInverse = false;
+									checkboxStateService.handleIconSelect(grouplistView, id, "checked", isInverse);
 									return false;
+								}
+							},
+							on: {
+								onAfterLoad: function() {
+									const view = this;
+									const data = view.data;
+									const isInverse = false;
+									data.each(function(element) {
+										const isChecked = element.hidden;
+										checkboxStateService.setElementIcon(view, element, "checked", isChecked, isInverse);
+									});
 								}
 							}
 						},
@@ -181,11 +214,12 @@ define([
 									Object.assign(filteredData, this.filterData(image, exportMetadata));
 									return filteredData;
 								});
-								const list = webix.ui({
-									view: "list"
-								});
-								list.parse(filteredExportData);
+
 								if (this.exportMethod === EXPORT_METHOD.PUSH_TO_DATASET) {
+									const list = webix.ui({
+										view: "list"
+									});
+									list.parse(JSON.stringify(filteredExportData));
 									const dataset = list.serialize();
 									try {
 										const result = await ajaxActions.postDataset(dataset, datasetName, filters, isPublic);
@@ -194,6 +228,13 @@ define([
 										console.error(JSON.stringify(err));
 									}
 								} else {
+									const list = webix.ui({
+										view: "list"
+									});
+									const data = filteredExportData.map((data) => {
+										return this.convertToDotNotation(data);
+									});
+									list.parse(data);
 									webix.toCSV(list);
 								}
 							}
@@ -257,25 +298,22 @@ define([
 			return dataToDisplay;
 		}
 
-		checkData(id, data, check) {
-			data.eachChild(id, (child) => {
-				child.checked = check;
-				if(data.getBranch(child.id).length > 0) {
-					this.checkData(child.id, data, check);
+		convertToDotNotation(obj) {
+			const newObj = {};
+			const objectKeys = Object.keys(obj);
+			objectKeys.forEach((key) => {
+				if (typeof obj[key] === "object") {
+					const childObject = this.convertToDotNotation(obj[key]);
+					const childObjectKeys = Object.keys(childObject);
+					childObjectKeys.forEach((childKey) => {
+						newObj[`${key}.${childKey}`] = childObject[childKey];
+					});
+				}
+				else {
+					newObj[key] = obj[key];
 				}
 			});
-		}
-
-		handleIconSelect(view, id) {
-			const element = view.getItem(id);
-			const data = view.data;
-			if(element.checked === true) {
-				element.checked = false;
-			} else {
-				element.checked = true;
-			}
-			this.checkData(id, data, element.checked);
-			view.render();
+			return newObj;
 		}
 	};
 });
