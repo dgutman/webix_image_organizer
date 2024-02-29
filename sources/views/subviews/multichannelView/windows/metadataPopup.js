@@ -3,7 +3,7 @@ import {JetView} from "webix-jet";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import PropertyAccordion from "../../../components/propertyAccordion";
 
-const CLOSE_BUTTON_ID = "close-button-id";
+const CLOSE_BUTTON_ID = `close-button-id-${webix.uid()}`;
 
 export default class MetadataPopup extends JetView {
 	constructor(app) {
