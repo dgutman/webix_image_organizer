@@ -311,28 +311,34 @@ export default class ImageWindowView extends JetView {
 		const templateNode = this.$imageContainer.getNode().querySelector("#image_viewer");
 
 		if (viewerType === "seadragon") {
-			this.view.showProgress();
-			// const annotationsData = await this._imageWindowViewModel.asyncLoadAnnotations();
-			const annotationsData = await this._imageWindowViewModel.getAndLoadAnnotations();
-			this.annotationModel = new AnnotationsModel(annotationsData);
-			const firstAnnotation = this.annotationModel.getAnnotationByID(1);
-			const data = await ajax.getImageTiles(obj._id);
-			this.tiles = data; // for geojs
-			const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
-			await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
-			this._tk = new AnnotationToolkit(this._openSeadragonViewer);
-			this.paperProjectModel = new PaperProjectModel(this._tk);
-			this.layersModel = new LayersModel(this._tk);
-			this.itemsModel = new ItemsModel(this._tk);
-			const toolbarControls = this._toolbarView.getToolbarControls();
-			this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
-			this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
-			this._rightPanelEventsService = new RightPanelEventsService(
-				this,
-				this._rightPanel,
-				this._tk,
-			);
-			this.view.hideProgress();
+			try {
+				this.view.showProgress();
+				// const annotationsData = await this._imageWindowViewModel.asyncLoadAnnotations();
+				const annotationsData = await this._imageWindowViewModel.getAndLoadAnnotations();
+				this.annotationModel = new AnnotationsModel(annotationsData);
+				const data = await ajax.getImageTiles(obj._id);
+				this.tiles = data; // for geojs
+				const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
+				await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
+				this._tk = new AnnotationToolkit(this._openSeadragonViewer);
+				this.paperProjectModel = new PaperProjectModel(this._tk);
+				this.layersModel = new LayersModel(this._tk);
+				this.itemsModel = new ItemsModel(this._tk);
+				const toolbarControls = this._toolbarView.getToolbarControls();
+				this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
+				this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
+				this._rightPanelEventsService = new RightPanelEventsService(
+					this,
+					this._rightPanel,
+					this._tk,
+				);
+			}
+			catch (err) {
+				console.error(err);
+			}
+			finally {
+				this.view.hideProgress();
+			}
 		}
 		else if (viewerType === "jsonviewer") {
 			this.view.showProgress();
@@ -385,13 +391,20 @@ export default class ImageWindowView extends JetView {
 	close() {
 		// to clear setted template
 		// to destroy Open Seadragon viewer
-		this._rightPanelEventsService.clearAll();
-		this.$imageContainer.parse({emptyObject: true});
-		this.getRoot().hide();
-		this._controlsView.reset();
-		this._tk.destroy();
-		this._paperJSTools.detachEvents();
-		this._paperJSTools = null;
+		try {
+			this._rightPanelEventsService?.clearAll();
+			this.$imageContainer?.parse({emptyObject: true});
+			this._controlsView?.reset();
+			this._tk?.destroy();
+			this._paperJSTools?.detachEvents();
+			this._paperJSTools = null;
+		}
+		catch (err) {
+			console.error(err);
+		}
+		finally {
+			this.getRoot().hide();
+		}
 	}
 
 	getOSDViewer() {
@@ -407,12 +420,17 @@ export default class ImageWindowView extends JetView {
 		this.app.callEvent("setBounds", []);
 	}
 
+	// TODO: move this properly
 	saveAnnotation() {
 		const annotations = this.annotationModel.getAnnotations();
 		this._imageWindowViewModel.updateGirderWithAnnotationData(annotations);
 	}
 
 	async showAnnotation(annotationData) {
+		// TODO: fix this
+		// if (!this.paperProjectModel.isEmpty()) {
+		// 	this.paperProjectModel.clearProject();
+		// }
 		this._tk.addFeatureCollections(annotationData.elements, true);
 		const layers = this._tk.getFeatureCollectionLayers();
 		if (layers.length > 0) {

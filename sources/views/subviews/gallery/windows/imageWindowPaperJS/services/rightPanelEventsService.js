@@ -28,8 +28,8 @@ export default class RightPanelEventsService {
 			this._rootScope = rootScope;
 			this._rightPanelView = rightPanelView;
 			this._annotationModel = new AnnotationsModel();
-			this._layersModel = new LayersModel();
-			this._itemsModel = new ItemsModel();
+			this._layersModel = new LayersModel(tk);
+			this._itemsModel = new ItemsModel(tk);
 			this._tk = tk;
 			this._paperScope = tk.overlay.paperScope;
 			this._imageWindowViewModel = imageWindowViewModel;
@@ -149,28 +149,42 @@ export default class RightPanelEventsService {
 	attachLayersListViewEvents(layersListView) {
 		layersListView.attachEvent("onAfterSelect", (id) => {
 			console.log(JSON.stringify(id));
-			const newActiveLayer = this.getLayers().find(layer => Number(layer.id) === Number(id));
-			newActiveLayer?.activate();
+			const item = layersListView.getItem(id);
+			const layerToActivate = this.getLayers().find(
+				l => Number(l.id) === item.layerId
+			);
+			this._layersModel.activateLayer(layerToActivate);
 			this.updateItemsList();
 		});
 
 		layersListView.attachEvent("onItemClick", (id) => {
 			console.log(JSON.stringify(id));
+			const item = layersListView.getItem(id);
 			const layerToActivate = this.getLayers().find(
-				l => Number(l.id) === Number(id)
+				l => Number(l.id) === item.layerId
 			);
-			layerToActivate?.activate();
+			this._layersModel.activateLayer(layerToActivate);
 			this.updateItemsList();
 		});
 
 		layersListView.attachEvent("onAfterAdd", (id /* , index */) => {
-			const newLayer = layersListView.getItem(id);
+			const item = layersListView.getItem(id);
 			// TODO: get model here
-			this._rootScope._imageWindowViewModel.createNewLayer(newLayer.name);
+			const newLayer = this._layersModel.createLayer();
+			item.name = newLayer.name;
+			item.layerId = newLayer.id;
+			layersListView.refresh();
 		});
 
 		layersListView.attachEvent("onDataUpdate", (id, data /* , old */) => {
-			this._rootScope._imageWindowViewModel.updateLayerName(id, data.name);
+			const item = layersListView.getItem(id);
+			this._layersModel.updateLayerName(item.layerId, data.name);
+		});
+
+		layersListView.attachEvent("onBeforeDelete", (id) => {
+			const item = layersListView.getItem(id);
+			const layer = this._layersModel.getLayerById(item.layerId);
+			layer.remove();
 		});
 	}
 
@@ -220,20 +234,20 @@ export default class RightPanelEventsService {
 
 	updateAnnotationLayers() {
 		const layers = this.getLayers();
-		const activeLayer = this._paperScope.project.activeLayer;
-		layers.forEach((layer) => {
-			if (layer.id > this._lastId) {
-				this._lastId = layer.id;
-			}
-		});
-		const layersList = layers.map(layer => ({name: layer._displayName, id: layer.id}));
+		const layersList = layers.map(layer => ({name: layer._displayName, layerId: layer.id}));
 		const layersListView = this._rightPanelView.getLayersList();
 		if (layersListView) {
 			layersListView.clearAll();
-			layersListView.parse(layersList);
-			if (layersListView.getItem(activeLayer.id)) {
-				layersListView.select(activeLayer.id);
+			if (layersList.length > 0) {
+				layersListView.parse(layersList);
 			}
+			else {
+				const newLayer = this._layersModel.createLayer();
+				layersList.push({name: newLayer._displayName, layerId: newLayer.id});
+			}
+			const firstId = layersListView.getFirstId();
+			const firstItem = layersListView.getItem(firstId);
+			layersListView.select(firstItem.id);
 		}
 	}
 
@@ -246,8 +260,6 @@ export default class RightPanelEventsService {
 	setActiveLayer() {
 		const layers = this.getLayers();
 		const firstLayer = layers[0];
-		if (firstLayer?.activate) {
-			firstLayer.activate();
-		}
+		this._layersModel.activateLayer(firstLayer);
 	}
 }

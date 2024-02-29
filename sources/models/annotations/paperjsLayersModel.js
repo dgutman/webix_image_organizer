@@ -1,6 +1,13 @@
 import PaperScope from "./paperjsScopeModel";
 
 export default class PaperJSLayersModel {
+	
+	/**
+	 * Creates an instance of PaperJSLayersModel.
+	 *
+	 * @constructor
+	 * @param {import("./../../views/subviews/gallery/windows/imageWindowPaperJS/osd-paperjs-annotation/annotationtoolkit").AnnotationToolkit} tk
+	 */
 	constructor(tk) {
 		this._tk = tk;
 		this._paperScopeModel = new PaperScope(tk);
@@ -18,48 +25,36 @@ export default class PaperJSLayersModel {
 		return PaperJSLayersModel.instance;
 	}
 
-	createLayer(displayLabel = null) {
-		const layer = new paper.Layer();
-		this._paperScope.project.addLayer(layer);
-		layer.isGeoJSONFeatureCollection = true;
-		const layerNum = this._paperScope.project.layers.filter(
-			l => l.isGeoJSONFeatureCollection
-		).length;
-		layer.name = displayLabel !== null ? displayLabel : `Annotation Layer ${layerNum}`;
-		layer.displayName = layer.name;
-		layer.defaultStyle = new paper.Style(this._paperScope.project.defaultStyle);
+	createLayer() {
+		const layer = this._tk.overlay.paperScope.createFeatureCollectionLayer();
 		return layer;
 	}
 
-	addItemToLayer(item) {
-		this._activeLayer?.addChild(item);
-		item.style = this._activeLayer.defaultStyle;
-		item.applyRescale();
-		item.displayName = this._activeLayer.displayName;
+	getLayers() {
+		return this._tk.getFeatureCollectionLayers();
 	}
 
-	getLayersList() {
-		return this._paperScope.project.layers.filter(
-			l => l.isGeoJSONFeatureCollection
-		);
-	}
-
-	addLayerToList(layer) {
-		this._layers.push(layer);
-	}
-
-	getActiveLayer() {
-		return this._paperScope.project.activeLayer;
-	}
-
-	setActiveLayer(layer) {
-		this._activeLayer = layer;
+	activateLayer(layer) {
+		if (layer?.activate) {
+			this._activeLayer = layer;
+			layer.activate();
+		}
+		else {
+			debugger;
+		}
 	}
 
 	updateLayerName(id, name) {
-		const layerToUpdate = this.getLayersList().find(
+		const layerToUpdate = this.getLayers().find(
 			l => l.id === id
 		);
 		layerToUpdate.name = name;
+		layerToUpdate.displayName = name;
+	}
+
+	getLayerById(layerId) {
+		const layers = this.getLayers();
+		const found = layers.find(obj => obj.id === layerId);
+		return found;
 	}
 }
