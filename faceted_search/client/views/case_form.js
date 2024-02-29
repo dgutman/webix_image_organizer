@@ -148,15 +148,23 @@ define([
 	});
 
 	app.attachEvent("caseForm: filtersChanged", function() {
-		const filters = $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}));
+		const appliedFiltersView = $$(appliedFiltersId);
+		const filters = appliedFiltersView && !appliedFiltersView.$destructed
+			? $$(appliedFiltersId).serialize().map((item) => ({stain: item.stain, region: item.region}))
+			: null;
 		// Images.filterByCriterions(filters);
-		caseHelper.filterByCriterions(filters);
+		if (filters) {
+			caseHelper.filterByCriterions(filters);
+		}
 		app.callEvent("caseForm: refreshCasesCount");
 	});
 
 	app.attachEvent("caseForm: refreshCasesCount", () => {
-		$$(casesCountId).data.count = caseHelper.getCasesCount();
-		$$(casesCountId).render();
+		const casesCountView = $$(casesCountId);
+		if (casesCountView && !casesCountView.$destructed) {
+			$$(casesCountId).data.count = caseHelper.getCasesCount();
+			$$(casesCountId).render();
+		}
 	});
 
 	const ui = {

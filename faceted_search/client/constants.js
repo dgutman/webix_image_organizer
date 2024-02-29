@@ -105,6 +105,7 @@ define([], function() {
 			blank: 0,
 			minus: 1,
 			checked: 2,
-		}
+		},
+		STORAGE_HOTKEYS_CONFIG: 'hotkeys-config'
 	};
 });
