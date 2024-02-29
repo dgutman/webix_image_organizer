@@ -43,10 +43,10 @@ define([
 	
 		async addHotkey(hotkey, handler) {
 			if (this._assignedKeysSet.has(hotkey)) {
-				const result = await webix.confirm("This hotkey has been assigned. Please confirm this action", "confirm-warning");
-				if (result) {
-					hotkeysJS(hotkey, this._scope, handler);
-				}
+				// const result = await webix.confirm("This hotkey has been assigned. Please confirm this action", "confirm-warning");
+				// if (result) {
+				hotkeysJS(hotkey, this._scope, handler);
+				// }
 			}
 			else {
 				this._assignedKeysSet.add(hotkey);
