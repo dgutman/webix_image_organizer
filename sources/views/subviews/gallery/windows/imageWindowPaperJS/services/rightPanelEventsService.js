@@ -52,6 +52,7 @@ export default class RightPanelEventsService {
 	 */
 	init() {
 		this.attachPaperscopeEvents(this._paperScope.project);
+		this.attachAppEvents(this._rootScope.app);
 		const layersListView = this._rightPanelView.getLayersList();
 		const itemsListView = this._rightPanelView.getItemsList();
 		const saveAnnotationButton = this._rightPanelView.getSaveButton();
@@ -81,7 +82,7 @@ export default class RightPanelEventsService {
 		if (saveAnnotationButton) {
 			saveAnnotationButton.attachEvent("onItemClick", () => {
 				this.updateActiveAnnotation();
-				this._rootScope.saveAnnotation();
+				this.saveAnnotations();
 			});
 		}
 
@@ -101,6 +102,12 @@ export default class RightPanelEventsService {
 				this.updateItemsList();
 				this.updateActiveAnnotation();
 			}
+		});
+	}
+
+	attachAppEvents(app) {
+		app.attachEvent("rightPanelEvents-updateLayer", () => {
+			this.updateItemsList();
 		});
 	}
 
@@ -209,8 +216,8 @@ export default class RightPanelEventsService {
 				id: item._id,
 				name: item._displayName
 			}));
-		itemsListView.clearAll();
-		itemsListView.parse(items);
+		itemsListView?.clearAll();
+		itemsListView?.parse(items);
 	}
 
 	/**
@@ -243,23 +250,31 @@ export default class RightPanelEventsService {
 			}
 			else {
 				const newLayer = this._layersModel.createLayer();
-				layersList.push({name: newLayer._displayName, layerId: newLayer.id});
+				const data = {name: newLayer._displayName, layerId: newLayer.id};
+				layersList.push(data);
+				layersListView.parse(data);
 			}
 			const firstId = layersListView.getFirstId();
 			const firstItem = layersListView.getItem(firstId);
-			layersListView.select(firstItem.id);
+			if (firstItem) {
+				layersListView.select(firstItem.id);
+			}
 		}
 	}
 
 	updateActiveAnnotation() {
 		const annotationData = this._tk.toGeoJSON();
 		this._annotationModel.updateActiveAnnotation(annotationData);
-		console.log(annotationData);
 	}
 
 	setActiveLayer() {
 		const layers = this.getLayers();
 		const firstLayer = layers[0];
 		this._layersModel.activateLayer(firstLayer);
+	}
+
+	saveAnnotations() {
+		const annotations = this._annotationModel.getAnnotations();
+		this._imageWindowViewModel.updateGirderWithAnnotationData(annotations);
 	}
 }

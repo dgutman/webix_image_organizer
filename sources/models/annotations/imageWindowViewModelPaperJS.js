@@ -1,6 +1,7 @@
 import lodash from "lodash";
 
 import ajax from "../../services/ajaxActions";
+import adapter from "../../views/subviews/gallery/windows/imageWindowPaperJS/services/adapter";
 import validate from "../../services/gallery/annotationValidator";
 
 export default class imageWindowViewModel {
@@ -110,16 +111,14 @@ export default class imageWindowViewModel {
 	async getAndLoadAnnotations() {
 		const data = await ajax.getAnnotationsByItemId(this.item._id);
 		if (!lodash.isEmpty(data)) {
-			const annotations = data
-				.filter(item => item?.annotation?.attributes?.dsalayers)
-				.map((item) => {
-					const annotation = {};
-					annotation.name = item.annotation.name;
-					annotation.description = item.annotation.description;
-					annotation.elements = item.annotation.attributes.dsalayers;
-					annotation._id = item._id;
-					return annotation;
-				});
+			const annotations = data.map((item) => {
+				const annotation = {};
+				annotation.name = item.annotation.name;
+				annotation.description = item.annotation.description;
+				annotation._id = item._id;
+				annotation.elements = adapter.annotationToFeatureCollections(item);
+				return annotation;
+			});
 			return annotations;
 		}
 		return [];
@@ -129,11 +128,16 @@ export default class imageWindowViewModel {
 	async updateGirderWithAnnotationData(annotations) {
 		annotations.forEach(async (annotationData) => {
 			console.log(annotationData);
+			const data = {};
+			data.name = annotationData.name;
+			data.description = annotationData.description;
+			data.elements = adapter.featureCollectionsToElements(annotationData.elements);
 			if (annotationData._id) {
-				ajax.updateAnnotationById(annotationData);
+				data._id = annotationData._id;
+				ajax.updateAnnotationById(data);
 			}
 			else {
-				ajax.createAnnotation(annotationData);
+				ajax.createAnnotation(this.item._id, data);
 			}
 		});
 	}

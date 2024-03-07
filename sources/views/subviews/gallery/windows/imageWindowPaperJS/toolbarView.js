@@ -97,6 +97,15 @@ export default class ToolbarView extends JetView {
 							inputHeight: 40,
 							width: 40,
 							height: 40,
+							// click: () => {
+							// 	let deleteBool = this.organizeButtonsAction("line");
+							// 	this.enableSwitch(deleteBool);
+							// 	if (!deleteBool) {
+							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["line"]));
+							// 	}
+							// 	else this.app.callEvent("disabledDrawingPointer", []);
+							// 	this.setFullpageButtonHandle();
+							// }
 						},
 						{
 							view: "button",
@@ -163,27 +172,18 @@ export default class ToolbarView extends JetView {
 						// 	// }
 						// },
 						// TODO: enable after implement
-						// {
-						// 	view: "button",
-						// 	type: "icon",
-						// 	localId: "select",
-						// 	icon: "fas fa-hand-pointer",
-						// 	tooltip: "Select",
-						// 	css: "drawing_buttons",
-						// 	inputWidth: 40,
-						// 	inputHeight: 40,
-						// 	width: 40,
-						// 	height: 40
-						// 	// click: () => {
-						// 	// 	let deleteBool = this.organizeButtonsAction("polygon");
-						// 	// 	this.enableSwitch(deleteBool);
-						// 	// 	if (!deleteBool) {
-						// 	// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["polygon"]));
-						// 	// 	}
-						// 	// 	else this.app.callEvent("disabledDrawingPointer", []);
-						// 	// 	this.setFullpageButtonHandle();
-						// 	// }
-						// },
+						{
+							view: "button",
+							type: "icon",
+							localId: "select",
+							icon: "fas fa-hand-pointer",
+							tooltip: "Select",
+							css: "drawing_buttons",
+							inputWidth: 40,
+							inputHeight: 40,
+							width: 40,
+							height: 40
+						},
 						{
 							view: "button",
 							type: "icon",

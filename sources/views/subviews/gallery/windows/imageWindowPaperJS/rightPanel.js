@@ -27,7 +27,7 @@ export default class RightPanel extends JetView {
 				this.items,
 				{
 					view: "button",
-					label: "Save annotation",
+					label: "Save annotations",
 					id: this.ID_SAVE_BUTTON
 				}
 			]
