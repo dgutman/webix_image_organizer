@@ -3,9 +3,10 @@ import {JetView} from "webix-jet";
 export default class ListView extends JetView {
 	constructor(app, config = {}) {
 		super(app);
-		const {name, newItemName} = config;
+		const {name, newItemName, isAddButtonHidden} = config;
 		this.name = name;
 		this.newItemName = newItemName;
+		this.isAddButtonHidden = isAddButtonHidden;
 		this.ID_FORM = `form-id-${webix.uid()}`;
 		this.ID_CHANGE_FORM = `change-form-id-${webix.uid()}`;
 		this.ID_LIST = `list-id-${webix.uid()}`;
@@ -39,7 +40,8 @@ export default class ListView extends JetView {
 									label: "+",
 									width: 24,
 									height: 24,
-									gravity: 1
+									gravity: 1,
+									hidden: this.isAddButtonHidden
 								},
 							]
 						},

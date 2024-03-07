@@ -64,6 +64,7 @@ export default {
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
 	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
+	STORAGE_HOTKEYS_CONFIG: "hotkeys-config",
 
 	LINEAR_STRUCTURE_LIMIT: 2000,
 	CASEVIEW_LIMIT: 2000,

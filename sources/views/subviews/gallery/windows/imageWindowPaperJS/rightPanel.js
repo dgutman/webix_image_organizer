@@ -15,7 +15,7 @@ export default class RightPanel extends JetView {
 		super(app, config);
 		this.annotations = new ListView(app, {name: "Annotations", newItemName: "Annotation"});
 		this.layers = new ListView(app, {name: "Layers", newItemName: "Layer"});
-		this.items = new ListView(app, {name: "Items", newItemName: "Item"});
+		this.items = new ListView(app, {name: "Items", newItemName: "Item", isAddButtonHidden: true});
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
 	}
 

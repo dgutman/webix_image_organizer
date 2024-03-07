@@ -1,6 +1,8 @@
-import hotkeys from "hotkeys-js";
+import hotkeysJS from "hotkeys-js";
 import {JetView} from "webix-jet";
 
+import HotkeysModel from "./model/hotkeysModel";
+import HotkeysConfigWindow from "./windows/hotkeysConfig";
 import stateStore from "../../../models/multichannelView/stateStore";
 
 const GROUP_CHANNEL_LAYOUT_ID = `group-channel-layout-${webix.uid()}`;
@@ -10,10 +12,16 @@ const GROUP_CHANNELS_OPACITY_SLIDER_ID = "group-channels-opacity-slider";
 export default class GroupChannels extends JetView {
 	constructor(app, groupsPanel, groupName, isHotkey) {
 		super(app);
-		this._hotkeyCounter = isHotkey ? 1 : null;
+		this._isHotkey = isHotkey;
+		this._hotkeyScope = isHotkey
+			? `group-channels-hotkeys-scope-${webix.uid()}`
+			: null;
 		this._groupsPanel = groupsPanel;
 		this._channelsGroupName = groupName;
 		this._channelsSlidersContainersIds = new Map();
+		this._hotkeysModel = isHotkey
+			? new HotkeysModel(this._hotkeyScope)
+			: null;
 	}
 
 	config() {
@@ -22,8 +30,24 @@ export default class GroupChannels extends JetView {
 			hidden: true,
 			rows: [
 				{
-					template: this._channelsGroupName,
-					height: 30
+					cols: [
+						{
+							template: this._channelsGroupName,
+							height: 30,
+						},
+						/** @type {webix.ui.icon} */
+						{
+							view: "icon",
+							icon: "fas fa-tools",
+							hidden: !this._isHotkey,
+							width: 32,
+							height: 32,
+							click: () => {
+								this._hotkeysConfigWindow.showWindow();
+							},
+							borderless: true
+						}
+					]
 				},
 				{
 					view: "list",
@@ -39,12 +63,9 @@ export default class GroupChannels extends JetView {
 						const focusIcon = "fas fa-dot-circle";
 						const containerId = webix.uid();
 						this._channelsSlidersContainersIds.set(id, containerId);
-						const iconElementId = webix.uid();
-						this.setHotkeyToIcon(iconElementId);
-						// Save focusHotkey value before call incrementHotkeyCounter function
 						const focusHotkey = this._hotkeyCounter;
 						const focusTooltip = this._hotkeyCounter !== null
-							? `<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}" id="${iconElementId}"></span>`
+							? `<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}"></span>`
 							: "";
 						this.incrementHotkeyCounter();
 						return `<div class="channel-item">
@@ -74,8 +95,6 @@ export default class GroupChannels extends JetView {
 							this.createChannelsSliders();
 						},
 						onDataUpdate: (/* id */) => {
-							this.resetHotkeyCounter();
-							this.clearHotkeys();
 							this.getChannelsList().refresh();
 						}
 					},
@@ -120,14 +139,15 @@ export default class GroupChannels extends JetView {
 
 	ready() {
 		webix.TooltipControl.addTooltip(this.$$(GROUP_CHANNELS_LIST_ID).$view);
-		hotkeys("0", (/* event, handler */) => {
-			const channelList = this.getChannelsList();
-			channelList?.data?.each((channel) => {
-				const channelOpacity = 1;
-				channelList.updateItem(channel.id, {opacity: channelOpacity});
-				this.updateChannelOpacity(channel.channelIndexInGroup, channelOpacity);
-			});
-		});
+		if (this._isHotkey) {
+			if (hotkeysJS.getScope() !== this._hotkeyScope) {
+				hotkeysJS.setScope(this._hotkeyScope);
+			}
+			this.setHotkeys();
+		}
+		this._hotkeysConfigWindow = this._isHotkey
+			? this.ui(new HotkeysConfigWindow(this.app, this._hotkeysModel))
+			: null;
 	}
 
 	showOrHideChannel(id) {
@@ -274,13 +294,33 @@ export default class GroupChannels extends JetView {
 		}
 	}
 
-	setHotkeyToIcon(iconElementId) {
-		if (this._hotkeyCounter !== null && this._hotkeyCounter !== 0) {
-			hotkeys(`${this._hotkeyCounter}`, (/* event, handler */) => {
-				const iconElement = document.getElementById(iconElementId);
-				iconElement?.click();
-			});
+	setHotkeys() {
+		const opacityResetHandler = this.resetOpacity.bind(this);
+		const hotkeysArray = this._hotkeysModel.getHotkeysArray();
+		this._hotkeysModel.addHotkey(hotkeysArray[0], opacityResetHandler);
+		const channelsList = this.getChannelsList();
+		const itemsCount = channelsList.count();
+		for (let index = 0; index <= itemsCount || index < hotkeysArray.length; index++) {
+			const hotkeyPressHandler = this.hotkeyPressHandler.bind(this, index);
+			this._hotkeysModel.addHotkey(`${hotkeysArray[index + 1]}`, hotkeyPressHandler);
 		}
+	}
+
+	hotkeyPressHandler(channelIndexInGroup) {
+		const channelList = this.getChannelsList();
+		const item = channelList.find(obj => obj.channelIndexInGroup === channelIndexInGroup)[0];
+		if (item) {
+			this.focusOnChannel(item.id);
+		}
+	}
+
+	resetOpacity() {
+		const channelList = this.getChannelsList();
+		channelList?.data?.each((channel) => {
+			const channelOpacity = 1;
+			channelList.updateItem(channel.id, {opacity: channelOpacity});
+			this.updateChannelOpacity(channel.channelIndexInGroup, channelOpacity);
+		});
 	}
 
 	incrementHotkeyCounter() {
@@ -295,16 +335,10 @@ export default class GroupChannels extends JetView {
 		}
 	}
 
-	resetHotkeyCounter() {
-		if (this._hotkeyCounter !== null) {
-			this._hotkeyCounter = 1;
-		}
-	}
-
 	clearHotkeys() {
 		if (this._hotkeyCounter !== null) {
 			for (let i = 1; i < 10; i++) {
-				hotkeys.unbind(`${i}`);
+				hotkeysJS.unbind(`${i}`);
 			}
 		}
 	}
@@ -312,13 +346,16 @@ export default class GroupChannels extends JetView {
 	clearList() {
 		const list = this.getChannelsList();
 		list.clearAll();
-		this.resetHotkeyCounter();
 	}
 
 	handleChannelsOrderChange(newChannelIndex, oldChannelIndex) {
 		this._groupsPanel.handleChannelsOrderChange(newChannelIndex, oldChannelIndex);
 	}
 
+	/**
+	 *
+	 * @returns {webix.ui.list}
+	 */
 	getChannelsList() {
 		return this.$$(GROUP_CHANNELS_LIST_ID);
 	}

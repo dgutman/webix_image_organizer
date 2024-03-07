@@ -16,39 +16,6 @@ export default class imageWindowViewModel {
 		return this.item;
 	}
 
-	setLayer(layer) {
-		this.layersModel.setLayer(layer);
-	}
-
-	getLayers() {
-		return this.layersModel?.getLayer();
-	}
-
-
-	getToolKit() {
-		return this.tk;
-	}
-
-	createNewLayer(displayName) {
-		return this.layersModel.createLayer(displayName);
-	}
-
-	createNewItem() {
-		return this.itemsModel.createNewItem();
-	}
-
-	addLayer(layer) {
-		this.layersModel.addLayerToList(layer);
-	}
-
-	addAnnotation(annotation) {
-		this.annotationModel.addAnnotation(annotation);
-	}
-
-	updateLayerName(id, name) {
-		this.layersModel.updateLayerName(id, name);
-	}
-
 	async asyncLoadAnnotations() {
 		if (this.item) {
 			const annotationData = await this.getAndLoadAnnotations();

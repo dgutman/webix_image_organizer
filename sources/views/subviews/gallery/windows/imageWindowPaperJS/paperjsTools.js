@@ -7,7 +7,7 @@ import EllipseTool from "./osd-paperjs-annotation/papertools/ellipse";
 import PolygonTool from "./osd-paperjs-annotation/papertools/polygon";
 // import {RasterTool} from "./osd-paperjs-annotation/papertools/raster";
 import RectangleTool from "./osd-paperjs-annotation/papertools/rectangle";
-// import SelectTool from "./osd-paperjs-annotation/papertools/select";
+import SelectTool from "./osd-paperjs-annotation/papertools/select";
 // import {StyleTool} from "./osd-paperjs-annotation/papertools/style";
 // import {TransformTool} from "./osd-paperjs-annotation/papertools/transform";
 // import {WandTool} from "./osd-paperjs-annotation/papertools/wand";
@@ -25,6 +25,7 @@ export default class PaperJSTools {
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.rectangle] = RectangleTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.ellipse] = EllipseTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.polygon] = PolygonTool;
+		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.select] = SelectTool;
 		// TODO: implement other tools
 		// this.toolConstructors[constants.ANNOTATION_TOOLS_IDS.brush] = Brush;
 		// this.toolConstructors[constants.ANNOTATION_TOOLS_IDS.linestring] = LinestringTool;
