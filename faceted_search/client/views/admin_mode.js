@@ -53,16 +53,22 @@ define([
 
 	app.attachEvent("adminMode:doProgress", function(type) {
 		if(type === "edit") {
-			webix.extend($$(editViewId), webix.ProgressBar);
-			$$(editViewId).showProgress({
-				type: "icon"
-			});
+			const editView = $$(editViewId);
+			if (editView && !editView.$destructed) {
+				webix.extend(editView, webix.ProgressBar);
+				editView.showProgress({
+					type: "icon"
+				});
+			}
 		}
 	});
 
 	app.attachEvent("adminMode:onLoaded", function(type, showMsg) {
 		if(type === "edit") {
-			$$(editViewId).hideProgress();
+			const editView = $$(editViewId);
+			if (editView && !editView.$destructed) {
+				$$(editViewId).hideProgress();
+			}
 		}
 		if(showMsg) {
 			webix.message({
