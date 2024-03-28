@@ -207,7 +207,9 @@ class MetadataTableService {
 					}
 					copyItemToEdit.highlightedValues = [];
 					copyItemToEdit.highlightedValues = itemsModel.findHighlightedValues(copyItemToEdit);
+					itemsDataCollection.blockEvent();
 					itemsDataCollection.parse(copyItemToEdit);
+					itemsDataCollection.unblockEvent();
 					this._view.showProgress();
 					ajaxActions.updateItemMetadata(itemToEdit._id, copyItemToEdit.meta, itemToEdit._modelType)
 						.then(() => {

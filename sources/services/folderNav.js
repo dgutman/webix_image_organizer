@@ -51,9 +51,7 @@ export default class FolderNav {
 		if (this.inProgress && nextFolderName) {
 			this.openSingleFolder(nextFolderName, folder.$level);
 		}
-		else {
-			this.inProgress = false;
-		}
+		this.inProgress = false;
 	}
 
 	openSingleFolder(folderName, position) {
