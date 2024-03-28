@@ -100,6 +100,7 @@ export default class PolygonTool extends AnnotationTool {
 
 		tool.onMouseUp = function (/* ev */) {
 			self.modifyArea();
+			self.project.paperScope.project.emit("item-created");
 		};
 
 		tool.onMouseWheel = function (ev) {

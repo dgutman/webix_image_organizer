@@ -35,6 +35,10 @@ export default class AnnotationsModel {
 	setActiveAnnotation(id) {
 		this.activeAnnotation = this.annotationsMap.get(Number(id) ?? 1);
 		this.activeAnnotationId = Number(id);
+		if (this.activeAnnotation) {
+			return this.activeAnnotation;
+		}
+		return null;
 	}
 
 	getActiveAnnotation() {
@@ -55,6 +59,7 @@ export default class AnnotationsModel {
 
 	addAnnotation(annotation, id) {
 		this.annotationsMap.set(Number(id), annotation);
+		return this.annotationsMap.get(Number(id));
 	}
 
 	createAnnotation(data) {
@@ -72,12 +77,20 @@ export default class AnnotationsModel {
 
 	updateActiveAnnotation(annotationData) {
 		const activeAnnotation = this.annotationsMap.get(Number(this.activeAnnotationId));
-		activeAnnotation.elements = annotationData;
+		if (activeAnnotation) {
+			activeAnnotation.elements = annotationData;
+			return true;
+		}
+		return false;
 	}
 
 	updateAnnotation(annotationData, id) {
 		const annotation = this.annotationsMap.get(Number(id));
-		annotation.elements = annotationData;
+		if (annotation) {
+			annotation.elements = annotationData;
+			return true;
+		}
+		return false;
 	}
 
 	clearAnnotations() {
