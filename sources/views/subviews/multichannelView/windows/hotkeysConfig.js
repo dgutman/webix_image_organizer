@@ -45,7 +45,8 @@ export default class hotkeysConfigWindow extends JetView {
 						view: "switch",
 						value: 1,
 						label: "Use letters",
-						width: 200
+						width: 200,
+						hidden: true
 					},
 					{
 						view: "button",
@@ -115,7 +116,7 @@ export default class hotkeysConfigWindow extends JetView {
 			)[0];
 			if (duplicate) {
 				duplicate.hotkey = "";
-				duplicate.refresh();
+				datatable.refresh();
 			}
 		});
 		datatable.data.attachEvent("onDataUpdate", () => {
