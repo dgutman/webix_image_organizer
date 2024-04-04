@@ -14,7 +14,7 @@ import SelectTool from "./osd-paperjs-annotation/papertools/select";
 import constants from "../../../../../constants";
 
 export default class PaperJSTools {
-	constructor(tk, toolbarControls) {
+	constructor(app, tk, toolbarControls) {
 		this.paperScope = tk?.overlay.paperScope;
 		this.currentMode = null;
 		this.setModelTimeout = null;
@@ -49,31 +49,37 @@ export default class PaperJSTools {
 		// items emit events on the paper project; add listeners to update the toolbar status as needed
 		this.paperScope.project.on({
 			"item-replaced": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-replaced");
 				this.setMode();
 			},
 
 			"item-selected": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-selected");
 				this.setMode();
 			},
 
 			"item-deselected": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-deselected");
 				this.setMode();
 			},
 
 			"item-removed": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-removed");
 				this.setMode();
 			},
 
 			"items-changed": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-changed");
 				this.setMode();
 			},
 
 			"item-created": () => {
+				app.callEvent("rightPanelEvents-updateLayer");
 				console.log("item-created");
 			}
 		});

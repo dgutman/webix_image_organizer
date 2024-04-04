@@ -143,6 +143,7 @@ export default class PolygonTool extends AnnotationTool {
 				}
 			}
 			self.saveHistory();
+			self.project.paperScope.project.emit("item-created");
 		};
 
 		tool.extensions.onKeyDown = (ev) => {

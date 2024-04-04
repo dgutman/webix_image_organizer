@@ -325,12 +325,13 @@ export default class ImageWindowView extends JetView {
 				this.layersModel = new LayersModel(this._tk);
 				this.itemsModel = new ItemsModel(this._tk);
 				const toolbarControls = this._toolbarView.getToolbarControls();
-				this._paperJSTools = new PaperJSTools(this._tk, toolbarControls);
+				this._paperJSTools = new PaperJSTools(this.app, this._tk, toolbarControls);
 				this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
 				this._rightPanelEventsService = new RightPanelEventsService(
 					this,
 					this._rightPanel,
 					this._tk,
+					this._imageWindowViewModel
 				);
 			}
 			catch (err) {

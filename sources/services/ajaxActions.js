@@ -39,6 +39,7 @@ webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, pro
 });
 
 class AjaxActions {
+	// TODO: create enum for serverList (hostApiURL, ImagesHostUrl, HostId).
 	getHostApiUrl() {
 		return webix.storage.local.get("hostAPI");
 	}
@@ -376,30 +377,27 @@ class AjaxActions {
 		}
 	}
 
-	async updateAnnotationById(annotationData) {
-		const annotationId = annotationData._id;
-		const annotationInfo = {
-			dsalayers: annotationData.elements
-		};
-		const params = JSON.stringify(annotationInfo);
-		if (annotationId) {
-			const url = `${this.getHostApiUrl()}/annotation/${annotationId}/metadata`;
-			const response = await this._ajax().headers({
-				"Accept": "application/json",
-				"Content-type": "application/json"
-			}).put(url, params);
+	async updateAnnotationById(annotationData, annotationId) {
+		const params = JSON.stringify(annotationData);
+		try {
+			if (annotationId) {
+				const url = `${this.getHostApiUrl()}/annotation/${annotationId}`;
+				const response = await this._ajax().headers({
+					"Accept": "application/json",
+					"Content-type": "application/json"
+				}).put(url, params);
+				return this._parseData(response);
+			}
+			return null;
+		}
+		catch (error) {
+			parseError(error);
+			return null;
 		}
 	}
 
 	async createAnnotation(itemId, annotationData) {
-		const annotationInfo = {
-			attributes: {
-				dsalayers: annotationData.elements
-			},
-			name: annotationData.name,
-			description: annotationData.description
-		};
-		const params = JSON.stringify(annotationInfo);
+		const params = JSON.stringify(annotationData);
 		const url = `${this.getHostApiUrl()}/annotation?itemId=${itemId}`;
 		try {
 			const response = await this._ajax().headers({

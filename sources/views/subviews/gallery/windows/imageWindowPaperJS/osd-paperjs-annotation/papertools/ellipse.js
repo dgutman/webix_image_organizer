@@ -161,6 +161,7 @@ export default class EllipseTool extends AnnotationTool {
 			crosshairTool.visible = false;
 			self.creating = null;
 			// self.toolbarControl.updateInstructions("Point:Ellipse");
+			self.project.paperScope.project.emit("item-created");
 		};
 		const changeHandler = function () {
 			if (self.itemToCreate) {

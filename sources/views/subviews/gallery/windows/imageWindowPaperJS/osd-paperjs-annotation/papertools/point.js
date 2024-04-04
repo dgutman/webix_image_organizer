@@ -71,6 +71,7 @@ export default class PointTool extends AnnotationTool {
 		tool.onMouseUp = function (/* ev */) {
 			dragging = false;
 			self.project.overlay.removeClass("point-tool-grabbing");
+			self.project.paperScope.project.emit("item-created");
 		};
 	}
 }

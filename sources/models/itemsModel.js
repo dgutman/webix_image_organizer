@@ -54,7 +54,12 @@ export default class ItemsModel {
 		let branch = this.finderView.data.getBranch(parentId) || [];
 		const parent = this.findItem(parentId);
 		if (parent?.linear) {
-			parent.linear.count = linearDataCount;
+			if (!parent.linear.count) {
+				parent.linear.count = linearDataCount;
+			}
+			else {
+				parent.linear.count += linearDataCount;
+			}
 		}
 		const count = this.getFolderCount(parent) + dataArray.length;
 		let items = dataArray;

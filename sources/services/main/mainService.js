@@ -497,7 +497,7 @@ class MainService {
 				}
 			});
 
-			this._finderContextMenu.attachEvent("onItemClick", (id) => {
+			this._finderContextMenu.attachEvent("onItemClick", async (id) => {
 				let itemId;
 				let folderId;
 				const item = this._finderContextMenu.getItem(id);
@@ -515,7 +515,7 @@ class MainService {
 					}
 					case constants.LINEAR_CONTEXT_MENU_ID: {
 						const isCollapsed = true;
-						this._loadLinearImages(folderId, isCollapsed);
+						await this._loadLinearImages(folderId, isCollapsed);
 						break;
 					}
 					case constants.RENAME_FILE_CONTEXT_MENU_ID: {
@@ -1181,7 +1181,7 @@ class MainService {
 		else {
 			const parentId = this._finder.getParentId(id);
 			this._finderFolder = this._finder.getItem(parentId);
-			this._loadLinearImages(parentId, isCollapsed);
+			await this._loadLinearImages(parentId, isCollapsed);
 			return;
 		}
 		if (item._modelType === "item" || !item._modelType) {
@@ -1194,7 +1194,7 @@ class MainService {
 		}
 		else if (item._modelType === "folder") {
 			if (item?.meta?.isLinear) {
-				this._loadLinearImages(id, isCollapsed);
+				await this._loadLinearImages(id, isCollapsed);
 			}
 			else {
 				this._itemsModel.selectedItem = item;
@@ -1436,48 +1436,53 @@ class MainService {
 		}
 	}
 
-	linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
+	async linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
 		const folder = this._finder.getItem(folderId);
-		return ajaxActions.getLinearStructure(folder._id, sourceParams)
-			.then((data) => {
-				if (data.length === 0) {
-					folder.linear = null;
-					this._itemsModel.updateItems(this._finderFolder);
+		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
+		if (data.length === 0) {
+			folder.linear = null;
+			this._itemsModel.updateItems(this._finderFolder);
+		}
+		else if (folder.linear) {
+			const finderElements = [];
+			if (isCollapsed /* && sourceParams.offset === 0 */) {
+				if (sourceParams.offset === 0) {
+					finderElements.push(
+						...data.slice(0, constants.COLLAPSED_ITEMS_COUNT - sourceParams.offset)
+					);
 				}
-				else if (folder.linear) {
-					let finderElements;
-					if (isCollapsed && !addBatch) {
-						finderElements = data.slice(0, constants.COLLAPSED_ITEMS_COUNT);
-						finderElements.push({link: constants.EXPAND_LINK});
-					}
-					else if (!addBatch) {
-						finderElements = webix.copy(data);
-						finderElements.push({link: constants.COLLAPSE_LINK});
-					}
-					if (finderElements) {
-						this._itemsModel.parseItems(finderElements, folderId, data?.length);
-					}
-					this._itemsModel.parseDataToViews(webix.copy(data), addBatch, folderId);
-					this._highlightLastSelectedFolder();
-
-					if (data.length < sourceParams.limit) {
-						const currentLinear = folder.linear;
-						this._finder.updateItem(
-							folderId,
-							{linear: Object.assign(currentLinear, constants.LOADING_STATUSES.DONE)}
-						);
-					}
-					else {
-						const newParams = {
-							sort: "lowerName",
-							limit: constants.LINEAR_STRUCTURE_LIMIT,
-							offset: this._itemsModel.getFolderCount(folder)
-						};
-
-						this.linearStructureHandler(folderId, newParams, true, isCollapsed);
-					}
+				if (data.length < sourceParams.limit) {
+					finderElements.push({link: constants.EXPAND_LINK});
 				}
-			});
+			}
+			else if (data.length < sourceParams.limit) {
+				finderElements.push(...webix.copy(data));
+				finderElements.push({link: constants.COLLAPSE_LINK});
+			}
+			if (finderElements) {
+				this._itemsModel.parseItems(finderElements, folderId, data?.length);
+			}
+			this._itemsModel.parseDataToViews(webix.copy(data), true, folderId);
+			this._highlightLastSelectedFolder();
+
+			if (data.length < sourceParams.limit) {
+				const currentLinear = folder.linear;
+				this._finder.updateItem(
+					folderId,
+					{linear: Object.assign(currentLinear, constants.LOADING_STATUSES.DONE)}
+				);
+			}
+			else {
+				const newOffset = sourceParams.offset + data.length;
+				const newParams = {
+					sort: "lowerName",
+					limit: constants.LINEAR_STRUCTURE_LIMIT,
+					offset: newOffset
+				};
+
+				this.linearStructureHandler(folderId, newParams, addBatch, isCollapsed);
+			}
+		}
 	}
 
 	_closeThumbnailViewPanels() {
@@ -1489,9 +1494,10 @@ class MainService {
 		this._galleryFeaturesView.hide();
 	}
 
-	_loadLinearImages(folderId, isCollapsed) {
+	async _loadLinearImages(folderId, isCollapsed) {
 		const sourceParams = {
 			sort: "lowerName",
+			offset: 0,
 			limit: constants.LINEAR_STRUCTURE_LIMIT
 		};
 		if (this._finderFolder.hasOpened || this._finderFolder.open) {
@@ -1508,7 +1514,7 @@ class MainService {
 		this._finderFolder.linear = Object.assign({}, constants.LOADING_STATUSES.IN_PROGRESS);
 		this._itemsModel.updateItems(this._finderFolder);
 		const addBatch = false;
-		this.linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed);
+		await this.linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed);
 	}
 }
 

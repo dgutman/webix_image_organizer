@@ -183,6 +183,7 @@ export default class RectangleTool extends AnnotationTool {
 			crosshairTool.visible = false;
 			self.creating = null;
 			// self.toolbarControl.updateInstructions("Point:Rectangle");
+			self.project.paperScope.project.emit("item-created");
 		};
 		this.extensions.onActivate = function () {
 			if (self.itemToCreate) {
