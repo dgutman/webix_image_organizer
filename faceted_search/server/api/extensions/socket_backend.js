@@ -158,7 +158,7 @@ class Backend {
                 console.log('response for images collection is cached');
             })
             .catch((err) => {
-                this.socket.emit('error', err);
+                this.socket.emit('error', err, folderName);
                 console.log(err);
                 return Promise.resolve();
             });

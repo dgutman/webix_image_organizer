@@ -83,11 +83,11 @@ define([
 		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token, folderName});
 	};
 
-	socketStream(socketConnect).on("error", (err) => {
-		app.callEvent("editForm:finishLoading", [{title: "Error!"}]);
+	socketStream(socketConnect).on("error", (err, folderName) => {
+		app.callEvent("editForm:finishLoading", [folderName, null, JSON.stringify(err)]);
 		webix.message({
 			type: "message",
-			text: "Something went wrong!"
+			text: "server: Something went wrong!"
 		});
 	});
 
