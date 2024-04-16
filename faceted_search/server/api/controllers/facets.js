@@ -17,7 +17,7 @@ exports.getImagesData = (req, res) => {
 			Promise.resolve(hash),
 			Promise.resolve(images),
 			ProcessApprovedMetadataRequest.getApprovedMetadataData(),
-			LoadFromGirder.getAllowedFolders(host, token)
+			hash ? LoadFromGirder.getAllowedFolders(host, token) : null
 		]);
 	})
 	.then(([hash, images, approvedMetadataData, allowedFolders]) => {
@@ -34,11 +34,11 @@ exports.getImagesData = (req, res) => {
 			if (host) {
 				hostImages = JSON.parse(images).filter((obj) => obj.host === host);
 			}
+			if (allowedFolders) {
+				filteredImages = hostImages?.filter((obj) => lodash.includes(allowedFolders, obj.data.folderId));
+			}
 		} else {
 			hostImages = images;
-		}
-		if (allowedFolders) {
-			filteredImages = hostImages?.filter((obj) => lodash.includes(allowedFolders, obj.data.folderId));
 		}
 		return [hash, filteredImages];
 	});

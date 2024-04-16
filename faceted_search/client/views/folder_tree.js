@@ -301,7 +301,7 @@ define([
 				}
 			});
 
-			app.attachEvent("editForm:finishLoading", function(folderName, operation) {
+			app.attachEvent("editForm:finishLoading", function(folderName, operation, errorMessage) {
 				const resyncButton = $$(resyncButtonId);
 				const tree = $$(constants.FOLDER_TREE_ID);
 
@@ -338,13 +338,18 @@ define([
 							? tabView.getMultiview().queryView({id: `${folderName}-cell`})
 							: null;
 					}
-					switch(operation) {
-						case constants.FOLDER_TREE_ACTION.upload:
-							cell?.define("template", "[Upload]: Done!");
-							break;
-						case constants.FOLDER_TREE_ACTION.delete:
-							cell?.define("template", "[Delete]: Done");
-							break;
+					if (errorMessage) {
+						cell?.define("template", `[Error]: ${errorMessage}`);
+					}
+					else {
+						switch(operation) {
+							case constants.FOLDER_TREE_ACTION.upload:
+								cell?.define("template", "[Upload]: Done!");
+								break;
+							case constants.FOLDER_TREE_ACTION.delete:
+								cell?.define("template", "[Delete]: Done");
+								break;
+						}
 					}
 					cell?.refresh();
 				}
