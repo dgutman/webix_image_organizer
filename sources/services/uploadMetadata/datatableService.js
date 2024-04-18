@@ -106,8 +106,8 @@ export default class MetaDatatableService {
 			if (ids.column === "accept") {
 				this.datatable.editStop();
 				if (ev.target.classList.contains("accept-button-add")) {
-					this.view.showProgress();
 					if (this.validateMetaItem(metaItem)) {
+						this.view.showProgress();
 						this.getComparedMetadata(metaItem)
 							.then(compared => this.acceptMetadata(compared))
 							.finally(() => {
@@ -115,6 +115,7 @@ export default class MetaDatatableService {
 								this.view.hideProgress();
 							});
 					}
+					webix.message("data not accepted", "debug", 5000);
 					return false;
 				}
 				else if (ev.target.classList.contains("accept-button-delete")) {
