@@ -13,6 +13,7 @@ import SelectTool from "./osd-paperjs-annotation/papertools/select";
 // import {WandTool} from "./osd-paperjs-annotation/papertools/wand";
 import constants from "../../../../../constants";
 
+
 export default class PaperJSTools {
 	constructor(app, tk, toolbarControls) {
 		this.paperScope = tk?.overlay.paperScope;

@@ -66,6 +66,7 @@ export default {
 	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
 	STORAGE_HOTKEYS_CONFIG: "hotkeys-config",
 
+
 	LINEAR_STRUCTURE_LIMIT: 100,
 	CASEVIEW_LIMIT: 2000,
 	FOLDERS_LIMIT: 0,
@@ -207,7 +208,10 @@ export default {
 	},
 	SEGMENT_CHANNELS: [
 		"SEGMENTATION",
-		"DAPI"
+		"DAPI",
+		"EPITHELIUM",
+		"TISSUE",
+		"STROMA"
 	],
 	ANNOTATION_TOOL_IDS: {
 		default: "default",

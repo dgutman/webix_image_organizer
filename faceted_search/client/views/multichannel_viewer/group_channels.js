@@ -307,11 +307,11 @@ define([
 			const opacityResetHandler = this.resetOpacity.bind(this);
 			const hotkeysArray = this._hotkeysModel.getHotkeysArray();
 			this._hotkeysModel.addHotkey(hotkeysArray[0], opacityResetHandler);
-			const channelsList = this.getChannelsList();
-			const itemsCount = channelsList.count();
-			for (let index = 0; index <= itemsCount || index < hotkeysArray.length; index++) {
-				const hotkeyPressHandler = this.hotkeyPressHandler.bind(this, index);
-				this._hotkeysModel.addHotkey(`${hotkeysArray[index + 1]}`, hotkeyPressHandler);
+			for (let index = 0; index < hotkeysArray.length; index++) {
+				if (hotkeysArray[index + 1] !== "") {
+					const hotkeyPressHandler = this.hotkeyPressHandler.bind(this, index);
+					this._hotkeysModel.addHotkey(`${hotkeysArray[index + 1]}`, hotkeyPressHandler);
+				}
 			}
 		}
 

@@ -97,6 +97,15 @@ export default class ToolbarView extends JetView {
 							inputHeight: 40,
 							width: 40,
 							height: 40,
+							// click: () => {
+							// 	let deleteBool = this.organizeButtonsAction("line");
+							// 	this.enableSwitch(deleteBool);
+							// 	if (!deleteBool) {
+							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["line"]));
+							// 	}
+							// 	else this.app.callEvent("disabledDrawingPointer", []);
+							// 	this.setFullpageButtonHandle();
+							// }
 						},
 						{
 							view: "button",

@@ -120,7 +120,7 @@ define([
 				)[0];
 				if (duplicate) {
 					duplicate.hotkey = "";
-					duplicate.refresh();
+					datatable.refresh();
 				}
 			});
 			datatable.data.attachEvent("onDataUpdate", () => {

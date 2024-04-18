@@ -1462,6 +1462,7 @@ class MainService {
 			if (finderElements) {
 				this._itemsModel.parseItems(finderElements, folderId, data?.length);
 			}
+
 			this._itemsModel.parseDataToViews(webix.copy(data), true, folderId);
 			this._highlightLastSelectedFolder();
 
