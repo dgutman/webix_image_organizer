@@ -376,12 +376,11 @@ class AjaxActions {
 		}
 	}
 
-	async updateAnnotationById(annotationData) {
-		const annotationId = annotationData._id;
+	async updateAnnotationById(annotationData, annotationId) {
 		const params = JSON.stringify(annotationData);
 		try {
 			if (annotationId) {
-				const url = `${this.getHostApiUrl()}/annotation/${annotationId}/metadata`;
+				const url = `${this.getHostApiUrl()}/annotation/${annotationId}`;
 				const response = await this._ajax().headers({
 					"Accept": "application/json",
 					"Content-type": "application/json"

@@ -1186,7 +1186,7 @@ class MainService {
 		}
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
-			this._itemsModel.parseDataToViews(item, false, item.id);
+			this._itemsModel.parseDataToViews(item, false, item.id, false, true);
 			this._highlightLastSelectedFolder();
 			if (this._multiviewSwitcher.getList().exists(constants.MULTICHANNEL_VIEW_OPTION.id)) {
 				multichannelViewCell.setImage(item);
@@ -1436,7 +1436,7 @@ class MainService {
 		}
 	}
 
-	async linearStructureHandler(folderId, sourceParams, offset, isCollapsed) {
+	async linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
 		const folder = this._finder.getItem(folderId);
 		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
 		if (data.length === 0) {
@@ -1444,19 +1444,29 @@ class MainService {
 			this._itemsModel.updateItems(this._finderFolder);
 		}
 		else if (folder.linear) {
-			let finderElements;
-			if (isCollapsed && !offset) {
-				finderElements = data.slice(0, constants.COLLAPSED_ITEMS_COUNT);
-				finderElements.push({link: constants.EXPAND_LINK});
+			const finderElements = [];
+			if (isCollapsed) {
+				finderElements.push(
+					...data.slice(0, constants.COLLAPSED_ITEMS_COUNT - sourceParams.offset)
+				);
+				if (data.length < sourceParams.limit) {
+					finderElements.push({link: constants.EXPAND_LINK});
+				}
 			}
-			else if (!offset) {
-				finderElements = webix.copy(data);
+			else if (data.length < sourceParams.limit) {
+				finderElements.push(...webix.copy(data));
 				finderElements.push({link: constants.COLLAPSE_LINK});
 			}
 			if (finderElements) {
 				this._itemsModel.parseItems(finderElements, folderId, data?.length);
 			}
-			this._itemsModel.parseDataToViews(webix.copy(data), offset, folderId);
+			const isClearDataCollection = sourceParams.offset === 0;
+			this._itemsModel.parseDataToViews(
+				webix.copy(data),
+				true, folderId,
+				false,
+				isClearDataCollection
+			);
 			this._highlightLastSelectedFolder();
 
 			if (data.length < sourceParams.limit) {
@@ -1467,14 +1477,14 @@ class MainService {
 				);
 			}
 			else {
-				const newOffset = offset + data.length;
+				const newOffset = sourceParams.offset + data.length;
 				const newParams = {
 					sort: "lowerName",
 					limit: constants.LINEAR_STRUCTURE_LIMIT,
-					offset
+					offset: newOffset
 				};
 
-				this.linearStructureHandler(folderId, newParams, newOffset, isCollapsed);
+				this.linearStructureHandler(folderId, newParams, addBatch, isCollapsed);
 			}
 		}
 	}
@@ -1491,6 +1501,7 @@ class MainService {
 	async _loadLinearImages(folderId, isCollapsed) {
 		const sourceParams = {
 			sort: "lowerName",
+			offset: 0,
 			limit: constants.LINEAR_STRUCTURE_LIMIT
 		};
 		if (this._finderFolder.hasOpened || this._finderFolder.open) {
@@ -1506,8 +1517,8 @@ class MainService {
 		this._itemsModel.selectedItem = this._finderFolder;
 		this._finderFolder.linear = Object.assign({}, constants.LOADING_STATUSES.IN_PROGRESS);
 		this._itemsModel.updateItems(this._finderFolder);
-		const offset = 0;
-		await this.linearStructureHandler(folderId, sourceParams, offset, isCollapsed);
+		const addBatch = false;
+		await this.linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed);
 	}
 }
 

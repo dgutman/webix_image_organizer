@@ -121,7 +121,6 @@ export default class ImageWindowView extends JetView {
 										cols: [
 											this._controlsView
 										],
-										hidden: true
 									},
 									controlsCollapser
 								]
@@ -297,7 +296,8 @@ export default class ImageWindowView extends JetView {
 	}
 
 	async showWindow(obj, viewerType) {
-		this.$leftPanel.hide();
+		this.$leftPanel.show();
+		this.$controlsPanel.hide();
 		this.$windowTitle.parse(obj);
 
 		this._imageWindowViewModel.setItem(obj);
@@ -326,7 +326,11 @@ export default class ImageWindowView extends JetView {
 				this.itemsModel = new ItemsModel(this._tk);
 				const toolbarControls = this._toolbarView.getToolbarControls();
 				this._paperJSTools = new PaperJSTools(this.app, this._tk, toolbarControls);
-				this._controlsEventsService.init(this._openSeadragonViewer, layerOfViewer, this._tk);
+				this._controlsEventsService.init(
+					this._openSeadragonViewer,
+					layerOfViewer,
+					this.paperProjectModel.getProject()
+				);
 				this._rightPanelEventsService = new RightPanelEventsService(
 					this,
 					this._rightPanel,

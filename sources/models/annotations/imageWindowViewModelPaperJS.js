@@ -133,8 +133,7 @@ export default class imageWindowViewModel {
 			data.description = annotationData.description;
 			data.elements = adapter.featureCollectionsToElements(annotationData.elements);
 			if (annotationData._id) {
-				data._id = annotationData._id;
-				ajax.updateAnnotationById(data);
+				ajax.updateAnnotationById(data, annotationData._id);
 			}
 			else {
 				ajax.createAnnotation(this.item._id, data);

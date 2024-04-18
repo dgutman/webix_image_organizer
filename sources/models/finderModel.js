@@ -32,7 +32,7 @@ export default class FinderModel {
 								itemsArray.push(...items);
 							}
 							itemsModel.parseItems(array, item.id);
-							itemsModel.parseDataToViews(itemsArray, false, item.id, results.length);
+							itemsModel.parseDataToViews(itemsArray, false, item.id, results.length, true);
 							finderView.blockEvent();
 							finderView.open(id);
 							finderView.unblockEvent();
@@ -65,7 +65,7 @@ export default class FinderModel {
 					isChildFolderExists = true;
 					return false;
 				});
-				itemsModel.parseDataToViews(filteredItems, false, item.id, isChildFolderExists);
+				itemsModel.parseDataToViews(filteredItems, false, item.id, isChildFolderExists, true);
 				resolve();
 			});
 		}
