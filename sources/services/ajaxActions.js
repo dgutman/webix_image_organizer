@@ -39,6 +39,7 @@ webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, pro
 });
 
 class AjaxActions {
+	// TODO: create enum for serverList (hostApiURL, ImagesHostUrl, HostId).
 	getHostApiUrl() {
 		return webix.storage.local.get("hostAPI");
 	}
