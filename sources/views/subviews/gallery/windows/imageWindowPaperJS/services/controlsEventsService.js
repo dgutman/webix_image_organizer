@@ -1,4 +1,6 @@
+import PaperScopeModel from "../../../../../../models/annotations/paperjsScopeModel";
 import OrganizerFilters from "../../../../../../services/organizer/organizerFilters";
+import TimedOutBehavior from "../../../../../../utils/timedOutBehavior";
 
 export default class ControlsEventsService {
 	constructor(rootScope, controlsView) {
@@ -7,47 +9,48 @@ export default class ControlsEventsService {
 
 		this._viewFilters = new OrganizerFilters();
 
-		this._layer = null;
+		this._viewLayer = null;
 		this._openSeadragonViewer = null;
 	}
 
-	init(openSeadragonViewer, layer, /* tk */) {
+	init(openSeadragonViewer, viewLayer, paperScope) {
 		this._openSeadragonViewer = openSeadragonViewer;
-		this._layer = layer;
-		this._layer.tiledImage = this._openSeadragonViewer
+		this._viewLayer = viewLayer;
+		this._viewLayer.tiledImage = this._openSeadragonViewer
 			.world
 			.getItemAt(0);
-
 		this._attachControlsEvents();
+		this._paperScope = paperScope;
 	}
 
 	get _getTiledImage() {
-		return this._layer.tiledImage;
+		return this._viewLayer.tiledImage;
 	}
 
-	_changeRotation(value, immediately) {
-		this._layer.rotation = value;
-		this._getTiledImage.setRotation(value, immediately);
+	async _changeRotation(value, immediately) {
+		this._viewLayer.rotation = value;
+		this._openSeadragonViewer.viewport.setRotation(value, immediately);
+		this._paperScope.view.setRotation(value);
 	}
 
 	_changeColorize(value) {
-		this._layer.colorize = value;
-		this._viewFilters.updateFilters([this._layer], this._openSeadragonViewer);
+		this._viewLayer.colorize = value;
+		this._viewFilters.updateFilters([this._viewLayer], this._openSeadragonViewer);
 	}
 
 	_changeHue(value) {
-		this._layer.hue = value;
-		this._viewFilters.updateFilters([this._layer], this._openSeadragonViewer);
+		this._viewLayer.hue = value;
+		this._viewFilters.updateFilters([this._viewLayer], this._openSeadragonViewer);
 	}
 
 	_changeBrightness(value) {
-		this._layer.brightness = value;
-		this._viewFilters.updateFilters([this._layer], this._openSeadragonViewer);
+		this._viewLayer.brightness = value;
+		this._viewFilters.updateFilters([this._viewLayer], this._openSeadragonViewer);
 	}
 
 	_changeContrast(value) {
-		this._layer.contrast = value;
-		this._viewFilters.updateFilters([this._layer], this._openSeadragonViewer);
+		this._viewLayer.contrast = value;
+		this._viewFilters.updateFilters([this._viewLayer], this._openSeadragonViewer);
 	}
 
 	_attachControlsEvents() {
@@ -82,7 +85,7 @@ export default class ControlsEventsService {
 		this._rootScope.on(colorPalette, "onSelectChange", () => {
 			const item = colorPalette.getSelectedItem();
 
-			this._layer.colorItem = item;
+			this._viewLayer.colorItem = item;
 			if (item) {
 				this._changeColorize(1);
 				this._changeHue(item.hue);

@@ -162,7 +162,7 @@ export default class ItemsModel {
 		return this.dataCollection;
 	}
 
-	parseDataToViews(data, isLinearData, folderId, isChildFolderExists) {
+	parseDataToViews(data, isLinearData, folderId, isChildFolderExists, isClearDataCollection) {
 		if (
 			folderId
 			&& this.selectedItem?.id
@@ -174,7 +174,7 @@ export default class ItemsModel {
 			if (!pager.isVisible() && dataview.isVisible()) {
 				pager.show();
 			}
-			if (!isLinearData) {
+			if (isClearDataCollection) {
 				this.dataCollection.clearAll();
 			}
 
@@ -197,10 +197,9 @@ export default class ItemsModel {
 
 			this.dataCollection.parse(dataToParse);
 			dataview.refresh();
-			let dataForFilter = dataToParse;
-			if (isLinearData) {
-				dataForFilter = this.dataCollection.data.serialize();
-			}
+			const dataForFilter = isLinearData
+				? this.dataCollection.data.serialize()
+				: dataToParse;
 
 			this.dataCollection.callEvent("parseDataToCollection", [dataForFilter, isChildFolderExists]);
 		}

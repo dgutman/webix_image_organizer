@@ -1186,7 +1186,7 @@ class MainService {
 		}
 		if (item._modelType === "item" || !item._modelType) {
 			this._itemsModel.selectedItem = item;
-			this._itemsModel.parseDataToViews(item, false, item.id);
+			this._itemsModel.parseDataToViews(item, false, item.id, false, true);
 			this._highlightLastSelectedFolder();
 			if (this._multiviewSwitcher.getList().exists(constants.MULTICHANNEL_VIEW_OPTION.id)) {
 				multichannelViewCell.setImage(item);
@@ -1445,12 +1445,10 @@ class MainService {
 		}
 		else if (folder.linear) {
 			const finderElements = [];
-			if (isCollapsed /* && sourceParams.offset === 0 */) {
-				if (sourceParams.offset === 0) {
-					finderElements.push(
-						...data.slice(0, constants.COLLAPSED_ITEMS_COUNT - sourceParams.offset)
-					);
-				}
+			if (isCollapsed) {
+				finderElements.push(
+					...data.slice(0, constants.COLLAPSED_ITEMS_COUNT - sourceParams.offset)
+				);
 				if (data.length < sourceParams.limit) {
 					finderElements.push({link: constants.EXPAND_LINK});
 				}
@@ -1462,8 +1460,13 @@ class MainService {
 			if (finderElements) {
 				this._itemsModel.parseItems(finderElements, folderId, data?.length);
 			}
-
-			this._itemsModel.parseDataToViews(webix.copy(data), true, folderId);
+			const isClearDataCollection = sourceParams.offset === 0;
+			this._itemsModel.parseDataToViews(
+				webix.copy(data),
+				true, folderId,
+				false,
+				isClearDataCollection
+			);
 			this._highlightLastSelectedFolder();
 
 			if (data.length < sourceParams.limit) {
