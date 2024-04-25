@@ -1,11 +1,11 @@
-import downloadFiles from "../models/downloadFiles";
-import webixViews from "../models/webixViews";
-import constants from "../constants";
 import utils from "./utils";
-import ajaxActions from "../services/ajaxActions";
-import authService from "../services/authentication";
+import constants from "../constants";
+import downloadFiles from "../models/downloadFiles";
 import editableFoldersModel from "../models/editableFoldersModel";
 import tilesCollection from "../models/imageTilesCollection";
+import webixViews from "../models/webixViews";
+import ajaxActions from "../services/ajaxActions";
+import authService from "../services/authentication";
 
 let largeImageFiles;
 let makeLargeImageButton;
@@ -99,6 +99,9 @@ function setDataviewMouseEvents(dataview, action, event) {
 	if (event === "onBeforeContextMenu" && action === "edit") {
 		setDefaultGalleryContextMenu(dataview);
 		return true;
+	}
+	else if (event === "onBeforeContextMenu" && action === "open") {
+		dataview.attachEvent("onBeforeContextMenu", () => false);
 	}
 	switch (action) {
 		case "open": {

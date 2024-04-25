@@ -1,11 +1,12 @@
 import {JetView} from "webix-jet";
-import Slider from "../../components/slider";
+
 import ControlsView from "./controlsView";
-import OpenSeadragonViewer from "../../components/openSeadragonViewer";
-import MakerLayer from "../../../services/organizer/makerLayer";
 import ajax from "../../../services/ajaxActions";
+import MakerLayer from "../../../services/organizer/makerLayer";
 import OrganizerFilters from "../../../services/organizer/organizerFilters";
 import TimedOutBehavior from "../../../utils/timedOutBehavior";
+import OpenSeadragonViewer from "../../components/openSeadragonViewer";
+import Slider from "../../components/slider";
 
 
 export default class ZstackView extends JetView {
@@ -160,25 +161,26 @@ export default class ZstackView extends JetView {
 		const currentLayerIndex = this._layers.length - 1 - slideIndex;
 		const currentTiledImage = this.getTiledImageByIndex(currentLayerIndex);
 
-		this._changeImagesSliderTitleByIndex(currentLayerIndex);
+		if (currentTiledImage) {
+			this._changeImagesSliderTitleByIndex(currentLayerIndex);
 
-		if (this._activeLayerIndex < currentLayerIndex) {
-			this._loopLayers(this._activeLayerIndex, currentLayerIndex, (index) => {
-				const layer = this._layers[index];
-				layer.shown = true;
-				this.getTiledImageByIndex(index).setOpacity(layer.opacity);
-			});
+			if (this._activeLayerIndex < currentLayerIndex) {
+				this._loopLayers(this._activeLayerIndex, currentLayerIndex, (index) => {
+					const layer = this._layers[index];
+					layer.shown = true;
+					this.getTiledImageByIndex(index)?.setOpacity(layer.opacity);
+				});
+			}
+			else if (this._activeLayerIndex > currentLayerIndex) {
+				this._loopLayers(currentLayerIndex, this._activeLayerIndex, (index) => {
+					this._layers[index].shown = false;
+					this.getTiledImageByIndex(index)?.setOpacity(0);
+				});
+			}
+			this._activeLayerIndex = currentLayerIndex;
+			this._activeTiledImage = currentTiledImage;
+			this.refreshControls();
 		}
-		else if (this._activeLayerIndex > currentLayerIndex) {
-			this._loopLayers(currentLayerIndex, this._activeLayerIndex, (index) => {
-				this._layers[index].shown = false;
-				this.getTiledImageByIndex(index).setOpacity(0);
-			});
-		}
-
-		this._activeLayerIndex = currentLayerIndex;
-		this._activeTiledImage = currentTiledImage;
-		this.refreshControls();
 	}
 
 	_loopLayers(from, to, handler) {
@@ -281,7 +283,13 @@ export default class ZstackView extends JetView {
 	}
 
 	getTiledImageByIndex(index) {
-		return this._layers[index].tiledImage;
+		if (
+			index > 0
+			&& this._layers.length > index
+		) {
+			return this._layers[index]?.tiledImage;
+		}
+		return null;
 	}
 
 	refreshControls() {
