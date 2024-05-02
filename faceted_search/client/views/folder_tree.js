@@ -304,29 +304,20 @@ define([
 			app.attachEvent("editForm:finishLoading", function(folderName, operation, errorMessage) {
 				const resyncButton = $$(resyncButtonId);
 				const tree = $$(constants.FOLDER_TREE_ID);
-
-				const selectedItem = tree && !tree.$destructed
-					? tree.getSelectedItem()
-					: null;
-				if (selectedItem) {
-					toggleUploadButtonState(selectedItem);
-
-					ajax.getDownloadedResources()
-						.then((resourceData) => {
-							downloadedResources.length = 0;
-							if(Array.isArray(resourceData)) {
-								downloadedResources.push(...resourceData);
-							}
-							tree.unselectAll();
-							toggleUploadButtonState();
+				ajax.getDownloadedResources()
+					.then((resourceData) => {
+						downloadedResources.length = 0;
+						if(Array.isArray(resourceData)) {
+							downloadedResources.push(...resourceData);
+						}
+						if (!tree.$destructed) {
 							// tree.refresh();
 							tree.render();
-						});
-				}
+						}
+					});
 				if (resyncButton && !resyncButton.$destructed) {
 					resyncButton.enable();
 				}
-
 				const tabView = $$(statusTabViewId);
 				if (tabView && !tabView.$destructed) {
 					let cell = tabView && !tabView.$destructed

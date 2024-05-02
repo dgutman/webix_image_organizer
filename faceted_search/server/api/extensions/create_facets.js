@@ -20,7 +20,7 @@ const build = (facets, prefix, obj) => {
     const keys = Object.keys(obj);
 
     for (let i = 0; i < keys.length; i++) {
-        let key = keys[i];
+        const key = keys[i];
         if (obj.hasOwnProperty(key)) {
             if (is.not.object(obj[key])) {
                 let value = obj[key];
@@ -78,33 +78,33 @@ const uniqFilter = (filter) => {
         facetFilters
             .getAll()
             .then((filtersDocuments) => {
-                let keys = Object.keys(filter), key,
-                    map = {};
-                for(let j of filtersDocuments) {
+                const filterKeys = Object.keys(filter);
+                const map = {};
+                for(const j of filtersDocuments) {
                     map[j.id] = {
                         data: j
-                    }
+                    };
                 }
-                for (let i = 0; i < keys.length; i++) {
-                    if (filter.hasOwnProperty(keys[i])) {
-                        if(map.hasOwnProperty(keys[i])) {
-                            map[keys[i]].data.options.concat(filter[keys[i]].values);
-                            map[keys[i]].data.options = _.uniq(map[keys[i]].data.options);
-                            map[keys[i]].data.options.sort();
-                            delete filter[keys[i]];
+                filterKeys.forEach((key) => {
+                    if (filter.hasOwnProperty(key)) {
+                        if(map.hasOwnProperty(key)) {
+                            map[key].data.options = filter[key].values;
+                            map[key].data.options.concat(filter[key].values);
+                            map[key].data.options = _.uniq(map[key].data.options);
+                            map[key].data.options.sort();
+                            delete filter[key];
                         } else {
-                            filter[keys[i]].values = _.uniq(filter[keys[i]].values);
-                            filter[keys[i]].values.sort();
+                            filter[key].values = _.uniq(filter[key].values);
+                            filter[key].values.sort();
                         }
                     }
-                }
-                for(key in map) {
+                });
+                for(const key in map) {
                     if(map && map.hasOwnProperty(key)) {
                         facetFilters
                             .updateByParams({"_id": map[key].data._id}, map[key].data);
                     }
                 }
-
                 mainResolve(filter);
             });
     });

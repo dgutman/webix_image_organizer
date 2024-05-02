@@ -11,13 +11,16 @@ define([
 ) {
 	let addedItems = [];
 	let totalFormData = {};
-	let itemsLabels = [];
-	let initialItemsLenght = 0;
+	const itemsLabels = [];
+	const initialItems = [];
 	const saveURL = `${constants.LOCAL_API}/facets/filters`;
 	const getURL = `${constants.LOCAL_API}/facets/get-filters-with-images`;
 
-	const addItem = function(facet, type) {
-		const data = getFacet(facet); let i; let wasAdded = false; let t = {};
+	function addItem(facet, type) {
+		const data = getFacet(facet);
+		let i;
+		let wasAdded = false;
+		let t = {};
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet) {
 				wasAdded = true;
@@ -28,7 +31,7 @@ define([
 					},
 					type: type,
 					interface: data.values,
-					status: "modified"
+					status: constants.FILTER_STATUS.MODIFIED
 				};
 				addedItems[i] = t;
 				break;
@@ -55,14 +58,14 @@ define([
 		return adminFormHelper.transformToFormFormat(t, type, getItemTypes(), "edit");
 	};
 
-	const getFacet = function(facet) {
+	function getFacet(facet) {
 		if(totalFormData.hasOwnProperty(facet)) {
 			return totalFormData[facet];
 		}
 		return false;
 	};
 
-	const removeItem = function(id, facet) {
+	function removeItem(id, facet) {
 		let i = 0;
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet.id) {
@@ -79,7 +82,7 @@ define([
 		app.callEvent("editForm:reloadOptions", [true]);
 	};
 
-	const saveItems = function() {
+	function saveItems() {
 		const filters = [];
 		app.callEvent("adminMode:doProgress", ["edit"]);
 
@@ -104,26 +107,30 @@ define([
 					addedItems[i].status = "already_added";
 				}
 			}
-			initialItemsLenght = addedItems.length;
+			initialItems.length = 0;
+			initialItems.push(...addedItems);
 			app.callEvent("adminMode:onLoaded", ["edit", true]);
 		});
 	};
 
 	app.attachEvent("editForm:removeItem", removeItem);
 
-	const setItemsData = function(data) {
-		itemsLabels = Object.keys(data);
+	function setItemsData(data) {
+		const itemsKeys = Object
+			.keys(data)
+			.map((item) => {
+				return {id: item, value: item.replace(/\|/g, ' \\ ')};
+			});
 		totalFormData = data;
-		itemsLabels.forEach(function(item, index, array) {
-			array[index] = {id: item, value: item.replace(/\|/g, ' \\ ')};
-		});
+		itemsLabels.length = 0;
+		itemsLabels.push(...itemsKeys);
 	};
 
-	const getItemsData = function() {
+	function getItemsData() {
 		return totalFormData;
 	};
 
-	const checkAbilityToAdd = function(facet, type) {
+	function checkAbilityToAdd(facet, type) {
 		const data = getFacet(facet); let i; let isNumber = false; let add = false;
 		if(data) {
 			if(type === "slider" || type === "range_slider") {
@@ -144,12 +151,12 @@ define([
 		return add;
 	};
 
-	const isNumeric = function(n) {
+	function isNumeric(n) {
 		return !isNaN(parseFloat(n)) && isFinite(n);
 	};
 
 
-	const getLabels = function() {
+	function getLabels() {
 		const displayedLabels = [];
 		const approvedFacetsLabels = approvedFacetModel.getApprovedFacetsLabels();
 		if (Array.isArray(approvedFacetsLabels)) {
@@ -164,7 +171,7 @@ define([
 		return displayedLabels;
 	};
 
-	const getItemTypes = function() {
+	function getItemTypes() {
 		return [
 			{"id": "checkbox", "value": "Checkbox"},
 			{"id": "combo_box", "value": "Combo Box"},
@@ -175,17 +182,17 @@ define([
 		];
 	};
 
-	const getCountOfAddedItems = function() {
+	function getCountOfAddedItems() {
 		return addedItems.length;
 	};
 
-	app.attachEvent("editForm:loadDataForFilters", function(approvedFacetLabels) {
+	app.attachEvent("editForm:loadDataForFilters", function(/* approvedFacetLabels */) {
 		app.callEvent("adminMode:doProgress", ["edit"]);
 		webix.ajax().get(getURL, {})
 			.then(function(response) {
 				addedItems = [];
 				totalFormData = {};
-				itemsLabels = [];
+				itemsLabels.length = 0;
 				const data = response.json();
 				let key;
 				let t;
@@ -209,13 +216,14 @@ define([
 						q.push(view);
 					}
 				}
-				initialItemsLenght = addedItems.length;
+				initialItems.length = 0;
+				initialItems.push(...addedItems);
 				app.callEvent("editForm:dataLoaded", [q]);
 				app.callEvent("adminMode:onLoaded", ["edit", false]);
 			});
 	});
 
-	const updateItemType = function(facet, type) {
+	function updateItemType(facet, type) {
 		const data = getFacet(facet); let i; let wasAdded = false; let t = {};
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet) {
@@ -245,8 +253,16 @@ define([
 		return adminFormHelper.transformToFormFormat(t, type, getItemTypes(), "edit");
 	};
 
-	const areFiltersNotChanged = function() {
-		if (initialItemsLenght === addedItems.length) {
+	function areFiltersNotChanged() {
+		const passed = initialItems.length === addedItems.length
+			? initialItems.every((item) => {
+				const foundElement = addedItems.find((added) => {
+					return added.facet.id === item.facet.id;
+				});
+				return foundElement ? true : false;
+				})
+			: true;
+		if (passed) {
 			return addedItems.every((item) => {
 				return item.status === "already_added";
 			});

@@ -22,10 +22,10 @@ define([
                         if (window.location.hash.indexOf("admin_mode") > -1 && oldId === constants.ADMIN_MODE && !editFormView.areFiltersNotChanged()) {
                             switchModeConfirm((result) => {
                                 if (result) {
-                                    if(id === constants.USER_MODE){
+                                    if(id === constants.USER_MODE) {
                                         app.show("/top/user_mode");
                                     }
-                                    if(id === constants.ADMIN_MODE){
+                                    if(id === constants.ADMIN_MODE) {
                                         app.show("/top/admin_mode");
                                     }
                                 }

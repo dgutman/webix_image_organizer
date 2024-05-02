@@ -2,7 +2,7 @@ define([
 	"app",
 	"constants",
 	"libs/socket.io-client/dist/socket.io.min",
-	"models/admin_form",
+	"models/edit_form",
 	"helpers/ajax"
 ], function(
 	app,
@@ -32,6 +32,10 @@ define([
 
 	socketConnect.on('updateUploadedResources', function() {
 		app.callEvent("deleteResource:clearAfterDelete");
+	});
+
+	socketConnect.on("data", function(data) {
+		Form.setItemsData(data);
 	});
 
 	socketConnect.on('finishResync', function() {

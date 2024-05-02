@@ -1,7 +1,7 @@
 define([
 	"app",
-	"models/admin_form"
-], function(app, AdminForm) {
+	"models/edit_form"
+], function(app, EditForm) {
 	const uploadFormId = "upload_form_id";
 	const selectTypeId = "select_type";
 	const selectFacetId = "select_facet";
@@ -42,9 +42,9 @@ define([
 								let view;
 								let canBeAdded = false;
 								if (type && facet) {
-									canBeAdded = AdminForm.checkAbilityToAdd(facet, type);
+									canBeAdded = EditForm.checkAbilityToAdd(facet, type);
 									if (canBeAdded) {
-										view = AdminForm.addItem(facet, type);
+										view = EditForm.addItem(facet, type);
 										$$(previewFormId).show();
 										$$(toInterfaceBtnId).show();
 										$$(previewFormId).addView(view);
@@ -73,7 +73,7 @@ define([
 							value: "Send To Interface",
 							view: "button",
 							click: function() {
-								AdminForm.saveItems();
+								EditForm.saveItems();
 							}
 						}]
 				}]
@@ -85,10 +85,10 @@ define([
 
 	const reloadSelectsData = function(reloadOnlyLabels) {
 		if(!reloadOnlyLabels) {
-			$$(selectTypeId).define("options", AdminForm.getItemTypes());
+			$$(selectTypeId).define("options", EditForm.getItemTypes());
 			$$(selectTypeId).render();
 		}
-		$$(selectFacetId).define("options", AdminForm.getLabels());
+		$$(selectFacetId).define("options", EditForm.getLabels());
 		$$(selectFacetId).render();
 	};
 
@@ -99,7 +99,7 @@ define([
 	};
 
 	const itemRemoved = function(id) {
-		const t = AdminForm.getCountOfAddedItems();
+		const t = EditForm.getCountOfAddedItems();
 		$$(previewFormId).removeView(id);
 		updateFormSize();
 		if(!t) {
@@ -114,9 +114,9 @@ define([
 	app.attachEvent("facetsForm:modifyView", function(data) {
 		let view;
 		let canBeAdded = false;
-		canBeAdded = AdminForm.checkAbilityToAdd(data.facet, data.newType);
+		canBeAdded = EditForm.checkAbilityToAdd(data.facet, data.newType);
 		if (canBeAdded) {
-			view = AdminForm.addItem(data.facet, data.newType);
+			view = EditForm.addItem(data.facet, data.newType);
 			$$(previewFormId).show();
 			webix.ui(view, $$(previewFormId), $$(data.formId));
 		} else {

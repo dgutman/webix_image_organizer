@@ -165,12 +165,12 @@ class Backend {
     }
 
     getImagesResources(images) {
-        const resourcesIds = Array.from(images.reduce((resourcesIdsSet, currentImage) => {
+        const resourcesIds = Array.from(images?.reduce((resourcesIdsSet, currentImage) => {
             if (currentImage.folderId) {
                 resourcesIdsSet.add(currentImage.folderId);
             }
             return resourcesIdsSet;
-        }, new Set()));
+        }, new Set())) ?? [];
         return resourcesIds;
     }
 }
