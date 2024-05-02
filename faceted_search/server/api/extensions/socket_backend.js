@@ -119,6 +119,7 @@ class Backend {
         const deletedCount = await facetImages.removeImages(ids);
         await serviceData.deleteDownloadedResource(resourcesIds);
         if(imagesCount === deletedCount) {
+            serviceData.updateImagesHash();
             this._message('[Delete]: finished successfully', data?.folderName);
             this.socket.emit('finishDelete', data?.folderName);
             this.socket.emit('updateUploadedResources');
