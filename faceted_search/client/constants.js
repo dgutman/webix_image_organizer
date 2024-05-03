@@ -106,6 +106,12 @@ define([], function() {
 			minus: 1,
 			checked: 2,
 		},
-		STORAGE_HOTKEYS_CONFIG: 'hotkeys-config'
+		STORAGE_HOTKEYS_CONFIG: 'hotkeys-config',
+		FILTER_STATUS: {
+			MODIFIED: "modified",
+			ADDED: "added",
+			ALREADY_ADDED: "already_added",
+			REMOVED: "removed",
+		},
 	};
 });

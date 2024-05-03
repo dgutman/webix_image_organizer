@@ -2,7 +2,7 @@ const facetImages = require('../models/facet_images');
 const {facets, filters} = require('./create_facets');
 const approvedMetadataModel = require('../models/approved_metadata');
 
-const parse = (arr, host) => {
+function parse(arr, host) {
     let filter = {};
 
     if (arr.length) {
