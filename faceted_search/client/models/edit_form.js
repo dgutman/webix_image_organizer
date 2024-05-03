@@ -11,7 +11,7 @@ define([
 ) {
 	let addedItems = [];
 	let totalFormData = {};
-	const itemsLabels = [];
+	let itemsLabels = [];
 	const initialItems = [];
 	const saveURL = `${constants.LOCAL_API}/facets/filters`;
 	const getURL = `${constants.LOCAL_API}/facets/get-filters-with-images`;
@@ -122,8 +122,7 @@ define([
 				return {id: item, value: item.replace(/\|/g, ' \\ ')};
 			});
 		totalFormData = data;
-		itemsLabels.length = 0;
-		itemsLabels.push(...itemsKeys);
+		itemsLabels = [...itemsKeys];
 	};
 
 	function getItemsData() {
@@ -192,7 +191,7 @@ define([
 			.then(function(response) {
 				addedItems = [];
 				totalFormData = {};
-				itemsLabels.length = 0;
+				itemsLabels = [];
 				const data = response.json();
 				let key;
 				let t;
@@ -216,6 +215,7 @@ define([
 						q.push(view);
 					}
 				}
+				// appliedItemsToFilters = addedItems.length;
 				initialItems.length = 0;
 				initialItems.push(...addedItems);
 				app.callEvent("editForm:dataLoaded", [q]);
