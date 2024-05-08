@@ -121,12 +121,12 @@ class Backend {
         if(imagesCount === deletedCount) {
             const hash = await md5(IMAGES_PATH);
             serviceData.updateImagesHash(hash);
-            this._message('[Delete]: finished successfully', data?.folderName);
-            this.socket.emit('finishDelete', data?.folderName);
+            this._message('[Delete]: finished successfully', data?.folderName || data.name);
+            this.socket.emit('finishDelete', data?.folderName || data.name);
             this.socket.emit('updateUploadedResources');
         } else {
-            this._message('[Delete]: something went wrong', data?.folderName);
-            this.socket.emit('finishDelete', data?.folderName);
+            this._message('[Delete]: something went wrong', data?.folderName || data.name);
+            this.socket.emit('finishDelete', data?.folderName || data.name);
             this.socket.emit('updateUploadedResources');
         }
     }
