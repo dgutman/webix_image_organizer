@@ -12,7 +12,7 @@ define([
 	let addedItems = [];
 	let totalFormData = {};
 	let itemsLabels = [];
-	const initialItems = [];
+	let initialItems = [];
 	const saveURL = `${constants.LOCAL_API}/facets/filters`;
 	const getURL = `${constants.LOCAL_API}/facets/get-filters-with-images`;
 
@@ -107,8 +107,7 @@ define([
 					addedItems[i].status = "already_added";
 				}
 			}
-			initialItems.length = 0;
-			initialItems.push(...addedItems);
+			initialItems = [...addedItems];
 			app.callEvent("adminMode:onLoaded", ["edit", true]);
 		});
 	};
@@ -216,15 +215,17 @@ define([
 					}
 				}
 				// appliedItemsToFilters = addedItems.length;
-				initialItems.length = 0;
-				initialItems.push(...addedItems);
+				initialItems = [...addedItems];
 				app.callEvent("editForm:dataLoaded", [q]);
 				app.callEvent("adminMode:onLoaded", ["edit", false]);
 			});
 	});
 
 	function updateItemType(facet, type) {
-		const data = getFacet(facet); let i; let wasAdded = false; let t = {};
+		const data = getFacet(facet);
+		let i;
+		let wasAdded = false;
+		let t = {};
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet) {
 				wasAdded = true;
