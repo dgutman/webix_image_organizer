@@ -406,7 +406,7 @@ define([
 					const obj = tree.getItem(id);
 					const token = auth.getToken();
 					const host = ajax.getHostApiUrl();
-					Upload.deleteResource(obj._id, host, token, obj.name);
+					Upload.deleteResource(obj._id, host, token, obj.name, obj._modelType);
 				}
 				catch (error) {
 					console.error(error);
