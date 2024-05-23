@@ -109,23 +109,21 @@ ServiceDataSchema.statics.getDownloadedResources = function() {
  * @param {[]}newResources
  * @return {*}
  */
-ServiceDataSchema.statics.addResources = function(newResources) {
-	return this.getDownloadedResources()
-	.then((result) => {
-		const resources = Array.isArray(result?.data)
-			? Array.from(new Set([].concat(result.data, newResources)))
-			: Array.from(new Set(newResources));
-		if(result) {
-			return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
-		} else {
-			const doc = new this({
-				name: 'Downloaded resources',
-				type: DATA_TYPES.DOWNLOADED_RESOURCES,
-				data: resources
-			});
-			return doc.save();
-		}
-	});
+ServiceDataSchema.statics.addResources = async function(newResources) {
+	const result = await this.getDownloadedResources();
+	const resources = Array.isArray(result?.data)
+		? Array.from(new Set([].concat(result.data, newResources)))
+		: Array.from(new Set(newResources));
+	if(result) {
+		return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
+	} else {
+		const doc = new this({
+			name: 'Downloaded resources',
+			type: DATA_TYPES.DOWNLOADED_RESOURCES,
+			data: resources
+		});
+		return doc.save();
+	}
 };
 
 ServiceDataSchema.statics.clearDownloadedResources = async function() {

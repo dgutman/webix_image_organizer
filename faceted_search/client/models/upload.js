@@ -83,8 +83,8 @@ define([
 		socketStream(socketConnect).emit('resyncUploadedData', {host, token});
 	};
 
-	const deleteResource = function(folderId, host, token, folderName) {
-		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token, folderName});
+	const deleteResource = function(folderId, host, token, name, type) {
+		socketStream(socketConnect).emit('deleteResource', {host, id: folderId, token, name, type});
 	};
 
 	socketStream(socketConnect).on("error", (err, folderName) => {

@@ -76,15 +76,16 @@ class Backend {
             this._message('[Uploading]: started', collectionName);
             const promises = [];
             if (folders) {
-                folders.forEach((folder) => {
-                    const id = folder._id;
+                for(const folder of folders) {
+                    const folderId = folder._id;
                     const name = folder.name;
-                    promises.push(this.loadGirderFolder({host, id, name, token, collectionName}));
-                });
+                    await serviceData.addResources([folderId]);
+                    promises.push(this.loadGirderFolder({host, id: folderId, name, token, collectionName}));
+                };
             }
             await Promise.all(promises);
             this._message('[Uploading]: finished', collectionName);
-            serviceData.addResources([id]);
+            await serviceData.addResources([id]);
             this.socket.emit('finishLoading', collectionName);
         } catch(err) {
             console.log(err.response || err);
@@ -103,27 +104,69 @@ class Backend {
             });
     }
 
+    /**
+     * 
+     * @param {Object} data 
+     * @param {string} data.host
+     * @param {string} data.id
+     * @param {string} data.token
+     * @param {string} data.name
+     * @param {string} data.type
+     */
     async deleteResource(data) {
-        this._message('[Looking images]: started', data?.folderName);
-        const images = await loadImagesFileFromGirderFolder(data);
-        const resourcesIds = this.getImagesResources(images);
-        if (data?.id) {
-            resourcesIds.push(data?.id);
+        try {
+            const {host, id, token, name, type} = data;
+            const url = `${host}/folder?parentType=collection&parentId=${id}`;
+            this._message('[Looking images]: started', name);
+            const images = [];
+            const resourcesIds = [];
+            if (type === "collection") {
+                const options = {
+                    headers: {
+                        "girder-token": token
+                    }
+                };
+                const folders = await axios.get(url, options).then((response) => response.data);
+                const promises = [];
+                folders.forEach((f) => {
+                    resourcesIds.push(f._id);
+                    promises.push(loadImagesFileFromGirderFolder({host, id: f._id, token}));
+                });
+                const values = await Promise.all(promises);
+                values.forEach((v) => {
+                    images.push(...v);
+                });
+            }
+            else {
+                images.push(...await loadImagesFileFromGirderFolder(data));
+            }
+            if (images) {
+                resourcesIds.push(...this.getImagesResources(images));
+            }
+            if (data?.id) {
+                resourcesIds.push(data?.id);
+            }
+            this._message('[Delete]: started', data.folderName);
+            let imagesCount = 0;
+            const ids = images ? images.map((image) => {
+                imagesCount++;
+                return image._id;
+            }) : 0;
+            const deletedCount = await facetImages.removeImages(ids);
+            await serviceData.deleteDownloadedResource(resourcesIds);
+            if(imagesCount === deletedCount) {
+                serviceData.updateImagesHash();
+                this._message('[Delete]: finished successfully', data?.folderName);
+                this.socket.emit('finishDelete', data?.folderName);
+                this.socket.emit('updateUploadedResources');
+            } else {
+                this._message('[Delete]: something went wrong', data?.folderName);
+                this.socket.emit('finishDelete', data?.folderName);
+                this.socket.emit('updateUploadedResources');
+            }
         }
-        this._message('[Delete]: started', data.folderName);
-        let imagesCount = 0;
-        const ids = images ? images.map((image) => {
-            imagesCount++;
-            return image._id;
-        }) : 0;
-        const deletedCount = await facetImages.removeImages(ids);
-        await serviceData.deleteDownloadedResource(resourcesIds);
-        if(imagesCount === deletedCount) {
-            serviceData.updateImagesHash();
-            this._message('[Delete]: finished successfully', data?.folderName);
-            this.socket.emit('finishDelete', data?.folderName);
-            this.socket.emit('updateUploadedResources');
-        } else {
+        catch (error) {
+            console.error(error);
             this._message('[Delete]: something went wrong', data?.folderName);
             this.socket.emit('finishDelete', data?.folderName);
             this.socket.emit('updateUploadedResources');
