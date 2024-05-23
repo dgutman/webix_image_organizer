@@ -13,7 +13,7 @@ define([
 
 	const _loadData = (url) => {
 		app.callEvent("editForm:doProgressOnApprovedMetadata");
-		ajaxActions.getApprovedMetadatata()
+		ajaxActions.getApprovedMetadata()
 			.then((data) => {
 				if(data) {
 					setProps(data);

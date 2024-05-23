@@ -13,7 +13,7 @@ const approvedMetadataSchema = new mongoose.Schema({
 const approvedMetadataModel = mongoose.model('approvedMetadata', approvedMetadataSchema);
 
 class Approved_metadata {
-	async getApprovedMetadataData() {
+	async getData() {
 		try{
 			const result = await approvedMetadataModel.findOne({}). exec();
 			if(result && result.data) {
@@ -23,6 +23,7 @@ class Approved_metadata {
 			}
 		} catch (e) {
 			console.error(e);
+			return ("Internal error");
 		}
 	}
 
@@ -32,13 +33,16 @@ class Approved_metadata {
 
 	async updateApprovedMetadata(valuesForUpdate) {
 		try {
-			const data = await this.getApprovedMetadataData();
+			const data = await this.getData();
+			const updateData = valuesForUpdate
+				? valuesForUpdate
+				: await this._generateData();
 			if(data) {
 				const resultOfDeleteOne = await approvedMetadataModel.deleteOne({}).exec();
 				if(resultOfDeleteOne.ok === 1) {
-					const newData = this.checkItems(data, valuesForUpdate);
+					const newData = this.checkItems(data, updateData);
 					await this.insert(newData);
-					return await this.getApprovedMetadataData();
+					return await this.getData();
 				}
 			}
 		} catch(e) {
@@ -76,11 +80,11 @@ class Approved_metadata {
 			const images = await facetImages.getAll();
 			let facets;
 			if(images.length !== 0) {
-				facets = this.getFacetesFromImagesData(images);
+				facets = this.getFacetsFromImagesData(images);
 			}
 			let data;
 			if(facets) {
-				data = this.getData(facets);
+				data = this._generateDataFromFacets(facets);
 			}
 			if(data) {
 				await this.insert(data);
@@ -91,8 +95,8 @@ class Approved_metadata {
 	}
 
 	async insertItems(image) {
-		const facets = this.getFacetesFromImagesData([image]);
-		const data = this.getData(facets);
+		const facets = this.getFacetsFromImagesData([image]);
+		const data = this._generateDataFromFacets(facets);
 		const approvedMetadata = await this.getApprovedMetadata();
 		if(approvedMetadata) {
 			const newApprovedMetadataData = this.updateApprovedMetadataItems(data, approvedMetadata.data);
@@ -117,18 +121,25 @@ class Approved_metadata {
 		return approvedMetadata;
 	}
 
-	getFacetesFromImagesData(images) {
+	getFacetsFromImagesData(images) {
 		const facets = [];
 		for(const image of images) {
 			for(const f of image.facets) {
 				facets.push(f.id);
 			}
 		}
-		return facets.filter(this.onlyUnique);
+		return Array.from(new Set(facets));
 	}
 
-	getData(facets) {
-		let props = this.parseFacetesData(facets);
+	async _generateData() {
+		const images = await facetImages.getAll();
+		const facets = this.getFacetsFromImagesData(images);
+		const data = this._generateDataFromFacets(facets);
+		return data;
+	}
+
+	_generateDataFromFacets(facets) {
+		let props = this.parseFacetsData(facets);
 		const roots = [];
 		const map = {};
 
@@ -150,11 +161,7 @@ class Approved_metadata {
 		return roots;
 	}
 
-	onlyUnique(value, index, self) {
-		return self.indexOf(value) === index;
-	}
-
-	parseFacetesData(facets) {
+	parseFacetsData(facets) {
 		const props = [];
 		facets.forEach((facet) => {
 			const idArray = facet.split('|');
@@ -187,6 +194,7 @@ class Approved_metadata {
 		});
 		return props;
 	}
+
 	checkForServiceMetadata(newFacet) {
 		let flag = false;
 		constants.HIDDEN_METADATA_FIELDS.forEach((serviceMetadata, i) => {

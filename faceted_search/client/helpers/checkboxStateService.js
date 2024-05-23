@@ -63,9 +63,16 @@ define([
 			}
 		}
 		else {
-			element.iconState = isChecked
-				? constants.CHECKBOX_STATE.blank
-				: constants.CHECKBOX_STATE.checked;
+			if (isInverse) {
+				element.iconState = isChecked
+					? constants.CHECKBOX_STATE.blank
+					: constants.CHECKBOX_STATE.checked;
+			}
+			else {
+				element.iconState = isChecked
+					? constants.CHECKBOX_STATE.checked
+					: constants.CHECKBOX_STATE.blank;
+			}
 		}
 	}
 	return {

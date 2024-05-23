@@ -1,14 +1,14 @@
 const approvedMetadataModel = require('../models/approved_metadata');
 
 class ProcessApprovedMetadataRequest {
-	async getApprovedMetadataData() {
+	async getData() {
 		try {
 			const approvedMetadata = await approvedMetadataModel.getApprovedMetadata();
 			if(approvedMetadata && approvedMetadata.data && approvedMetadata.updatedAt) {
 				return {data: approvedMetadata.data, updatedAt: approvedMetadata.updatedAt};
 			} else {
 				await approvedMetadataModel.initialApprovedMetadata();
-				const initialApprovedMetadataData = await approvedMetadataModel.getApprovedMetadataData();
+				const initialApprovedMetadataData = await approvedMetadataModel.getData();
 				if(initialApprovedMetadataData
 					&& initialApprovedMetadataData.data
 					&& initialApprovedMetadataData.updateAt) {
