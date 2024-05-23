@@ -1,18 +1,26 @@
 const axios = require("axios");
 const serviceData = require("../models/service_data");
 const facetImagesModel = require("../models/facet_images");
+const updateLocalCache = require("./updateLocalCache");
 
 async function getFoldersByIds({host, ids, token}) {
-	const query = `{"_id":{"$in":${JSON.stringify(ids.map((id) => ({$oid: id})))}}}`;
-	const url = `${host}/folder/query?query=${query}&limit=0&sort=_id&sortdir=1`;
-
 	const options = {
 		headers: {
 			"girder-token": token
 		}
 	};
-
-	return axios.get(url, options).then((response) => response.data);
+	if (ids?.length > 0) {
+		const promises = [];
+		const chunks = splitArray(ids, 50);
+		for (const chunkIds of chunks) {
+			const query = `{"_id":{"$in":${JSON.stringify(chunkIds.map((id) => ({$oid: id})))}}}`;
+			const url = `${host}/folder/query?query=${query}&limit=0&sort=_id&sortdir=1`;
+			promises.push(axios.get(url, options).then((response) => response.data));
+		}
+		const result = await Promise.all(promises);
+		return [].concat(...result);
+	}
+	return [];
 }
 
 function addParentMetaToImages(images, folders) {
@@ -46,7 +54,7 @@ async function loadImagesFileFromGirderFolder({host, id, token}) {
 		const folders = await getFoldersByIds({host, ids: imageFolderIds, token});
 		images = addParentMetaToImages(images, folders);
 		// function addResources accept array
-		serviceData.addResources([id]);
+		await serviceData.addResources([id]);
 		return images;
 	} catch(err) {
 		console.log(err.response || err);
@@ -64,21 +72,28 @@ async function resyncImages(host, token) {
 			}
 		};
 
-		const urlParams = new URLSearchParams("type=folder&limit=0&sort=_id&sortdir=1");
-		const mongoQuery = {
-			"folderId": {
-				"$in": existedFolderIds.map((id) => ({$oid: id}))
-			}
-		};
-		urlParams.append("query", JSON.stringify(mongoQuery));
+		const promises = [];
+		const chunks = splitArray(existedFolderIds, 50);
+		for (const chunkIds of chunks) {
+			const urlParams = new URLSearchParams("type=folder&limit=0&sort=_id&sortdir=1");
+			const mongoQuery = {
+				"folderId": {
+					"$in": chunkIds.map((id) => ({$oid: id}))
+				}
+			};
+			urlParams.append("query", JSON.stringify(mongoQuery));
+			const url = `${host}/item/query?${urlParams.toString()}`;
+			promises.push(axios.get(url, options).then((response) => response.data));
+		}
+		const result = await Promise.all(promises);
+		const images = [].concat(...result);
 
-		const url = `${host}/item/query?${urlParams.toString()}`;
 		const deletedCount = await facetImagesModel.removeImages({host});
 		console.log(`Deleted ${deletedCount} images`);
-		let images = await axios.get(url, options).then((response) => response.data);
 		console.log(`Fetched ${images.length} images`);
-		images = addParentMetaToImages(images, folders);
-		return images;
+		const updatedImages = addParentMetaToImages(images, folders);
+		await updateLocalCache();
+		return updatedImages;
 	} catch (err) {
 		console.error(err.response || err);
 	}
@@ -112,6 +127,17 @@ async function getAllowedFolders(host, token) {
 	} catch(err) {
 		console.error(err.response || err);
 	}
+}
+
+function splitArray(array, chunkSize) {
+	const result = [];
+	if (Array.isArray(array)) {
+		for (let i = 0; i < array.length; i += chunkSize) {
+			const chunk = array.slice(i, i + chunkSize);
+			result.push(chunk);
+		}
+	}
+	return result;
 }
 
 module.exports = {

@@ -222,7 +222,10 @@ define([
 	});
 
 	function updateItemType(facet, type) {
-		const data = getFacet(facet); let i; let wasAdded = false; let t = {};
+		const data = getFacet(facet);
+		let i;
+		let wasAdded = false;
+		let t = {};
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet) {
 				wasAdded = true;

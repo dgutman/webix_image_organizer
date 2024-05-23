@@ -10,6 +10,8 @@ const facetImages = require('../models/facet_images');
 const serviceData = require('../models/service_data');
 const approvedFacetModel = require('../models/approved_facet');
 const {default: axios} = require('axios');
+const filtersController = require('../controllers/filters');
+const updateLocalCache = require('./updateLocalCache');
 
 const IMAGES_PATH = require('../../constants').ALL_IMAGES_RES_PATH;
 const RESYNC = require('../../constants').RESYNC;
@@ -74,16 +76,14 @@ class Backend {
         try {
             const folders = await axios.get(url, options).then((response) => response.data);
             this._message('[Uploading]: started', collectionName);
-            const promises = [];
             if (folders) {
                 for(const folder of folders) {
                     const folderId = folder._id;
                     const name = folder.name;
                     await serviceData.addResources([folderId]);
-                    promises.push(this.loadGirderFolder({host, id: folderId, name, token, collectionName}));
+                    await this.loadGirderFolder({host, id: folderId, name, token, collectionName});
                 };
             }
-            await Promise.all(promises);
             this._message('[Uploading]: finished', collectionName);
             await serviceData.addResources([id]);
             this.socket.emit('finishLoading', collectionName);
@@ -100,6 +100,11 @@ class Backend {
                 return this._parseData(images, host, RESYNC);
             })
             .then(() => {
+                this.socket.emit("finishResync");
+            })
+            .catch((err) => {
+                console.error(err.response || err);
+                this._message("[Resync]: error", RESYNC);
                 this.socket.emit("finishResync");
             });
     }
@@ -147,26 +152,20 @@ class Backend {
                 resourcesIds.push(data?.id);
             }
             this._message('[Delete]: started', data.folderName);
-            let imagesCount = 0;
             const ids = images ? images.map((image) => {
-                imagesCount++;
                 return image._id;
             }) : 0;
             const deletedCount = await facetImages.removeImages(ids);
             await serviceData.deleteDownloadedResource(resourcesIds);
-            if(imagesCount === deletedCount) {
-                serviceData.updateImagesHash();
-                this._message('[Delete]: finished successfully', data?.folderName);
-                this.socket.emit('finishDelete', data?.folderName);
-                this.socket.emit('updateUploadedResources');
-            } else {
-                this._message('[Delete]: something went wrong', data?.folderName);
-                this.socket.emit('finishDelete', data?.folderName);
-                this.socket.emit('updateUploadedResources');
-            }
+            this._message(`[Delete]: finished successfully, deleted ${deletedCount} images. Update filters`, data?.folderName || data.name);
+            filtersController.updateFilters();
+            this.socket.emit('finishDelete', data?.folderName || data.name);
+            this.socket.emit('updateUploadedResources');
+            await updateLocalCache();
         }
         catch (error) {
             console.error(error);
+            await updateLocalCache();
             this._message('[Delete]: something went wrong', data?.folderName);
             this.socket.emit('finishDelete', data?.folderName);
             this.socket.emit('updateUploadedResources');
@@ -174,6 +173,8 @@ class Backend {
     }
 
     async _parseData(images, host, folderName, collectionName) {
+        const timelogID = `parse-data-${folderName}-${Math.random().toString(16).slice(2)}`;
+        console.time(timelogID);
         let msg = collectionName
             ? `[Parse folder "${folderName}"]: started`
             : '[Parse]: started';
@@ -188,11 +189,7 @@ class Backend {
                 return uniqFilter(data);
             })
             .then((data) => this.socket.emit('data', data))
-            .then(() => facetImages.getAll())
-            .then((images) => facetImages.convertImagesDataForFrontend(images))
-            .then((convertedData) => fsp.writeFile(IMAGES_PATH, JSON.stringify(convertedData)))
-            .then((result) => md5(IMAGES_PATH))
-            .then((hash) => serviceData.updateImagesHash(hash))
+            .then(() => updateLocalCache())
             .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => {
@@ -205,6 +202,9 @@ class Backend {
                 this.socket.emit('error', err, folderName);
                 console.log(err);
                 return Promise.resolve();
+            })
+            .finally(() => {
+                console.timeLog(timelogID);
             });
     }
 

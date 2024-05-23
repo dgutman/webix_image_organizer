@@ -3,7 +3,7 @@ const facetImages = require('../models/facet_images');
 const lodash = require('lodash');
 
 const approvedFacetSchema = new mongoose.Schema({
-	facetId: String,
+	facetId: {type: String, unique: true},
 	hidden: Boolean,
 	parentId: String
 });
