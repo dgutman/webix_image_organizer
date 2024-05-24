@@ -1,11 +1,11 @@
 const approvedMetadataModel = require('../models/approved_metadata');
 
-const getApprovedMetadataData = async () => {
+const getData = async () => {
 	try {
-		let data = await approvedMetadataModel.getApprovedMetadataData();
+		let data = await approvedMetadataModel.getData();
 		if (!data) {
 			await approvedMetadataModel.initialApprovedMetadata();
-			data = await approvedMetadataModel.getApprovedMetadataData();
+			data = await approvedMetadataModel.getData();
 		}
 		return data;
 	} catch(e) {
@@ -22,4 +22,4 @@ const updateApprovedMetadata = async (valuesForUpdate) => {
 	}
 };
 
-module.exports = {getApprovedMetadataData, updateApprovedMetadata};
+module.exports = {getData, updateApprovedMetadata};

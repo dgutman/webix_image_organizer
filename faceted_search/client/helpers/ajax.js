@@ -354,7 +354,7 @@ define(["app", "constants"], function(app, constants) {
 			return Promise.resolve();
 		}
 
-		getApprovedMetadatata() {
+		getApprovedMetadata() {
 			if (isLoggedIn()) {
 				return this._ajax()
 					.get(`${LOCAL_API}/facets/approved-metadata`)

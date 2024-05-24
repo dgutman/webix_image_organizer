@@ -16,7 +16,7 @@ exports.getImagesData = (req, res) => {
 		return Promise.all([
 			Promise.resolve(hash),
 			Promise.resolve(images),
-			ProcessApprovedMetadataRequest.getApprovedMetadataData(),
+			ProcessApprovedMetadataRequest.getData(),
 			hash ? LoadFromGirder.getAllowedFolders(host, token) : null
 		]);
 	})
@@ -50,7 +50,7 @@ exports.getImageData = (req, res, next) => {
 	.then((image) => {
 		return Promise.all([
 			Promise.resolve(image),
-			ProcessApprovedMetadataRequest.getApprovedMetadataData()
+			ProcessApprovedMetadataRequest.getData()
 		]);
 	})
 	.then(([image, approvedMetadataData]) => {

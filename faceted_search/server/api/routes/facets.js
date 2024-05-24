@@ -56,7 +56,7 @@ module.exports = (app) => {
 	});
 	router.get('/approved-metadata', async (req, res) => {
 		try {
-			const data = await approvedMetadataController.getApprovedMetadataData();
+			const data = await approvedMetadataController.getData();
 			if (data) {
 				res.status(200).send(data);
 			} else {

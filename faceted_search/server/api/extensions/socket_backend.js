@@ -9,6 +9,7 @@ const uniqFilter = require('./create_facets').uniqFilter;
 const facetImages = require('../models/facet_images');
 const serviceData = require('../models/service_data');
 const approvedFacetModel = require('../models/approved_facet');
+const approvedMetadataModel = require('../models/approved_metadata');
 const {default: axios} = require('axios');
 const filtersController = require('../controllers/filters');
 const updateLocalCache = require('./updateLocalCache');
@@ -192,6 +193,7 @@ class Backend {
             .then(() => updateLocalCache())
             .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())
+            .then(() => approvedMetadataModel.updateApprovedMetadata())
             .then(() => {
                 if (!collectionName) {
                     this.socket.emit('finishLoading', folderName);

@@ -1,11 +1,13 @@
 define([
   "app",
   "helpers/base_jet_view",
-  "libs/is/is.min"
+  "libs/is/is.min",
+  "models/image",
 ], function(
   app,
   BaseJetView,
-  is
+  is,
+  ImageModel
 ) {
   "use strict";
   const ACCORDION_VIEW_ID = `#property_accordion_view_${webix.uid()}`;
@@ -39,7 +41,8 @@ define([
     }
 
     setProperties(properties) {
-      const views = this.buildProperties([], properties, '');
+      const filteredProperties = ImageModel.filterData(properties);
+      const views = this.buildProperties([], filteredProperties, '');
       this.app.ui(views, this.$accordion);
     }
 
