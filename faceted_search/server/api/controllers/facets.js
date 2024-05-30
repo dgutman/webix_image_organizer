@@ -17,7 +17,9 @@ exports.getImagesData = (req, res) => {
 			Promise.resolve(hash),
 			Promise.resolve(images),
 			ProcessApprovedMetadataRequest.getData(),
-			hash ? LoadFromGirder.getAllowedFolders(host, token) : null
+			// TODO: temporary do not check access
+			// hash ? LoadFromGirder.getAllowedFolders(host, token) : null
+			null
 		]);
 	})
 	.then(([hash, images, approvedMetadataData, allowedFolders]) => {
@@ -36,6 +38,9 @@ exports.getImagesData = (req, res) => {
 			}
 			if (allowedFolders) {
 				filteredImages = hostImages?.filter((obj) => lodash.includes(allowedFolders, obj.data.folderId));
+			}
+			else {
+				filteredImages = [...hostImages];
 			}
 		} else {
 			hostImages = images;

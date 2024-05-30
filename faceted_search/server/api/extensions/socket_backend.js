@@ -1,10 +1,8 @@
 const ss = require('socket.io-stream');
 const fsp = require('fs-promise');
-const md5 = require('md5-file/promise');
 
 const {loadImagesFileFromGirderFolder, resyncImages} = require('./load_from_girder');
 const {parseImages} = require('./parse_images');
-const uniqFilter = require('./create_facets').uniqFilter;
 
 const facetImages = require('../models/facet_images');
 const serviceData = require('../models/service_data');
@@ -14,7 +12,6 @@ const {default: axios} = require('axios');
 const filtersController = require('../controllers/filters');
 const updateLocalCache = require('./updateLocalCache');
 
-const IMAGES_PATH = require('../../constants').ALL_IMAGES_RES_PATH;
 const RESYNC = require('../../constants').RESYNC;
 
 class Backend {
@@ -182,14 +179,17 @@ class Backend {
         this._message(msg, folderName, collectionName);
         const resourcesIds = this.getImagesResources(images);
         return parseImages(images, host, this._message)
-            .then((data) => {
+            .then(() => {
                 msg = collectionName
                     ? `[Parse folder "${folderName}"]: finished`
                     : '[Parse]: finished';
                 this._message(msg, folderName, collectionName);
-                return uniqFilter(data);
             })
-            .then((data) => this.socket.emit('data', data))
+            .then(() => {
+                filtersController.updateFilters();
+                const filters = filtersController.getAllFilters();
+                this.socket.emit('data', filters);
+            })
             .then(() => updateLocalCache())
             .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())

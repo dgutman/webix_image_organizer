@@ -73,7 +73,6 @@ define([
     });
 
     app.attachEvent("filtersLoaded", function() {
-        crumbsArr = {};
         filtersConfig = filtersCollection.getFiltersCollection().serialize();
     });
 
@@ -99,9 +98,9 @@ define([
                     ids.push(key + keysDelimiter + crumbsArr[key].value[i]);
                 }
                 for(let i = 0; i<ids.length; i++) {
-                    if (blockEvent) $$(ids[i]).blockEvent();
-                    $$(ids[i]).toggle();
-                    $$(ids[i]).unblockEvent();
+                    if (blockEvent) $$(ids[i])?.blockEvent();
+                    $$(ids[i])?.toggle();
+                    $$(ids[i])?.unblockEvent();
                 }
                 break;
             case 'combo':

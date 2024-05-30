@@ -17,6 +17,9 @@ define([
                     t = null;
                     switch (data[key].data[i].type) {
                         case "radio":
+                            if (data[key].data[i].options.length === 0) {
+                                continue;
+                            }
                             t = filtersViewHelper.getRadioUI(data[key].data[i]);
                             break;
                         case "slider":
@@ -35,7 +38,9 @@ define([
                             t = filtersViewHelper.getRangeSliderUI(data[key].data[i]);
                             break;
                     }
-                    elems.push(attachCollapseToFilter(t));
+                    if (t) {
+                        elems.push(attachCollapseToFilter(t));
+                    }
                 }
                 elems.push({
                     css: 'filter-block-delimiter',

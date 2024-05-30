@@ -264,11 +264,12 @@ define([
 
 	app.ui(approvedMetadataPopup);
 	app.ui(approvedFacetPopup);
+	webix.extend($$(constants.SELECT_FACET_POPUP_ID), webix.ProgressBar);
+	webix.extend($$(constants.APPROVED_METADATA_POPUP_ID), webix.ProgressBar);
 
 	app.attachEvent("editForm:doProgressOnApprovedMetadata", function() {
 		const approvedMetadataPopup = $$(constants.APPROVED_METADATA_POPUP_ID);
 		if (approvedMetadataPopup) {
-			webix.extend($$(constants.APPROVED_METADATA_POPUP_ID), webix.ProgressBar);
 			$$(constants.APPROVED_METADATA_POPUP_ID)?.showProgress({
 				type: "icon"
 			});
@@ -284,7 +285,6 @@ define([
 	app.attachEvent("editForm:doProgressOnApprovedFacet", function() {
 		const selectFacetPopup = $$(constants.SELECT_FACET_POPUP_ID);
 		if (selectFacetPopup) {
-			webix.extend($$(constants.SELECT_FACET_POPUP_ID), webix.ProgressBar);
 			selectFacetPopup.showProgress({
 				type: "icon"
 			});

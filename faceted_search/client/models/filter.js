@@ -1,10 +1,12 @@
 define([
     "app",
-    "models/applied_filters"
-], function(app, AppliedFilters) {
+    "models/applied_filters",
+    "constants"
+], function(app, AppliedFilters, constants) {
     const filtersCollection = new webix.DataCollection({});
     const filters = [];
     let isImagesLoaded = false;
+    const aggregateCheckboxName = constants.AGGREGATE_CHECKBOX_NAME;
 
     filtersCollection.loadFilters = function() {
         isImagesLoaded = false;
@@ -17,7 +19,6 @@ define([
                 filtersCollection.clearAll();
                 filtersCollection.parse(dataToParse);
                 isAfterLoadEventCalled = true;
-                callAfterLoadEvent();
             })
             .fail(function() {
                 filtersCollection.clearAll();
@@ -42,6 +43,10 @@ define([
                         filter?.value?.forEach((value) => {
                             $$(`${filter.key}${keysDelimiter}${value}`)?.toggle();
                         });
+                    case 'checkbox':
+                        $$(`${filter.key}-${aggregateCheckboxName}`)?.refresh();
+                        break;
+                    case 'toggle':
                         break;
                     case "combo":
                     case "radio":

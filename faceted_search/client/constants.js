@@ -113,5 +113,6 @@ define([], function() {
 			ALREADY_ADDED: "already_added",
 			REMOVED: "removed",
 		},
+		AGGREGATE_CHECKBOX_NAME: "aggregate-checkbox",
 	};
 });
