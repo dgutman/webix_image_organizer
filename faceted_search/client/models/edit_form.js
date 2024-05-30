@@ -208,6 +208,9 @@ define([
 							interface: data.filters[key].values,
 							status: "already_added"
 						};
+						if (t.type === "radio" && t.interface.length === 0) {
+							continue;
+						}
 						addedItems.push(t);
 						totalFormData[key] = JSON.parse(JSON.stringify(data.filters[key]));
 						view = adminFormHelper.transformToFormFormat(t, data.filters[key].type, getItemTypes(), "edit");
@@ -218,6 +221,11 @@ define([
 				initialItems = [...addedItems];
 				app.callEvent("editForm:dataLoaded", [q]);
 				app.callEvent("adminMode:onLoaded", ["edit", false]);
+			})
+			.catch((error) => {
+				if (app.debug) {
+					console.error(error);
+				}
 			});
 	});
 

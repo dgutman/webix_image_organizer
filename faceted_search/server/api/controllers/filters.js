@@ -1,13 +1,13 @@
-const facetFilters = require('../models/facet_filters');
-const facetImages = require('../models/facet_images');
+const facetFiltersModel = require('../models/facet_filters');
+const facetImagesModel = require('../models/facet_images');
 
 async function updateFilters() {
-    const filters = await facetFilters.getAll();
+    const filters = await facetFiltersModel.getAll();
     const newOptions = {};
     for (const f of filters) {
         newOptions[f.id] = [];
     }
-    const images = await facetImages.getAll();
+    const images = await facetImagesModel.getAll();
     for (const i of images) {
         for (const f of i.facets) {
             if (newOptions.hasOwnProperty(f.id)) {
@@ -18,7 +18,7 @@ async function updateFilters() {
     const filterIds = Object.keys(newOptions);
     const promises = [];
     for (const i of filterIds) {
-        const p = facetFilters.updateByParams(
+        const p = facetFiltersModel.updateByParams(
             {
                 id: i
             },
@@ -31,6 +31,11 @@ async function updateFilters() {
     await Promise.all(promises);
 }
 
+async function getAllFilters() {
+    return facetFiltersModel.getAll();
+}
+
 module.exports = {
-	updateFilters
+	updateFilters,
+    getAllFilters,
 };

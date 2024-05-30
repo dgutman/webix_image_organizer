@@ -55,7 +55,6 @@ define([
 		if(type === "edit") {
 			const editView = $$(editViewId);
 			if (editView && !editView.$destructed) {
-				webix.extend(editView, webix.ProgressBar);
 				editView.showProgress({
 					type: "icon"
 				});
@@ -81,6 +80,10 @@ define([
 	return {
 		$ui: ui,
 		$oninit: function() {
+			const editView = $$(editViewId);
+			if (editView) {
+				webix.extend(editView, webix.ProgressBar);
+			}
 			if (auth.isLoggedIn()) {
 				app.callEvent("approvedMetadata:loadData");
 				app.callEvent("approvedFacet:loadApprovedFacetData");

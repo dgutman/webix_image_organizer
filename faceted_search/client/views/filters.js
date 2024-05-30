@@ -1,14 +1,15 @@
 define([
     "app",
-    "helpers/authentication"
-], function(app, auth) {
+    "helpers/authentication",
+    "constants"
+], function(app, auth, constants) {
     const value = "All";
     const SELECTED_STATE = {
         all: 0,
         partial: 1,
         none: 2
     };
-    const aggregateCheckboxName = "aggregate-checkbox";
+    const aggregateCheckboxName = constants.AGGREGATE_CHECKBOX_NAME;
     const aggregateIconName = "aggregate-icon";
 
     Object.freeze(SELECTED_STATE);
@@ -220,7 +221,10 @@ define([
                 }
                 return selectedCount;
             }, 0);
-            return result === 0 || result === data.options.length;
+            return {
+                showCheckboxFlag: result === 0 || result === data.options.length,
+                checkFlag: result === data.options.length
+            };
         };
         
         const view = {
@@ -239,13 +243,18 @@ define([
                             on: {
                                 onChange: function(status) {
                                     app.callEvent("app:filter_form:showProgress");
-                                    data.options.forEach((option) => {
-                                        $$(`${data.id}|${option}`).setValue(status);
-                                    });
+                                    try {
+                                        data.options.forEach((option, index) => {
+                                            $$(`${data.id}|${option}`).setValue(status);
+                                        });
+                                    }
+                                    catch (error) {
+                                        console.log(error);
+                                    }
                                     app.callEvent("app:filter_form:hideProgress");
                                 },
                                 onAfterRender: function() {
-                                    const showCheckboxFlag = getShowCheckboxStatus();
+                                    const {showCheckboxFlag, checkFlag} = getShowCheckboxStatus();
                                     const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
                                     const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
                                     if (showCheckboxFlag) {
@@ -254,6 +263,9 @@ define([
                                         }
                                         if (aggregateIcon.isVisible()) {
                                             aggregateIcon?.hide();
+                                        }
+                                        if (checkFlag) {
+                                            aggregateCheckbox?.setValue(1);
                                         }
                                     }
                                     else if (!aggregateIcon?.isVisible()) {
@@ -274,11 +286,20 @@ define([
                                     icon: "wxi-minus-square",
                                     click: function() {
                                         app.callEvent("app:filter_form:showProgress");
-                                        data.options.forEach((option) => {
-                                            $$(`${data.id}|${option}`).setValue(1);
-                                        });
-                                        $$(`${data.id}-${aggregateCheckboxName}`)?.show();
-                                        $$(`${data.id}-${aggregateIconName}`)?.hide();
+                                        try {
+                                            const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
+                                            const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
+                                            data.options.forEach((option) => {
+                                                $$(`${data.id}|${option}`).setValue(1);
+                                            });
+                                            aggregateCheckbox.setValue(1);
+                                            aggregateCheckbox?.show();
+                                            aggregateIcon?.hide();
+                                        }
+                                        catch(error) {
+                                            // TODO: fix TypeError: Cannot read properties of undefined (reading '4')
+                                            // console.error(error);
+                                        }
                                         app.callEvent("app:filter_form:hideProgress");
                                     }
                                 },
@@ -316,12 +337,15 @@ define([
                             }]);
                         },
                         onItemClick: function() {
-                            const showCheckboxFlag = getShowCheckboxStatus();
+                            const {showCheckboxFlag, checkFlag} = getShowCheckboxStatus();
                             const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
                             const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
                             if (showCheckboxFlag) {
                                 aggregateCheckbox?.show();
                                 aggregateIcon?.hide();
+                                if (checkFlag) {
+                                    aggregateCheckbox?.setValue(1);
+                                }
                             }
                             else {
                                 aggregateCheckbox?.hide();

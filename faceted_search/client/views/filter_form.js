@@ -109,10 +109,12 @@ define([
 
     app.attachEvent("app:filter_form:showProgress", function() {
         $$(scrollViewId)?.showProgress();
+        $$(scrollViewId)?.resize();
     });
 
     app.attachEvent("app:filter_form:hideProgress", function() {
         $$(scrollViewId)?.hideProgress();
+        $$(scrollViewId)?.resize();
     });
 
     return {
