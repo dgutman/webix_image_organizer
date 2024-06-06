@@ -114,5 +114,6 @@ define([], function() {
 			REMOVED: "removed",
 		},
 		AGGREGATE_CHECKBOX_NAME: "aggregate-checkbox",
+		AGGREGATE_ICON_NAME: "aggregate-icon"
 	};
 });

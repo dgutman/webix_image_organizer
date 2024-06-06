@@ -3,9 +3,9 @@ const config = require('../../../config');
 const hosts = config.hosts_list;
 
 module.exports = () => {
-    ServiceData.addHosts(hosts)
+    ServiceData.updateHosts(hosts)
     .then(() => {
         console.log('Hosts are served');
     })
     .catch(err => console.log(err));
-}
+};

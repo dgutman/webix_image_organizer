@@ -205,7 +205,8 @@ define([
 									caseFilters
 								};
 								const datasetName = $$(FILE_NAME_TEXT_ID).getValue() || "Dataset";
-								const isPublic = $$(PERMISSION_FOLDER_RADIO_ID) === PERMISSION_FOLDER.PUBLIC ? true : false;
+								const permissionRadioValue = $$(PERMISSION_FOLDER_RADIO_ID)?.getValue();
+								const isPublic = permissionRadioValue === PERMISSION_FOLDER.PUBLIC ? true : false;
 								const filteredExportData = this.exportData.map((image, index, array) => {
 									const filteredData = {
 										name: image.name,

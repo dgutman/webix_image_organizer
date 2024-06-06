@@ -10,7 +10,7 @@ define([
         none: 2
     };
     const aggregateCheckboxName = constants.AGGREGATE_CHECKBOX_NAME;
-    const aggregateIconName = "aggregate-icon";
+    const aggregateIconName = constants.AGGREGATE_ICON_NAME;
 
     Object.freeze(SELECTED_STATE);
 
@@ -258,11 +258,11 @@ define([
                                     const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
                                     const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
                                     if (showCheckboxFlag) {
-                                        if (!aggregateCheckbox?.isVisible()) {
-                                            aggregateCheckbox?.show();
-                                        }
                                         if (aggregateIcon.isVisible()) {
                                             aggregateIcon?.hide();
+                                        }
+                                        if (!aggregateCheckbox?.isVisible()) {
+                                            aggregateCheckbox?.show();
                                         }
                                         if (checkFlag) {
                                             aggregateCheckbox?.setValue(1);
@@ -341,8 +341,12 @@ define([
                             const aggregateCheckbox = $$(`${data.id}-${aggregateCheckboxName}`);
                             const aggregateIcon = $$(`${data.id}-${aggregateIconName}`);
                             if (showCheckboxFlag) {
-                                aggregateCheckbox?.show();
-                                aggregateIcon?.hide();
+                                if (aggregateIcon?.isVisible()) {
+                                    aggregateIcon.hide();
+                                }
+                                if (!aggregateCheckbox?.isVisible()) {
+                                    aggregateCheckbox.show();
+                                }
                                 if (checkFlag) {
                                     aggregateCheckbox?.setValue(1);
                                 }
