@@ -1,8 +1,9 @@
 define([
         "app",
         "models/filter",
-        "helpers/authentication"
-    ], function(app, filtersCollection, auth) {
+        "helpers/authentication",
+        "constants",
+    ], function(app, filtersCollection, auth, constants) {
     function getScrollState() {
         const crumbsTemplateNode = $$("crumbsTemplate").getNode();
         const cont = crumbsTemplateNode.querySelector(".crumbs-scroll-cont");
@@ -101,6 +102,11 @@ define([
                     if (blockEvent) $$(ids[i])?.blockEvent();
                     $$(ids[i])?.toggle();
                     $$(ids[i])?.unblockEvent();
+                }
+                if (data.view === 'checkbox') {
+                    $$(`${key}-${constants.AGGREGATE_ICON_NAME}`).hide();
+                    $$(`${key}-${constants.AGGREGATE_CHECKBOX_NAME}`).show();
+                    $$(`${key}-${constants.AGGREGATE_CHECKBOX_NAME}`).setValue(0);
                 }
                 break;
             case 'combo':

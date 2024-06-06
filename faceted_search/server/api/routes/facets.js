@@ -9,6 +9,7 @@ const filterImages = require('../extensions/filters_images');
 const facetsController = require('../controllers/facets');
 const approvedMetadataController = require('../controllers/approved_metadata');
 const approvedFacetController = require('../controllers/approved_facets');
+const updateLocalCache = require('../extensions/updateLocalCache');
 
 const router = express.Router();
 
@@ -49,6 +50,7 @@ module.exports = (app) => {
 	router.delete('/images', async (req, res) => {
 		try {
 			await facetImagesModel.deleteAllDocuments();
+			await updateLocalCache();
 			res.sendStatus(204);
 		} catch(err) {
 			res.status(500).send('Internal error');

@@ -102,6 +102,7 @@ async function resyncImages(host, token) {
 async function getAllowedFolders(host, token) {
 	try {
 		const url = `${host}/folder`;
+		const urlParams = new URLSearchParams("limit=0");
 		const options = token
 			? {headers: {"girder-token": token}}
 			: {headers: {"girder-token": ""}};
@@ -110,7 +111,7 @@ async function getAllowedFolders(host, token) {
 		const existedFolderIdsCount = existedFolderIds.length;
 		const promises = [];
 		for(let i = 0; i < existedFolderIdsCount; i++) {
-			promises.push(axios.get(`${url}/${existedFolderIds[i]}`, options));
+			promises.push(axios.get(`${url}/${existedFolderIds[i]}?${urlParams.toString()}`, options));
 		}
 		const results = await Promise.allSettled(promises);
 		results.forEach((result, i) => {

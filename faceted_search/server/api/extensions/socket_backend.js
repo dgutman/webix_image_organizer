@@ -65,7 +65,7 @@ class Backend {
 
     async loadGirderCollection(data) {
         const {host, id, token, name: collectionName} = data;
-        const url = `${host}/folder?parentType=collection&parentId=${id}`;
+        const url = `${host}/folder?parentType=collection&limit=0&parentId=${id}`;
         const options = {
             headers: {
                 "girder-token": token
@@ -194,6 +194,7 @@ class Backend {
             .then(() => serviceData.addResources(resourcesIds))
             .then(() => approvedFacetModel.addApprovedFacetData())
             .then(() => approvedMetadataModel.updateApprovedMetadata())
+            .then(() => {filtersController.updateFilters();})
             .then(() => {
                 if (!collectionName) {
                     this.socket.emit('finishLoading', folderName);

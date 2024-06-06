@@ -18,7 +18,7 @@ define([
 
         webix.confirm({
             title: 'Switch skin?',
-            text: 'Filter settings will be lost. Switch skin?',
+            text: '',
             ok: 'Yes',
             cancel: 'No',
             callback: callback

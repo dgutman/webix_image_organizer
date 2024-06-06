@@ -83,7 +83,7 @@ ServiceDataSchema.statics.getHostsList = function() {
     return this.findOne({type: DATA_TYPES.HOSTS}).lean();
 };
 
-ServiceDataSchema.statics.addHosts = function(hosts) {
+ServiceDataSchema.statics.updateHosts = function(hosts) {
     return this.getHostsList()
     .then((result) => {
         if(result) {
