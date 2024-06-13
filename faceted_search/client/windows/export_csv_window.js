@@ -233,10 +233,10 @@ define([
 										view: "list"
 									});
 									const data = filteredExportData.map((data) => {
-										return this.convertToDotNotation(data);
+										return this.convertToDotNotation(data, true);
 									});
 									list.parse(data);
-									webix.toCSV(list);
+									webix.toCSV(list, {filename: datasetName});
 								}
 							}
 						}
@@ -299,15 +299,20 @@ define([
 			return dataToDisplay;
 		}
 
-		convertToDotNotation(obj) {
+		convertToDotNotation(obj, isRoot) {
 			const newObj = {};
 			const objectKeys = Object.keys(obj);
 			objectKeys.forEach((key) => {
-				if (typeof obj[key] === "object") {
+				if (typeof obj[key] === "object" && obj[key] !== null) {
 					const childObject = this.convertToDotNotation(obj[key]);
 					const childObjectKeys = Object.keys(childObject);
 					childObjectKeys.forEach((childKey) => {
-						newObj[`${key}.${childKey}`] = childObject[childKey];
+						if (key === "meta" && isRoot) {
+							newObj[`${childKey}`] = childObject[childKey];
+						}
+						else {
+							newObj[`${key}.${childKey}`] = childObject[childKey];
+						}
 					});
 				}
 				else {

@@ -44,10 +44,12 @@ define([
 					hostBox.hide();
 					const hostId = hostsList.getFirstId();
 					const host = hostsList.getItem(hostId);
+					const hostAPI = host.hostAPI;
 					const currentHostId = webix.storage.local.get("hostId");
-					if (currentHostId !== hostId) {
-						webix.storage.local.put("hostId", host.id);
-						webix.storage.local.put("hostAPI", host.hostAPI);
+					const currentHostAPI = webix.storage.local.get("hostAPI");
+					webix.storage.local.put("hostId", host.id);
+					webix.storage.local.put("hostAPI", host.hostAPI);
+					if (currentHostId !== hostId || currentHostAPI !== hostAPI) {
 						window.location.reload();
 					}
 				}

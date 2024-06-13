@@ -302,7 +302,8 @@ define([
 					this.addTemplate();
 				}
 				const templateListView = this._templateList.getList();
-				templateListView.select();
+				const firstId = templateListView.getFirstId();
+				templateListView.select(firstId);
 			} catch(err) {
 				console.log(err);
 			}
