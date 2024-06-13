@@ -12,7 +12,7 @@ const approvedMetadataSchema = new mongoose.Schema({
 
 const approvedMetadataModel = mongoose.model('approvedMetadata', approvedMetadataSchema);
 
-class Approved_metadata {
+class ApprovedMetadata {
 	async getData() {
 		try{
 			const result = await approvedMetadataModel.findOne({}). exec();
@@ -198,7 +198,7 @@ class Approved_metadata {
 	checkForServiceMetadata(newFacet) {
 		let flag = false;
 		constants.HIDDEN_METADATA_FIELDS.forEach((serviceMetadata, i) => {
-			if(newFacet.id.includes(serviceMetadata)) {
+			if(newFacet.id.replaceAll("|", ".").startsWith(serviceMetadata)) {
 				flag = true;
 			}
 		});
@@ -211,4 +211,4 @@ class Approved_metadata {
 	}
 }
 
-module.exports = new Approved_metadata();
+module.exports = new ApprovedMetadata();

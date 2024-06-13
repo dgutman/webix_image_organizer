@@ -29,15 +29,25 @@ define([
             ) {
                 if (property?.data?.length > 0) {
                     dataToDisplay[property.value] = checkApprovedMetadata(dataToDisplay[property.value], property.data);
-                    if (lodash.isEmpty(dataToDisplay[property.value])) {
+                    if (lodash.isEmpty(dataToDisplay[property.value]) || dataToDisplay[property.value] === null) {
                         delete dataToDisplay[property.value];
                     }
                 } else {
-                    delete dataToDisplay[property.value];
+                    if (Array.isArray(dataToDisplay)) {
+                        dataToDisplay.splice(Number(property.value), 1);
+                    }
+                    else {
+                        delete dataToDisplay[property.value];
+                    }
                 }
             }
+            else {
+                delete dataToDisplay[property.value];
+            }
         });
-        return dataToDisplay;
+        return Array.isArray(dataToDisplay) 
+            ? dataToDisplay.filter((d) => d !== undefined)
+            : dataToDisplay;
     };
 
     return {
