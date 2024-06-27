@@ -7,6 +7,7 @@ import ImagesRowSlider from "../scenesView/imagesRowSlider";
 import ScenesView from "../scenesView/scenesView";
 
 const npPanelCollapserName = "npPanelCollapser";
+const imagesRowSliderCollapserName = "imagesRowSliderCollapserName";
 const toggleStainAndRegionId = "toggleStainAndRegionId";
 
 export default class NPCaseViewClass extends ScenesView {
@@ -14,11 +15,21 @@ export default class NPCaseViewClass extends ScenesView {
 		super(app, config);
 		this._npPanel = new NpPanel(app, {scroll: "x"});
 		this._npTableView = new NPTableView(app);
-		this._imagesSlider = new ImagesRowSlider(app, {height: 160}, this);
+		this._imagesRowSliderId = webix.uid();
+		const sliderConfig = {
+			height: 160,
+			id: this._imagesRowSliderId,
+		};
+		this._imagesSlider = new ImagesRowSlider(app, sliderConfig, this);
 	}
 
 	config() {
 		const panelCollapser = collapser.getConfig(this._npPanel.getNpPanelId(), {type: "top", closed: false}, npPanelCollapserName);
+		const imagesSliderCollapser = collapser.getConfig(
+			this._imagesRowSliderId,
+			{type: "top", closed: false},
+			imagesRowSliderCollapserName
+		);
 		const toggleButton = {
 			id: toggleStainAndRegionId,
 			view: "switch",
@@ -41,6 +52,7 @@ export default class NPCaseViewClass extends ScenesView {
 			margin: 8,
 			rows: [
 				this._imagesSlider,
+				imagesSliderCollapser,
 				this._npPanel,
 				panelCollapser,
 				modePanel,

@@ -65,6 +65,7 @@ export default {
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
 	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
 	STORAGE_HOTKEYS_CONFIG: "hotkeys-config",
+	STORAGE_HOTKEYS_LETTERS_USAGE: "hotkeys-letter-usage",
 
 
 	LINEAR_STRUCTURE_LIMIT: 100,
@@ -185,6 +186,10 @@ export default {
 	CHANNEL_MAP_FIELD_PATH: "meta.ioparams.channelmap",
 	LINEAR_SCALE_VALUE: 1,
 	LOGARITHMIC_SCALE_VALUE: 0,
+	HOTKEYS_LETTERS_STATE: {
+		USE_LETTERS: 1,
+		DISABLE_LETTERS: 0,
+	},
 	// end MultichannelView
 
 	// begin GroupColorTemplateWindow

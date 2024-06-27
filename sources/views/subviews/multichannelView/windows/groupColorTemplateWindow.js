@@ -301,7 +301,8 @@ export default class GroupColorTemplateWindow extends JetView {
 				this.addTemplate();
 			}
 			const templateListView = this._templateList.getList();
-			templateListView.select();
+			const firstId = templateListView.getFirstId();
+			templateListView.select(firstId);
 			this.getRoot().show();
 		}
 		catch (err) {

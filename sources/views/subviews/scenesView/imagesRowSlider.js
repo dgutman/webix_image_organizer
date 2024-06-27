@@ -180,7 +180,23 @@ export default class ImagesRowSlider extends JetView {
 		const list = this.$sliderList();
 		const currentId = (this._isSingle ? list.getSelectedId() : this._highlightedId)	||
 			list.getFirstId();
-		const nextId = direction === "next" ? list.getNextId(currentId) : list.getPrevId(currentId);
+		const currentIndex = list.getIndexById(currentId);
+		const lastId = list.getLastId();
+		let nextId;
+		if (direction === "next") {
+			if (currentId.toString() === lastId.toString()) {
+				nextId = list.getFirstId();
+			}
+			else {
+				nextId = list.getNextId(currentId);
+			}
+		}
+		else if (currentIndex === 0) {
+			nextId = list.getLastId();
+		}
+		else {
+			nextId = list.getPrevId(currentId);
+		}
 		if (this._isSingle) {
 			list.select(nextId);
 			list.showItem(nextId);
