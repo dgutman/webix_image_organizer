@@ -1,9 +1,11 @@
 const facetImages = require('../models/facet_images');
 const {facets, filters} = require('./create_facets');
-const approvedMetadataModel = require('../models/approved_metadata');
 
-function parse(arr, host) {
+async function parse(arr, host, folderName) {
     let filter = {};
+
+    const timelogID = `parse-images-${folderName}-${Math.random().toString(16).slice(2)}`;
+    console.time(timelogID);
 
     if (arr.length) {
         const insertImagesPromises = [];
@@ -25,14 +27,14 @@ function parse(arr, host) {
             mongo_object.filesrc = mongo_object.data.largeImage.src || null;
             mongo_object.filename = null;
             if (host) mongo_object.host = host;
-            approvedMetadataModel.insertItems(mongo_object);
             insertImagesPromises.push(facetImages.insertImage(mongo_object));
         });
-        return Promise.all(insertImagesPromises).then(() => {
-            return filter;
-        });
+        await Promise.all(insertImagesPromises);
+        console.timeLog(timelogID);
+        return filter;
     }
-    return Promise.resolve(filter);
+    console.timeLog(timelogID);
+    return filter;
 };
 
 module.exports = {

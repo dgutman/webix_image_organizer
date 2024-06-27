@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const buildQuery = require('../extensions/facet_query_builder');
 const fsPromise = require('fs-promise');
 const md5 = require('md5-file/promise');
+const filesLock = require('../extensions/files_Lock');
 
 const serviceData = require('./service_data');
 
@@ -68,11 +69,24 @@ class FacetImages {
         });
     }
 
-    getAllImages() {
-        return fsPromise.access(IMAGES_PATH, (fsPromise.constants || fsPromise).F_OK)
-        .then(() => {
-            return fsPromise.readFile(IMAGES_PATH);
-        });
+    async getAllImages() {
+        let data;
+        while(filesLock.get(IMAGES_PATH)) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        try {
+            filesLock.set(IMAGES_PATH, true);
+            data = await fsPromise.readFile(IMAGES_PATH);
+            filesLock.set(IMAGES_PATH, false);
+            return JSON.parse(data);
+        }
+        catch (error) {
+            console.error("Error reading data from file", error);
+        }
+        finally{
+            filesLock.set(IMAGES_PATH, false);
+        }
+        return data;
     }
 
     convertImagesDataForFrontend(images) {

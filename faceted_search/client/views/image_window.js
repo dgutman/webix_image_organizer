@@ -131,7 +131,7 @@ define([
             const dataToDisplay = Image.filterData(data.data);
             this._propertyAccordion.setProperties(dataToDisplay);
 
-            // TO DO: style parameter not working. message from server: "Style is not a valid json object."
+            // TODO: style parameter not working. message from server: "Style is not a valid json object."
             // const styleParamsString = styleParams.getStyleParams(data.data);
             // const urlParams = {style: styleParamsString};
 

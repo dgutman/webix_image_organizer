@@ -107,6 +107,7 @@ define([], function() {
 			checked: 2,
 		},
 		STORAGE_HOTKEYS_CONFIG: 'hotkeys-config',
+		STORAGE_HOTKEYS_LETTERS_USAGE: 'hotkeys-letter-usage',
 		FILTER_STATUS: {
 			MODIFIED: "modified",
 			ADDED: "added",
@@ -114,6 +115,10 @@ define([], function() {
 			REMOVED: "removed",
 		},
 		AGGREGATE_CHECKBOX_NAME: "aggregate-checkbox",
-		AGGREGATE_ICON_NAME: "aggregate-icon"
+		AGGREGATE_ICON_NAME: "aggregate-icon",
+		HOTKEYS_LETTERS_STATE: {
+			USE_LETTERS: 1,
+			DISABLE_LETTERS: 0,
+		}
 	};
 });

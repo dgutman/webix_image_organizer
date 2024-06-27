@@ -39,7 +39,7 @@ function addParentMetaToImages(images, folders) {
 	return images;
 }
 
-async function loadImagesFileFromGirderFolder({host, id, token}) {
+async function loadImagesFileFromGirderFolder({host, id, token}, folderName) {
 	const url = `${host}/resource/${id}/items?type=folder&limit=0&sort=_id&sortdir=1`;
 
 	const options = {
