@@ -1,11 +1,9 @@
 define([
+	"constants",
 	"helpers/base_jet_view",
-	"models/multichannel_view/hotkeysCollection",
-	"models/multichannel_view/hotkeysSettingCollection"
 ], function(
+	constants,
 	BaseJetView,
-	hotkeysCollection,
-	hotkeysSettingsCollection
 ) {
 	"use strict";
 
@@ -16,22 +14,27 @@ define([
 			 * @type {import("../model/hotkeysModel").HotkeysModel}
 			 */
 			this._hotkeysModel = hotkeysModel;
-			const dataForHotkeysCollection = [{value: ""}];
-			dataForHotkeysCollection.push(...hotkeysCollection.serialize());
-			this._hotkeysCollection = new webix.DataCollection();
-			this._hotkeysCollection.parse(dataForHotkeysCollection);
+			this._hotkeysSettings = this._hotkeysModel.getHotkeysSettings();
 			/**
 			 * @type {webix.DataCollection}
 			 */
+			this._numberHotkeysCollection = hotkeysModel.getNumberHotkeysCollection();
+			/**
+			 * @type {webix.DataCollection}
+			 */
+			this._allHotkeysValuesCollection = hotkeysModel.getAllHotkeysValuesCollection();
 			this._closeButtonId = `close-button-id-${webix.uid()}`;
-			this._hotkeysDatatableId = `layout-id-${webix.uid()}`;
+			this._hotkeysDatatableId = `datatable-id-${webix.uid()}`;
+			this._switchLettersId = `switch-id-${webix.uid()}`;
+			this._settingsColumnId = `setting`;
+			this._hotkeysColumnId = `hotkey`;
 			this.$oninit = () => {
 				this.attachEvents();
 			};
 		}
 
 		/**
-		 * @returns {webix.ui.windowConfig}
+		 * @return {webix.ui.windowConfig}
 		 */
 		get $ui() {
 			return {
@@ -53,7 +56,8 @@ define([
 						{gravity: 10},
 						{
 							view: "switch",
-							value: 1,
+							id: this._switchLettersId,
+							value: this._hotkeysModel.getLettersUsage(),
 							label: "Use letters",
 							width: 200
 						},
@@ -64,7 +68,7 @@ define([
 							width: 100,
 							align: "right",
 							click: () => {
-								this.getRoot().hide();
+								this.closeWindow();
 							}
 						}
 					]
@@ -76,23 +80,24 @@ define([
 							view: "datatable",
 							localId: this._hotkeysDatatableId,
 							editable: true,
+							scroll: "y",
 							columns: [
 								{
-									id: "setting",
+									id: this._settingsColumnId,
 									header: "Setting",
 									gravity: 1,
 									fillspace: true
 								},
 								{
-									id: "hotkey",
+									id: this._hotkeysColumnId,
 									header: "Hotkey",
 									gravity: 1,
 									editor: "select",
 									fillspace: true,
-									collection: this._hotkeysCollection
+									collection: this._allHotkeysValuesCollection
 								}
 							]
-						}
+						},
 					]
 
 				}
@@ -102,14 +107,24 @@ define([
 
 		/**
 		 *
-		 * @returns {webix.ui.datatable}
+		 * @return {webix.ui.datatable}
 		 */
 		getHotkeysDatatable() {
 			return this.$$(this._hotkeysDatatableId);
 		}
 
+		getLetterSwitch() {
+			return this.$$(this._switchLettersId);
+		}
+
+		getSwitchValue() {
+			const switchView = this.getLetterSwitch();
+			return switchView.getValue();
+		}
+
 		attachEvents() {
 			const datatable = this.getHotkeysDatatable();
+			const letterSwitch = this.getLetterSwitch();
 			datatable.attachEvent("onEditorChange", async (cell, value) => {
 				const item = datatable.getItem(cell.row);
 				if (value === "") {
@@ -127,23 +142,65 @@ define([
 				const data = datatable.data.serialize().map(obj => obj.hotkey);
 				this._hotkeysModel.setHotkeys(data);
 			});
+			letterSwitch.attachEvent("onChange", (value, oldValue) => {
+				webix.confirm({
+					title: "Hotkeys",
+					text: "This action will reset hotkeys to default. Continue?",
+					ok: "Continue",
+					cancel: "Cancel"
+				})
+					.then(() => {
+						this._hotkeysModel.updateLettersUsage(value);
+						this._hotkeysModel.updateHotkeysCollection();
+						const data = this._hotkeysModel.getHotkeysValues();
+						this._hotkeysModel.setHotkeys(data);
+						this.updateDatatable();
+					})
+					.catch(() => {
+						letterSwitch.blockEvent();
+						letterSwitch.setValue(oldValue);
+						letterSwitch.unblockEvent();
+					});
+			});
 		}
 
 		showWindow() {
 			this.getRoot().show();
+			this.updateDatatable();
+		}
+
+		updateDatatable() {
 			const hotkeysDatatable = this.getHotkeysDatatable();
 			hotkeysDatatable.clearAll();
+			this.updateColumnsConfig();
+
 			const data = [];
-			const hotkeys = this._hotkeysModel.getHotkeysArray();
-			const hotkeysCollectionElementsCount = hotkeysCollection.count();
-			for (let index = 0; index < hotkeysCollectionElementsCount; index++) {
-				const settingId = hotkeysSettingsCollection.getIdByIndex(index);
+
+			const hotkeysValues = this._hotkeysModel.getHotkeysValues();
+			const hotkeysCount = hotkeysValues.length;
+			for (let index = 0; index < hotkeysCount; index++) {
 				data.push({
-					hotkey: hotkeys[index],
-					setting: hotkeysSettingsCollection.getItem(settingId).value
+					hotkey: hotkeysValues[index],
+					setting: this._hotkeysSettings[index]
 				});
 			}
 			hotkeysDatatable.parse(data);
+			hotkeysDatatable.refresh();
+		}
+
+		updateColumnsConfig() {
+			const switchValue = this.getSwitchValue();
+			const hotkeysDatatable = this.getHotkeysDatatable();
+			const hotkeysColumnConfig = hotkeysDatatable.getColumnConfig(this._hotkeysColumnId);
+			hotkeysColumnConfig.collection = switchValue === constants.HOTKEYS_LETTERS_STATE.USE_LETTERS
+				? this._allHotkeysValuesCollection
+				: this._numberHotkeysCollection;
+			hotkeysDatatable.refreshColumns();
+			hotkeysDatatable.refresh();
+		}
+
+		closeWindow() {
+			this.getRoot().hide();
 		}
 	};
 });

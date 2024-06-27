@@ -34,19 +34,22 @@ define([
                     }
                 } else {
                     if (Array.isArray(dataToDisplay)) {
-                        dataToDisplay.splice(Number(property.value), 1);
+                        dataToDisplay[property.value] = null;
                     }
                     else {
                         delete dataToDisplay[property.value];
                     }
                 }
             }
-            else {
+            else if (
+                dataToDisplay[property?.value] === null
+                || dataToDisplay[property?.value] === undefined
+            ) {
                 delete dataToDisplay[property.value];
             }
         });
         return Array.isArray(dataToDisplay) 
-            ? dataToDisplay.filter((d) => d !== undefined)
+            ? dataToDisplay.filter((d) => d !== undefined && d!== null)
             : dataToDisplay;
     };
 

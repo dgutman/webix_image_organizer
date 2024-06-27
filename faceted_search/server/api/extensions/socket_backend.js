@@ -49,7 +49,7 @@ class Backend {
             ? `[Uploading "${folderName}"]: started`
             : '[Uploading]: started';
         this._message(msg, folderName, collectionName);
-        return loadImagesFileFromGirderFolder(data)
+        return loadImagesFileFromGirderFolder(data, folderName)
             .then((images) => {
                 msg = collectionName
                     ? `[Uploading "${folderName}"]: finished`
@@ -178,7 +178,7 @@ class Backend {
             : '[Parse]: started';
         this._message(msg, folderName, collectionName);
         const resourcesIds = this.getImagesResources(images);
-        return parseImages(images, host, this._message)
+        return parseImages(images, host, folderName)
             .then(() => {
                 msg = collectionName
                     ? `[Parse folder "${folderName}"]: finished`

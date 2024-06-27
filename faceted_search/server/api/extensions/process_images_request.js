@@ -1,27 +1,19 @@
 const serviceData = require('../models/service_data');
 const facetImages = require('../models/facet_images');
-const approvedMetadataModel = require('../models/approved_metadata');
-const crypto = require('crypto');
 
 class ProcessImagesRequest {
 	checkEtag(clientHash) {
 		let promise;
 		if(clientHash) {
 			return Promise.all([
-				serviceData.getImagesHash(),
-				approvedMetadataModel.getApprovedMetadata()
+				serviceData.getImagesHash()
 			])
-			.then(([hashObj, approvedMetadata]) => {
+			.then(([hashObj]) => {
 				if (!hashObj) {
 					return Promise.reject({code: 'ENOENT'});
 				}
-				if (!approvedMetadata) {
-					return Promise.resolve(false);
-				}
 				let promise;
-				const approvedMetadataHash = crypto.createHash('sha256');
-				approvedMetadataHash.update(approvedMetadata?.updatedAt?.toString());
-				if(clientHash === hashObj.data + approvedMetadataHash.digest('hex').slice(0, 10)) {
+				if(clientHash === hashObj.data) {
 					promise = Promise.resolve(true);
 				} else {
 					promise = Promise.resolve(false);
@@ -35,6 +27,8 @@ class ProcessImagesRequest {
 	}
 
 	getImagesData(clientHash) {
+		const timeLogID = `get-images-data-${Math.random().toString(16).slice(2)}`;
+		console.time(timeLogID);
 		return this.checkEtag(clientHash)
 		.then((result) => {
 			let promise;
@@ -55,6 +49,7 @@ class ProcessImagesRequest {
 			} else {
 				promise = Promise.resolve([null, null]);
 			}
+			console.timeLog(timeLogID);
 			return promise;
 		});
 	};

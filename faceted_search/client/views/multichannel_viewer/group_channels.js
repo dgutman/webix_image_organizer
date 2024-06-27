@@ -24,11 +24,12 @@ define([
 			this._hotkeyScope = isHotkey
 				? `group-channels-hotkeys-scope-${webix.uid()}`
 				: null;
+			this._isHotkeysAssigned =false;
 			this._groupsPanel = groupsPanel;
 			this._channelsGroupName = groupName;
 			this._channelsSlidersContainersIds = new Map();
 			this._hotkeysModel = isHotkey
-				? new HotkeysModel(this._hotkeyScope)
+				? new HotkeysModel(this, this._hotkeyScope)
 				: null;
 			this.$oninit = () => {
 				// const view = this.getRoot();
@@ -50,7 +51,10 @@ define([
 					if (hotkeysJS.getScope() !== this._hotkeyScope) {
 						hotkeysJS.setScope(this._hotkeyScope);
 					}
-					this.setHotkeys();
+					if (!this._isHotkeysAssigned) {
+						this.setHotkeys();
+						this._isHotkeysAssigned = true;
+					}
 				}
 				this._hotkeysConfigWindow = this._isHotkey
 					? this.ui(new HotkeysConfigWindow(this.app, this._hotkeysModel))
@@ -94,14 +98,14 @@ define([
 						scroll: "auto",
 						navigation: false,
 						select: false,
-						template: ({name, color, opacity, id}) => {
+						template: ({name, color, opacity, id, channelIndexInGroup}) => {
 							const showIcon = opacity ? "mdi mdi-eye" : "mdi mdi-eye-off";
 							const focusIcon = "mdi mdi-radiobox-blank";
 							const containerId = webix.uid();
 							this._channelsSlidersContainersIds.set(id, containerId);
-							const focusHotkey = this._hotkeyCounter;
-							const focusTooltip = this._hotkeyCounter !== null
-								? `<span webix_tooltip="Press ${focusHotkey} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}"></span>`
+							const hotkeysValues = this._hotkeysModel.getHotkeysValues();
+							const focusTooltip = hotkeysValues[channelIndexInGroup + 1]
+								? `<span webix_tooltip="Press ${hotkeysValues[channelIndexInGroup + 1]} to show only this channel. Press 0 to show all channels." class="icon focus ${focusIcon}"></span>`
 								: "";
 							return `<div class="channel-item">
 									<div class="channel-item__row-one">
@@ -305,7 +309,8 @@ define([
 
 		setHotkeys() {
 			const opacityResetHandler = this.resetOpacity.bind(this);
-			const hotkeysArray = this._hotkeysModel.getHotkeysArray();
+			const hotkeysArray = this._hotkeysModel.getHotkeysValues();
+			this._hotkeysModel.clearHotkeys();
 			this._hotkeysModel.addHotkey(hotkeysArray[0], opacityResetHandler);
 			for (let index = 0; index < hotkeysArray.length; index++) {
 				if (hotkeysArray[index + 1] !== "") {
