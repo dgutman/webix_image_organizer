@@ -244,6 +244,10 @@ class MetadataTableService {
 							column: columnId,
 							row: nextRowId
 						});
+						this._metadataTable.focusEditor({
+							column: columnId,
+							row: nextRowId
+						});
 					}
 				}
 				else {

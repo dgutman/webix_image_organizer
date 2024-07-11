@@ -1182,6 +1182,9 @@ class MainService {
 			const parentId = this._finder.getParentId(id);
 			this._finderFolder = this._finder.getItem(parentId);
 			await this._loadLinearImages(parentId, isCollapsed);
+			this._finder.blockEvent();
+			this._finder.select(parentId);
+			this._finder.unblockEvent();
 			return;
 		}
 		if (item._modelType === "item" || !item._modelType) {

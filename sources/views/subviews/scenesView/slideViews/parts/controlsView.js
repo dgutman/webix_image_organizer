@@ -1,9 +1,10 @@
 import {JetView} from "webix-jet";
-import Slider from "../../../../components/slider";
-import ColorPalette from "../../../../components/colorPalette";
+
+import MathCalculations from "../../../../../utils/mathCalculations";
 import BaseSliderTitle from "../../../../../utils/templates/slider/baseSliderTitle";
 import FloatingNumberSliderTitle from "../../../../../utils/templates/slider/floatingNumberSliderTitle";
-import MathCalculations from "../../../../../utils/mathCalculations";
+import ColorPalette from "../../../../components/colorPalette";
+import Slider from "../../../../components/slider";
 
 const CONTROL_FORM_ID = "control-form-id";
 const PALETTE_COLORS_COUNT = 12;
