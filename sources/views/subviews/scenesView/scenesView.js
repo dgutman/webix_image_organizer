@@ -1,7 +1,8 @@
 import {JetView} from "webix-jet";
+
 import ImagesRowSlider from "./imagesRowSlider";
-import SlideViewContainer from "./slideViewContainer";
 import ModePanelView from "./modePanel";
+import SlideViewContainer from "./slideViewContainer";
 import constants from "../../../constants";
 import TimedOutBehavior from "../../../utils/timedOutBehavior";
 

@@ -1,8 +1,9 @@
 import {JetView} from "webix-jet";
-import OpenSeadragonViewer from "../../../components/openSeadragonViewer";
-import MetadataPanel from "../../../components/metadataJSONViewer";
+
 import ControlsView from "./parts/controlsView";
 import ajaxActions from "../../../../services/ajaxActions";
+import MetadataPanel from "../../../components/metadataJSONViewer";
+import OpenSeadragonViewer from "../../../components/openSeadragonViewer";
 
 export default class BaseSlideView extends JetView {
 	onImageSelect() {}

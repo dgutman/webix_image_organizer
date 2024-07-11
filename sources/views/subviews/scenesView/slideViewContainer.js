@@ -1,8 +1,9 @@
 import {JetView} from "webix-jet";
-import MakerLayer from "../../../services/organizer/makerLayer";
-import OrganizerFilters from "../../../services/organizer/organizerFilters";
+
 import SingleSlideView from "./slideViews/singleSlideView/singleSlideView";
 import SplitSlideView from "./slideViews/splitSlideView/splitSlideView";
+import MakerLayer from "../../../services/organizer/makerLayer";
+import OrganizerFilters from "../../../services/organizer/organizerFilters";
 
 const CONTAINER_VIEW_ID = "scenes-view-container";
 

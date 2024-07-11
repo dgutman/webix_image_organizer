@@ -1,7 +1,7 @@
+import MarkersService from "../../../../../services/scenesView/markersService";
+import SlideEventsService from "../../../../../services/scenesView/slidesService";
 import collapser from "../../../../components/collapser";
 import BaseSlideView from "../baseSlideView";
-import SlideEventsService from "../../../../../services/scenesView/slidesService";
-import MarkersService from "../../../../../services/scenesView/markersService";
 
 
 const METADATA_PANEL_ID = `scenes-view-metadata-panel-${webix.uid()}}`;
@@ -148,6 +148,10 @@ export default class SplitSlideView extends BaseSlideView {
 
 		this._slideKeepers.forEach((keeper, i) => {
 			const layer = this._layers[i];
+			if (layer) {
+				keeper.markerService = new MarkersService(mainOsdView, keeper.controlsView, layer);
+				keeper.markerService.updateMarkers(layer);
+			}
 			keeper.controlsView.$opacitySlider().show();
 			this._setLayerToViewAndService(keeper, layer, layers);
 		});
@@ -166,7 +170,7 @@ export default class SplitSlideView extends BaseSlideView {
 
 				this._addSplitSlideHandlers(keeper.osdView, i);
 
-				keeper.markerService = new MarkersService(keeper.osdView);
+				keeper.markerService = new MarkersService(keeper.osdView, keeper.controlsView, layer);
 				keeper.markerService.updateMarkers(layer);
 			}
 			keeper.controlsView.$opacitySlider().hide();
