@@ -13,9 +13,14 @@ export default class MarkerService {
 
 	attachEvents() {
 		const rotationSlider = this._controlView.$rotationSlider();
-		rotationSlider.attachEvent("onSliderDragging", (val) => {
+		this.rotationEventID = rotationSlider.attachEvent("onSliderDragging", (val) => {
 			this._rotateMarkers(val);
 		});
+	}
+
+	detachEvents() {
+		const rotationSlider = this._controlView.$rotationSlider();
+		rotationSlider.detachEvent(this.rotationEventID);
 	}
 
 	createSVGElement(type, parent, attrs) {

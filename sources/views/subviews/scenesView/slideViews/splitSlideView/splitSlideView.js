@@ -171,6 +171,10 @@ export default class SplitSlideView extends BaseSlideView {
 
 				this._addSplitSlideHandlers(keeper.osdView, i);
 
+				if (keeper.markerService) {
+					keeper.markerService.detachEvents();
+				}
+
 				keeper.markerService = new MarkersService(keeper.osdView, keeper.controlsView, layer);
 				keeper.markerService.updateMarkers(layer);
 			}
