@@ -96,7 +96,7 @@ class FacetImages {
             const image = images[i];
             const facetsLen = image.facets.length;
             for(let j = 0; j<facetsLen; j++) {
-                t[image.facets[j].id] = image.facets[j].value;
+                t[image.facets[j].id] = image.facets[j].value || image.facets[j].values;
             }
             image.facets = t;
         }

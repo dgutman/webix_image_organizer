@@ -11,7 +11,12 @@ async function updateFilters() {
     for (const i of images) {
         for (const f of i.facets) {
             if (newOptions.hasOwnProperty(f.id)) {
-                newOptions[f.id].push(f.value);
+                if (Array.isArray(f?.values)) {
+                    newOptions[f.id].push(...f.values);
+                }
+                else {
+                    newOptions[f.id].push(f.value);
+                }
             }
         }
     }

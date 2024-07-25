@@ -106,37 +106,44 @@ define([
 		return true;
 	};
 
-	imagesCollection.filterSingleImage = function(obj, data) {
+	imagesCollection.filterSingleImage = function(image, filterData) {
 		const show = {};
 		const filteredCases = CaseFilter.getFilteredCases();
 		const imagesFilteredByCasesIds = CaseFilter.getFilteredImagesIds();
 		const caseFilters = CaseFilter.getFilters();
 		const criterionsCount = caseFilters?.length;
 		if (criterionsCount === 0
-			|| (filteredCases?.includes(obj?.data?.meta?.npSchema?.caseID)
-				&& imagesFilteredByCasesIds.includes(obj.id))
+			|| (filteredCases?.includes(image?.data?.meta?.npSchema?.caseID)
+				&& imagesFilteredByCasesIds.includes(image.id))
 		) {
-			for(let i = 0; i < data.length; i++) {
-				show[data[i].key] = false;
-				if (data[i].key === constants.CHANNEL_MAP_FILTER) {
-					show[data[i].key] = data[i].value.every((filterValue) => {
-						return lodash.get(obj.data, `${constants.CHANNEL_MAP_FIELD_PATH}.${filterValue}`) !== undefined;
+			for(let i = 0; i < filterData.length; i++) {
+				show[filterData[i].key] = false;
+				if (image.facets[filterData[i].key]) {
+				}
+				if (filterData[i].key === constants.CHANNEL_MAP_FILTER) {
+					show[filterData[i].key] = filterData[i].value.every((filterValue) => {
+						return lodash.get(image.data, `${constants.CHANNEL_MAP_FIELD_PATH}.${filterValue}`) !== undefined;
 					});
-				} else if(obj.facets.hasOwnProperty((data[i].key))) {
-					if (data[i].status == "equals") {
-						if (data[i].value instanceof Array) {
-							for (let k = 0; k < data[i].value.length; k++) {
-								if (data[i].value[k] == obj.facets[data[i].key]) {
-									show[data[i].key] = true;
+				} else if(image.facets.hasOwnProperty((filterData[i].key))) {
+					if (filterData[i].status == "equals") {
+						if (filterData[i].value instanceof Array) {
+							for (let k = 0; k < filterData[i].value.length; k++) {
+								if (
+									Array.isArray(image.facets[filterData[i].key])
+									&& image.facets[filterData[i].key].includes(filterData[i].value[k])) {
+									show[filterData[i].key] = true;
+								}
+								else if (filterData[i].value[k] == image.facets[filterData[i].key]) {
+									show[filterData[i].key] = true;
 								}
 							}
-						} else if (data[i].value == obj.facets[data[i].key]) {
-							show[data[i].key] = true;
+						} else if (filterData[i].value == image.facets[filterData[i].key]) {
+							show[filterData[i].key] = true;
 						}
-					} else if (data[i].status == "less" && data[i].value < obj.facets[data[i].key]) {
-						show[data[i].key] = true;
-					} else if (data[i].status == "between" && data[i].max >= obj.facets[data[i].key] && data[i].min <= obj.facets[data[i].key]) {
-						show[data[i].key] = true;
+					} else if (filterData[i].status == "less" && filterData[i].value < image.facets[filterData[i].key]) {
+						show[filterData[i].key] = true;
+					} else if (filterData[i].status == "between" && filterData[i].max >= image.facets[filterData[i].key] && filterData[i].min <= image.facets[filterData[i].key]) {
+						show[filterData[i].key] = true;
 					}
 				}
 			}
@@ -146,12 +153,12 @@ define([
 		}
 	};
 
-	app.attachEvent("images:FilterImagesView", function(data, skipId) {
+	app.attachEvent("images:FilterImagesView", function(filterData, skipId) {
 		const arr = [];
-		imagesCollection.filter((obj) => {
-			const isOk = data ? imagesCollection.filterSingleImage(obj, data) : true;
+		imagesCollection.filter((image) => {
+			const isOk = filterData ? imagesCollection.filterSingleImage(image, filterData) : true;
 			if(isOk) {
-				arr.push(obj.facets);
+				arr.push(image.facets);
 			}
 			return isOk;
 		});

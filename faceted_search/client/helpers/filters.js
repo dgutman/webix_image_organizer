@@ -15,6 +15,12 @@ define([
                 elems.push(filtersViewHelper.getLabelUI(dataItem.label, dataItem.path));
                 for (i = 0; i < data[key].data.length; i++) {
                     t = null;
+                    data[key].data[i].options.sort((a, b) => {
+                        if (typeof a === "string" && typeof b === "string") {
+                            return a.localeCompare(b);
+                        }
+                        return a - b;
+                    });
                     switch (data[key].data[i].type) {
                         case "radio":
                             if (data[key].data[i].options.length === 0) {

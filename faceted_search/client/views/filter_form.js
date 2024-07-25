@@ -61,7 +61,7 @@ define([
                 .map((image) => image.facets);
         }
 
-        let t = lodash.map(data, key);
+        let t = lodash.map(data, key).flat();
         t = lodash.groupBy(t);
         return t;
     };
