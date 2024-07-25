@@ -22,7 +22,14 @@ const build = (facets, prefix, obj) => {
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         if (obj.hasOwnProperty(key)) {
-            if (is.not.object(obj[key])) {
+            if (Array.isArray(obj[key])) {
+                facets.push({
+                    id: prefix + key,
+                    name: key,
+                    values: obj[key],
+                });
+            }
+            else if (is.not.object(obj[key])) {
                 let value = obj[key];
 
                 if (
