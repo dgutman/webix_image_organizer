@@ -4,7 +4,7 @@ import collapser from "../../../../components/collapser";
 import BaseSlideView from "../baseSlideView";
 
 
-const METADATA_PANEL_ID = `scenes-view-metadata-panel-${webix.uid()}}`;
+const METADATA_PANEL_ID = "scenes-view-metadata-panel";
 
 export default class SplitSlideView extends BaseSlideView {
 	constructor(app, config) {
@@ -20,10 +20,11 @@ export default class SplitSlideView extends BaseSlideView {
 			this._createSlideViewElementsAndService(),
 			this._createSlideViewElementsAndService()
 		];
+		this.metadataPanelID = `${METADATA_PANEL_ID}-${webix.uid()}`;
 	}
 
 	config() {
-		const collapserView = collapser.getConfig(METADATA_PANEL_ID, {closed: false, type: "right"}, "metadataPanelCollapser");
+		const collapserView = collapser.getConfig(this.metadataPanelID, {closed: false, type: "right"}, "metadataPanelCollapser");
 		const [topSlideKeeper, bottomSlideKeeper] = this._slideKeepers;
 
 		return {
@@ -45,7 +46,7 @@ export default class SplitSlideView extends BaseSlideView {
 				},
 				collapserView,
 				{
-					id: METADATA_PANEL_ID,
+					id: this.metadataPanelID,
 					rows: [
 						topSlideKeeper.metadataPanel,
 						bottomSlideKeeper.metadataPanel
@@ -169,6 +170,10 @@ export default class SplitSlideView extends BaseSlideView {
 				layer.opacity = 1;
 
 				this._addSplitSlideHandlers(keeper.osdView, i);
+
+				if (keeper.markerService) {
+					keeper.markerService.detachEvents();
+				}
 
 				keeper.markerService = new MarkersService(keeper.osdView, keeper.controlsView, layer);
 				keeper.markerService.updateMarkers(layer);
