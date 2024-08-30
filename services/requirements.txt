@@ -3,7 +3,7 @@ Flask==2.2.5
 girder-client==2.4.0
 imutils==0.5.2
 numpy==1.22.0
-opencv-python==4.2.0.32
+opencv-python==4.8.1.78
 pyparsing==2.3.0
 pytesseract==0.2.6
 Flask-Cors==4.0.1
