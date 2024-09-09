@@ -32,14 +32,19 @@ const getFiltersWithImages = (req, res) => {
                             };
                             map[j.id] = {};
                         }
-                        if(!map[j.id].hasOwnProperty(j.value)) {
+                        if(j.value && !map[j.id].hasOwnProperty(j.value)) {
                             map[j.id][j.value] = true;
                             if (j.id === constants.CHANNEL_MAP_FILTER) {
                                 result.facets[j.id].values = Array
                                     .from(new Set([...result.facets[j.id].values, ...j.value]));
-                            } else {
+                            } else if (j.value) {
                                 result.facets[j.id].values.push(j.value);
                             }
+                        }
+                        else if (Array.isArray(j.values)) {
+                            result.facets[j.id].values = Array.from(
+                                new Set([...result.facets[j.id].values, ...j.values])
+                            );
                         }
                     }
                 }
