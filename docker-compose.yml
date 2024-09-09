@@ -81,3 +81,12 @@ services:
             - "8000"
         ports:
             - 8000:80
+    rcm:
+        container_name: rcm
+        build:
+            context: ./rcm
+            dockerfile: ./Dockerfile
+        expose:
+            - "3000"
+        ports:
+            - 3000:3000

@@ -1,0 +1,41 @@
+.App {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background: rgb(45,115,179);
+  background: linear-gradient(90deg, rgba(45,115,179,1) 0%, rgba(45,115,179,1) 35%, rgba(4,76,143,1) 100%);
+  height: 60px;
+}
+
+.App-main {
+  display: grid;
+  height: calc(100vh - 60px);
+  grid-template-rows: 1fr 1fr;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.main-images {
+  display: grid;
+  grid-template-columns: 2fr 2fr;
+}
+
+.left-panel {
+  display:grid;
+  grid-template-rows: 60px 1fr;
+}
+
+.left-panel-row-1-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.left-panel-row-2-1 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
