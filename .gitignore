@@ -12,3 +12,6 @@ services/__pycache__/*
 services/*.png
 services/*.jpg
 *.pyc*
+
+# Ignoring Python environment.
+env/  
