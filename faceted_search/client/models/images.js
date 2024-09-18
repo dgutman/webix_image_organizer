@@ -22,7 +22,7 @@ define([
 			host: ajax.getHostApiUrl(),
 			token: auth.getToken()
 		};
-		if (auth.isLoggedIn()) {
+		// if (auth.isLoggedIn()) {
 			webix.ajax().get(app.config.defaultAPIPath + "/facets/images", params)
 			.then(function(response) {
 				let data = response.json();
@@ -41,13 +41,13 @@ define([
 				app.callEvent("buildFiltersAfterImagesLoaded", [true]);
 				app.callEvent("caseForm: filtersChanged");
 			});
-		}
-		else {
-			imagesCollection.callEvent("imagesLoaded", []);
-			imagesCollection.callEvent("changeButtonAfterImageLoaded", []);
-			app.callEvent("buildFiltersAfterImagesLoaded", [true]);
-			app.callEvent("caseForm: filtersChanged");
-		}
+		// }
+		// else {
+		// 	imagesCollection.callEvent("imagesLoaded", []);
+		// 	imagesCollection.callEvent("changeButtonAfterImageLoaded", []);
+		// 	app.callEvent("buildFiltersAfterImagesLoaded", [true]);
+		// 	app.callEvent("caseForm: filtersChanged");
+		// }
 	};
 
 	imagesCollection.getImages = function() {
