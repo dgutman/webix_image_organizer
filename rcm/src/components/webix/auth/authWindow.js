@@ -4,14 +4,15 @@ import authService from "../../../services/authService";
 import "../components/passwordInput";
 
 export default class AuthWindow {
-  constructor(loginPanel, logoutPanel, userInfoTemplate) {
+  constructor(loginPanelID, logoutPanelID, userInfoTemplateID) {
     this.formID = webix.uid();
     this.windowID = webix.uid();
     this.usernameID = webix.uid();
     this.passwordID = webix.uid();
-    this._loginPanel = loginPanel;
-    this._logoutPanel = logoutPanel;
-    this._userInfoTemplate = userInfoTemplate;
+    this._loginPanelID = loginPanelID;
+    this._logoutPanelID = logoutPanelID;
+    this._userInfoTemplateID = userInfoTemplateID;
+    debugger;
   }
 
   getConfig() {
@@ -140,6 +141,18 @@ export default class AuthWindow {
     return webix.$$(this.passwordID);
   }
 
+  getLoginPanel() {
+    return webix.$$(this._loginPanelID);
+  }
+
+  getLogoutPanel() {
+    return webix.$$(this._logoutPanelID);
+  }
+
+  getUserInfoTemplate() {
+    return webix.$$(this._userInfoTemplateID)
+  }
+
   hideErrorLabel() {
     const loginValue = this.getLoginTextView().getValue();
     const passwordValue = this.getPasswordTextView().getValue();
@@ -175,17 +188,23 @@ export default class AuthWindow {
         console.error(error);
       }
       finally {
-        view?.hideProgress();
+        if (view?.isVisible()) {
+          view?.hideProgress();
+        }
         if (authService.isLoggedIn()) {
-          this._loginPanel.hide();
-          this._logoutPanel.show();
+          debugger;
+          const loginPanel = this.getLoginPanel();
+          loginPanel?.hide();
+          const logoutPanel = this.getLogoutPanel();
+          logoutPanel.show();
           const userInfo = authService.getUserInfo();
-          this._userInfoTemplate.parse(userInfo);
+          const userInfoTemplate = this.getUserInfoTemplate();
+          userInfoTemplate.parse(userInfo);
         }
       };
     }
     else {
-      view.hideProgress();
+      view?.hideProgress();
     }
   }
 

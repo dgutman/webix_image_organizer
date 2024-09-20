@@ -72,7 +72,7 @@ async function login({username = 0, password = 0}) {
 async function logout() {
   try {
     const response = await webix.ajax()
-      .del(`${getHostAPI}/user/authentication`);
+      .del(`${getHostAPI()}/user/authentication`);
     return response.json();
   }
   catch(error) {

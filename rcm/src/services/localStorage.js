@@ -5,7 +5,7 @@ const USER = "user";
 
 function getToken() {
   const authToken = webix.storage.local.get("authToken");
-  return authToken?.token ?? null;
+  return authToken ?? null;
 }
 
 function setToken(authToken) {
