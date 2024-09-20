@@ -197,8 +197,4 @@ export default class AuthWindow {
     win?.close();
     form?.elements["error-label"].hide();
   }
-
-  // export default function LoginWindowView() {
-  //   <Webix ui={getUI()} />
-  // }
 }

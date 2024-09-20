@@ -1,3 +1,5 @@
+import constants from "../constants";
+
 const folders = [];
 let selectedFolder = null;
 
@@ -42,8 +44,7 @@ function getFolderConfocalImages(f) {
 }
 
 function getFolderMacroscopicImages(f) {
-  // TODO: double nested macroscopic images object
-  return f?.meta?.imgStackDict[IMG_STACK_DICT.MACROSCOPIC_IMAGES][IMG_STACK_DICT.MACROSCOPIC_IMAGES];
+  return f?.meta?.registrationData?.find(rd => rd.type === constants.IMAGE_TYPE.MACROSCOPIC);
 }
 
 function getVivaBlockImages(f) {
@@ -56,6 +57,10 @@ function getVivaStackImages(f) {
 
 function getFolderRegistrationData(f) {
   return f?.meta?.registrationData;
+}
+
+function getFolderRegistrationDataSimplified(f) {
+  return f?.meta?.registrationDataSimplified;
 }
 
 function getYamlData(f) {
@@ -74,6 +79,7 @@ const foldersModel = {
   getVivaStackImages,
   getFolderRegistrationData,
   getYamlData,
+  getFolderRegistrationDataSimplified,
 }
 
 export default foldersModel;

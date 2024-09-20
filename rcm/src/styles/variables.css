@@ -1,0 +1,44 @@
+/* variables */
+:root {
+	/* fonts */
+	--main-font-size: 15px;
+	--logo-font-size: 20px;
+	--middle-font-size: 18px;
+	--large-font-size: 34px;
+	--mini-font-size: 13px;
+  
+	/* icons */
+	--icon-size: 18px;
+  
+	/* colors */
+	--main-color: #464A52;
+	--main-color-light: #6E7480;
+	--placeholder-color: rgba(110,116,128,0.6);
+	--icon-color: #6E7480;
+	--header-logo-color: #ffffff;
+	--select-color: #F4F5F9;
+	--overlay-text-color: #94A1B3;
+	--pager-color: #fff;
+  
+	/* backgrounds */
+	--header-bg: #054c8f;
+	--header-bg-light: #2d73b3;
+	--main-bg: #fff;
+	--dark-main-bg: #E8EBF1;
+	--tab-bg: #BDC4D4;
+	--tab-bg-active: #0288D1;
+	--selected-bg: #0288D1;
+	--selected-bg2: #01aed1;
+	--select-hover-bg: #f5f5f5;
+  
+	/* buttons */
+	--btn: #0288D1;
+	--btn-hover: #0277BD;
+	--btn-contour: #E7E9F2;
+	--popup-close-icon: #BDC4D4;
+  
+	/* borders */
+	--lines-color: #BDC4D4;
+	--lines-color-light: #E8EBF1;
+	--lines-color-invalid: #fea5a8;
+  }

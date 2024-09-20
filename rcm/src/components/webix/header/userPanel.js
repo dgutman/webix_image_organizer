@@ -2,6 +2,7 @@ import authService from "../../../services/authService";
 import AuthWindow from "../auth/authWindow"
 import * as webix from "webix";
 import foldersModel from "../../../models/foldersModel";
+import "../../../styles/userPanel.css";
 
 const LOGOUT_PANEL_ID = "logout-panel-id";
 const LOGIN_PANEL_ID = "login-panel-id";

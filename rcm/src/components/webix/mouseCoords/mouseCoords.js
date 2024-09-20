@@ -13,10 +13,10 @@ export default class MouseCoords {
       id: this._mouseCoordsTemplateID,
       template: (obj) => {
         const objWebPointX = typeof obj?.webPoint?.x === "number"
-          ? obj.webPoint.x.toFixed(2)
+          ? obj.imagePoint.x.toFixed(2)
           : "Nan";
         const objWebPointY = typeof obj?.webPoint?.y === "number"
-          ? obj.webPoint.y.toFixed(2)
+          ? obj.imagePoint.y.toFixed(2)
           : "Nan";
         return `<div class=mouse-coords-container>
           <div>
@@ -29,5 +29,16 @@ export default class MouseCoords {
 
   getMouseCoordsTemplateID() {
     return this._mouseCoordsTemplateID;
+  }
+
+  /** @return {webix.ui.template} */
+  getMouseCoordsTemplate() {
+    const template = webix.$$(this.getMouseCoordsTemplateID());
+    return template
+  }
+
+  setMouseCoords(mouseCoords) {
+    const template = this.getMouseCoordsTemplate();
+    template.parse(mouseCoords);
   }
 }

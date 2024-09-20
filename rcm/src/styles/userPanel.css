@@ -1,0 +1,42 @@
+/* select-field */
+.select-field {
+	.webix_inp_static,
+	input, select {
+	  font-size: var(--main-font-size);
+	  cursor: pointer;
+  
+	  &:focus {
+		box-shadow: none;
+	  }
+	}
+	.webix_placeholder {
+	  font-size: var(--main-font-size);
+	}
+	span.webix_input_icon {
+	  background: none;
+	  cursor: pointer;
+	  padding-top: 9px !important;
+	  font-size: var(--main-font-size);
+	}
+  
+	.webix_el_richselect .webix_inp_static {
+	  background: transparent;
+	}
+  }
+  .select-field {
+	.webix_inp_static,
+	input, select {
+	  border-color: var(--lines-color);
+	  color: var(--main-color-light);
+  
+	  &:focus {
+		border-color: var(--lines-color);
+	  }
+	}
+	.webix_placeholder {
+	  color: var(--placeholder-color);
+	}
+	span.webix_input_icon {
+	  color: var(--main-color-light);
+	}
+  }

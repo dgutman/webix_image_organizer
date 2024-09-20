@@ -9,10 +9,7 @@ function attachEvents(datatable, selectedImageContext) {
   datatable.attachEvent("onAfterSelect", async (selection) => {
     const selectionID = selection.id;
     const item = datatable.getItem(selectionID);
-    const itemYamlID = tableModel.getItemYamlID(item);
-    // const imageID = findImageIDFromYaml(itemYamlID);
-    const image = await ajaxActions.getItem(itemYamlID);
-    setSelectedImage(image);
+    setSelectedImage(item);
   });
 }
 

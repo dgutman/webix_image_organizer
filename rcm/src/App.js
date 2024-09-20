@@ -3,17 +3,11 @@ import './styles/App.css';
 import Header from "./components/react/header/header";
 import Main from "./components/react/main/main";
 import ajax from './services/ajaxActions';
-// import imagesModel from './models/imagesModel';
-// import ImagesContext from './context/imagesContext';
-// import SelectImageContext from './context/selectImageContext';
 import FoldersContext from './context/folderContext';
 import SelectedFolderContext from './context/selectedFolderContext';
 import foldersModel from './models/foldersModel';
 
 function App() {
-  // const [images, setImages] = useState([]);
-  // const [selectedImage, setSelectedImage] = useState(null);
-  // const selectedImageValue = { selectedImage, setSelectedImage };
   const [folders, setFolders] = useState([]);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const selectedFolderValue = { selectedFolder, setSelectedFolder };
@@ -27,9 +21,6 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // const imgs = await ajax.getItems(folderID);
-      // setImages(imgs)
-      // imagesModel.setImages(images);
       const subFolders = await ajax.getSubFolders(folderType, testDatasetFolderID);
       setFolders(subFolders);
       foldersModel.setFolders(folders);
@@ -44,7 +35,6 @@ function App() {
   }, [selectedFolder]);
 
   return (
-    // <ImagesContext.Provider value={images}>
     <SelectedFolderContext.Provider value={selectedFolderValue}>
     <FoldersContext.Provider value={folders}>
       <div className="App">
@@ -57,7 +47,6 @@ function App() {
       </div>
     </FoldersContext.Provider>
     </SelectedFolderContext.Provider>
-    // </ImagesContext.Provider>
   );
 }
 

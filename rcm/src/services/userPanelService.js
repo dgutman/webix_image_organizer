@@ -2,19 +2,6 @@ import * as webix from "webix";
 import userPanel from "../components/webix/header/userPanel";
 let changeEvent;
 
-// function attachEvents(selectImageContext) {
-//   const [, setSelectedImage] = selectImageContext;
-//   const imagesDropDownID = userPanel.getImagesDropDownID();
-//   const imagesDropDown = webix.$$(imagesDropDownID);
-//   if (!changeEvent) {
-//     changeEvent = imagesDropDown.attachEvent("onChange", (newValue) => {
-//       const optionsList = userPanel.getOptionsList();
-//       const selectedImage = optionsList.getItem(newValue);
-//       setSelectedImage(selectedImage);
-//     })
-//   }
-// }
-
 function attachEvents(selectedFolderContext) {
   const [, setSelectedFolder] = selectedFolderContext;
   const dropDownID = userPanel.getDropDownID();

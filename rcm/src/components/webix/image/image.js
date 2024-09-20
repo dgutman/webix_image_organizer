@@ -18,11 +18,12 @@ export default class Image {
       id: this.imageTemplateID,
       css: "image-container",
       template: `<div style="display:none" class="icons">
-						<span webix_tooltip="home" class="icon home fas fa-home"></span>
-						<span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
-						<span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
+            <span webix_tooltip="home" class="icon home fas fa-home"></span>
+            <span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
+            <span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
             <span webix_tooltip="fullscreen" class="icon fullscreen fas fa-expand-arrows-alt"></span>
-					</div>
+          </div>
+          <div id="overlay-rect"></div>
           <div class="${OSD_CONTAINER}"></dvi>`,
       on: {
         onAfterRender: () => {
@@ -59,15 +60,18 @@ export default class Image {
   }
 
   getOSDViewer() {
-    return this.openSeaDragonViewer;
+    return this.openSeaDragonViewer.$viewer();
   }
 
-  async setImage(image) {
-    // const tiles = await ajax.getImageTiles(imagesModel.getImageID(image));
-    const tileSource = await imageTilesModel.getTileSources(image);
+  async setImage(image, isMacroscopic, useSourceOptions, frame, isFrame) {
+    const tilesOptions = image.yamlId ? imagesModel.getTilesOptions(image, isMacroscopic) : {};
+    const tileSource = isFrame
+      ? await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions, frame, true)
+      : await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions);
     if (!this.openSeaDragonViewer) {
       debugger;
     }
+    tileSource.index = 0;
     this.openSeaDragonViewer.removeAllTiles();
     this.openSeaDragonViewer.addNewTile(tileSource);
   }
@@ -101,17 +105,35 @@ export default class Image {
 
   zoomHome() {
     this.openSeaDragonViewer.zoomHome();
-	}
+  }
 
-	zoomIn() {
-		this.openSeaDragonViewer.zoomIn();
-	}
+  zoomIn() {
+    this.openSeaDragonViewer.zoomIn();
+  }
 
-	zoomOut() {
-		this.openSeaDragonViewer.zoomOut();
-	}
+  zoomOut() {
+    this.openSeaDragonViewer.zoomOut();
+  }
 
   fullscreen() {
     this.openSeaDragonViewer.setFullScreen();
+  }
+
+  async addArea(overlayOptions, color) {
+    let tiledImage = this.openSeaDragonViewer.getTiledImage(0);
+    if (!tiledImage) {
+      return
+    };
+    const tiledRect = tiledImage.imageToViewportRectangle(
+      overlayOptions.x,
+      overlayOptions.y,
+      overlayOptions.width,
+      overlayOptions.height,
+    );
+
+    const overlayElement = document.getElementById("overlay-rect");
+    overlayElement.style.borderColor = color ?? "red";
+    this.openSeaDragonViewer.clearOverlays();
+    this.openSeaDragonViewer.addOverlay(overlayElement, tiledRect)
   }
 }
