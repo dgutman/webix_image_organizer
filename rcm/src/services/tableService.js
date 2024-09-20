@@ -2,9 +2,6 @@ import tableModel from "../models/tableModel";
 import ajaxActions from "./ajaxActions";
 
 function attachEvents(datatable, selectedImageContext) {
-  if (!datatable) {
-    debugger;
-  }
   const [, setSelectedImage] = selectedImageContext;
   datatable.attachEvent("onAfterSelect", async (selection) => {
     const selectionID = selection.id;

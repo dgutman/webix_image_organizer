@@ -18,9 +18,6 @@ function setSelectedFolder(folder) {
   if (folder) {
     selectedFolder = folder;
   }
-  else {
-    debugger;
-  }
 }
 
 function getFolders() {
@@ -28,9 +25,6 @@ function getFolders() {
 }
 
 function setFolders(fldrs) {
-  if (!fldrs) {
-    debugger;
-  }
   folders.length = 0;
   folders.push(...fldrs)
 }

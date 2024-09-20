@@ -117,8 +117,5 @@ export default class DataTable {
       const firstItemID = datatable.getFirstId();
       datatable.select(firstItemID);
     }
-    else {
-      debugger;
-    }
   }
 }

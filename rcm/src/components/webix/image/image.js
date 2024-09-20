@@ -68,9 +68,6 @@ export default class Image {
     const tileSource = isFrame
       ? await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions, frame, true)
       : await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions);
-    if (!this.openSeaDragonViewer) {
-      debugger;
-    }
     tileSource.index = 0;
     this.openSeaDragonViewer.removeAllTiles();
     this.openSeaDragonViewer.addNewTile(tileSource);
@@ -80,9 +77,6 @@ export default class Image {
     if (!this.openSeaDragonViewer) {
       const templateID = this.getTemplateID();
       const template = webix.$$(templateID);
-      if (!template?.getNode) {
-        debugger;
-      }
       const node = template.getNode();
 
       this.openSeaDragonViewer = new OpenSeaDragonViewer(
@@ -94,9 +88,6 @@ export default class Image {
     else {
       const templateID = this.getTemplateID();
       const template = webix.$$(templateID);
-      if (!template?.getNode) {
-        debugger;
-      }
       const templateNode = template.getNode();
       const osdNode = templateNode?.querySelector(`.${OSD_CONTAINER}`)
       this.openSeaDragonViewer.createViewer({element: osdNode}, osdNode);

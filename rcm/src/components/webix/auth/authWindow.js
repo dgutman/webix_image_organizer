@@ -12,7 +12,6 @@ export default class AuthWindow {
     this._loginPanelID = loginPanelID;
     this._logoutPanelID = logoutPanelID;
     this._userInfoTemplateID = userInfoTemplateID;
-    debugger;
   }
 
   getConfig() {
@@ -192,7 +191,6 @@ export default class AuthWindow {
           view?.hideProgress();
         }
         if (authService.isLoggedIn()) {
-          debugger;
           const loginPanel = this.getLoginPanel();
           loginPanel?.hide();
           const logoutPanel = this.getLogoutPanel();
