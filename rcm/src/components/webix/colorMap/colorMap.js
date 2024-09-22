@@ -1,4 +1,5 @@
 import * as webix from "webix";
+import "../../../styles/colorMap.css";
 
 export default class ColorMap {
   constructor() {
@@ -7,12 +8,19 @@ export default class ColorMap {
 
   getUI() {
     return {
-      view: "list",
+      view: "template",
       css: "color-map",
       scroll: false,
       id: this.colorListID,
-      // TODO: add template
-      template: ""
+      template: `<div>
+        <div class="color-map_title">Color map</div>
+        <ul class="color-map">
+          <li class="color-map_item"><span class="color-map_item_circle" style="border-color: red;"></span> Vivastack</li>
+          <li class="color-map_item"><span class="color-map_item_circle" style="border-color: orange;"></span> Vivablock</li>
+          <li class="color-map_item"><span class="color-map_item_circle" style="border-color: blue;"></span> Macroscopic Image</li>
+          <li class="color-map_item"><span class="color-map_item_circle" style="border-color: green;"></span> Conforcal Image</li>
+        </ul>
+      </div>`,
     };
   }
 

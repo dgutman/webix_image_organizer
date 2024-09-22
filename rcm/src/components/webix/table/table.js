@@ -83,12 +83,6 @@ export default class DataTable {
           header: "fov_Y",
           select: "row",
         },
-        // TODO: check if it necessary
-        // {
-        //   id: "itemid",
-        //   header: "Item ID",
-        //   select: "row",
-        // },
         {
           id: "z_um_bottom",
           header: "Z_um_bottom",
@@ -122,9 +116,6 @@ export default class DataTable {
       datatable.parse(data);
       const firstItemID = datatable.getFirstId();
       datatable.select(firstItemID);
-    }
-    else {
-      debugger;
     }
   }
 }

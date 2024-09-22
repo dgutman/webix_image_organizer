@@ -13,6 +13,7 @@ export default class ZStack {
       label: "Z-Stack: ",
       min: 0,
       max: 1,
+      disabled: true,
     }
   }
 

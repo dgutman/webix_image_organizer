@@ -72,7 +72,7 @@ async function login({username = 0, password = 0}) {
 async function logout() {
   try {
     const response = await webix.ajax()
-      .del(`${getHostAPI}/user/authentication`);
+      .del(`${getHostAPI()}/user/authentication`);
     return response.json();
   }
   catch(error) {
@@ -176,6 +176,28 @@ function getImageTileUrl(itemId, z, x, y) {
   return `${getHostAPI()}/item/${itemId}/tiles/zxy/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 }
 
+async function getTileFrameInfo(itemID) {
+  try {
+    const response = await webix.ajax()
+      .get(`${getHostAPI()}/item/${itemID}/tiles/tile_frames/quad_info`);
+    const data = response.json();
+    return data;
+  }
+  catch(error) {
+    parseError(error);
+  }
+}
+
+async function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
+  const token = localStorageService.getToken()
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.append("edge", "crop");
+  if (token) {
+    urlSearchParams.append("token", localStorageService.getToken());
+  }
+  return `${getHostAPI()}/item/${itemID}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+}
+
 const ajax = {
   login,
   logout,
@@ -187,6 +209,8 @@ const ajax = {
   getSubFolders,
   getImageFrameTileUrl,
   getImageTileUrl,
+  getTileFrameInfo,
+  getImageTileUrlWithFrameNumber,
 }
 
 export default ajax;

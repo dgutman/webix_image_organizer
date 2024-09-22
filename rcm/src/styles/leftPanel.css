@@ -1,0 +1,14 @@
+.left-panel {
+  display:grid;
+  grid-template-rows: 60px 1fr;
+}
+
+.left-panel__row-1-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.left-panel__row-2-1 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}

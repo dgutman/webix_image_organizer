@@ -2,6 +2,7 @@ import authService from "../../../services/authService";
 import AuthWindow from "../auth/authWindow"
 import * as webix from "webix";
 import foldersModel from "../../../models/foldersModel";
+import "../../../styles/userPanel.css";
 
 const LOGOUT_PANEL_ID = "logout-panel-id";
 const LOGIN_PANEL_ID = "login-panel-id";
@@ -9,7 +10,7 @@ const DROP_DOWN_ID = "images-drop-down-id";
 const USER_INFO_TEMPLATE_ID = "user-info-template-id";
 const OPTIONS_LIST_ID = "options-list-id";
 
-const authWindow = new AuthWindow();
+const authWindow = new AuthWindow(LOGIN_PANEL_ID, LOGOUT_PANEL_ID, USER_INFO_TEMPLATE_ID);
 
 const loginMenu = {
   view: "template",
