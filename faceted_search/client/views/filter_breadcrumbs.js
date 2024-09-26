@@ -59,7 +59,7 @@ define([
             "clear-all-crumbs": function(e, id, element) {
                 const entryArr = Object.entries(crumbsArr);
                 entryArr.forEach(([id, data]) => {
-                    crumbClickHandler(data, id, true);
+                    crumbClickHandler(data, id);
                 });
                 filtersCollection.clearSelectedFiltersData();
                 crumbsArr = {};

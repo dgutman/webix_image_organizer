@@ -1,12 +1,14 @@
 define([
     "app",
     "models/applied_filters",
-    "constants"
-], function(app, AppliedFilters, constants) {
+    "helpers/debouncer",
+    "constants",
+], function(app, AppliedFilters, Debouncer, constants) {
     const filtersCollection = new webix.DataCollection({});
     const filters = [];
     let isImagesLoaded = false;
     const aggregateCheckboxName = constants.AGGREGATE_CHECKBOX_NAME;
+    const debounce = new Debouncer(300);
 
     filtersCollection.loadFilters = function() {
         isImagesLoaded = false;
@@ -142,7 +144,7 @@ define([
                 }
                 break;
         }
-        AppliedFilters.setAppliedFilters(filters);
+        debounce.execute(AppliedFilters.setAppliedFilters, AppliedFilters, [filters]);
         app.callEvent("images:FilterImagesView", [filters, skipThisId]);
         app.callEvent("caseForm: refreshCasesCount");
     });
