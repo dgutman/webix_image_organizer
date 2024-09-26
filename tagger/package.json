@@ -40,7 +40,7 @@
     "nodemon": "^2.0.20",
     "terser-webpack-plugin": "^5.3.10",
     "url-loader": "^1.1.2",
-    "webpack": "^5.92.0",
+    "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.11.1"
   },
