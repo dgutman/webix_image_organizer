@@ -7,7 +7,8 @@ define([
 	"views/user_panel",
 	"views/components/header_label",
 	"views/video_window",
-	"windows/export_csv_window"
+	"windows/export_csv_window",
+	"helpers/authentication",
 ], function(
 	app,
 	constants,
@@ -17,7 +18,8 @@ define([
 	userPanel,
 	HeaderLabel,
 	VideoWindow,
-	ExportCSVWindow
+	ExportCSVWindow,
+	helpers,
 ) {
 	// window.img = Images;
 	const toolbarId = "filter_toolbar";
@@ -59,6 +61,7 @@ define([
 								id: pushToServerButtonId,
 								label: "Push to Dataset",
 								width: 150,
+								hidden: !helpers.isLoggedIn(),
 								click: function() {
 									const images = Images.getImages().serialize();
 									const dataToExport = images.map((image) => image.data);
