@@ -1,4 +1,4 @@
-import * as webix from "webix";
+import { protoUI, ui, $$ } from "webix";
 
 function togglePasswordVisibility(elem) {
 	if (elem.config.icon === "fa fa-eye") {
@@ -12,16 +12,16 @@ function togglePasswordVisibility(elem) {
 	elem.refresh();
 }
 
-webix.protoUI({
+protoUI({
 	name: "passwordInput",
 	$cssName: "search",
 	$init() {
 		this.attachEvent("onSearchIconClick", (ev) => {
-			togglePasswordVisibility(webix.$$(ev.target));
+			togglePasswordVisibility($$(ev.target));
 		});
 	},
 	defaults: {
 		type: "password",
 		icon: "far fa-eye-slash"
 	}
-}, webix.ui.search);
+}, ui.search);

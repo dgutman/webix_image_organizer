@@ -1,0 +1,5 @@
+#overlay-rect {
+	position: absolute;
+	border: 4px solid; /* Border for the rectangle */
+	visibility: hidden;
+}

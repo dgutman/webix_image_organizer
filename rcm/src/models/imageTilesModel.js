@@ -1,34 +1,44 @@
 import ajaxActions from "../services/ajaxActions";
-import imagesModel from "./imagesModel";
 
 const imageTiles = new Map();
 
-// function getImageTiles(imageID) {
-//   return imageTiles.get(imageID);
-// }
-
-async function getTileSources(image) {
-  const imageID = imagesModel.getImageID(image);
-  if (imageTiles.get(imageID)) {
+async function getTileSources(imageID, incomeTilesOptions = {}, useSourceOptions, frame, isFrame) {
+  if (imageTiles.get(`${imageID}${isFrame ? "/" + frame : ""}`)) {
     return imageTiles.get(imageID);
   }
   const tileSourceOptions = await ajaxActions.getImageTiles(imageID);
-  const tileSources = {
+  const tilesOptions = useSourceOptions
+    ? tileSourceOptions
+    : {...tileSourceOptions, ...incomeTilesOptions};
+  const tileSources = isFrame 
+  ? {
     crossOriginPolicy: "Anonymous",
     loadTilesWithAjax: true,
-    width: tileSourceOptions.sizeX,
-    height: tileSourceOptions.sizeY,
-    tileWidth: tileSourceOptions.tileWidth,
-    tileHeight: tileSourceOptions.tileHeight,
+    width: tilesOptions.sizeX,
+    height: tilesOptions.sizeY,
+    tileWidth: tilesOptions.tileWidth,
+    tileHeight: tilesOptions.tileHeight,
     minLevel: 0,
-    maxLevel: tileSourceOptions.levels - 1,
+    maxLevel: tilesOptions.levels - 1,
+    getTileUrl(level, x, y) {
+      return ajaxActions.getImageTileUrlWithFrameNumber(imageID, frame, level, x, y);
+    }
+  }
+  : {
+    crossOriginPolicy: "Anonymous",
+    loadTilesWithAjax: true,
+    width: tilesOptions.sizeX,
+    height: tilesOptions.sizeY,
+    tileWidth: tilesOptions.tileWidth,
+    tileHeight: tilesOptions.tileHeight,
+    minLevel: 0,
+    maxLevel: tilesOptions.levels - 1,
     getTileUrl(level, x, y) {
       return ajaxActions.getImageTileUrl(imageID, level, x, y);
     }
   };
 
   imageTiles.set(imageID, tileSources);
-
   return tileSources;
 }
 

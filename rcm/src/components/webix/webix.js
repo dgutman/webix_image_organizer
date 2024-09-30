@@ -1,19 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-import * as webix from 'webix/webix.js';
+import * as webix from 'webix';
 import 'webix/webix.css';
 
-
-
 export default function Webix({componentUI, componentData, componentSelect}) {
-  if (!componentUI) {
-    debugger;
-  }
   const [data, setData] = useState(componentData);
   const [select, setSelect] = useState(componentSelect);
-  if (!componentUI) {
-    debugger;
-  }
   const [ui, setUI] = useState(componentUI)
   const root = useRef("root");
 

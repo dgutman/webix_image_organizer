@@ -1,17 +1,17 @@
-import * as webix from "webix";
+import { uid, rules, $$, extend, ProgressBar } from "webix";
 import 'webix/webix.css';
 import authService from "../../../services/authService";
 import "../components/passwordInput";
 
 export default class AuthWindow {
-  constructor(loginPanel, logoutPanel, userInfoTemplate) {
-    this.formID = webix.uid();
-    this.windowID = webix.uid();
-    this.usernameID = webix.uid();
-    this.passwordID = webix.uid();
-    this._loginPanel = loginPanel;
-    this._logoutPanel = logoutPanel;
-    this._userInfoTemplate = userInfoTemplate;
+  constructor(loginPanelID, logoutPanelID, userInfoTemplateID) {
+    this.formID = uid();
+    this.windowID = uid();
+    this.usernameID = uid();
+    this.passwordID = uid();
+    this._loginPanelID = loginPanelID;
+    this._logoutPanelID = logoutPanelID;
+    this._userInfoTemplateID = userInfoTemplateID;
   }
 
   getConfig() {
@@ -20,8 +20,8 @@ export default class AuthWindow {
       id: this.formID,
       width: 600,
       rules: {
-        username: webix.rules.isNotEmpty,
-        password: webix.rules.isNotEmpty
+        username: rules.isNotEmpty,
+        password: rules.isNotEmpty
       },
       elements: [
         {
@@ -126,18 +126,30 @@ export default class AuthWindow {
 
 
   showLoginWindow() {
-    const win = webix.$$(this.windowID);
+    const win = $$(this.windowID);
     if (win) {
       win.show();
     }
   }
 
   getLoginTextView() {
-    return webix.$$(this.usernameID)
+    return $$(this.usernameID)
   }
 
   getPasswordTextView() {
-    return webix.$$(this.passwordID);
+    return $$(this.passwordID);
+  }
+
+  getLoginPanel() {
+    return $$(this._loginPanelID);
+  }
+
+  getLogoutPanel() {
+    return $$(this._logoutPanelID);
+  }
+
+  getUserInfoTemplate() {
+    return $$(this._userInfoTemplateID)
   }
 
   hideErrorLabel() {
@@ -150,42 +162,47 @@ export default class AuthWindow {
   }
 
   getForm() {
-    return webix.$$(this.formID);
+    return $$(this.formID);
   }
 
   getWindow() {
-    return webix.$$(this.windowID);
+    return $$(this.windowID);
   }
 
   async loginButtonClick() {
     const view = this.getWindow();
     const form = this.getForm();
     if (view && !view.showProgress) {
-      webix.extend(view, webix.ProgressBar);
-    }
-    view?.showProgress();
-    if (form.validate()) {
-      try {
-        await authService.login(form.getValues())
-        form.clear();
-        form.elements["error-label"].hide();
-        this.cancelLogic();
-      }
-      catch(error) {
-        console.error(error);
-      }
-      finally {
-        view?.hideProgress();
-        if (authService.isLoggedIn()) {
-          this._loginPanel.hide();
-          this._logoutPanel.show();
-          const userInfo = authService.getUserInfo();
-          this._userInfoTemplate.parse(userInfo);
+      extend(view, ProgressBar);
+      view?.showProgress();
+      if (form.validate()) {
+        try {
+          await authService.login(form.getValues())
+          form.clear();
+          form.elements["error-label"].hide();
+          this.cancelLogic();
         }
-      };
-    }
-    else {
-      view.hideProgress();
+        catch(error) {
+          console.error(error);
+        }
+        finally {
+          if (view?.isVisible()) {
+            view?.hideProgress();
+          }
+          if (authService.isLoggedIn()) {
+            const loginPanel = this.getLoginPanel();
+            loginPanel?.hide();
+            const logoutPanel = this.getLogoutPanel();
+            logoutPanel.show();
+            const userInfo = authService.getUserInfo();
+            const userInfoTemplate = this.getUserInfoTemplate();
+            userInfoTemplate.parse(userInfo);
+          }
+        };
+      }
+      else {
+        view?.hideProgress();
+      }
     }
   }
 
@@ -197,8 +214,4 @@ export default class AuthWindow {
     win?.close();
     form?.elements["error-label"].hide();
   }
-
-  // export default function LoginWindowView() {
-  //   <Webix ui={getUI()} />
-  // }
 }

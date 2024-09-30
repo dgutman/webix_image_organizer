@@ -24,18 +24,3 @@
   display: grid;
   grid-template-columns: 2fr 2fr;
 }
-
-.left-panel {
-  display:grid;
-  grid-template-rows: 60px 1fr;
-}
-
-.left-panel-row-1-1 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-}
-
-.left-panel-row-2-1 {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-}

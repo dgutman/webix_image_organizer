@@ -1,7 +1,8 @@
 import authService from "../../../services/authService";
 import AuthWindow from "../auth/authWindow"
-import * as webix from "webix";
+import { ui, $$ } from "webix";
 import foldersModel from "../../../models/foldersModel";
+import "../../../styles/userPanel.css";
 
 const LOGOUT_PANEL_ID = "logout-panel-id";
 const LOGIN_PANEL_ID = "login-panel-id";
@@ -9,19 +10,19 @@ const DROP_DOWN_ID = "images-drop-down-id";
 const USER_INFO_TEMPLATE_ID = "user-info-template-id";
 const OPTIONS_LIST_ID = "options-list-id";
 
-const authWindow = new AuthWindow();
+const authWindow = new AuthWindow(LOGIN_PANEL_ID, LOGOUT_PANEL_ID, USER_INFO_TEMPLATE_ID);
 
 const loginMenu = {
   view: "template",
   template: "<span class='menu-login login-menu-item'>Login</span>",
-  css: "login-menu",
+  css: "user-panel_login-menu",
   borderless: true,
   width: 150,
   onClick: {
     "menu-login": () => {
       // TODO: login
       const authWindowConfig = authWindow.getConfig();
-      const authWindowView = webix.ui(authWindowConfig);
+      const authWindowView = ui(authWindowConfig);
       authWindowView.show();
     }
   }
@@ -30,14 +31,15 @@ const loginMenu = {
 const loginPanel = {
   view: "layout",
   id: LOGIN_PANEL_ID,
+  css: "user-panel_login-menu",
   hidden: authService.isLoggedIn(),
   cols: [
     {gravity: 1},
     {
       rows: [
-        {gravity: 0.01},
+        {gravity: 0.8},
         loginMenu,
-        {gravity: 0.01},
+        {gravity: 0.8},
       ]
     }
   ]
@@ -72,6 +74,7 @@ const DropDown = {
 
 const userInfoTemplate = {
   view: "template",
+  css: "user-panel_user-info",
   id: USER_INFO_TEMPLATE_ID,
   template(obj) {
     return `${obj.login || ""}`
@@ -80,7 +83,7 @@ const userInfoTemplate = {
     onBeforeRender: (data) => {
       if (!data.login) {
         const userInfo = authService.getUserInfo();
-        const userInfoTemplateView = webix.$$(USER_INFO_TEMPLATE_ID);
+        const userInfoTemplateView = $$(USER_INFO_TEMPLATE_ID);
         userInfoTemplateView.parse(userInfo);
       }
     }
@@ -89,15 +92,15 @@ const userInfoTemplate = {
 
 const logoutMenu = {
   view: "template",
-  template: "<span class='menu-logout logout-menu-item'>Logout</span>",
-  css: "logout-menu",
+  template: "<span class='menu-logout logout-menu-item'>Logout </span><span class='fas fa-sign-out-alt'></span>",
+  css: "user-panel_logout-menu",
   borderless: true,
   width: 150,
   onClick: {
     "menu-logout": () => {
       authService.logout();
-      const loginPanel = webix.$$(getLoginPanelID());
-      const logoutPanel = webix.$$(getLogoutPanelID());
+      const loginPanel = $$(getLoginPanelID());
+      const logoutPanel = $$(getLogoutPanelID());
       logoutPanel.hide();
       loginPanel.show();
     }
@@ -119,7 +122,7 @@ const logoutPanel = {
 
 const userPanel = {
   view: "layout",
-  css: "userbar",
+  css: "user-panel",
   rows: [
     loginPanel,
     logoutPanel
@@ -160,17 +163,22 @@ function getDropDownID() {
   return DROP_DOWN_ID;
 }
 
+function getDropDown() {
+  return $$(getDropDownID())
+}
+
 function getUserInfoTemplateID() {
   return USER_INFO_TEMPLATE_ID;
 }
 
+/** @returns {webix.ui.list} */
 function getOptionsList() {
-  /** @type {webix.ui.list} */
-  return webix.$$(OPTIONS_LIST_ID)
+  return $$(OPTIONS_LIST_ID)
 }
 
 function updateOptions(folders) {
   const optionsList = getOptionsList();
+  optionsList.clearAll();
   optionsList.parse(folders);
 }
 
@@ -179,6 +187,7 @@ const module = {
   getLoginPanelID,
   getLogoutPanelID,
   getDropDownID,
+  getDropDown,
   getUserInfoTemplateID,
   updateOptions,
   getOptionsList,

@@ -1,10 +1,10 @@
-import OpenSeaDragon from "openseadragon";
-import * as webix from "webix";
+import openseadragon from "openseadragon";
+import { $$ } from "webix";
 
 export default class OpenSeaDragonViewer {
   /**
    * 
-   * @param {OpenSeaDragon.Options} opts
+   * @param {openseadragon.Options} opts
    */
   constructor(opts) {
     this.defaultOptions = {
@@ -12,7 +12,7 @@ export default class OpenSeaDragonViewer {
     }
     const options = {...this.defaultOptions, ...opts}
     this.node = opts.element;
-    this._viewer = new OpenSeaDragon.Viewer(options);
+    this._viewer = new openseadragon.Viewer(options);
     this.addEventHandler();
   }
 
@@ -23,34 +23,7 @@ export default class OpenSeaDragonViewer {
     this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
   }
   
-  addEventHandler() {
-    const viewer = this.$viewer();
-    const updateZoom = () => {
-      const zoom = viewer.viewport.getZoom(true);
-      const tiledImage = viewer.world.getItemAt(0);
-      if (tiledImage) {
-        const imageZoom = tiledImage?.viewportToImageZoom(zoom);
-        this.app.callEvent("app:update-viewer-zoom", [zoom, imageZoom]);
-      }
-    };
-    viewer.addHandler("open", () => {
-      const tracker = new OpenSeaDragon.MouseTracker({
-        element: viewer.container,
-        moveHandler: (event) => {
-          const webPoint = event.position;
-          const viewportPoint = viewer.viewport.pointFromPixel(webPoint);
-          const tiledImage = viewer.world.getItemAt(0);
-          if (tiledImage) {
-            const imagePoint = tiledImage.viewportToImageCoordinates(viewportPoint);
-            updateZoom();
-            this.app.callEvent("app:update-viewer-coordinates", [webPoint, viewportPoint, imagePoint]);
-          }
-        }
-      });
-      tracker.setTracking(true);
-      viewer.addHandler("animation", updateZoom);
-    });
-  }
+  addEventHandler() {}
   
   zoomHome() {
     const viewer = this.$viewer();
@@ -154,7 +127,7 @@ export default class OpenSeaDragonViewer {
   }
   
   getViewerTemplate() {
-    return webix.$$(this._osdViewerTemplateID);
+    return $$(this._osdViewerTemplateID);
   }
   
   getBounds() {
@@ -174,7 +147,7 @@ export default class OpenSeaDragonViewer {
 
   createViewer(opts = {}, node = this.node) {
     const options = {...this.defaultOptions, ...opts}
-		this._viewer = new OpenSeaDragon.Viewer({
+		this._viewer = new openseadragon.Viewer({
       options,
 			element: node,
 		});
@@ -194,5 +167,24 @@ export default class OpenSeaDragonViewer {
   destroy() {
     const viewer = this.$viewer();
     viewer.destroy();
+  }
+
+  addOverlay(element, location) {
+    const viewer = this.$viewer();
+    console.log(JSON.stringify(location));
+    viewer.addOverlay(element, location)
+  }
+
+  clearOverlays() {
+    const viewer = this.$viewer();
+    viewer.clearOverlays();
+  }
+
+  getTiledImage(index) {
+    return this.$viewer().world.getItemAt(index);
+  }
+
+  getMouseTracker() {
+    return this.mouseTracker;
   }
 }

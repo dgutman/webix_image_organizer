@@ -1,8 +1,8 @@
-import * as webix from "webix";
+import { uid, $$, template } from "webix";
 
 export default class ZStack {
   constructor() {
-    this.zStackID = webix.uid();
+    this.zStackID = uid();
   }
 
   getUI() {
@@ -12,11 +12,16 @@ export default class ZStack {
       css: "z-stack",
       label: "Z-Stack: ",
       min: 0,
-      max: 1,
+      max: 19,
+      disabled: true,
+      title: template("#value#"),
+      height: 0,
+      moveTitle: false,
     }
   }
 
+  /** @returns {webix.ui.slider} */
   getSlider() {
-    return webix.$$(this.zStackID);
+    return $$(this.zStackID);
   }
 }
