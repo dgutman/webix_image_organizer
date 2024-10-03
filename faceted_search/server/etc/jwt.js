@@ -15,9 +15,7 @@ function jwt() {
 			{url: "/"},
 			{url: /\/api\/host\/\d+/},
 			{url: /\/api\/facets\/images[^\>]*/},
-			{url: /\/api\/facets\/filters[^\>]*/},
-			{url: /\/api\/facets\/approved-metadata[^\>]*/},
-			{url: /\/api\/facets\/approved-facets[^\>]*/},
+			{url: /\/api\/facets\/filters[^\>]*/}
 		]
 	});
 }

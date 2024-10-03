@@ -267,7 +267,7 @@ define([
 			exportMetadata.forEach((filter) => {
 				if(filter.checked === false) {
 					const dataForChecking = data.hasOwnProperty(filter.value) ? data[filter.value] : null;
-					if(Array.isArray(dataForChecking) && Array.isArray(filter.data)) {
+					if(Array.isArray(dataForChecking)) {
 						filter.data.forEach((item, i) => {
 							if(item.checked) {
 								if(!dataToDisplay.hasOwnProperty(filter.value)) {
