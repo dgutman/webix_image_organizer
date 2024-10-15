@@ -1,42 +1,60 @@
 /* select-field */
 .select-field {
-	.webix_inp_static,
-	input, select {
-	  font-size: var(--main-font-size);
-	  cursor: pointer;
-  
-	  &:focus {
-		box-shadow: none;
-	  }
-	}
-	.webix_placeholder {
-	  font-size: var(--main-font-size);
-	}
-	span.webix_input_icon {
-	  background: none;
-	  cursor: pointer;
-	  padding-top: 9px !important;
-	  font-size: var(--main-font-size);
-	}
-  
-	.webix_el_richselect .webix_inp_static {
-	  background: transparent;
-	}
+  .webix_el_box {
+    background-color: transparent;
   }
-  .select-field {
-	.webix_inp_static,
-	input, select {
-	  border-color: var(--lines-color);
-	  color: var(--main-color-light);
+  .webix_inp_static,
+  input, select {
+    font-size: var(--main-font-size);
+    cursor: pointer;
+    border-color: var(--lines-color);
+    color: var(--select-color);
+    background-color: transparent;
   
-	  &:focus {
-		border-color: var(--lines-color);
-	  }
-	}
-	.webix_placeholder {
-	  color: var(--placeholder-color);
-	}
-	span.webix_input_icon {
-	  color: var(--main-color-light);
-	}
+    &:focus {
+      box-shadow: none;
+      border-color: var(--lines-color);
+    }
   }
+  .webix_placeholder {
+    font-size: var(--main-font-size);
+    color: var(--placeholder-color);
+  }
+  span.webix_input_icon {
+    background: none;
+    cursor: pointer;
+    padding-top: 9px !important;
+    font-size: var(--main-font-size);
+    color: var(--select-color);
+  }
+  
+  .webix_el_richselect .webix_inp_static {
+    background: transparent;
+  }
+}
+
+.user-panel, .user-panel_user-info, .user-panel_logout-menu, .user-panel_login-menu {
+  background-color: transparent;
+  color: var(--select-color);
+  border: none;
+}
+
+.user-panel_login-menu, .user-panel_user-info {
+  font-size: 16px;
+  font-weight: 200;
+}
+
+.user-panel_logout-menu {
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.user-panel_login-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  .webix_template {
+    text-align: center;
+  }
+}

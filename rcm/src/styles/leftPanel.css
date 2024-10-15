@@ -12,3 +12,7 @@
   display: grid;
   grid-template-columns: 2fr 1fr;
 }
+
+.z-stack {
+  height: 100%;
+}

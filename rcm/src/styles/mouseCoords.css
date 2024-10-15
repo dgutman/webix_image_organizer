@@ -1,0 +1,10 @@
+.mouse-coords-container {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto;
+  .mouse-coords-container_item {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: start;
+  }
+}

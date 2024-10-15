@@ -1,8 +1,8 @@
-import * as webix from "webix";
+import { uid, $$ } from "webix";
 
 export default class DataTable {
   constructor() {
-    this._dataTableID = webix.uid();
+    this._dataTableID = uid();
   }
 
   /**
@@ -14,13 +14,13 @@ export default class DataTable {
       view: "datatable",
       css: "main-datatable",
       id: this._dataTableID,
-			select: true,
-			editable: false,
-			resizeColumn: false,
-			fixedRowHeight: false,
-			spans: true,
-			tooltip: true,
-			columns: [
+      select: true,
+      editable: false,
+      resizeColumn: false,
+      fixedRowHeight: false,
+      spans: true,
+      tooltip: true,
+      columns: [
         {
           id: "yamlId",
           header: "Yaml Id",
@@ -44,32 +44,32 @@ export default class DataTable {
           select: "row",
         },
         {
-          id: "a",
+          id: "x_max",
           /*
           sort:,
           editor:,
           fillspace: true,
           select: "row",
           */
-          header: "Coord 1",
+          header: "x_max",
           select: "row",
           minWidth: 200,
         },
         {
-          id: "b",
-          header: "Coord 2",
+          id: "x_min",
+          header: "x_min",
           select: "row",
           minWidth: 200,
         },
         {
-          id: "c",
-          header: "Coord 3",
+          id: "y_max",
+          header: "y_max",
           select: "row",
           minWidth: 200,
         },
         {
-          id: "d",
-          header: "Coord 4",
+          id: "y_min",
+          header: "y_min",
           select: "row",
           minWidth: 200,
         },
@@ -106,13 +106,14 @@ export default class DataTable {
 
    /** @returns {webix.ui.datatable}*/
   getDatatable() {
-    return webix.$$(this._dataTableID);
+    return $$(this._dataTableID);
   }
 
   parseData(data) {
     /** @type {webix.ui.datatable} */
     const datatable = this.getDatatable();
     if (datatable) {
+      datatable.clearAll();
       datatable.parse(data);
       const firstItemID = datatable.getFirstId();
       datatable.select(firstItemID);

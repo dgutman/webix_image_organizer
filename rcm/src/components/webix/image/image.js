@@ -1,6 +1,6 @@
-import * as webix from "webix";
+// TODO: rewrite module to react
+import { uid, $$ } from "webix";
 import OpenSeaDragonViewer from "./osdViewer";
-import ajax from "../../../services/ajaxActions";
 import imagesModel from "../../../models/imagesModel";
 import imageTilesModel from "../../../models/imageTilesModel";
 
@@ -8,7 +8,7 @@ const OSD_CONTAINER = "osd-container";
 
 export default class Image {
   constructor() {
-    this.imageTemplateID = webix.uid();
+    this.imageTemplateID = uid();
     this.openSeaDragonViewer = null;
   }
 
@@ -17,13 +17,7 @@ export default class Image {
       view: "template",
       id: this.imageTemplateID,
       css: "image-container",
-      template: `<div style="display:none" class="icons">
-            <span webix_tooltip="home" class="icon home fas fa-home"></span>
-            <span webix_tooltip="zoom in" class="icon zoomin fas fa-search-plus"></span>
-            <span webix_tooltip="zoom out" class="icon zoomout fas fa-search-minus"></span>
-            <span webix_tooltip="fullscreen" class="icon fullscreen fas fa-expand-arrows-alt"></span>
-          </div>
-          <div id="overlay-rect"></div>
+      template: `<div id="overlay-rect"></div>
           <div class="${OSD_CONTAINER}"></dvi>`,
       on: {
         onAfterRender: () => {
@@ -52,7 +46,7 @@ export default class Image {
   }
 
   getTemplate() {
-    return webix.$$(this.imageTemplateID);
+    return $$(this.imageTemplateID);
   }
 
   getTemplateID() {
@@ -65,9 +59,10 @@ export default class Image {
 
   async setImage(image, isMacroscopic, useSourceOptions, frame, isFrame) {
     const tilesOptions = image.yamlId ? imagesModel.getTilesOptions(image, isMacroscopic) : {};
+    const imageID = image.yamlId ?? imagesModel.getImageID(image);
     const tileSource = isFrame
-      ? await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions, frame, true)
-      : await imageTilesModel.getTileSources(image, tilesOptions, useSourceOptions);
+      ? await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions, frame, true)
+      : await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions);
     tileSource.index = 0;
     this.openSeaDragonViewer.removeAllTiles();
     this.openSeaDragonViewer.addNewTile(tileSource);
@@ -76,7 +71,7 @@ export default class Image {
   createViewer() {
     if (!this.openSeaDragonViewer) {
       const templateID = this.getTemplateID();
-      const template = webix.$$(templateID);
+      const template = $$(templateID);
       const node = template.getNode();
 
       this.openSeaDragonViewer = new OpenSeaDragonViewer(
@@ -87,7 +82,7 @@ export default class Image {
     }
     else {
       const templateID = this.getTemplateID();
-      const template = webix.$$(templateID);
+      const template = $$(templateID);
       const templateNode = template.getNode();
       const osdNode = templateNode?.querySelector(`.${OSD_CONTAINER}`)
       this.openSeaDragonViewer.createViewer({element: osdNode}, osdNode);
@@ -124,6 +119,7 @@ export default class Image {
 
     const overlayElement = document.getElementById("overlay-rect");
     overlayElement.style.borderColor = color ?? "red";
+    overlayElement.style.visibility = "visible";
     this.openSeaDragonViewer.clearOverlays();
     this.openSeaDragonViewer.addOverlay(overlayElement, tiledRect)
   }

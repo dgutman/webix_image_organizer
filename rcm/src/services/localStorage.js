@@ -4,7 +4,7 @@ const AUTH_TOKEN = "authToken";
 const USER = "user";
 
 function getToken() {
-  const authToken = webix.storage.local.get("authToken");
+  const authToken = webix.storage.local.get(AUTH_TOKEN);
   return authToken ?? null;
 }
 

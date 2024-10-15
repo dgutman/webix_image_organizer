@@ -1,9 +1,10 @@
-import * as webix from "webix";
+// TODO: make webix global
+import { uid, $$ } from "webix";
 import "../../../styles/colorMap.css";
 
 export default class ColorMap {
   constructor() {
-    this.colorListID = webix.uid();
+    this.colorListID = uid();
   }
 
   getUI() {
@@ -24,7 +25,8 @@ export default class ColorMap {
     };
   }
 
+  /** @returns {webix.ui.template} */
   getList() {
-    return webix.$$(this.colorListID);
+    return $$(this.colorListID);
   }
 }

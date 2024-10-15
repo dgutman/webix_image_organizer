@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 
-import * as webix from 'webix/webix.js';
+import * as webix from 'webix';
 import 'webix/webix.css';
-
-
 
 export default function Webix({componentUI, componentData, componentSelect}) {
   const [data, setData] = useState(componentData);

@@ -1,30 +1,30 @@
-import * as webix from "webix";
+import { message, attachEvent, ajax } from "webix";
 import localStorageService from "./localStorage";
 
 // const HOST_API = process.env.REACT_APP_HOST_API ?? "";
 const HOST_API = process.env.REACT_APP_NEW_HOST_API ?? "";
 
 function parseError(xhr) {
-  let message;
+  let msg;
   const connectionMessage = "Server connection error.<br /> Please check the connection.";
   switch (xhr.status) {
     case 404: {
-      message = "Not found";
-      webix.message({type: "error", text: message});
+      msg = "Not found";
+      message({type: "error", text: msg});
       break;
     }
     default: {
       try {
         let response = JSON.parse(xhr.response);
-        message = response.message;
+        msg = response.message;
       }
       catch (e) {
-        message = xhr.response || connectionMessage;
+        msg = xhr.response || connectionMessage;
         if (xhr.responseURL) console.log(`Not JSON response for request to ${xhr.responseURL}`);
       }
-      if (!webix.message.pull[message]) {
-        const expire = message === connectionMessage ? -1 : 5000;
-        webix.message({text: message, expire, id: message});
+      if (!message.pull[msg]) {
+        const expire = msg === connectionMessage ? -1 : 5000;
+        message({text: msg, expire, id: msg});
       }
       break;
     }
@@ -32,7 +32,7 @@ function parseError(xhr) {
   return Promise.reject(xhr);
 }
 
-webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, promise) => {
+attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, promise) => {
   const token = localStorageService.getToken();
   if (token) {
     headers["Girder-Token"] = token;
@@ -56,7 +56,7 @@ async function login({username = 0, password = 0}) {
   }
 
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .headers({
         Authorization: `Basic ${hash}`,
       })
@@ -71,7 +71,7 @@ async function login({username = 0, password = 0}) {
 
 async function logout() {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .del(`${getHostAPI()}/user/authentication`);
     return response.json();
   }
@@ -82,7 +82,7 @@ async function logout() {
 
 async function getUserInfo() {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/user/me`);
     return response.json();
   }
@@ -93,7 +93,7 @@ async function getUserInfo() {
 
 async function getItem(itemID) {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/item/${itemID}`);
     const data = response.json();
     return data;
@@ -105,7 +105,7 @@ async function getItem(itemID) {
 
 async function getItems(folderId) {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/item?folderId=${folderId}`)
     const data = response.json()
     return data;
@@ -117,7 +117,7 @@ async function getItems(folderId) {
 
 async function getImageTiles(itemID) {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/item/${itemID}/tiles`);
     const data = response.json();
     return data;
@@ -129,7 +129,7 @@ async function getImageTiles(itemID) {
 
 async function getFolder(folderId) {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/folder/${folderId}`);
     const data = response.json();
     return data;
@@ -146,7 +146,7 @@ async function getSubFolders(parentType, parentId) {
     parentId
   };
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/folder`, params);
     const data = response.json();
     return data;
@@ -178,7 +178,7 @@ function getImageTileUrl(itemId, z, x, y) {
 
 async function getTileFrameInfo(itemID) {
   try {
-    const response = await webix.ajax()
+    const response = await ajax()
       .get(`${getHostAPI()}/item/${itemID}/tiles/tile_frames/quad_info`);
     const data = response.json();
     return data;
@@ -188,7 +188,7 @@ async function getTileFrameInfo(itemID) {
   }
 }
 
-async function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
+function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
   const token = localStorageService.getToken()
   const urlSearchParams = new URLSearchParams();
   urlSearchParams.append("edge", "crop");
@@ -198,7 +198,7 @@ async function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
   return `${getHostAPI()}/item/${itemID}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
 }
 
-const ajax = {
+const ajaxActions = {
   login,
   logout,
   getUserInfo,
@@ -213,4 +213,4 @@ const ajax = {
   getImageTileUrlWithFrameNumber,
 }
 
-export default ajax;
+export default ajaxActions;

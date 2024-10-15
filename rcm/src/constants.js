@@ -1,4 +1,4 @@
-export default {
+const constants = {
   IMAGE_TYPE: {
     VIVA_BLOCK: "vivablock",
     VIVA_STACK: "vivastack",
@@ -12,3 +12,5 @@ export default {
     "confocal image": "green",
   }
 }
+
+export default constants

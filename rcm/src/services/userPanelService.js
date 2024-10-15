@@ -1,11 +1,9 @@
-import * as webix from "webix";
 import userPanel from "../components/webix/header/userPanel";
 let changeEvent;
 
 function attachEvents(selectedFolderContext) {
   const [, setSelectedFolder] = selectedFolderContext;
-  const dropDownID = userPanel.getDropDownID();
-  const dropDown = webix.$$(dropDownID);
+  const dropDown = userPanel.getDropDown();
   if (!changeEvent) {
     changeEvent = dropDown.attachEvent("onChange", (newValue) => {
       const optionsList = userPanel.getOptionsList();
@@ -17,8 +15,7 @@ function attachEvents(selectedFolderContext) {
 
 function detachEvents() {
   if (changeEvent) {
-    const dropDownID = userPanel.getDropDownID();
-    const dropDown = webix.$$(dropDownID);
+    const dropDown = userPanel.getDropDown();
     if (dropDown) {
       dropDown.detachEvent(changeEvent)
     }

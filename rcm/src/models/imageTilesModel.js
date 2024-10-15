@@ -1,11 +1,9 @@
 import ajaxActions from "../services/ajaxActions";
-import imagesModel from "./imagesModel";
 
 const imageTiles = new Map();
 
-async function getTileSources(image, incomeTilesOptions = {}, useSourceOptions, frame, isFrame) {
-  const imageID = imagesModel.getImageYamlID(image);
-  if (imageTiles.get(imageID) && !isFrame) {
+async function getTileSources(imageID, incomeTilesOptions = {}, useSourceOptions, frame, isFrame) {
+  if (imageTiles.get(`${imageID}${isFrame ? "/" + frame : ""}`)) {
     return imageTiles.get(imageID);
   }
   const tileSourceOptions = await ajaxActions.getImageTiles(imageID);

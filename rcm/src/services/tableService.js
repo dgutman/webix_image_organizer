@@ -1,5 +1,4 @@
 import tableModel from "../models/tableModel";
-import ajaxActions from "./ajaxActions";
 
 function attachEvents(datatable, selectedImageContext) {
   const [, setSelectedImage] = selectedImageContext;
@@ -20,6 +19,7 @@ function findImageIDFromYaml(yamlID) {
 
 const tableService = {
   attachEvents,
+  findImageIDFromYaml
 }
 
 export default tableService;

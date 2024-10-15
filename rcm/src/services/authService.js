@@ -9,6 +9,7 @@ async function login({username = 0, password = 0}) {
 
 async function logout() {
   await ajax.logout()
+  localStorageService.deleteUserInfo();
 }
 
 function getUserInfo() {

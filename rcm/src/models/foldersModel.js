@@ -26,7 +26,9 @@ function getFolders() {
 
 function setFolders(fldrs) {
   folders.length = 0;
-  folders.push(...fldrs)
+  if (fldrs) {
+    folders.push(...fldrs)
+  }
 }
 
 function getFolderName(f) {
@@ -38,7 +40,7 @@ function getFolderConfocalImages(f) {
 }
 
 function getFolderMacroscopicImages(f) {
-  return f?.meta?.registrationData?.find(rd => rd.type === constants.IMAGE_TYPE.MACROSCOPIC);
+  return f?.meta?.imgStackDict[IMG_STACK_DICT.MACROSCOPIC_IMAGES][IMG_STACK_DICT.MACROSCOPIC_IMAGES][0];
 }
 
 function getVivaBlockImages(f) {

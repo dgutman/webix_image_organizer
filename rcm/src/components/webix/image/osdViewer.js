@@ -1,5 +1,5 @@
 import openseadragon from "openseadragon";
-import * as webix from "webix";
+import { $$ } from "webix";
 
 export default class OpenSeaDragonViewer {
   /**
@@ -127,7 +127,7 @@ export default class OpenSeaDragonViewer {
   }
   
   getViewerTemplate() {
-    return webix.$$(this._osdViewerTemplateID);
+    return $$(this._osdViewerTemplateID);
   }
   
   getBounds() {

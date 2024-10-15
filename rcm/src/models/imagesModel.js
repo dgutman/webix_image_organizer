@@ -30,23 +30,19 @@ function getImageName(image) {
 }
 
 
-function getTilesOptions(imageRegistrationData, isMacroscopic) {
-  if (isMacroscopic) {
-    startCoords.startX = Number(JSON.parse(imageRegistrationData.d)[0]);
-    startCoords.startY = Number(JSON.parse(imageRegistrationData.d)[1]);
-  }
-  const sizeX = JSON.parse(imageRegistrationData.b)[0] - JSON.parse(imageRegistrationData.a)[0];
-  const sizeY = JSON.parse(imageRegistrationData.b)[1] - JSON.parse(imageRegistrationData.c)[1];
-  const tileWidth = JSON.parse(imageRegistrationData.b)[0] - JSON.parse(imageRegistrationData.a)[0];
-  const tileHeight = JSON.parse(imageRegistrationData.b)[1] - JSON.parse(imageRegistrationData.c)[1];
+function getTilesOptions(newImageRegistrationData) {
+  const sizeX = newImageRegistrationData.x_max - newImageRegistrationData.x_min;
+  const sizeY = newImageRegistrationData.y_max - newImageRegistrationData.y_min;
+  const tileWidth = sizeX;
+  const tileHeight = sizeY;
   return {sizeX, sizeY, tileWidth, tileHeight};
 }
 
-function getOverlayOptions(imageRegistrationData) {
-  const x = JSON.parse(imageRegistrationData.d)[0] - startCoords.startX;
-  const y = JSON.parse(imageRegistrationData.d)[1] - startCoords.startY;
-  const width = JSON.parse(imageRegistrationData.b)[0] - JSON.parse(imageRegistrationData.a)[0];
-  const height = JSON.parse(imageRegistrationData.b)[1] - JSON.parse(imageRegistrationData.c)[1];
+function getOverlayOptions(newImageRegistrationData) {
+  const x = newImageRegistrationData.x_min;
+  const y = newImageRegistrationData.y_min;
+  const width = newImageRegistrationData.x_max - newImageRegistrationData.x_min;
+  const height = newImageRegistrationData.y_max - newImageRegistrationData.y_min;
   return {x, y, width, height};
 }
 
