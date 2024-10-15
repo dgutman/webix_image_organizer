@@ -345,23 +345,27 @@ define(["app", "constants"], function(app, constants) {
 		}
 
 		getApprovedFacetData() {
-			if (isLoggedIn()) {
+			// TODO: enable to prevent getting data for unauthorized users
+			// TODO: enable jwt blocking on the server
+			// if (isLoggedIn()) {
 				return this._ajax()
 					.get(`${LOCAL_API}/facets/approved-facet`, {})
 					.fail(this._parseError)
 					.then((result) => this._parseData(result));
-			}
-			return Promise.resolve();
+			// }
+			// return Promise.resolve();
 		}
 
 		getApprovedMetadata() {
-			if (isLoggedIn()) {
+			// TODO: enable to prevent getting data for unauthorized users
+			// TODO: enable jwt blocking on the server
+			// if (isLoggedIn()) {
 				return this._ajax()
 					.get(`${LOCAL_API}/facets/approved-metadata`)
 					.fail(this._parseError)
 					.then((result) => this._parseData(result));
-			}
-			return Promise.resolve();
+			// }
+			// return Promise.resolve();
 		}
 
 		deleteResource(id) {

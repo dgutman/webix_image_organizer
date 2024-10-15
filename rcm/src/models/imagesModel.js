@@ -1,5 +1,6 @@
 /** @type {Map} */
 const images = new Map();
+const startCoords = {};
 let selectedImage = null;
 
 function getSelectedImage() {

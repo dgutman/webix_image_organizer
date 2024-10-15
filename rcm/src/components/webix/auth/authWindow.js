@@ -152,6 +152,18 @@ export default class AuthWindow {
     return $$(this._userInfoTemplateID)
   }
 
+  getLoginPanel() {
+    return webix.$$(this._loginPanelID);
+  }
+
+  getLogoutPanel() {
+    return webix.$$(this._logoutPanelID);
+  }
+
+  getUserInfoTemplate() {
+    return webix.$$(this._userInfoTemplateID)
+  }
+
   hideErrorLabel() {
     const loginValue = this.getLoginTextView().getValue();
     const passwordValue = this.getPasswordTextView().getValue();
