@@ -4,11 +4,11 @@ const ProcessApprovedMetadataRequest = require('../extensions/process_approved_m
 const crypto = require('crypto');
 const constants = require('../../constants');
 const lodash = require('lodash');
-// const LoadFromGirder = require('../extensions/load_from_girder');
+const LoadFromGirder = require('../extensions/load_from_girder');
 
 exports.getImagesData = (req, res) => {
 	const host = req.query.host;
-	// const token = req.query.token;
+	const token = req.query.token;
 	const clientHash = req.get('If-None-Match');
 
 	return ProcessImagesRequest.getImagesData(clientHash, host)
@@ -20,22 +20,16 @@ exports.getImagesData = (req, res) => {
 			// ProcessApprovedMetadataRequest.getData(),
 			// TODO: temporary do not check access
 			// TODO: check request before move to prod
-			// hash ? LoadFromGirder.getAllowedFolders(host, token) : null
-			null
+			hash ? LoadFromGirder.getAllowedFolders(host, token) : null
 		]);
 	})
-	.then(([hash, images, approvedMetadataData, allowedFolders]) => {
+	.then(([hash, images, allowedFolders]) => {
 		let filteredImages;
 		let hostImages;
 		if(hash) {
-			const approvedMetadataHash = crypto.createHash('sha256');
-			approvedMetadataHash.update(approvedMetadataData?.updatedAt?.toString() ?? '');
-
 			res.set({
 				'Cache-Control': 'private',
-				'ETag': approvedMetadataData
-					? hash.data + approvedMetadataHash.digest('hex').slice(0, 10)
-					: hash.data
+				'ETag': hash.data
 			});
 			if (host) {
 				hostImages = images.filter((obj) => obj.host === host);
