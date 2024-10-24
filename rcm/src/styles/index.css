@@ -72,3 +72,8 @@ code {
   width: 100%;
   height: 100%;
 }
+
+.large-progress {
+  font-size: 100px !important;
+  filter: invert(53%) sepia(86%) saturate(1666%) hue-rotate(358deg) brightness(102%) contrast(110%);
+}

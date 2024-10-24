@@ -9,12 +9,7 @@ function App() {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const selectedFolderValue = { selectedFolder, setSelectedFolder };
 
-  useEffect(() => {
-    if (selectedFolder) {
-      console.log(foldersModel.getFolderName(selectedFolder));
-    }
-  }, [selectedFolder]);
-
+  console.log(selectedFolderValue);
   return (
     <SelectedFolderContext.Provider value={selectedFolderValue}>
       <div className="App">

@@ -21,6 +21,7 @@ export default function Table() {
       const data = foldersModel.getFolderRegistrationDataSimplified(selectedFolder);
       if (data) {
         dataTable.parseData(data);
+        setSelectedImage(null);
       }
     }
   }, [selectedFolder]);

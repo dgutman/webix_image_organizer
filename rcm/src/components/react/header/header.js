@@ -42,10 +42,8 @@ export default function Header() {
   }, []);
 
   return (
-    <SelectedFolderContext.Provider value={selectedFolder}>
       <Webix 
         componentUI={userPanel.getUI()}
       />
-    </SelectedFolderContext.Provider>
   )
 }
