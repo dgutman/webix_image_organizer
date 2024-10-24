@@ -115,8 +115,6 @@ export default class DataTable {
     if (datatable) {
       datatable.clearAll();
       datatable.parse(data);
-      const firstItemID = datatable.getFirstId();
-      datatable.select(firstItemID);
     }
   }
 }

@@ -30,6 +30,22 @@ export default function LeftPanel() {
   const [ macroscopicImage, setMacroscopicImage ] = useState(null);
 
   async function setSelectedImage() {
+    if (selectedFolder) {
+      const images = foldersModel.getFolderRegistrationDataSimplified(selectedFolder);
+      images.forEach((i, index) => {
+        let overlayOptions = imagesModel.getOverlayOptions(i);
+        while(!overlayOptions) {
+          overlayOptions = imagesModel.getOverlayOptions(i);
+        }
+        const clearOverlaysFlag = index === 0 ? true : false;
+        const areaStyle = {
+          color: constants.COLOR_MAP[imagesModel.getImageType(i)],
+          borderStyle: "dashed",
+          borderWidth: "2px",
+        }
+        imageTemplate.addArea(overlayOptions, areaStyle, clearOverlaysFlag);
+      });
+    }
     if (selectedImage) {
       const zStackControl = zStack.getSlider();
       zStackControl.disable();
@@ -37,7 +53,13 @@ export default function LeftPanel() {
       while(!overlayOptions) {
         overlayOptions = imagesModel.getOverlayOptions(selectedImage);
       }
-      imageTemplate.addArea(overlayOptions, constants.COLOR_MAP[imagesModel.getImageType(selectedImage)]);
+      const clearOverlaysFlag = false
+      const areaStyle = {
+        color: constants.COLOR_MAP[imagesModel.getImageType(selectedImage)],
+        borderStyle: "solid",
+        borderWidth: "4px",
+      };
+      imageTemplate.addArea(overlayOptions, areaStyle, clearOverlaysFlag);
       const imageType = imagesModel.getImageType(selectedImage);
       if (imageType === constants.IMAGE_TYPE.VIVA_STACK) {
         const imageID = imagesModel.getImageYamlID(selectedImage)
@@ -55,23 +77,26 @@ export default function LeftPanel() {
   }
 
   useEffect(() => {
+    setMacroscopicImage(null);
     const setImage = async () => {
       if (selectedFolder) {
         const newMacroscopicImage = foldersModel.getFolderMacroscopicImages(selectedFolder);
-        setMacroscopicImage(newMacroscopicImage);
+        await imageTemplate.setImage(newMacroscopicImage, true);
         const template = imageTemplate.getTemplate();
         if (!template.showProgress) {
           extend(template, ProgressBar);
         }
-        template.showProgress();
-        await imageTemplate.setImage(newMacroscopicImage, true);
+        template.showProgress({icon: "wxi-sync large-progress"});
+        setMacroscopicImage(newMacroscopicImage);
       }
     }
     setImage();
   }, [selectedFolder]);
 
   useEffect(() => {
-    setSelectedImage();
+    if (macroscopicImage) {
+      setSelectedImage();
+    }
   }, [selectedImage, macroscopicImage]);
 
   useEffect(() => {
@@ -108,13 +133,14 @@ export default function LeftPanel() {
       }
       const template = imageTemplate.getTemplate();
       viewer.world.addHandler("add-item", () => {
+        setSelectedImage();
         if (template.hideProgress) {
           template.hideProgress();
         }
       });
     };
     attachEvents();
-  }, [])
+  }, [selectedFolder, selectedImage])
 
   return (
     <div className="left-panel">

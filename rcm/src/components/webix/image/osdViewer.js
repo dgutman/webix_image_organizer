@@ -88,10 +88,11 @@ export default class OpenSeaDragonViewer {
     });
   }
   
-  addNewTile(tileSource) {
+  addNewTile(tileSource, index = 0) {
     const viewer = this.$viewer();
     viewer.addTiledImage({
-      tileSource
+      tileSource,
+      index
     });
   }
   
@@ -171,7 +172,6 @@ export default class OpenSeaDragonViewer {
 
   addOverlay(element, location) {
     const viewer = this.$viewer();
-    console.log(JSON.stringify(location));
     viewer.addOverlay(element, location)
   }
 

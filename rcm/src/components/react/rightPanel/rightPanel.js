@@ -17,7 +17,7 @@ export default function RightPanel() {
     if (!template.showProgress) {
       extend(template, ProgressBar);
     }
-    template.showProgress();
+    template.showProgress({icon: "wxi-sync large-progress"});
     const setImage = async () => {
       if (selectedImage) {
         await imageTemplate.setImage(selectedImage, false, true);
@@ -31,7 +31,7 @@ export default function RightPanel() {
     if (!template.showProgress) {
       extend(template, ProgressBar);
     }
-    template.showProgress();
+    template.showProgress({icon: "wxi-sync large-progress"});
     const setImage = async () => {
       if (selectedImage && zStackFrame >= 0) {
         await imageTemplate.setImage(selectedImage, false, true, zStackFrame, true);

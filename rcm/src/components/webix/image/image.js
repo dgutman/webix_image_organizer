@@ -105,7 +105,7 @@ export default class Image {
     this.openSeaDragonViewer.setFullScreen();
   }
 
-  async addArea(overlayOptions, color) {
+  async addArea(overlayOptions, areaStyle, clearOverlaysFlag) {
     let tiledImage = this.openSeaDragonViewer.getTiledImage(0);
     if (!tiledImage) {
       return
@@ -117,10 +117,15 @@ export default class Image {
       overlayOptions.height,
     );
 
-    const overlayElement = document.getElementById("overlay-rect");
-    overlayElement.style.borderColor = color ?? "red";
+    const overlayElement = document.createElement("div");
+    overlayElement.className = "overlay-rect";
+    overlayElement.style.borderColor = areaStyle.color ?? "black";
+    overlayElement.style.borderStyle = areaStyle.borderStyle ?? "dashed";
+    overlayElement.style.borderWidth = areaStyle.borderWidth ?? "2px";
     overlayElement.style.visibility = "visible";
-    this.openSeaDragonViewer.clearOverlays();
+    if (clearOverlaysFlag) {
+      this.openSeaDragonViewer.clearOverlays();
+    }
     this.openSeaDragonViewer.addOverlay(overlayElement, tiledRect)
   }
 }
