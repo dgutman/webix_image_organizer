@@ -1,7 +1,10 @@
 import {DataCollection} from "webix";
 
 import NpPanel from "./npPanel";
-import NPTableView from "./npTableView";
+import NPSingleSlideView from "./npSingleSlideView";
+import SlideViewContainer from "./slideViewContainer";
+import constants from "../../../constants";
+import NPCaseViewService from "../../../services/npCaseView/npCaseViewService";
 import collapser from "../../components/collapser";
 import ImagesRowSlider from "../scenesView/imagesRowSlider";
 import ScenesView from "../scenesView/scenesView";
@@ -9,29 +12,41 @@ import ScenesView from "../scenesView/scenesView";
 const npPanelCollapserName = "npPanelCollapser";
 const imagesRowSliderCollapserName = "imagesRowSliderCollapserName";
 const toggleStainAndRegionId = "toggleStainAndRegionId";
+const REPOSITION_IMAGES_EVENT = constants.REPOSITION_IMAGES_EVENT_NAME;
 
-export default class NPCaseViewClass extends ScenesView {
+export default class NPCaseView extends ScenesView {
 	constructor(app, config) {
 		super(app, config);
 		this._npPanel = new NpPanel(app, {scroll: "x"});
-		this._npTableView = new NPTableView(app);
 		this._imagesRowSliderId = webix.uid();
 		const sliderConfig = {
 			height: 160,
 			id: this._imagesRowSliderId,
 		};
 		this._imagesSlider = new ImagesRowSlider(app, sliderConfig, this);
+		this._slideViewContainer = new SlideViewContainer(app);
+		const currentSlideView = new NPSingleSlideView(app);
+		this._slideViewContainer.setCurrentSlideView(currentSlideView);
+		this.npPanelCollapserName = `${npPanelCollapserName}-${webix.uid()}`;
+		this.imagesRowSliderCollapserName = `${imagesRowSliderCollapserName}-${webix.uid()}`;
+		this.toggleStainAndRegionId = `${toggleStainAndRegionId}-${webix.uid()}`;
 	}
 
 	config() {
-		const panelCollapser = collapser.getConfig(this._npPanel.getNpPanelId(), {type: "top", closed: false}, npPanelCollapserName);
+		const panelCollapser = collapser.getConfig(
+			this._npPanel.getNpPanelId(),
+			{type: "top", closed: false},
+			this.npPanelCollapserName,
+			"Images Attributes"
+		);
 		const imagesSliderCollapser = collapser.getConfig(
 			this._imagesRowSliderId,
 			{type: "top", closed: false},
-			imagesRowSliderCollapserName
+			this.imagesRowSliderCollapserName,
+			"Images slider"
 		);
 		const toggleButton = {
-			id: toggleStainAndRegionId,
+			id: this.toggleStainAndRegionId,
 			view: "switch",
 			name: "toggleType",
 			css: "toggleStainAndRegion",
@@ -67,8 +82,19 @@ export default class NPCaseViewClass extends ScenesView {
 	}
 
 	ready(view) {
+		const imagesSliderCollapser = this.getImagesRowSliderCollapserView();
+		const panelCollapser = this.getPanelCollapserView();
+		this.npCaseViewService = new NPCaseViewService(
+			view,
+			this._imagesSlider,
+			imagesSliderCollapser,
+			this._npPanel,
+			panelCollapser,
+			this._slideViewContainer,
+		);
 		webix.extend(view, webix.OverlayBox);
 		this._attachSliderEvents();
+		this._attachNPCaseViewEvents();
 		this._attachChangeModeEvents();
 	}
 
@@ -169,6 +195,45 @@ export default class NPCaseViewClass extends ScenesView {
 		});
 	}
 
+	// TODO: fix osd problem
+	_attachNPCaseViewEvents() {
+		this.on(this._modePanelView.getRoot(), REPOSITION_IMAGES_EVENT, (value) => {
+			const slideView = this._slideViewContainer.getCurrentSlideView();
+			const imagesLayout = slideView.getImagesLayout
+				? slideView.getImagesLayout()
+				: null;
+			const slideKeepers = slideView.getSlideKeepers
+				? slideView.getSlideKeepers()
+				: null;
+			const [topSlideKeeper, bottomSlideKeeper] = slideKeepers;
+			if (imagesLayout && topSlideKeeper && bottomSlideKeeper) {
+				const images = [
+					{
+						rows: [
+							slideView.getImageInfoConfig(slideView.getLeftImageInfoName()),
+							topSlideKeeper.osdView,
+						]
+					},
+					{
+						rows: [
+							slideView.getImageInfoConfig(slideView.getRightImageInfoName()),
+							bottomSlideKeeper.osdView
+						]
+					}
+				];
+				if (value === 1) {
+					imagesLayout.define("rows", images);
+				}
+				else {
+					imagesLayout.define("cols", images);
+				}
+				imagesLayout.reconstruct();
+				this.closeCollapsers();
+				this.getRoot().callEvent("onViewShow");
+			}
+		});
+	}
+
 	syncSlider(dataCollection) {
 		this.dataCollection.sync(dataCollection);
 		this.sliderCollection.sync(dataCollection);
@@ -181,6 +246,18 @@ export default class NPCaseViewClass extends ScenesView {
 	}
 
 	getSwitcherView() {
-		return this.$$(toggleStainAndRegionId);
+		return this.$$(this.toggleStainAndRegionId);
+	}
+
+	closeCollapsers() {
+		this.npCaseViewService.closeCollapsers();
+	}
+
+	getPanelCollapserView() {
+		return this.getRoot().queryView({name: this.npPanelCollapserName});
+	}
+
+	getImagesRowSliderCollapserView() {
+		return this.getRoot().queryView({name: this.imagesRowSliderCollapserName});
 	}
 }

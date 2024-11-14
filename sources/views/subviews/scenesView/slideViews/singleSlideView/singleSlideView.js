@@ -12,14 +12,16 @@ export default class SingleSlideView extends BaseSlideView {
 		this._cnf = config || {};
 		this._metadataPanelId = `${METADATA_PANEL_ID}-${webix.uid()}`;
 		this._controlsPanelId = `${CONTROLS_VIEW_ID}-${webix.uid()}`;
+		this._metadataCollapserName = "metadataPanelCollapser";
+		this._controlsPanelCollapserName = "controlsViewCollapser";
 		this._osdViewer = this.createOsdViewer();
 		this._controlsView = this.createControlsView();
 		this._metadataPanel = this.createMetadataPanel();
 	}
 
 	config() {
-		const rightCollapserView = collapser.getConfig(this._metadataPanelId, {closed: false, type: "right"}, "metadataPanelCollapser");
-		const leftCollapserView = collapser.getConfig(this._controlsPanelId, {closed: false, type: "left"}, "controlsViewCollapser");
+		const rightCollapserView = collapser.getConfig(this._metadataPanelId, {closed: false, type: "right"}, this._metadataCollapserName, "Metadata");
+		const leftCollapserView = collapser.getConfig(this._controlsPanelId, {closed: false, type: "left"}, this._controlsPanelCollapserName, "Control Panel");
 
 		return {
 			...this._cnf,

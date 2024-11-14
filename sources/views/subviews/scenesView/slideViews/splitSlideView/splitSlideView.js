@@ -4,7 +4,8 @@ import collapser from "../../../../components/collapser";
 import BaseSlideView from "../baseSlideView";
 
 
-const METADATA_PANEL_ID = "scenes-view-metadata-panel";
+const METADATA_PANEL_ID = "scenes-view_metadata-panel";
+const CONTROLS_PANEL_ID = "scenes-view_collapser-panel";
 
 export default class SplitSlideView extends BaseSlideView {
 	constructor(app, config) {
@@ -21,30 +22,41 @@ export default class SplitSlideView extends BaseSlideView {
 			this._createSlideViewElementsAndService()
 		];
 		this.metadataPanelID = `${METADATA_PANEL_ID}-${webix.uid()}`;
+		this.controlsPanelID = `${CONTROLS_PANEL_ID}-${webix.uid()}`;
 	}
 
 	config() {
-		const collapserView = collapser.getConfig(this.metadataPanelID, {closed: false, type: "right"}, "metadataPanelCollapser");
+		const metadataCollapserView = collapser.getConfig(this.metadataPanelID, {closed: false, type: "right"});
+		const controlsCollapserView = collapser.getConfig(this.controlsPanelID, {closed: false, type: "left"});
 		const [topSlideKeeper, bottomSlideKeeper] = this._slideKeepers;
-
 		return {
 			...this._cnf,
 			name: "scenesViewerWithControlsCell",
 			cols: [
 				{
+					id: this.controlsPanelID,
 					rows: [
 						topSlideKeeper.controlsView,
 						bottomSlideKeeper.controlsView
 					]
 				},
+				controlsCollapserView,
 				{
 					gravity: 3,
-					rows: [
-						topSlideKeeper.osdView,
-						bottomSlideKeeper.osdView
+					cols: [
+						{
+							rows: [
+								topSlideKeeper.osdView,
+							]
+						},
+						{
+							rows: [
+								bottomSlideKeeper.osdView
+							]
+						}
 					]
 				},
-				collapserView,
+				metadataCollapserView,
 				{
 					id: this.metadataPanelID,
 					rows: [

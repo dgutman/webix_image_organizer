@@ -1,4 +1,5 @@
 import {JetView} from "webix-jet";
+
 import constants from "../../../constants";
 
 const MODE_PANEL_ID = "mode-panel-id";
@@ -6,9 +7,11 @@ const MODE_RADIO_BUTTON_ID = "mode-radio-button";
 const COMBINE_CONTROL_ID = "combine-control";
 const SYNC_CONTROL_ID = "sync-control";
 const POINTS_RADIO_BUTTON_ID = "points-radio-button";
+const IMAGES_ORIENTATION_SWITCH_ID = "images-orientation-switch-id";
 
 const CHANGE_MODE_EVENT = constants.SCENES_VIEW_CHANGE_MODE_EVENT_NAME;
 const CHANGE_POINTS_MODE_EVENT = constants.SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME;
+const REPOSITION_IMAGES_EVENT = constants.REPOSITION_IMAGES_EVENT_NAME;
 
 export default class ModePanelView extends JetView {
 	constructor(app, config = {}) {
@@ -20,9 +23,20 @@ export default class ModePanelView extends JetView {
 		this._combineControlId = `${COMBINE_CONTROL_ID}-${webix.uid()}`;
 		this._syncControlId = `${SYNC_CONTROL_ID}-${webix.uid()}`;
 		this._pointsRadioButtonId = `${POINTS_RADIO_BUTTON_ID}-${webix.uid()}`;
+		this._imagesOrientationSwitchId = `${IMAGES_ORIENTATION_SWITCH_ID}-${webix.uid()}`;
 	}
 
 	config() {
+		const imagesOrientationSwitchConfig = {
+			view: "switch",
+			localId: this._imagesOrientationSwitchId,
+			onLabel: "Vertical",
+			offLabel: "Horizontal",
+			width: 250,
+			hidden: true,
+			label: "Arrange images: ",
+			labelWidth: 120,
+		};
 		return {
 			...this._cnf,
 			localId: MODE_PANEL_ID,
@@ -70,7 +84,9 @@ export default class ModePanelView extends JetView {
 						{id: "off", value: "Off"}
 					]
 				},
-				{}
+				{width: 15},
+				imagesOrientationSwitchConfig,
+				{},
 			]
 		};
 	}
@@ -84,6 +100,7 @@ export default class ModePanelView extends JetView {
 		const combineCheckbox = this.$combineCheckbox();
 		const syncCheckbox = this.$syncCheckbox();
 		const pointsRadio = this.$pointsRadio();
+		const imagesOrientationSwitch = this.$imageOrientationSwitch();
 
 		this.on(modeRadioButton, "onChange", (id) => {
 			let hideSyncCheckbox = true;
@@ -94,6 +111,9 @@ export default class ModePanelView extends JetView {
 			}
 			this._togglePointsRadioVisibility(!isSplit);
 			this._toggleCombineCheckboxVisibility(!isSplit);
+			// TODO: uncomment after osd view fix
+			// TODO: recreate osd templates by makeSplitView
+			// this._toggleImagesOrientationSwitchVisibility(!isSplit);
 			this._toggleSyncCheckboxVisibility(hideSyncCheckbox);
 			this._callModeChangeEvent(id);
 		});
@@ -120,6 +140,10 @@ export default class ModePanelView extends JetView {
 
 		this.on(pointsRadio, "onChange", (value) => {
 			this._callPointsChangeEvent(value);
+		});
+
+		this.on(imagesOrientationSwitch, "onChange", (value) => {
+			this._callRepositionImagesEvent(value);
 		});
 	}
 
@@ -159,6 +183,16 @@ export default class ModePanelView extends JetView {
 		}
 	}
 
+	_toggleImagesOrientationSwitchVisibility(hide) {
+		const switchButton = this.$imageOrientationSwitch();
+		if (hide) {
+			switchButton.hide();
+		}
+		else {
+			switchButton.show();
+		}
+	}
+
 	_createCheckbox(config) {
 		return {
 			...config,
@@ -173,6 +207,10 @@ export default class ModePanelView extends JetView {
 
 	_callPointsChangeEvent(value) {
 		this.getRoot().callEvent(CHANGE_POINTS_MODE_EVENT, [value]);
+	}
+
+	_callRepositionImagesEvent(value) {
+		this.getRoot().callEvent(REPOSITION_IMAGES_EVENT, [value]);
 	}
 
 	$modeRadioButton() {
@@ -193,5 +231,9 @@ export default class ModePanelView extends JetView {
 
 	$modePanel() {
 		return this.$$(this._modePanelId);
+	}
+
+	$imageOrientationSwitch() {
+		return this.$$(this._imagesOrientationSwitchId);
 	}
 }

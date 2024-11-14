@@ -67,7 +67,6 @@ export default {
 	STORAGE_HOTKEYS_CONFIG: "hotkeys-config",
 	STORAGE_HOTKEYS_LETTERS_USAGE: "hotkeys-letter-usage",
 
-
 	LINEAR_STRUCTURE_LIMIT: 100,
 	CASEVIEW_LIMIT: 2000,
 	FOLDERS_LIMIT: 0,
@@ -149,6 +148,7 @@ export default {
 
 	SCENES_VIEW_CHANGE_MODE_EVENT_NAME: "scenesViewerModeChange",
 	SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME: "scenesViewerPointsModeChange",
+	REPOSITION_IMAGES_EVENT_NAME: "repositionImages",
 
 	DEFAULT_VIEW_SIGNS: {
 		SCENES_VIEW: "XBSViewOne"

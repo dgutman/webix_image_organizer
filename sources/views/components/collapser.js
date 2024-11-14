@@ -10,7 +10,7 @@ function changeDataviewItemDimensions(collapsedView) {
 	}
 }
 
-function getConfig(collapsedViewId, config, collapserName) {
+function getConfig(collapsedViewId, config, collapserName, text) {
 	const BTN_CLOSED_STATE_ID = `collapser-btn-closed-${webix.uid()}`;
 	const BTN_OPENED_STATE_ID = `collapser-btn-opened-${webix.uid()}`;
 	const handleCollapse = function () {
@@ -30,6 +30,22 @@ function getConfig(collapsedViewId, config, collapserName) {
 		changeDataviewItemDimensions(collapsedView);
 	};
 	if (config.type === "top" || config.type === "bottom") {
+		let template1;
+		let template2;
+		if (text) {
+			template1 = config?.type === "top"
+				? "<span class='webix_icon fas fa-angle-up'></span>"
+				: "<span class='webix_icon fas fa-angle-down'></span>";
+			template2 = `<span class="webix_icon text-collapser">${text}</span>`;
+		}
+		else {
+			template1 = config?.type === "top"
+				? "<span class='webix_icon fas fa-angle-up'></span>"
+				: "<span class='webix_icon fas fa-angle-down'></span>";
+			template2 = config?.type === "bottom"
+				? "<span class='webix_icon fas fa-angle-up'></span>"
+				: "<span class='webix_icon fas fa-angle-down'></span>";
+		}
 		return {
 			css: "collapser-vertical",
 			height: 23,
@@ -45,9 +61,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 			rows: [
 				{
 					view: "template",
-					template: config?.type === "top" ?
-						"<span class='webix_icon fas fa-angle-up'></span>" :
-						"<span class='webix_icon fas fa-angle-down'></span>",
+					template: template1,
 					css: "collapser-btn",
 					id: BTN_OPENED_STATE_ID,
 					hidden: config?.closed,
@@ -57,9 +71,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 				},
 				{
 					view: "template",
-					template: config?.type === "bottom" ?
-						"<span class='webix_icon fas fa-angle-up'></span>" :
-						"<span class='webix_icon fas fa-angle-down'></span>",
+					template: template2,
 					css: "collapser-btn",
 					id: BTN_CLOSED_STATE_ID,
 					hidden: !(config?.closed),
@@ -69,6 +81,22 @@ function getConfig(collapsedViewId, config, collapserName) {
 				}
 			]
 		};
+	}
+	let template1;
+	let template2;
+	if (text) {
+		template1 = config?.type === "left"
+			? "<span class='webix_icon fas fa-angle-left'></span>"
+			: "<span class='webix_icon fas fa-angle-right'></span>";
+		template2 = `<span class="vertical-text">${text}</span>`;
+	}
+	else {
+		template1 = config?.type === "left"
+			? "<span class='webix_icon fas fa-angle-left'></span>"
+			: "<span class='webix_icon fas fa-angle-right'></span>";
+		template2 = config?.type === "left"
+			? "<span class='webix_icon fas fa-angle-right'></span>"
+			: "<span class='webix_icon fas fa-angle-left'></span>";
 	}
 	return {
 		css: "collapser",
@@ -85,9 +113,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 		rows: [
 			{
 				view: "template",
-				template: config?.type === "left" ?
-					"<span class='webix_icon fas fa-angle-left'></span>" :
-					"<span class='webix_icon fas fa-angle-right'></span>",
+				template: template1,
 				css: "collapser-btn",
 				id: BTN_OPENED_STATE_ID,
 				hidden: config?.closed,
@@ -97,9 +123,7 @@ function getConfig(collapsedViewId, config, collapserName) {
 			},
 			{
 				view: "template",
-				template: config?.type === "left" ?
-					"<span class='webix_icon fas fa-angle-right'></span>" :
-					"<span class='webix_icon fas fa-angle-left'></span>",
+				template: template2,
 				css: "collapser-btn",
 				id: BTN_CLOSED_STATE_ID,
 				hidden: !(config?.closed),

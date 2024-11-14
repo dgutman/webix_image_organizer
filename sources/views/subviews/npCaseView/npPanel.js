@@ -2,20 +2,19 @@ import {JetView} from "webix-jet";
 
 import npButton from "./parts/button";
 
-const NP_PANEL_ID = `np-toolbar-id-${webix.uid()}`;
-
 export default class NpPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
 
+		this.npPanelId = `np-toolbar-id-${webix.uid()}`;
 		this._config = config;
 	}
 
 	config() {
 		return {
 			...this._config,
-			id: NP_PANEL_ID,
-			localId: NP_PANEL_ID,
+			id: this.npPanelId,
+			localId: this.npPanelId,
 			view: "scrollview",
 			body: {
 				height: 80,
@@ -62,10 +61,10 @@ export default class NpPanel extends JetView {
 	}
 
 	getNpPanelView() {
-		return this.$$(NP_PANEL_ID);
+		return this.$$(this.npPanelId);
 	}
 
 	getNpPanelId() {
-		return NP_PANEL_ID;
+		return this.npPanelId;
 	}
 }

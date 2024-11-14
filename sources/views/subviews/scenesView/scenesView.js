@@ -63,7 +63,12 @@ export default class ScenesView extends JetView {
 					this._slideViewContainer.makeSplitView();
 					// Hack to prepare new view to get data
 					webix.delay(() => {
-						this._setSelectedImagesToViewer();
+						const selectedIds = listSlider.getSelectedId(true);
+						if (selectedIds.length <= 1) {
+							const [selectedImage] = selectedIds;
+							const nextImage = listSlider.getNextId(selectedImage);
+							listSlider.select(nextImage, true);
+						}
 					});
 					break;
 				}

@@ -1,7 +1,6 @@
-import NPCaseViewService from "../../../services/npCaseView/npCaseView";
 import MetadataTableCellClass from "../metadataTable/metadataTable";
 
-export default class NPCaseViewClass extends MetadataTableCellClass {
+export default class NPTableView extends MetadataTableCellClass {
 	config() {
 		const itemsDataTable = {
 			view: "datatable",
@@ -30,14 +29,7 @@ export default class NPCaseViewClass extends MetadataTableCellClass {
 		return datatableCell;
 	}
 
-	ready(view) {
-		this.npCaseTable = this.getNPCaseTable();
-		this.npCaseViewService = new NPCaseViewService(
-			view,
-			this.npCaseTable,
-			this.npCaseViewThumbnailsTemplate
-		);
-	}
+	ready(/* view */) {}
 
 	getNPCaseTable() {
 		return this.getRoot().queryView({name: "npTable"});

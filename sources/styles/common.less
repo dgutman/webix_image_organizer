@@ -499,10 +499,16 @@ strong, b {
     .collapser-btn .webix_icon {
       left: 0;
     }
+    .collapser-btn .webix_template .text-collapser {
+      font-size: 13px !important;
+    }
   }
   .collapser-vertical {
     .collapser-btn .webix_icon {
       top: 0;
+    }
+    .collapser-btn .webix_template .text-collapser {
+      font-size: 13px !important;
     }
   }
   .collapssible-accordion .webix_template {
@@ -552,4 +558,19 @@ strong, b {
   .webix_template {
     display: none;
   }
+}
+
+.webix_icon.text-collapser {
+  font-size: 13px;
+  top: 2px;
+  width: 100px;
+}
+
+.vertical-text {
+  position: absolute;
+  font-size: 13px !important;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  top: 30% !important;
+  padding-left: 0px !important;
 }
