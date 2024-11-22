@@ -2,6 +2,7 @@ import * as webix from "webix";
 
 const AUTH_TOKEN = "authToken";
 const USER = "user";
+const Z_STACK_SPEED = "zStackSped";
 
 function getToken() {
   const authToken = webix.storage.local.get(AUTH_TOKEN);
@@ -25,12 +26,22 @@ function deleteUserInfo() {
   webix.storage.local.remove(AUTH_TOKEN);
 }
 
+function setZStackSpeed(speed) {
+  webix.storage.local.put(Z_STACK_SPEED, speed);
+}
+
+function getZStackSpeed() {
+  webix.storage.local.get(Z_STACK_SPEED)
+}
+
 const localStorageService = {
   getToken,
   setToken,
   getUserInfo,
   setUserInfo,
   deleteUserInfo,
+  getZStackSpeed,
+  setZStackSpeed,
 }
 
 export default localStorageService;

@@ -6,9 +6,8 @@ const constants = {
     CONFOCAL: "confocal image",
   },
   COLOR_MAP: {
-    vivablock: "red",
-    vivastack: "orange",
-    "macroscopic image": "blue",
+    vivablock: "#8b00ff",
+    vivastack: "blue",
     "confocal image": "green",
   }
 }
