@@ -88,12 +88,11 @@ export default class OpenSeaDragonViewer {
     });
   }
   
-  addNewTile(tileSource, index = 0, opacity) {
+  addNewTile(tileSource, index = 0, opacity = 1) {
     const viewer = this.$viewer();
     viewer.addTiledImage({
       tileSource,
       index,
-      opacity,
     });
   }
   
