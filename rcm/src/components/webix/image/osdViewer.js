@@ -88,11 +88,11 @@ export default class OpenSeaDragonViewer {
     });
   }
   
-  addNewTile(tileSource, index = 0) {
+  addNewTile(tileSource, index = 0, opacity = 1) {
     const viewer = this.$viewer();
     viewer.addTiledImage({
       tileSource,
-      index
+      index,
     });
   }
   
@@ -180,8 +180,21 @@ export default class OpenSeaDragonViewer {
     viewer.clearOverlays();
   }
 
+  getLayersCount() {
+    return this.$viewer().world.getItemCount();
+  }
+
   getTiledImage(index) {
     return this.$viewer().world.getItemAt(index);
+  }
+  
+  showTiledImage(index) {
+    const count = this.getLayersCount();
+    for (let i = 0; i < count; i++) {
+      const image = this.getTiledImage(i);
+      const opacity = i === index ? 1 : 0;
+      image.setOpacity(opacity);
+    }
   }
 
   getMouseTracker() {

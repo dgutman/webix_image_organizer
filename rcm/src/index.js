@@ -3,6 +3,18 @@ import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { message as webixMessage } from "webix";
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled rejection:', event.reason);
+  event.preventDefault();
+  webixMessage(event.reason, "error", 5000)
+});
+
+window.onerror = (message, source, lineno, colno, error) => {
+  console.error("Global error caught:", { message, source, lineno, colno, error });
+  webixMessage(message, "error", 5000)
+};
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

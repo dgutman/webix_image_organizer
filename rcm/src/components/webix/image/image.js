@@ -3,8 +3,10 @@ import { uid, $$ } from "webix";
 import OpenSeaDragonViewer from "./osdViewer";
 import imagesModel from "../../../models/imagesModel";
 import imageTilesModel from "../../../models/imageTilesModel";
+import "../../../styles/image.css";
 
 const OSD_CONTAINER = "osd-container";
+const NON_IMAGE_SELECTED_CLASS = "image-container__non-image-selected";
 
 export default class Image {
   constructor() {
@@ -18,7 +20,8 @@ export default class Image {
       id: this.imageTemplateID,
       css: "image-container",
       template: `<div id="overlay-rect"></div>
-          <div class="${OSD_CONTAINER}"></dvi>`,
+          <div class="${OSD_CONTAINER}"></div>
+          <div class="${NON_IMAGE_SELECTED_CLASS} hidden">No image is selected</div>`,
       on: {
         onAfterRender: () => {
           this.createViewer();
@@ -57,15 +60,33 @@ export default class Image {
     return this.openSeaDragonViewer.$viewer();
   }
 
-  async setImage(image, isMacroscopic, useSourceOptions, frame, isFrame) {
+  async setImage(image, isMacroscopic, useSourceOptions, maxFrame, isFrame) {
     const tilesOptions = image.yamlId ? imagesModel.getTilesOptions(image, isMacroscopic) : {};
     const imageID = image.yamlId ?? imagesModel.getImageID(image);
-    const tileSource = isFrame
-      ? await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions, frame, true)
-      : await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions);
-    tileSource.index = 0;
-    this.openSeaDragonViewer.removeAllTiles();
-    this.openSeaDragonViewer.addNewTile(tileSource);
+    // TODO: add tiles for framed image
+    if (isFrame) {
+      this.openSeaDragonViewer.removeAllTiles();
+      const promises = []
+      for (let i = 0; i < maxFrame; i++) {
+        const tileSourcePromise = imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions, i, true)
+        promises.push(tileSourcePromise);
+      }
+      const tileSources = await Promise.all(promises);
+      tileSources.forEach((t, index) => {
+        const opacity = index === 0 ? 1 : 0;
+        this.openSeaDragonViewer.addNewTile(t, index, opacity);
+      })
+    }
+    else {
+      const tileSource = await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions);
+      tileSource.index = 0;
+      this.openSeaDragonViewer.removeAllTiles();
+      this.openSeaDragonViewer.addNewTile(tileSource);
+    }
+  }
+
+  showFrame(frame) {
+    this.openSeaDragonViewer.showTiledImage(frame);
   }
 
   createViewer() {
@@ -81,10 +102,7 @@ export default class Image {
       )
     }
     else {
-      const templateID = this.getTemplateID();
-      const template = $$(templateID);
-      const templateNode = template.getNode();
-      const osdNode = templateNode?.querySelector(`.${OSD_CONTAINER}`)
+      const osdNode = this.getNodeByClassName(OSD_CONTAINER);
       this.openSeaDragonViewer.createViewer({element: osdNode}, osdNode);
     }
   }
@@ -127,5 +145,39 @@ export default class Image {
       this.openSeaDragonViewer.clearOverlays();
     }
     this.openSeaDragonViewer.addOverlay(overlayElement, tiledRect)
+  }
+
+  showNoImageSelected() {
+    const osdNode = this.getNodeByClassName(OSD_CONTAINER);
+    const nonImageSelectedNode = this.getNodeByClassName(NON_IMAGE_SELECTED_CLASS);
+    if (osdNode && nonImageSelectedNode) {
+      if (!osdNode.classList.contains("hidden")) {
+        osdNode.classList.add("hidden");
+      }
+      if (nonImageSelectedNode.classList.contains("hidden")) {
+        nonImageSelectedNode.classList.remove("hidden");
+      }
+    }
+  }
+
+  showOSD() {
+    const osdNode = this.getNodeByClassName(OSD_CONTAINER);
+    const nonImageSelectedNode = this.getNodeByClassName(NON_IMAGE_SELECTED_CLASS);
+    if (osdNode && nonImageSelectedNode) {
+      if (osdNode.classList.contains("hidden")) {
+        osdNode.classList.remove("hidden");
+      }
+      if (!nonImageSelectedNode.classList.contains("hidden")) {
+        nonImageSelectedNode.classList.add("hidden");
+      }
+    }
+  }
+
+  getNodeByClassName(className) {
+    const templateID = this.getTemplateID();
+    const template = $$(templateID);
+    const templateNode = template.getNode();
+    const node = templateNode?.querySelector(`.${className}`);
+    return node;
   }
 }

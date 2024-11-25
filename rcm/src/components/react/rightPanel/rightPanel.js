@@ -5,6 +5,9 @@ import Webix from "../../webix/webix";
 import Image from "../../webix/image/image";
 import SelectImageContext from "../../../context/selectImageContext";
 import zStackFrameContext from "../../../context/zStackFrameContext";
+import constants from "../../../constants";
+import imagesModel from "../../../models/imagesModel";
+import ajaxActions from "../../../services/ajaxActions";
 
 const imageTemplate = new Image();
 
@@ -20,24 +23,33 @@ export default function RightPanel() {
     template.showProgress({icon: "wxi-sync large-progress"});
     const setImage = async () => {
       if (selectedImage) {
-        await imageTemplate.setImage(selectedImage, false, true);
+        imageTemplate.showOSD();
+        const imageType = imagesModel.getImageType(selectedImage);
+        if (imageType === constants.IMAGE_TYPE.VIVA_STACK) {
+          const imageID = imagesModel.getImageYamlID(selectedImage)
+          const framesInfo = await ajaxActions.getTileFrameInfo(imageID);
+          /** @type {Array} */
+          const frames = framesInfo.frames;
+          const max = frames.at(-1);
+          await imageTemplate.setImage(selectedImage, false, true, max, true);
+        }
+        
+        else {
+          await imageTemplate.setImage(selectedImage, false, true);
+        }
+      }
+      else {
+        imageTemplate.showNoImageSelected();
+        template.hideProgress();
       }
     }
     setImage();
   }, [selectedImage])
 
   useEffect(() => {
-    const template = imageTemplate.getTemplate();
-    if (!template.showProgress) {
-      extend(template, ProgressBar);
+    if (zStackFrame !== null) {
+      imageTemplate.showFrame(zStackFrame);
     }
-    template.showProgress({icon: "wxi-sync large-progress"});
-    const setImage = async () => {
-      if (selectedImage && zStackFrame >= 0) {
-        await imageTemplate.setImage(selectedImage, false, true, zStackFrame, true);
-      }
-    }
-    setImage();
   }, [zStackFrame])
 
   useEffect(() => {

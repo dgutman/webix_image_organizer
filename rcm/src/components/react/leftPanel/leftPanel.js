@@ -47,8 +47,17 @@ export default function LeftPanel() {
       });
     }
     if (selectedImage) {
-      const zStackControl = zStack.getSlider();
-      zStackControl.disable();
+      zStack.clickStopButtonHandler();
+      const zStackSlider = zStack.getSlider();
+      const zStackPlayControl = zStack.getPlayControl();
+      const zStackPauseControl = zStack.getPauseControl();
+      const zStackStopControl = zStack.getStopControl();
+      zStackSlider.disable();
+      zStackPlayControl.disable();
+      zStackPauseControl.disable();
+      zStackStopControl.disable();
+      zStack.hideControls();
+
       let overlayOptions = imagesModel.getOverlayOptions(selectedImage);
       while(!overlayOptions) {
         overlayOptions = imagesModel.getOverlayOptions(selectedImage);
@@ -68,10 +77,14 @@ export default function LeftPanel() {
         const frames = framesInfo.frames;
         const min = frames[0];
         const max = frames.at(-1);
-        zStackControl.define("min", min);
-        zStackControl.define("max", max);
-        zStackControl.setValue(0);
-        zStackControl.enable();
+        zStack.showControls();
+        zStackSlider.define("min", min);
+        zStackSlider.define("max", max);
+        zStackSlider.setValue(0);
+        zStackSlider.enable();
+        zStackPlayControl.enable();
+        zStackPauseControl.enable();
+        zStackStopControl.enable();
       }
     }
   }
@@ -111,8 +124,8 @@ export default function LeftPanel() {
   useEffect(() => {
     const attachEvents = async () => {
       /** @type {webix.ui.slider} */
-      const zStackControl = zStack.getSlider();
-      zStackControl.attachEvent("onChange", (value) => {
+      const zStackSlider = zStack.getSlider();
+      zStackSlider.attachEvent("onChange", (value) => {
         setZStackFrame(value);
       });
       const viewer = imageTemplate.getOSDViewer();

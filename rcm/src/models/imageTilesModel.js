@@ -3,8 +3,9 @@ import ajaxActions from "../services/ajaxActions";
 const imageTiles = new Map();
 
 async function getTileSources(imageID, incomeTilesOptions = {}, useSourceOptions, frame, isFrame) {
-  if (imageTiles.get(`${imageID}${isFrame ? "/" + frame : ""}`)) {
-    return imageTiles.get(imageID);
+  const imageTileID = `${imageID}${isFrame ? "/" + frame : ""}`
+  if (imageTiles.get(imageTileID)) {
+    return imageTiles.get(imageTileID);
   }
   const tileSourceOptions = await ajaxActions.getImageTiles(imageID);
   const tilesOptions = useSourceOptions
@@ -38,7 +39,7 @@ async function getTileSources(imageID, incomeTilesOptions = {}, useSourceOptions
     }
   };
 
-  imageTiles.set(imageID, tileSources);
+  imageTiles.set(imageTileID, tileSources);
   return tileSources;
 }
 
