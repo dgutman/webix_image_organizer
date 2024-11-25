@@ -1,20 +1,19 @@
-import {JetView} from "webix-jet";
-
-import SingleSlideView from "./slideViews/singleSlideView/singleSlideView";
-import SplitSlideView from "./slideViews/splitSlideView/splitSlideView";
+import NPSingleSlideView from "./npSingleSlideView";
+import NPSplitSlideView from "./npSplitSlideView";
 import MakerLayer from "../../../services/organizer/makerLayer";
 import OrganizerFilters from "../../../services/organizer/organizerFilters";
+import ScenesViewerWithControls from "../scenesView/slideViewContainer";
 
-const CONTAINER_VIEW_ID = "scenes-view-container";
+const CONTAINER_VIEW_ID = "np-view-container";
 
-export default class ScenesViewerWithControls extends JetView {
+export default class NPViewerWithControls extends ScenesViewerWithControls {
 	constructor(app, config) {
 		super(app, config);
 
 		this._cnf = config || {};
 		this._containerViewId = `${CONTAINER_VIEW_ID}-${webix.uid()}`;
 
-		this._currentSlideView = new SingleSlideView(app, config);
+		this._currentSlideView = new NPSingleSlideView(app, config);
 		this._viewFilters = new OrganizerFilters();
 
 		this._layers = {};
@@ -23,13 +22,23 @@ export default class ScenesViewerWithControls extends JetView {
 	config() {
 		return {
 			...this._cnf,
-			name: "scenesViewerContainer",
+			name: "NPViewerContainer",
 			localId: this._containerViewId,
 			margin: 8,
 			rows: [
 				this._currentSlideView
 			]
 		};
+	}
+
+	ready() {
+		this.attachEvents();
+	}
+
+	attachEvents() {
+		this.on(this.getRoot(), "onDestruct", () => {
+			console.log("destructor");
+		});
 	}
 
 	async onImageSelect(images) {
@@ -49,14 +58,13 @@ export default class ScenesViewerWithControls extends JetView {
 
 	makeSplitView() {
 		this._removeChilds();
-		this._currentSlideView = this.app.createView(SplitSlideView);
+		this._currentSlideView = this.app.createView(NPSplitSlideView);
 		this.getRoot().addView(this._currentSlideView);
 	}
 
 	makeSingleView() {
 		this._removeChilds();
-
-		this._currentSlideView = this.app.createView(SingleSlideView);
+		this._currentSlideView = this.app.createView(NPSingleSlideView);
 		this.getRoot().addView(this._currentSlideView);
 	}
 

@@ -59,10 +59,11 @@ class MainService {
 		metadataTable,
 		finder,
 		metadataTemplate,
-		collapser,
+		metadataCollapser,
 		metadataPanelScrollView,
 		cartList,
-		npView
+		npView,
+		finderCollapser,
 	) {
 		this._view = view;
 		this._hostBox = hostBox;
@@ -73,10 +74,11 @@ class MainService {
 		this._metadataTable = metadataTable;
 		this._finder = finder;
 		this._metadataTemplate = metadataTemplate;
-		this._collapser = collapser;
+		this._metadataCollapser = metadataCollapser;
 		this._metadataPanelScrollView = metadataPanelScrollView;
 		this._cartList = cartList;
 		this._npView = npView;
+		this._finderCollapser = finderCollapser;
 		this._ready();
 	}
 
@@ -336,7 +338,7 @@ class MainService {
 			switch (value) {
 				case thumbnailOption.id:
 					galleryDataviewCell.show();
-					this._collapser.show();
+					this._metadataCollapser.show();
 					this._galleryDataviewPager.show();
 					this._galleryFeaturesView.show();
 					this._toggleCartList("gallery");
@@ -357,6 +359,8 @@ class MainService {
 				case npViewOption.id:
 					this._closeThumbnailViewPanels();
 					this._npView.getRoot().show();
+					this._finderCollapser.config.setClosedState();
+					this._npView.closeCollapsers();
 					break;
 				case scenesOption.id:
 					this._closeThumbnailViewPanels();
@@ -1340,7 +1344,7 @@ class MainService {
 			this._itemsModel.clearAll();
 			this._itemsDataCollection.clearAll();
 			this._metadataTemplate.setValues({});
-			this._collapser.config.setClosedState();
+			this._metadataCollapser.config.setClosedState();
 			this._view.showProgress();
 			const subcollectionData = await this._view.$scope.getSubFinderView()
 				.loadTreeFolders(constants.FOLDER_PARENT_TYPES.COLLECTION, collectionItem._id);
@@ -1496,8 +1500,8 @@ class MainService {
 		const spacerForPager = this._view.$scope.getSubDataviewActionPanelView().getSpacerForPager();
 		this._toggleCartList();
 		spacerForPager.show();
-		this._collapser.config.setClosedState();
-		this._collapser.hide();
+		this._metadataCollapser.config.setClosedState();
+		this._metadataCollapser.hide();
 		this._galleryFeaturesView.hide();
 	}
 

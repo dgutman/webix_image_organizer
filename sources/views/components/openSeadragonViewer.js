@@ -64,6 +64,23 @@ export default class OpenSeadragonViewer extends JetView {
 		this.getRoot().hideOverlay();
 	}
 
+	addNewTile(tileSource, opacity = 1, index = 0) {
+		const viewer = this.$viewer();
+
+		viewer.addTiledImage({
+			tileSource,
+			opacity,
+			index
+		});
+	}
+
+	removeAllTiles() {
+		const viewer = this.$viewer();
+		if (viewer) {
+			viewer.world.removeAll();
+		}
+	}
+
 	destroy() {
 		if (this.$viewer()) {
 			this.$viewer().world.removeAll();

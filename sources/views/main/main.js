@@ -10,7 +10,7 @@ import galleryFeatures from "../subviews/galleryFeatures/galleryFeatures";
 import metadataTemplateView from "../subviews/metadataPanel/metadataTemplateView";
 import Multiview from "../subviews/multiDataView/multiDataView";
 
-const collapserName = "metadataCollapser";
+const metadataCollapserName = "metadataCollapser";
 const finderCollapserName = "finderCollapserName";
 
 export default class MainView extends JetView {
@@ -21,8 +21,8 @@ export default class MainView extends JetView {
 	}
 
 	config() {
-		const rightCollapser = collapser.getConfig(constants.SCROLL_VIEW_METADATA_ID, {type: "right", closed: true}, collapserName);
-		const finderCollapser = collapser.getConfig(constants.FINDER_VIEW_ID, {type: "left", closed: false}, finderCollapserName);
+		const rightCollapser = collapser.getConfig(constants.SCROLL_VIEW_METADATA_ID, {type: "right", closed: true}, metadataCollapserName, "Metadata");
+		const finderCollapser = collapser.getConfig(constants.FINDER_VIEW_ID, {type: "left", closed: false}, finderCollapserName, "Folders tree");
 
 		return {
 			rows: [
@@ -56,9 +56,10 @@ export default class MainView extends JetView {
 		const finder = this.getSubFinderView().getTreeRoot();
 		const metadataPanelScrollView = this.getSubMetadataPanelView().getScrollView();
 		const metadataTemplate = this.getSubMetadataPanelView().getTemplateView();
-		const metadataCollapser = this.getSubCollapserView();
+		const metadataCollapser = this.getSubMetadataCollapserView();
 		const cartListView = this.getSubCartListView().getCartListView();
 		const npView = this.getSubNPView();
+		const finderCollapser = this.getSubFinderCollapserView();
 
 		this._mainService = new MainService(
 			view,
@@ -73,7 +74,8 @@ export default class MainView extends JetView {
 			metadataCollapser,
 			metadataPanelScrollView,
 			cartListView,
-			npView
+			npView,
+			finderCollapser,
 		);
 	}
 
@@ -125,8 +127,12 @@ export default class MainView extends JetView {
 		return this.getRoot().queryView({name: "metadataPanelClass"}).$scope;
 	}
 
-	getSubCollapserView() {
-		return this.getRoot().queryView({name: collapserName});
+	getSubMetadataCollapserView() {
+		return this.getRoot().queryView({name: metadataCollapserName});
+	}
+
+	getSubFinderCollapserView() {
+		return this.getRoot().queryView({name: finderCollapserName});
 	}
 
 	getSubCartListView() {
