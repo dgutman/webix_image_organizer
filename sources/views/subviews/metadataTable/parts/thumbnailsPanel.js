@@ -23,7 +23,7 @@ export default class TableRightPanelView extends JetView {
 						const previewImageUrl = galleryImageUrl.getPreviewImageUrl(obj._id);
 						const labelPreviewImageUrl = galleryImageUrl.getLabelPreviewImageUrl(obj._id);
 						if (typeof previewImageUrl === "undefined") {
-							ajaxActions.getImage(obj._id, "thumbnail")
+							ajaxActions.getImage(obj._id, "thumbnail", {width: IMAGE_WIDTH, height: IMAGE_HEIGHT})
 								.then((url) => {
 									galleryImageUrl.setPreviewImageUrl(obj._id, url);
 									this.getRoot().refresh();
