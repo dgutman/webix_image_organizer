@@ -57,7 +57,7 @@ export default class ScenesView extends JetView {
 		const listSlider = this._imagesSlider.$sliderList();
 
 		this.on(modePanelView, MODE_CHANGE_EVENT, (value) => {
-			this._imagesSlider.toogleMode(value);
+			this._imagesSlider.toggleMode(value);
 			switch (value) {
 				case "split": {
 					this._slideViewContainer.makeSplitView();

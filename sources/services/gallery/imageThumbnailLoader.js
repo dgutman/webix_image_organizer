@@ -48,7 +48,7 @@ export default class ImageThumbnailLoader {
 				}
 			}
 			else {
-				ajaxActions.getImage(obj._id, imageType)
+				ajaxActions.getImage(obj._id, imageType, {width: 256, height: 256})
 					.then((url) => {
 						setPreviewUrl(obj._id, url);
 						if (dataview.exists(obj.id)) {

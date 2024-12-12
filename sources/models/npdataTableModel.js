@@ -84,7 +84,7 @@ function _transpose(source) {
 function setImageTemplate(source) {
 	const result = source.map(async (obj) => {
 		const newObj = webix.copy(obj);
-		newObj.imageSrc = await ajax.getImage(newObj._id, "thumbnail");
+		newObj.imageSrc = await ajax.getImage(newObj._id, "thumbnail", {width: 256, height: 256});
 		newObj.image = `<img 
 			src=${newObj.imageSrc}
 			width=256
