@@ -275,7 +275,7 @@ export default class ImagesRowSlider extends JetView {
 		ajaxActions.openImageInNewTab(imageId);
 	}
 
-	toogleMode(mode) {
+	toggleMode(mode) {
 		const list = this.$sliderList();
 		switch (mode) {
 			case "single": {
