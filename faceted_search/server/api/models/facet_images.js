@@ -76,9 +76,12 @@ class FacetImages {
         }
         try {
             filesLock.set(IMAGES_PATH, true);
-            data = await fsPromise.readFile(IMAGES_PATH);
-            filesLock.set(IMAGES_PATH, false);
-            return JSON.parse(data);
+            if (fsPromise.exists(IMAGES_PATH)) {
+                data = await fsPromise.readFile(IMAGES_PATH);
+                filesLock.set(IMAGES_PATH, false);
+                return JSON.parse(data);
+            }
+            return [];
         }
         catch (error) {
             console.error("Error reading data from file", error);
