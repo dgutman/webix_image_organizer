@@ -67,17 +67,7 @@
                         "LFB-PAS",
                         "FUS",
                         "TDP-43",
-                        "GFAP",
-                        "control",
-                        "control+",
-                        "control-",
-                        "CD20",
-                        "CD3",
-                        "CD68",
-                        "NeuN",
-                        "NF",
-                        "Huntingtin",
-                        "MCI"
+                        "HUNTINGTIN"
                     ]
                 }
             },
