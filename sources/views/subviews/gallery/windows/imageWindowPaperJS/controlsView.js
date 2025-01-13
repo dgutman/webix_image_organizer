@@ -211,4 +211,8 @@ export default class ControlsView extends JetView {
 		this.$controlForm().setValues(this._defaultFormValues);
 		this._unblockControlsEvents();
 	}
+
+	updatePaperJSToolkit(tk) {
+		this._tk = tk;
+	}
 }
