@@ -21,6 +21,7 @@ module.exports = (app) => {
 			await facetFilters.deleteAllDocuments();
 			res.sendStatus(204);
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -53,6 +54,7 @@ module.exports = (app) => {
 			await updateLocalCache();
 			res.sendStatus(204);
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -65,6 +67,7 @@ module.exports = (app) => {
 				res.status(200).send([]);
 			}
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal Error');
 		}
 	});
@@ -78,6 +81,7 @@ module.exports = (app) => {
 				res.status(200).send([]);
 			}
 		} catch (err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -86,6 +90,7 @@ module.exports = (app) => {
 			await approvedMetadataModel.deleteAllDocuments();
 			res.sendStatus(204);
 		} catch (err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -98,6 +103,7 @@ module.exports = (app) => {
 				res.status(200).send([]);
 			}
 		} catch (err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -107,6 +113,7 @@ module.exports = (app) => {
 			await approvedFacetController.updateApprovedFacetData(dataToSave);
 			res.sendStatus(204);
 		} catch (err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -115,6 +122,7 @@ module.exports = (app) => {
 			await approvedFacetModel.deleteAllDocuments();
 			res.sendStatus(204);
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
