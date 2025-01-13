@@ -48,7 +48,7 @@ export default class ModePanelView extends JetView {
 					localId: this._modeRadioButtonId,
 					label: "Mode:",
 					labelWidth: 50,
-					width: 210,
+					width: 220,
 					value: "single",
 					options: [
 						{id: "single", value: "Single"},

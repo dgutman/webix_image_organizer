@@ -563,7 +563,8 @@ strong, b {
 .webix_icon.text-collapser {
   font-size: 13px;
   top: 2px;
-  width: 100px;
+  width: 150px;
+  left: 50% !important;
 }
 
 .vertical-text {
@@ -574,3 +575,8 @@ strong, b {
   top: 30% !important;
   padding-left: 0px !important;
 }
+
+.collapser-btn > .webix_template:has(> span.vertical-text) {
+  padding: 5px !important;
+}
+

@@ -1,26 +1,23 @@
 import JSONFormatter from "json-formatter-js";
 import {JetView} from "webix-jet";
 
+import RightPanel from "./components/rightPanel/rightPanel";
+// import ToolbarView from "./components/toolbarView";
 import ControlsView from "./controlsView";
-import {AnnotationToolkit} from "./osd-paperjs-annotation/annotationtoolkit";
-import PaperJSTools from "./paperjsTools";
-import RightPanel from "./rightPanel";
+import { AnnotationToolkit } from "./osd-annotation/js/annotationtoolkit.mjs";
+import { RotationControl } from "./osd-annotation/js/rotationcontrol.mjs";
 import ControlsEventsService from "./services/controlsEventsService";
-import ImageTemplateEventsService from "./services/imageTemplateEventService";
-import RightPanelEventsService from "./services/rightPanelEventsService";
-import ToolbarEventServices from "./toolbarEventService";
-import ToolbarView from "./toolbarView";
-import AnnotationsModel from "../../../../../models/annotations/annotationsModel";
-import ImageWindowViewModel from "../../../../../models/annotations/imageWindowViewModelPaperJS";
-import PaperProjectModel from "../../../../../models/annotations/paperjsProjectModel";
-import ItemsModel from "../../../../../models/annotations/paperjsItemsModel";
-import LayersModel from "../../../../../models/annotations/paperjsLayersModel";
-import galleryImageUrl from "../../../../../models/galleryImageUrls";
+// DO NOT MOVE ToolbarView MODULE, it will cause an error
+import ToolbarView from "./components/toolbarView";
+import AnnotationApi from "./services/api";
+import galleryImageUrls from "../../../../../models/galleryImageUrls";
 import nonImageUrls from "../../../../../models/nonImageUrls";
 import ajax from "../../../../../services/ajaxActions";
 import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import collapser from "../../../../components/collapser";
+import annotationApiRequests from "./services/api";
+import adapter from "./services/adapter";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -30,28 +27,12 @@ const RIGHT_PANEL_ID = `right-window-panel-id-${webix.uid()}`;
 const WINDOW_TITLE_ID = "#window-title-id";
 const IMAGE_CONTAINER_ID = "#image-container-id";
 
-/**
- * Description placeholder
- *
- * @export
- * @class ImageWindowView
- * @typedef {ImageWindowView}
- * @extends {JetView}
- */
 export default class ImageWindowView extends JetView {
-	
-	/**
-	 * Creates an instance of ImageWindowView.
-	 *
-	 * @constructor
-	 * @param {*} app
-	 * @param {*} config
-	 */
 	constructor(app, config) {
 		super(app, config);
 
 		this._controlsView = new ControlsView(this.app);
-		this._imageWindowViewModel = new ImageWindowViewModel(this);
+		// this._imageWindowViewModel = new ImageWindowViewModel(this);
 		this._toolbarView = new ToolbarView(this.app, {}, /* this._imageWindowViewModel, */ this);
 		/** @type {RightPanel} */
 		this._rightPanel = new RightPanel(this.app);
@@ -135,13 +116,13 @@ export default class ImageWindowView extends JetView {
 										localId: IMAGE_CONTAINER_ID,
 										template: (obj) => {
 											let imageType = "thumbnail";
-											let getPreviewUrl = galleryImageUrl.getNormalImageUrl;
-											let setPreviewUrl = galleryImageUrl.setNormalImageUrl;
+											let getPreviewUrl = galleryImageUrls.getNormalImageUrl;
+											let setPreviewUrl = galleryImageUrls.setNormalImageUrl;
 
 											if (obj.label) {
 												imageType = "images/label";
-												getPreviewUrl = galleryImageUrl.getLabelPreviewImageUrl;
-												setPreviewUrl = galleryImageUrl.setPreviewLabelImageUrl;
+												getPreviewUrl = galleryImageUrls.getLabelPreviewImageUrl;
+												setPreviewUrl = galleryImageUrls.setPreviewLabelImageUrl;
 											}
 
 											if (obj._id && !obj.emptyObject) {
@@ -284,6 +265,7 @@ export default class ImageWindowView extends JetView {
 		return this._$windowTitle;
 	}
 
+	/** @type {ControlsView} */
 	get $controlsPanel() {
 		if (!this._$controlsPanel) {
 			this._$controlsPanel = this.$$(CONTROLS_PANEL_ID);
@@ -291,16 +273,11 @@ export default class ImageWindowView extends JetView {
 		return this._$controlsPanel;
 	}
 
-	get $toolkit() {
-		return this._tk;
-	}
-
 	async showWindow(obj, viewerType) {
-		this.$leftPanel.show();
-		this.$controlsPanel.hide();
+		this.$leftPanel.hide();
 		this.$windowTitle.parse(obj);
 
-		this._imageWindowViewModel.setItem(obj);
+		// this._imageWindowViewModel.setItem(obj);
 		if (viewerType === "standard") {
 			this.$imageContainer.parse(obj);
 			this.$imageContainer.define("scroll", false);
@@ -311,32 +288,34 @@ export default class ImageWindowView extends JetView {
 		const templateNode = this.$imageContainer.getNode().querySelector("#image_viewer");
 
 		if (viewerType === "seadragon") {
+			this.view.showProgress();
 			try {
-				this.view.showProgress();
-				// const annotationsData = await this._imageWindowViewModel.asyncLoadAnnotations();
-				const annotationsData = await this._imageWindowViewModel.getAndLoadAnnotations();
-				this.annotationModel = new AnnotationsModel(annotationsData);
 				const data = await ajax.getImageTiles(obj._id);
-				this.tiles = data; // for geojs
-				const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
-				await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
-				this._tk = new AnnotationToolkit(this._openSeadragonViewer);
-				this.paperProjectModel = new PaperProjectModel(this._tk);
-				this.layersModel = new LayersModel(this._tk);
-				this.itemsModel = new ItemsModel(this._tk);
-				const toolbarControls = this._toolbarView.getToolbarControls();
-				this._paperJSTools = new PaperJSTools(this.app, this._tk, toolbarControls);
-				this._controlsEventsService.init(
-					this._openSeadragonViewer,
-					layerOfViewer,
-					this.paperProjectModel.getProject()
-				);
-				this._rightPanelEventsService = new RightPanelEventsService(
-					this,
-					this._rightPanel,
-					this._tk,
-					this._imageWindowViewModel
-				);
+				if (data) {
+					this.tiles = data; // for geojs
+					// this.$leftPanel.show();
+					this.$controlsPanel.show();
+					const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
+					await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
+					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
+					// TODO: avoid this
+					window.project = this._tk.overlay.paperScope.project;
+					this._controlsView.updatePaperJSToolkit(this._tk);
+					this._toolbarView.updatePaperJSToolkit(this._tk);
+					this._tk.addAnnotationUI({autoOpen: true});
+					const annotations = await annotationApiRequests.getAnnotations(obj._id);
+					const featureCollectionsArray = annotations.map((a) => {
+						const feature = adapter.annotationToFeatureCollections(a);
+						return feature;
+					});
+					featureCollectionsArray.forEach((fc) => {
+						this._tk.addFeatureCollections(
+							fc,
+							true,
+							this._openSeadragonViewer.world.getItemAt(0)
+						);
+					});
+				}
 			}
 			catch (err) {
 				console.error(err);
@@ -396,50 +375,11 @@ export default class ImageWindowView extends JetView {
 	close() {
 		// to clear setted template
 		// to destroy Open Seadragon viewer
-		try {
-			this._rightPanelEventsService?.clearAll();
-			this.$imageContainer?.parse({emptyObject: true});
-			this._controlsView?.reset();
-			this._tk?.destroy();
-			this._paperJSTools?.detachEvents();
-			this._paperJSTools = null;
+		if (this._openSeadragonViewer) {
+			this._openSeadragonViewer.destroy();
 		}
-		catch (err) {
-			console.error(err);
-		}
-		finally {
-			this.getRoot().hide();
-		}
-	}
-
-	getOSDViewer() {
-		return this._openSeadragonViewer;
-	}
-
-	refreshSlide(viewer, sd) {
-		if (viewer && sd) {
-			this.app.callEvent("setSlide", [sd]);
-			this._openSeadragonViewer.viewport.zoomTo(3);
-			this._openSeadragonViewer.viewport.goHome(true);
-		}
-		this.app.callEvent("setBounds", []);
-	}
-
-	// TODO: move this properly
-	saveAnnotation() {
-		const annotations = this.annotationModel.getAnnotations();
-		this._imageWindowViewModel.updateGirderWithAnnotationData(annotations);
-	}
-
-	async showAnnotation(annotationData) {
-		// TODO: fix this
-		// if (!this.paperProjectModel.isEmpty()) {
-		// 	this.paperProjectModel.clearProject();
-		// }
-		this._tk.addFeatureCollections(annotationData.elements, true);
-		const layers = this._tk.getFeatureCollectionLayers();
-		if (layers.length > 0) {
-			layers[0].activate();
-		}
+		this.$imageContainer.parse({emptyObject: true});
+		this.getRoot().hide();
+		this._controlsView.reset();
 	}
 }

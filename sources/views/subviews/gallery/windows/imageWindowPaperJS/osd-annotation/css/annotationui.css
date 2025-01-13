@@ -1,0 +1,652 @@
+/**
+ * OpenSeadragon paperjs overlay plugin based on paper.js
+ * @version 0.4.12
+ * 
+ * Includes additional open source libraries which are subject to copyright notices
+ * as indicated accompanying those segments of code.
+ * 
+ * Original code:
+ * Copyright (c) 2022-2024, Thomas Pearce
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * 
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ * 
+ * * Neither the name of osd-paperjs-annotation nor the names of its
+ *   contributors may be used to endorse or promote products derived from
+ *   this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+.annotation-ui-noselect{
+    user-select:none;
+}
+.ui-dialog{
+    font-size:14px;
+}
+.ui-dialog, .ui-dialog-content {
+    box-sizing: content-box;
+}
+.flex-row{
+    display:flex;
+    flex-direction:row;
+}
+.annotation-ui-mainwindow .templates{
+    display:none;
+}
+.annotation-ui-mainwindow{
+    height:100%;
+    width:16em;
+    min-width:12em;
+    color:black;
+    overflow:hidden;
+    display:grid;
+    grid-template-rows: auto auto minmax(4em, 1fr) auto;
+    border:thin gray solid;
+    padding:2px;
+    box-sizing:border-box;
+}
+.annotation-visibility-controls{
+    display:flex;
+    flex-grow:0;
+    flex-shrink:0;
+    border-bottom:thin gray solid;
+    padding-bottom:2px;
+    margin-bottom:2px;
+}
+.annotation-visibility-controls .visibility-buttons{
+    flex-grow:0;
+    display:flex;
+    margin-right:5px;
+}
+.annotation-visibility-controls .annotation-opacity-container{
+    flex-grow:1;
+}
+.annotation-ui-mainwindow button.btn{
+    padding:0 3px;
+}
+.file-button{
+    padding:0.1em 0.5em;
+    margin-right:0.3em;
+}
+.annotation-ui label{
+    margin:0;
+}
+.annotation-ui-feature-collections{
+    overflow:auto;
+    border-bottom:thin gray solid;
+}
+.annotation-ui-feature-collections:empty::before {
+    content: 'Click below to begin a new feature collection';
+    color: gray;
+}
+.feature-collection{
+    border: thin transparent solid;
+    padding:2px;
+    opacity:0.1;
+}
+.annotation-ui-feature-collections .feature-collection{
+    transition: opacity 1s;
+}
+.annotation-ui-feature-collections .feature-collection.inserted:not(.trashed):not(.draganddrop-dragging){
+    opacity:1;
+}
+.annotation-ui-feature-collections .feature-collection:not(.trashed).selected{
+    border:thin black solid;
+    background-color:azure;
+} 
+.annotation-ui-feature-collections
+    .feature-collection:not(.trashed,.annotation-hidden,.selected):hover, 
+    .feature-collection.svg-hovered:not(.trashed):not(.annotation-hidden){
+    background-color:lightgoldenrodyellow;
+    border:thin black solid;
+}
+.feature-collection.annotation-hidden [data-action="hide"]{
+    display:none;
+}
+.feature-collection:not(.annotation-hidden) [data-action="show"]{
+    display:none;
+}
+.feature-collection.annotation-hidden .features{
+    pointer-events:none;
+    opacity:50%;
+}
+.annotation-ui-feature-collections .name{
+    font-weight:bold;
+}
+.annotation-details{
+    flex-grow:1;
+}
+.feature-item{
+    margin-left:1em;
+}
+
+.feature-collection [data-action], .feature [data-action]{
+    margin-left:0.2em;
+}
+.hoverable-actions:not(:hover) .onhover{
+    visibility:hidden;
+}
+.hoverable-actions:hover .editablecontent .onhover {
+    visibility:visible;
+}
+.feature-collection.trashed{
+    background-color:darkred;
+    opacity:0.3;
+    pointer-events:none;
+}
+.annotation-header{
+    display:grid;
+    grid-template-columns:auto 1fr auto auto auto;
+}
+.feature-collection.trashed .annotation-header [data-action="trash"]{
+    pointer-events:all;
+    visibility:visible;
+}
+.feature-collection .toggle-list{
+    flex-grow:0
+}
+.feature-collection .features{
+    flex-grow:1;
+}
+.features.collapsed .features-list{
+    display:none;
+}
+.features:not(.collapsed) .features-summary{
+    display:none;
+}
+.features.collapsed [data-action="collapse-up"]{
+    display:none;
+}
+.features:not(.collapsed) [data-action="collapse-down"]{
+    display:none;
+}
+.features-summary:not([data-num-elements="1"]) .pluralize::before{
+    content:'s';
+}
+.feature.selected{
+    background-color:green;
+}
+.feature{
+    cursor:default;
+}
+.annotation-ui-mainwindow.disabled .disable-when-annotations-hidden{
+    opacity:0.5;
+    pointer-events:none;
+    cursor:not-allowed;
+}
+.annotation-ui-mainwindow.deactivated .disable-when-deactivated{
+    opacity:0.5;
+    pointer-events:none;
+    cursor:not-allowed;
+}
+
+.annotation-ui-grid{
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: auto 1fr auto;
+    width: 100%;
+    height: 100%;
+    background-color:white;
+}
+.annotation-ui-grid .center{
+    grid-column-start: 2;
+    grid-column-end: 3;
+    grid-row-start: 2;
+    grid-row-end: 3;
+    position:relative;
+    z-index:0; /* reset the z-index basis for this container so children can be manipulated independently of siblings */
+}
+.annotation-ui-grid .top {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 1;
+    grid-row-end: 2;
+    text-align:center;
+    border-bottom:thin gray solid;
+}
+.annotation-ui-grid .bottom {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row-start: 3;
+    grid-row-end: 4;
+}
+.annotation-ui-grid .left {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 2;
+    grid-row-end: 3;
+}
+.annotation-ui-grid .right {
+    grid-column-start: 3;
+    grid-column-end: 4;
+    grid-row-start: 1;
+    grid-row-end: 4;
+    position:relative;
+}
+.annotation-ui-grid .resize-right{
+    width: 15px;
+    left: -15px;
+    position: absolute;
+    background-color: rgb(196, 196, 196);
+    cursor: grab;
+    text-align:center;
+    user-select:none;
+    top:50%;
+    transform: translate(0, -50%);
+    padding:10px 0;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+.annotation-ui-grid .resize-right::before{
+    content:'||';
+}
+.annotation-ui-grid .resize-right.resizing{
+    cursor:grabbing;
+}
+.annotation-ui-grid .right:not(:hover) .resize-right{
+    display:none;
+}
+
+.annotation-ui-drawing-toolbar .pseudohidden, .annotation-ui-drawing-toolbar .invisible{
+    visibility:hidden;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    padding:0;
+    border:none;
+}
+.annotation-ui-drawing-toolbar{
+    background-color:lightgray;
+    display: inline-block;
+    max-width:100%;
+    text-align:left;
+}
+.annotation-ui-drawing-toolbar button[disabled]{
+    pointer-events:none;
+    cursor:not-allowed;
+    border:thin solid transparent;
+}
+.annotation-ui-drawing-toolbar button:not([disabled]){
+    border:thin rgb(195, 195, 195) solid;
+}
+.annotation-ui-drawing-toolbar button:not([disabled]):hover{
+    border:thin rgb(41, 41, 41) solid;
+    z-index:2;
+}
+.annotation-ui-drawing-toolbar .dropdowns>*:not(.active){
+    display:none;
+}
+.annotation-ui-buttonbar>.btn.active{
+    color:black;
+    background-color:darkgray;
+}
+.annotation-ui-buttonbar>.btn:not(.active){
+    color:rgb(62, 62, 62);
+    background-color:lightgrey;
+}
+.dropdowns-container{
+    position:relative;
+    background-color:inherit;
+}
+.dropdowns{
+    color:black;
+    position:absolute;
+    background-color:inherit;
+    min-width:100%;
+}
+.dropdown{
+    width:100%;
+    display:grid;
+    vertical-align: middle;
+    column-gap:1em;
+    grid-template-columns:auto;
+}
+/* brush-toolbar styles */
+.dropdown.brush-toolbar{
+    grid-template-columns: auto 1fr auto auto;    
+}
+/* end brush-toolbar styles */
+
+/* polygon-toolbar styles */
+.dropdown.polygon-toolbar{
+    grid-template-columns: 1fr auto auto auto auto auto;    
+}
+.dropdown.polygon-toolbar button[data-action="simplify"]{
+    margin-right:0.2em;
+}
+/* end polygon-toolbar styles */
+
+/* linestring-toolbar styles */
+.dropdown.linestring-toolbar{
+    grid-template-columns: auto 1fr auto auto;
+}
+/* end linestring-toolbar styles */
+canvas.selectable-layer{
+    cursor:pointer;
+}
+canvas.point-tool-grab{
+    cursor:grab;
+}
+canvas.point-tool-grabbing{
+    cursor:grabbing;
+}
+canvas.rectangle-tool-move{
+    cursor: move;
+}
+canvas.rectangle-tool-resize{
+    cursor:nesw-resize;
+}
+canvas.transform-tool-move{
+    cursor: move;
+}
+canvas.transform-tool-resize{
+    cursor:nesw-resize;
+}
+canvas.transform-tool-rotate{
+    cursor: pointer;
+}
+.tool-action[data-tool-action="segment"]{
+    cursor:move;
+}
+.tool-action[data-tool-action="stroke"]{
+    cursor:copy;
+}
+.tool-action[data-tool-action="segment-erase"]{
+    cursor:not-allowed;
+}
+.tool-action[data-tool-action="colorpicker"]{
+    cursor:none;
+}
+
+/* wand-toolbar styles */
+.dropdown.wand-toolbar{
+    grid-template-columns: 5em 1fr auto auto;
+}
+
+.wand-toolbar .threshold-container{
+    display:flex;
+    flex-direction:column;
+}
+.wand-toolbar .threshold-container label, .wand-toolbar .label{
+    margin-bottom:0;
+    font-size:0.8em;
+}
+/* .wand-toolbar .toggle .btn{
+    padding:auto 4px;
+    line-height:1;
+} */
+/* .wand-toolbar .toggle.btn-primary{
+    margin-bottom:0;
+} */
+.wand-toolbar .toggles{
+    display:grid;
+    column-gap:2px;
+    grid-template-columns:7em 5em 8em;
+}
+.wand-toolbar .option-toggle{
+    display:grid;
+    grid-template-rows:auto auto;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select:none;
+}
+.wand-toolbar .option-toggle:hover .option{
+    background-color:darkgray;
+}
+.wand-toolbar .option-toggle .option:not(.selected){
+    display:none;
+}
+/* End wand-toolbar styles */
+
+.viewer-controls-topleft{
+    display:flex;
+}
+
+/* style-toolbar styles */
+
+.style-toolbar .style-row{
+    display:grid;
+    grid-template-columns:auto auto auto auto;
+    column-gap:0.5em;
+    align-items:center;
+}
+.style-toolbar .style-item{
+    display:inline-block;
+    width:7em;
+    white-space: nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    padding-left:0.5em;
+    cursor:pointer;
+}
+.style-toolbar .style-item.selected{
+    outline:medium lightskyblue solid;
+}
+.style-toolbar .hierarchy-up{
+    cursor:pointer;
+    padding:0 0.5em;
+}
+.style-toolbar input[type="number"]{
+    width:3.5em;
+}
+.style-toolbar .colorpicker-row.hidden{
+    display:none;
+}
+.style-toolbar .colorpicker-row{
+    display:grid;
+    grid-template-columns:repeat(4,auto)
+}
+.style-toolbar .preview{
+    position:relative;
+    display:block;
+    background: repeating-conic-gradient(#d0d0d0 0% 25%, white 0% 50%) 
+              50% / 20px 20px
+}
+.style-toolbar .preview::after{
+    /* This is just so the height is set correctly since children are absolute positioned */
+    content:'Preview';
+    visibility:hidden;
+}
+.style-toolbar .preview .bg{
+    display:block;
+    position:absolute;
+    outline:thin solid black;
+    top:0;
+    left:0;
+    bottom:0;
+    right:0;
+}
+.style-toolbar .preview .text{
+    display:block;
+    position:absolute;
+    padding:0 0.2em;
+}
+.style-toolbar input[type="range"]{
+    display:inline-block;
+}
+
+/* end style-toolbar styles */
+
+
+.new-feature,.new-feature-collection{
+    cursor:pointer;
+}
+.new-feature:hover,.new-feature-collection:hover{
+    background-color:antiquewhite;
+    outline:thin gray solid;
+}
+/* Annotation UI File Dialog Styles*/
+.annotation-ui-filedialog{
+    display:grid;
+    grid-template-columns: auto auto auto;
+}
+.annotation-ui-filedialog>div{
+    padding: 0 0.3em;
+}
+.annotation-ui-filedialog .featurecollection-selection{
+    border-right:thin gray solid;
+    border-left:thin gray solid;
+    width:15em;
+    overflow-x:hidden;
+}
+.annotation-ui-filedialog .featurecollection-list{
+    display:flex;
+    flex-direction:column;
+    overflow:auto;
+}
+.annotation-ui-filedialog .localstorage-key-list::before{
+    content:'Saved in local storage:';
+    display:block;
+    color:gray;
+}
+.annotation-ui-filedialog .localstorage-key-list:empty::after{
+    content:'No items were found in local storage';
+    font-style:italic;
+    color:gray;
+}
+.annotation-ui-filedialog .localstorage-key{
+    cursor:pointer;
+}
+.annotation-ui-filedialog .localstorage-key:hover{
+    background-color:lightgoldenrodyellow;
+}
+.annotation-ui-filedialog .localstorage-key-test.key-exists::after{
+    content: '(overwrite)';
+    font-weight:bold;
+    background-color:rgb(190, 99, 66);
+    color:white;
+    padding:0 0.2em;
+}
+.annotation-ui-filedialog .finalize-panel{
+    width:15em;
+    overflow-x:hidden;
+}
+.annotation-ui-filedialog .header{
+    white-space: nowrap;
+    border-bottom:thin gray solid;
+    padding-bottom:2px;
+    margin-bottom:2px;
+}
+.annotation-ui-filedialog button{
+    display:block;
+}
+
+.annotation-ui-filedialog .file-actions{
+    display:flex;
+    flex-direction:column;
+}
+.annotation-ui-filedialog .file-actions hr{
+    margin: 5px 0;
+}
+
+button[disabled]{
+    opacity:0.3;
+}
+
+.dropdown button[data-action="erase"].active{
+    background-color:rgb(187, 86, 86);
+
+}
+.feature .bounding-element{
+    margin-right:-1.2em;
+}
+.feature .bounding-element:not(.active){
+    visibility:visible;
+    color:lightgray;
+}
+.feature .bounding-element.active{
+    visibility:visible;
+    color:black;
+}
+.feature:not(:hover) .bounding-element:not(.active){
+    visibility:hidden;
+}
+
+.hidden{
+    display:none;
+}
+
+.draganddrop-dragging{
+    opacity:0.3;
+}
+.draganddrop-hide{
+    display:none;
+}
+.draganddrop-drop-target{
+    outline:thick rgb(112, 111, 111) solid;
+}
+.draganddrop-drop-target:hover{
+    outline-color:black;
+}
+.draganddrop-drop-target>*>*{
+    pointer-events:none;
+}
+.draganddrop-placeholder{
+    border: thin black solid;
+    border-radius:2px;
+}
+.draganddrop-placeholder>*{
+    visibility:hidden;
+}
+
+/* From bootstrap */
+input[type=range] {
+    display: block;
+    width: 100%;
+}
+.btn {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-bottom: 0;
+    font-size: 14px;
+    /* font-weight: 400; */
+    /* line-height: 1.42857143; */
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    /* -ms-touch-action: manipulation;
+    touch-action: manipulation; */
+    cursor: pointer;
+    /* -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none; */
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    /* border-radius: 4px; */
+}
+.btn.btn-sm{
+    font-size:12px;
+}
+
+.icon {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+/* Items with [data-action] are supposed to be clickable but if the sub-object gets the click it doesn't work, so stop pointer events on children */
+[data-action]>*{
+    pointer-events:none;
+}
+
+.rotate-by{
+    transform:rotate(var(--rotate-angle));
+}
