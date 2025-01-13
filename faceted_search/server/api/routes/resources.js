@@ -22,6 +22,7 @@ module.exports = (app) => {
 			await ServiceData.clearDownloadedResources();
 			res.sendStatus(204);
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});
@@ -32,6 +33,7 @@ module.exports = (app) => {
 			await ServiceData.deleteDownloadedResource(resourceId);
 			res.sendStatus(204);
 		} catch(err) {
+			console.error(err);
 			res.status(500).send('Internal error');
 		}
 	});

@@ -51,7 +51,10 @@ const getFiltersWithImages = (req, res) => {
             }
         })
         .then(()=> res.status(200).send(result))
-        .catch((err) => res.status(500).send(err));
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send(err);
+        });
 };
 
 module.exports = getFiltersWithImages;
