@@ -48,7 +48,10 @@ define([
 					}
 				},
 				template: function(data) {
-					return imageTemplate.getTemplate(data);
+					const sizes = Images.getImagesSize($$(dataviewId).$width);
+					sizes.width = Math.round(sizes.width);
+					sizes.height = Math.round(sizes.height);
+					return imageTemplate.getTemplate(data, sizes);
 				},
 				tooltip: (data) => {
 					return data.data && data.data.name ? data.data.name : "no image";
