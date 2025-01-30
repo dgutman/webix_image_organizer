@@ -1,4 +1,5 @@
 import ListView from "../../../../../../components/listView";
+import FeatureUI from "./featureUI";
 
 /**
  * Description placeholder
@@ -30,13 +31,56 @@ export default class FeaturesCollection extends ListView {
 		this.attachEvents();
 	}
 
-	attachEvents() {}
+	attachEvents() {
+		const list = this.getList();
+		list.attachEvent("onAfterSelect", (id) => {
+			const item = list.getItem(id);
+			const group = item.group;
+			const children = group.getChildren();
+			this.featuresView.clearAll();
+			children.forEach((child) => {
+				this.featuresView.addItem(child);
+			});
+		});
+	}
 
 	addItem() {
+		this.featuresView.clearAll();
+		this._tk.addEmptyFeatureCollectionGroup();
+	}
+
+	addGroup(group) {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({name: `${this.newItemName} ${lastId + 1}`, id: Number(lastId) + 1});
+		const itemId = list.add({name: `${group.displayName} ${lastId + 1}`, id: Number(lastId) + 1, group});
 		list.select(`${lastId + 1}`);
+		group.on({
+			"selection:mouseenter": () => {
+				// TODO: implement if necessary
+			},
+			"selection:mouseleave": () => {
+				// TODO: implement if necessary
+			},
+			selected: () => {
+				// TODO: implement if necessary
+				list.select(itemId);
+			},
+			deselected: () => {
+				list.unselect(itemId);
+			},
+			"display-name-changed": () => {
+				const item = list.getItem(itemId);
+				item.name = group.displayName;
+				list.updateItem(itemId, item);
+			},
+			removed: () => {
+				list.remove(itemId);
+			},
+			"child-added": (ev) => {
+				const item = ev.item;
+				this.addChild(item);
+			}
+		});
 	}
 
 	editItem() {
@@ -50,5 +94,22 @@ export default class FeaturesCollection extends ListView {
 
 	editStyle() {
 		// TODO: implement
+	}
+
+	updatePaperJSToolkit(tk) {
+		this._tk = tk;
+	}
+
+	/**
+	 * set view for features list
+	 *
+	 * @param {FeatureUI} view
+	 */
+	setFeaturesView(view) {
+		this.featuresView = view;
+	}
+
+	addChild(item) {
+		this.featuresView.addItem(item);
 	}
 }

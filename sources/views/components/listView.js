@@ -16,12 +16,18 @@ export default class ListView extends JetView {
 			id: this.ID_LIST,
 			css: "right-panel-list",
 			template: (obj) => {
+				// TODO check item for visibility
+				const hidden = true;
 				const editNameIcon = '<span class="edit-item fas fa-edit"></span>';
 				const editStyleIcon = '<span class="edit-style fas fa-palette"></span>';
 				const deleteIcon = '<span class="delete-item fas fa-times-circle"></span>';
+				const visibleIcon = `<span class="visible fas fa-eye ${hidden ? "hidden-block" : ""}"></span>`;
+				const invisibleIcon = `<span class="invisible fas fa-eye-slash ${hidden ? "hidden-block" : ""}"></span>`;
 				const name = `<span class="right-panel-list__item_name">${obj.name}</span>`;
 				const element = `<div class="right-panel-list__item" style='padding-left:18px'>
 									${name}
+									${invisibleIcon}
+									${visibleIcon}
 									${editNameIcon}
 									${editStyleIcon}
 									${deleteIcon}
@@ -108,11 +114,21 @@ export default class ListView extends JetView {
 		// TODO: implement in descendants
 	}
 
+	/**
+	 * Return webix.ui.list
+	 *
+	 * @returns {webix.ui.list}
+	 */
 	getList() {
 		return this.getRoot().queryView({id: this.ID_LIST});
 	}
 
 	getAddButton() {
 		return this.getRoot().queryView({id: this.ID_ADD_BUTTON});
+	}
+
+	clearAll() {
+		const listView = this.getList();
+		listView.clearAll();
 	}
 }

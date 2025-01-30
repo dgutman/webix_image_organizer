@@ -3,18 +3,16 @@ import { JetView } from "webix-jet";
 // import { LayerUI } from "./osd-annotation/js/layerui.mjs";
 import FeaturesUI from "./featureUI";
 import FeaturesCollectionUI from "./featuresCollectionUI";
-import LayerUI from "./layerUI";
 
 export default class RightPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
 		// TODO: overwrite add items methods;
-		this.annotations = new LayerUI(app, {name: "Annotations", newItemName: "Annotation"});
-		this.annotations.gravity = 1;
-		this.featuresGroups = new FeaturesCollectionUI(app, {name: "Feature Collections", newItemName: "Annotation Group"});
+		this.featuresGroups = new FeaturesCollectionUI(app, {name: "Feature Collections", newItemName: "Group"});
 		this.featuresGroups.gravity = 1;
 		this.features = new FeaturesUI(app, {name: "Features", newItemName: "Creating..."});
 		this.features.gravity = 1;
+		this.featuresGroups.setFeaturesView(this.features);
 		// this.items = new ListView(app, {name: "Items", newItemName: "Item"});
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
 	}
@@ -22,7 +20,6 @@ export default class RightPanel extends JetView {
 	config() {
 		return {
 			rows: [
-				this.annotations,
 				this.featuresGroups,
 				this.features,
 				{
@@ -55,17 +52,28 @@ export default class RightPanel extends JetView {
 
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
-	}
-
-	attachAnnotationEvents() {
-		// TODO: implement
+		this.featuresGroups._tk = tk;
+		this.features._tk = tk;
+		this.attachLayersEvents();
+		this.attachItemsEvents();
 	}
 
 	attachLayersEvents() {
 		// TODO: implement
+		this._tk.paperScope.project.on("feature-collection-added", (ev) => {
+			const group = ev.group;
+			// group.on({
+				
+			// })
+			this.featuresGroups.addGroup(group);
+		});
 	}
 
 	attachItemsEvents() {
 		// TODO: implement
+		this._tk.paperScope.project.on("item-added", (ev) => {
+			const item = ev.item;
+			this.features.addItem(item);
+		});
 	}
 }

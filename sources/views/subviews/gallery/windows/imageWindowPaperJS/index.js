@@ -302,9 +302,10 @@ export default class ImageWindowView extends JetView {
 					window.project = this._tk.overlay.paperScope.project;
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
+					this._rightPanel.updatePaperJSToolkit(this._tk);
 					this._tk.addAnnotationUI({autoOpen: true});
 					const annotations = await annotationApiRequests.getAnnotations(obj._id);
-					const featureCollectionsArray = annotations.map((a) => {
+					const featureCollectionsArray = annotations.map(a => {
 						const feature = adapter.annotationToFeatureCollections(a);
 						return feature;
 					});

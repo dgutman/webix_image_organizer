@@ -32,11 +32,42 @@ export default class FeatureUI extends ListView {
 
 	attachEvents() {}
 
-	addItem() {
+	addItem(paperjsItem) {
+		if (!paperjsItem) {
+			return;
+		}
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({name: `${this.newItemName} ${lastId + 1}`, id: Number(lastId) + 1});
+		const itemId = list.add({name: `${paperjsItem.displayName} ${lastId + 1}`, id: Number(lastId) + 1});
 		list.select(`${lastId + 1}`);
+		paperjsItem.on({
+			selected: () => {
+				list.select(itemId);
+			},
+			deselected: () => {
+				list.unselect(itemId);
+			},
+			"selection:mouseenter": () => {
+				// TODO: implement
+			},
+			"selection:mouseleave": () => {
+				// TODO: implement
+			},
+			"item-replaced": (ev) => {
+				console.log("item-replaced", ev);
+				// TODO: implement
+			},
+			"display-name-changed": (ev) => {
+				const item = list.getItem(itemId);
+				item.name = paperjsItem.displayName;
+				list.updateItem(itemId, item);
+			},
+			removed: (ev) => {
+				if (ev.item === paperjsItem) {
+					list.remove(itemId);
+				}
+			}
+		});
 	}
 
 	editItem() {
@@ -69,7 +100,10 @@ export default class FeatureUI extends ListView {
 		// this._dragAndDrop.refresh();
 		// fc.element.dispatchEvent(new Event("element-added"));
 		const list = this.getList();
-		list.add(grp);
-		this.app.callEvent("app:annotation-ui-element-added");
+		const features = grp.getFeatures();
+		features.forEach((f) => {
+			list.add(f);
+		});
+		this.app.callEvent("app:feature-ui-element-added");
 	}
 }

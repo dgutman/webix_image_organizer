@@ -16,6 +16,7 @@ import { SelectTool } from "../osd-annotation/js/papertools/select.mjs";
 // import { StyleTool } from "../osd-annotation/js/papertools/style.mjs";
 // import { TransformTool } from "../osd-annotation/js/papertools/transform.mjs";
 import { WandTool } from "../osd-annotation/js/papertools/wand.mjs";
+import { AnnotationToolkit } from "../osd-annotation/js/annotationtoolkit.mjs";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, /* imageWindowViewModel, */ imageWindowView) {
@@ -419,6 +420,15 @@ export default class ToolbarView extends JetView {
 		// }
 	}
 
+	ready(view) {
+		this.view = view;
+		this.disableControls();
+	}
+
+	attachAnnotationToolkitEvents() {
+
+	}
+
 	refreshRightLabel(obj, label) {
 		obj.config.bottomLabel = label;
 		obj.refresh();
@@ -565,28 +575,14 @@ export default class ToolbarView extends JetView {
 		return this.toolConstructors;
 	}
 
+	/**
+	 * Update annotation paperjs toolkit
+	 *
+	 * @param {AnnotationToolkit} tk 
+	 */
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
 		this.updateToolsAndControls();
-		const paperScope = this._tk.paperScope;
-		paperScope.project.on({
-			"item-replaced": () => {
-				this.setMode();
-			},
-
-			"item-selected": () => {
-				this.setMode();
-			},
-			"item-deselected": () => {
-				this.setMode();
-			},
-			"item-removed": () => {
-				this.setMode();
-			},
-			"items-changed": () => {
-				this.setMode();
-			}
-		});
 	}
 
 	updateToolsAndControls() {
@@ -602,73 +598,63 @@ export default class ToolbarView extends JetView {
 			if (control) {
 				control.detachEvent(this._toolControlEvents[toolId]);
 				this._toolControlEvents[toolId] = control.attachEvent("onItemClick", () => {
-					const group = this._tk.addEmptyFeatureCollectionGroup();
-					let props = group.defaultStyle;
-					let clonedProperties = {
-						fillColor: new paper.Color(props.fillColor),
-						strokeColor: new paper.Color(props.strokeColor),
-						rescale: OpenSeadragon.extend(true, {}, props.rescale),
-						fillOpacity: props.fillOpacity,
-						strokeOpacity: props.strokeOpacity,
-						strokeWidth: props.strokeWidth,
-					};
-					const placeHolder = new Placeholder(clonedProperties);
-					const item = placeHolder.paperItem;
-					item.select();
-					group.addChild(placeHolder.paperItem);
-					toolObj.activate();
 				});
 			}
 			toolObj.addEventListener("deactivated", (ev) => {
-				// If deactivation is triggered by another tool being activated, this condition will fail
-				if (ev.target === paperScope.getActiveTool()) {
-					this._tools.default.activate();
-				}
+
 			});
 		});
 	}
 
 	setMode() {
-		const self = this;
 		const paperScope = this._tk.paperScope;
-		if (this.setModeTimeout) {
-			clearTimeout(this.setModeTimeout);
+		const selection = paperScope.findSelectedItems();
+		const activeTool = paperScope.getActiveTool();
+		debugger;
+		const toolbarControls = this.getToolbarControls();
+		if (selection.length === 0) {
+			this._currentMode = "select";
 		}
-		this.setModeTimeout = setTimeout(() => {
-			this.setModeTimeout = null;
-			let selection = paperScope.findSelectedItems();
-			let activeTool = paperScope.getActiveTool();
-			if (selection.length === 0) {
-				this._currentMode = "select";
+		else if (selection.length === 1) {
+			const item = selection[0];
+			const def = item.annotationItem || {};
+			let type = def.type;
+			if (def.subtype) {
+				type += `:${def.subtype}`;
 			}
-			else if (selection.length === 1) {
-				const item = selection[0];
-				const def = item.annotationItem || {};
-				let type = def.type;
-				if (def.subtype) type += `:${def.subtype}`;
-				const mode = type === null ? "new" : type;
-				this._currentMode = mode;
-			}
-			else {
-				this._currentMode = "multiselection";
-			}
+			const mode = type === null ? "new" : type;
+			this._currentMode = mode;
+		}
+		else {
+			this._currentMode = "multiselection";
+		}
 
-			if (activeTool.getToolbarControl().isEnabledForMode(this._currentMode) === false) {
-				activeTool.deactivate(true);
-				this._tools.default.activate();
+		switch (this._currentMode) {
+			case constants.ANNOTATION_TOOL_IDS.select:
+				this.disableControls();
+				break;
+			default:
+				this.disableControls();
+				toolbarControls[constants.ANNOTATION_TOOL_IDS.default].enable();
+				break;
+		}
+	}
+
+	disableControls() {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([, c]) => {
+			if (c) {
+				c.disable();
 			}
+		});
+	}
 
-			Object.values(this._tools).forEach((toolObj) => {
-				let t = toolObj.getToolbarControl();
-				if (t.isEnabledForMode(self.currentMode)) {
-					t.button.enable();
-				}
-				else {
-					t.button.disable();
-				}
-			});
-
-			activeTool.selectionChanged();
-		}, 0);
+	enableControls() {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([, c]) => {
+			if (c) {
+				c.enable();
+			}
+		});
 	}
 }
