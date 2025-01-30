@@ -12,9 +12,21 @@ define([
   tilesCollection
 ) {
    return {
-       getTemplate: function(data) {
+       getTemplate: function(data, params) {
+            const requestParams = params || {};
+            const paramsArray = Object.entries(requestParams);
             const styleParamsString = styleParams.getStyleParams(data.data);
-            let src = `${ajax.getHostApiUrl()}/item/${data.data._id}/tiles/thumbnail?token=${auth.getToken()}`;
+            if (styleParamsString) {
+              paramsArray.push(["style", styleParamsString]);
+            }
+            const token = auth.getToken();
+            if (token) {
+              paramsArray.push(["token", token]);
+            }
+            const searchParams = new URLSearchParams("");
+            paramsArray.forEach((item) => { searchParams.append(...item); });
+            const queryString = searchParams.toString();
+            let src = `${ajax.getHostApiUrl()}/item/${data.data._id}/tiles/thumbnail?${queryString || ""}`;
 
             if (styleParamsString) {
               src += `&style=${styleParamsString}`;
@@ -25,7 +37,7 @@ define([
             }
 
 //            const name = data.data.name || "no image";
-            console.log(data.data)
+            console.log(data.data);
             const name = data.data?.meta?.pilotSchema?.ADRC || "";
             const viewIconSrc = tilesCollection.getChannelsFromChannelMap(data.data) ?
               "assets/imgs/icons8-paint-palette-48.png" : "assets/imgs/microscope.png";
