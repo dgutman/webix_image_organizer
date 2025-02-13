@@ -383,12 +383,12 @@ define(["app", "constants"], function(app, constants) {
 						dataset,
 						filters
 					});
-					const publicOrPrivateFolder = await this.getDatasetPublicOrPrivateFolder(isPublic);
+					const datasetFolder = await this.getDatasetFolder();
 					const userInfo = await this.getUserInfo();
 					const userLogin = userInfo.login;
 					const userFolderParams = {
 						parentType: PARENT_TYPES.folder,
-						parentId: publicOrPrivateFolder._id,
+						parentId: datasetFolder._id,
 						name: userLogin,
 						reuseExisting: true
 					};
@@ -421,6 +421,14 @@ define(["app", "constants"], function(app, constants) {
 					? item.name === constants.PUBLIC_DATASET_FOLDER_NAME
 					: item.name === constants.PRIVATE_DATASET_FOLDER_NAME;
 			});
+		}
+
+		async getDatasetFolder() {
+			const collections = await this.getCollectionByName(constants.DATASET_COLLECTION_NAME);
+			const datasetCollection = collections.find((item) => { return item.name === constants.DATASET_COLLECTION_NAME; });
+			const subFolders = await this.getSubFolders(PARENT_TYPES.collection, datasetCollection?._id);
+			const datasetFolder = subFolders?.find((item) => { return item.name === constants.DATASET_FOLDER_NAME; });
+			return datasetFolder;
 		}
 	}
 
