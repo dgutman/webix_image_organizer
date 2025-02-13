@@ -1,28 +1,29 @@
 import { JetView } from "webix-jet";
 
 // import { LayerUI } from "./osd-annotation/js/layerui.mjs";
+import AnnotationListView from "./annotationListView";
 import FeaturesUI from "./featureUI";
 import FeaturesCollectionUI from "./featuresCollectionUI";
-import LayerUI from "./layerUI";
+import annotationApiRequests from "../../services/api";
 
 export default class RightPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
 		// TODO: overwrite add items methods;
-		this.annotations = new LayerUI(app, {name: "Annotations", newItemName: "Annotation"});
-		this.annotations.gravity = 1;
-		this.featuresGroups = new FeaturesCollectionUI(app, {name: "Feature Collections", newItemName: "Annotation Group"});
+		this.annotationsView = new AnnotationListView(app);
+		this.annotationsView.gravity = 0.5;
+		this.featuresGroups = new FeaturesCollectionUI(app, {name: "Feature Collections", newItemName: "Group"});
 		this.featuresGroups.gravity = 1;
 		this.features = new FeaturesUI(app, {name: "Features", newItemName: "Creating..."});
 		this.features.gravity = 1;
-		// this.items = new ListView(app, {name: "Items", newItemName: "Item"});
+		this.featuresGroups.setFeaturesView(this.features);
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
 	}
 
 	config() {
 		return {
 			rows: [
-				this.annotations,
+				this.annotationsView,
 				this.featuresGroups,
 				this.features,
 				{
@@ -39,14 +40,29 @@ export default class RightPanel extends JetView {
 
 	ready(view) {
 		this._view = view;
+		const saveButtonView = this.getSaveButton();
+		saveButtonView.attachEvent("onItemClick", () => {
+			const annotationsListView = this.getAnnotationsListView();
+			const annotationListItems = annotationsListView.serialize();
+			annotationListItems.forEach(async (annotationItem) => {
+				if (annotationItem._id) {
+					annotationApiRequests.updateAnnotation(annotationItem._id, annotationItem.annotation);
+				}
+				else {
+					const itemId = annotationItem.itemId;
+					const newAnnotation = itemId
+						? await annotationApiRequests.createAnnotation(itemId, annotationItem.annotation)
+						: null;
+					if (newAnnotation) {
+						this.annotationsView.updateAnnotation(annotationItem.id, newAnnotation);
+					}
+				}
+			});
+		});
 	}
 
-	getItemsList() {
-		return this.items.getList();
-	}
-
-	getAnnotationsList() {
-		return this.annotations.getList();
+	getAnnotationsListView() {
+		return this.annotationsView.getList();
 	}
 
 	getSaveButton() {
@@ -55,17 +71,44 @@ export default class RightPanel extends JetView {
 
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
+		this.annotationsView.updatePaperJSToolkit(tk);
+		this.featuresGroups.updatePaperJSToolkit(tk);
+		this.features.updatePaperJSToolkit(tk);
+		this.attachLayersEvents();
+		this.attachItemsEvents();
 	}
 
-	attachAnnotationEvents() {
-		// TODO: implement
+	updateOSDViewer(openSeadragonViewer) {
+		this.annotationsView.updateOSDViewer(openSeadragonViewer);
 	}
 
 	attachLayersEvents() {
-		// TODO: implement
+		this._tk.paperScope.project.on("feature-collection-added", (ev) => {
+			const group = ev.group;
+			// group.on({
+				
+			// })
+			this.featuresGroups.addGroup(group);
+		});
 	}
 
 	attachItemsEvents() {
-		// TODO: implement
+		this._tk.paperScope.project.on("item-added", (ev) => {
+			const item = ev.item;
+			this.features.addItem(item);
+		});
+	}
+
+	addAnnotation(annotation) {
+		this.annotationsView.addAnnotation(annotation);
+	}
+
+	saveAnnotationState() {
+	}
+
+	reset() {
+		this.annotationsView.clearAll();
+		this.featuresGroups.clearAll();
+		this.features.clearAll();
 	}
 }

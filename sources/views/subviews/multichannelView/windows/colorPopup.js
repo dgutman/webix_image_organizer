@@ -2,6 +2,7 @@ import Plotly from "plotly.js-dist-min";
 import {JetView} from "webix-jet";
 
 import constants from "../../../../constants";
+// TODO: switch to image size
 // import tilesCollection from "../../../../models/imageTilesCollection";
 import stateStore from "../../../../models/multichannelView/stateStore";
 import ajaxActions from "../../../../services/ajaxActions";
