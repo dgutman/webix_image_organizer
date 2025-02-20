@@ -492,9 +492,11 @@ export default class ToolbarView extends JetView {
 			if (control) {
 				control.detachEvent(this._toolControlEvents[toolId]);
 				this._toolControlEvents[toolId] = control.attachEvent("onItemClick", () => {
+					// TODO: implement
 				});
 			}
 			toolObj.addEventListener("deactivated", (ev) => {
+				// TODO: implement
 			});
 		});
 		this.setMode();

@@ -55,10 +55,13 @@ export default class FeaturesCollection extends ListView {
 		list.select(`${lastId + 1}`);
 		group.on({
 			"selection:mouseenter": () => {
+				// TODO: implement if necessary
 			},
 			"selection:mouseleave": () => {
+				// TODO: implement if necessary
 			},
 			selected: () => {
+				// TODO: implement if necessary
 				list.select(itemId);
 			},
 			deselected: () => {
@@ -91,6 +94,23 @@ export default class FeaturesCollection extends ListView {
 	}
 
 	editStyle() {
+	}
+
+	updatePaperJSToolkit(tk) {
+		this._tk = tk;
+	}
+
+	/**
+	 * set view for features list
+	 *
+	 * @param {FeatureUI} view
+	 */
+	setFeaturesView(view) {
+		this.featuresView = view;
+	}
+
+	addChild(item) {
+		this.featuresView.addItem(item);
 	}
 
 	updatePaperJSToolkit(tk) {

@@ -13,17 +13,18 @@ export default class AnnotationListView extends ListView {
 			id: this.ID_LIST,
 			css: "right-panel-list",
 			template: (obj) => {
+				// TODO check item for visibility
 				const hidden = true;
-				const saveIcon = '<span class="edit-item fas fa-save hidden-block"></span>';
+				const editIcon = '<span class="edit-item fas fa-edit"></span>';
 				const deleteIcon = '<span class="delete-item fas fa-times-circle"></span>';
 				const visibleIcon = `<span class="visible fas fa-eye ${hidden ? "hidden-block" : ""}"></span>`;
 				const invisibleIcon = `<span class="invisible fas fa-eye-slash ${hidden ? "hidden-block" : ""}"></span>`;
 				const name = `<span class="right-panel-list__item_name">${obj.annotation.name}</span>`;
-				const element = `<div class="right-panel-list__item" style='padding-left:18px'>
+				const element = `<div class="right-panel-list__item" style="padding-left:18px" title="${obj.annotation.description}">
 									${name}
 									${invisibleIcon}
 									${visibleIcon}
-									${saveIcon}
+									${editIcon}
 									${deleteIcon}
 								</div>`;
 				return element;
@@ -32,8 +33,10 @@ export default class AnnotationListView extends ListView {
 				height: 30
 			},
 			onClick: {
-				"edit-item": () => {
-					this.editItem();
+				"edit-item": (node, id) => {
+					const listView = this.getList();
+					const item = listView.getItem(id);
+					this.editItem(item, node);
 				},
 				"delete-item": (event, id) => {
 					this.deleteItem(id);
@@ -173,6 +176,41 @@ export default class AnnotationListView extends ListView {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
 		list.add({annotation: {name: `${this._newItemName} ${lastId + 1}`, elements: []}});
+	}
+
+	editItem(item, node) {
+		const editPopup = this.webix.ui({
+			view: "popup",
+			body: {
+				rows: [
+					{
+						view: "text",
+						value: item.annotation.name,
+						name: "edit-annotation-name",
+						placeholder: "name",
+					},
+					{
+						view: "textarea",
+						value: item.annotation.description,
+						placeholder: "description",
+					},
+					{
+						view: "button",
+						value: "Save",
+						click: () => {
+							const name = editPopup.queryView({view: "text"}).getValue();
+							const description = editPopup.queryView({view: "textarea"}).getValue();
+							const list = this.getList();
+							item.annotation.name = name;
+							item.annotation.description = description;
+							list.updateItem(item.id, item);
+							editPopup.close();
+						}
+					},
+				]
+			}
+		});
+		editPopup.show(node);
 	}
 
 	getAnnotations() {

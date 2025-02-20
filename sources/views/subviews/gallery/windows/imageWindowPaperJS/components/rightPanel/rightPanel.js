@@ -86,7 +86,7 @@ export default class RightPanel extends JetView {
 		this._tk.paperScope.project.on("feature-collection-added", (ev) => {
 			const group = ev.group;
 			// group.on({
-				
+				// TODO: implement
 			// })
 			this.featuresGroups.addGroup(group);
 		});
@@ -104,6 +104,7 @@ export default class RightPanel extends JetView {
 	}
 
 	saveAnnotationState() {
+		// TODO: implement
 	}
 
 	reset() {
