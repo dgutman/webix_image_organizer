@@ -356,6 +356,19 @@ function mergeDeep(target, source) {
 	}
 	return output;
 }
+function testJSON(text) {
+	if (typeof text !== "string") {
+		return false;
+	}
+	try {
+		JSON.parse(text);
+		return true;
+	}
+	catch (error) {
+		return false;
+	}
+}
+
 
 export default {
 	openInNewTab,
@@ -397,5 +410,6 @@ export default {
 	isObject,
 	mergeDeep,
 	getColorTemplateData,
-	setColorTemplateData
+	setColorTemplateData,
+	testJSON,
 };

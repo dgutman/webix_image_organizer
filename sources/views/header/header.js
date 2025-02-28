@@ -2,6 +2,7 @@ import {JetView, plugins} from "webix-jet";
 
 import LogoutPanel from "./parts/logoutPanel";
 import constants from "../../constants";
+import logoPath from "../../images/logo.png";
 import ajax from "../../services/ajaxActions";
 import authService from "../../services/authentication";
 import HeaderService from "../../services/header/headerService";
@@ -11,12 +12,21 @@ import LoginWindow from "../authWindows/loginWindow";
 const LOGOUT_PANEL_NAME = "logout-panel";
 const LOGIN_PANEL_NAME = "login-panel";
 const serverListData = constants.SERVER_LIST;
+const singleServer = constants.SINGLE_SERVER;
+const logoLabel = constants.LOGO_LABEL ?? "";
 
 export default class Header extends JetView {
 	config() {
 		const logo = {
-			template: "Image Organizer",
-			css: "main-header-logo",
+			view: "template",
+			css: "main-header__logo-container",
+			width: 60,
+			borderless: true,
+			template: `<img class="main-header__logo" src=${logoPath}>`
+		};
+		const label = {
+			template: logoLabel,
+			css: "main-header-label",
 			borderless: true,
 			width: 175
 		};
@@ -66,9 +76,10 @@ export default class Header extends JetView {
 			label: "Hosts",
 			labelWidth: 70,
 			width: 250,
+			hidden: !!singleServer,
 			options: {
 				template: "#value#",
-				data: serverListData,
+				data: serverListData ?? [],
 				body: {
 					template: obj => `<span title='${obj.value}'>${obj.value}</span>`,
 					css: "ellipsis-text"
@@ -120,6 +131,8 @@ export default class Header extends JetView {
 			css: "main-header",
 			cols: [
 				logo,
+				{width: 50},
+				label,
 				{width: 50},
 				{
 					rows: [

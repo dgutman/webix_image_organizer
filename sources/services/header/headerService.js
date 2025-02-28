@@ -75,7 +75,13 @@ class HeaderService {
 
 	urlChangeHost(view) {
 		const host = view.$scope.getParam("host");
-		if (!host) {
+		const singleMode = !!constants.SINGLE_SERVER;
+		if (singleMode) {
+			this.setSingleHostData();
+			view.$scope.setParam("host", constants.SINGLE_SERVER.id);
+			return true;
+		}
+		else if (!host) {
 			const firstHostItemId = constants.SERVER_LIST[0].id;
 			view.$scope.setParam("host", this._hostBox.getValue() || firstHostItemId, true);
 			return false;
@@ -116,6 +122,18 @@ class HeaderService {
 		webix.storage.local.put("hostId", hostId);
 		webix.storage.local.put("hostAPI", hostAPI);
 		webix.storage.local.put("imagesHost", imagesHost);
+	}
+
+	setSingleHostData() {
+		const singleServer = constants.SINGLE_SERVER;
+		if (singleServer) {
+			const id = singleServer.id;
+			const hostAPI = singleServer.hostAPI;
+			const imagesHost = singleServer.imagesHost;
+			webix.storage.local.put("hostId", id);
+			webix.storage.local.put("hostAPI", hostAPI);
+			webix.storage.local.put("imagesHost", imagesHost);
+		}
 	}
 
 	// setting hosts value and parsing data to collection and tree

@@ -11,6 +11,8 @@ export default {
 	},
 
 	SERVER_LIST: JSON.parse(process.env.SERVER_LIST),
+	SINGLE_SERVER: JSON.parse(process.env.SINGLE_SERVER),
+	LOGO_LABEL: process.env.LOGO_LABEL,
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",

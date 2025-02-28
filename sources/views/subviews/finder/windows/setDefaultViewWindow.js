@@ -16,7 +16,7 @@ const CANCEL_STRUCTURE_BUTTON = "cancelStructureButton";
 
 const SAVE_LABEL = "Save";
 const EDIT_LABEL = "Edit";
-const CANCEL_LABEL = "Cancel"
+const CANCEL_LABEL = "Cancel";
 
 const DSA = "DSA";
 const CASE_VIEW = "CASE_VIEW";
@@ -31,12 +31,12 @@ export default class SetDefaultViewWindow extends JetView {
 		this.setDsaDefaultViewWindowName = "setOptionsWindow";
 		this.dsaFormViewName = "dsaFormView";
 		this.windowFormViewName = "windowFormView";
-		this.dsaDefaultViewSelectName = "dsaDefaultViewSelect"
+		this.dsaDefaultViewSelectName = "dsaDefaultViewSelect";
 		this.caseViewSwitchName = "caseViewSwitchName";
 	}
 
 	config() {
-		const saveDsaDefaultViewButton = this.createButton(SAVE_DSA_BUTTON, SAVE_LABEL, true)
+		const saveDsaDefaultViewButton = this.createButton(SAVE_DSA_BUTTON, SAVE_LABEL, true);
 		saveDsaDefaultViewButton.click = () => {
 			const selectView = this.getDsaDefaultView();
 			const newOptionValue = selectView.getText();
@@ -62,14 +62,14 @@ export default class SetDefaultViewWindow extends JetView {
 			}
 			this.switchButtonsVisibility(DSA);
 			selectView.disable();
-		}
+		};
 
 		const editDsaDefaultViewButton = this.createButton(EDIT_DSA_BUTTON, EDIT_LABEL, false);
 		editDsaDefaultViewButton.click = () => {
 			const editField = this.getDsaDefaultView();
 			this.switchButtonsVisibility(DSA, true);
 			editField.enable();
-		}
+		};
 
 		const cancelDsaDefaultViewButton = this.createButton(CANCEL_DSA_BUTTON, CANCEL_LABEL, true);
 		cancelDsaDefaultViewButton.click = () => {
@@ -77,7 +77,7 @@ export default class SetDefaultViewWindow extends JetView {
 			editField.setValue(this.dsaDefaultView);
 			editField.disable();
 			this.switchButtonsVisibility(DSA);
-		}
+		};
 
 		const saveCaseViewButton = this.createButton(SAVE_CASE_VIEW_BUTTON, SAVE_LABEL, true);
 		saveCaseViewButton.click = () => {
@@ -105,21 +105,21 @@ export default class SetDefaultViewWindow extends JetView {
 			}
 			this.switchButtonsVisibility(CASE_VIEW);
 			selectView.disable();
-		}
+		};
 
 		const editCaseViewButton = this.createButton(EDIT_CASE_VIEW_BUTTON, EDIT_LABEL, false);
 		editCaseViewButton.click = () => {
 			const editField = this.getCaseViewSwitch();
 			this.switchButtonsVisibility(CASE_VIEW, true);
 			editField.enable();
-		}
+		};
 
 		const cancelCaseViewButton = this.createButton(CANCEL_CASE_VIEW_BUTTON, CANCEL_LABEL , true);
 		cancelCaseViewButton.click = () => {
 			const editField = this.getCaseViewSwitch();
 			editField.disable();
 			this.switchButtonsVisibility(CASE_VIEW);
-		}
+		};
 
 		const saveStructureButton = this.createButton(SAVE_STRUCTURE_BUTTON, SAVE_LABEL, true);
 		saveStructureButton.click = async () => {
@@ -139,7 +139,6 @@ export default class SetDefaultViewWindow extends JetView {
 					this.isLinear = true;
 				}
 			}
-
 		};
 
 		const editStructureButton = this.createButton(EDIT_STRUCTURE_BUTTON, EDIT_LABEL, false);
@@ -154,7 +153,7 @@ export default class SetDefaultViewWindow extends JetView {
 			const editField = this.getFolderStructureSwitch();
 			editField.disable();
 			this.switchButtonsVisibility(FOLDER_STRUCTURE);
-		}
+		};
 
 		const window = {
 			view: "window",
@@ -294,7 +293,7 @@ export default class SetDefaultViewWindow extends JetView {
 			this.caseViewFlag = 0;
 		}
 		if (this.folder.meta.folderStructure) {
-			this.isLinear = !!this.folder.meta.folderStructure
+			this.isLinear = !!this.folder.meta.folderStructure;
 		}
 		else {
 			this.isLinear = false;
@@ -374,6 +373,6 @@ export default class SetDefaultViewWindow extends JetView {
 			height: 30,
 			value: value,
 			hidden: hidden
-		}
+		};
 	}
 }
