@@ -10,7 +10,8 @@ async function createAnnotation(itemId, annotationData) {
 }
 
 async function updateAnnotation(annotationId, annotationData) {
-	await ajaxActions.updateAnnotationById(annotationData, annotationId);
+	const updatedAnnotation = await ajaxActions.updateAnnotationById(annotationId, annotationData);
+	return updatedAnnotation;
 }
 
 async function deleteAnnotation(annotationData) {
@@ -22,6 +23,6 @@ const annotationApiRequests = {
 	createAnnotation,
 	updateAnnotation,
 	deleteAnnotation,
-}
+};
 
 export default annotationApiRequests;

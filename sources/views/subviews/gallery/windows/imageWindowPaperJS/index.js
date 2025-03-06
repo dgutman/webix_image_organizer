@@ -17,7 +17,6 @@ import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import collapser from "../../../../components/collapser";
 import annotationApiRequests from "./services/api";
-import adapter from "./services/adapter";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -302,11 +301,21 @@ export default class ImageWindowView extends JetView {
 					window.project = this._tk.overlay.paperScope.project;
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
+					this._rightPanel.updatePaperJSToolkit(this._tk);
+					this._rightPanel.updateOSDViewer(this._openSeadragonViewer);
 					this._tk.addAnnotationUI({autoOpen: true});
 					const annotations = await annotationApiRequests.getAnnotations(obj._id);
+					if (annotations) {
+						annotations.forEach((a) => {
+							this._rightPanel.addAnnotation(a);
+						});
+					}
+
+					// put annotations without annotation panel
+					/*
 					const featureCollectionsArray = annotations.map((a) => {
-						const feature = adapter.annotationToFeatureCollections(a);
-						return feature;
+						const fc = adapter.annotationToFeatureCollections(a);
+						return fc;
 					});
 					featureCollectionsArray.forEach((fc) => {
 						this._tk.addFeatureCollections(
@@ -315,6 +324,7 @@ export default class ImageWindowView extends JetView {
 							this._openSeadragonViewer.world.getItemAt(0)
 						);
 					});
+					*/
 				}
 			}
 			catch (err) {
@@ -373,13 +383,15 @@ export default class ImageWindowView extends JetView {
 	}
 
 	close() {
+		this._controlsView.reset();
+		this._rightPanel.reset();
 		// to clear setted template
 		// to destroy Open Seadragon viewer
 		if (this._openSeadragonViewer) {
+			this._tk.close();
 			this._openSeadragonViewer.destroy();
 		}
 		this.$imageContainer.parse({emptyObject: true});
 		this.getRoot().hide();
-		this._controlsView.reset();
 	}
 }
