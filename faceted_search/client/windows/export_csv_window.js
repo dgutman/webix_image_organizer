@@ -253,7 +253,10 @@ define([
 			if (isDatasetPush) {
 				this.exportMethod = EXPORT_METHOD.PUSH_TO_DATASET;
 				$$(EXPORT_TO_DATASET_LABEL_ID).show();
-				$$(PERMISSION_FOLDER_RADIO_ID).show();
+				// hide option
+				// $$(PERMISSION_FOLDER_RADIO_ID).show();
+				// set private folder by default
+				$$(PERMISSION_FOLDER_RADIO_ID).setValue(PERMISSION_FOLDER.PRIVATE);
 			}
 			else {
 				this.exportMethod = EXPORT_METHOD.EXPORT_CSV;
