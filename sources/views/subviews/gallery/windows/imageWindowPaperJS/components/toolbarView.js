@@ -12,10 +12,13 @@ import { PolygonTool } from "../osd-annotation/js/papertools/polygon.mjs";
 import { RasterTool } from "../osd-annotation/js/papertools/raster.mjs";
 import { RectangleTool } from "../osd-annotation/js/papertools/rectangle.mjs";
 import { SelectTool } from "../osd-annotation/js/papertools/select.mjs";
+import { StyleTool } from "../osd-annotation/js/papertools/style.mjs";
+import { TransformTool } from "../osd-annotation/js/papertools/transform.mjs";
 // style tool will be implemented in right panel
 // import { StyleTool } from "../osd-annotation/js/papertools/style.mjs";
 // import { TransformTool } from "../osd-annotation/js/papertools/transform.mjs";
 import { WandTool } from "../osd-annotation/js/papertools/wand.mjs";
+import { AnnotationToolkit } from "../osd-annotation/js/annotationtoolkit.mjs";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, /* imageWindowViewModel, */ imageWindowView) {
@@ -30,209 +33,90 @@ export default class ToolbarView extends JetView {
 	}
 
 	config() {
+		const defaultButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.default,
+			"fas fa-hand-paper",
+			"Image Navigation Tool",
+		);
+		const selectButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.select,
+			"fas fa-mouse-pointer",
+			"Selection Tool",
+		);
+		const transformButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.transform,
+			"fas fa-arrows-alt",
+			"Transform Tool",
+		);
+		const styleButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.style,
+			"fas fa-palette",
+			"Style",
+		);
+		const rectangleButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.rectangle,
+			"fa fa-square",
+			"Rectangle",
+		);
+		const ellipseButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.ellipse,
+			"far fa-circle",
+			"Ellipse",
+		);
+		const pointButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.point,
+			"fa fa-map-marker",
+			"Point",
+		);
+		const textButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.text,
+			"fas fa-font",
+			"Text",
+		);
+		const polygonButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.polygon,
+			"fab fa-connectdevelop",
+			"Polygon",
+		);
+		const brushButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.brush,
+			"fas fa-paint-brush",
+			"Brush",
+		);
+		const wandButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.wand,
+			"fas fa-magic",
+			"Magic wand",
+		);
+		const lineStringButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.linestring,
+			"fas fa-pen-nib",
+			"Linestring Tool",
+		);
+		const rasterButton = this.getDrawingButton(
+			constants.ANNOTATION_TOOL_IDS.raster,
+			"fas fa-image",
+			"Raster tool",
+		);
 		const drawingToolbar = {
 			view: "toolbar",
 			name: "drawing_toolbar",
 			cols: [
 				{
 					cols: [
-						// TODO: enable after implement
-						// {
-						// 	view: "button",
-						// 	type: "icon",
-						// 	localId: "line",
-						// 	icon: "fa fa-pencil-alt",
-						// 	tooltip: "Line",
-						// 	css: "drawing_buttons",
-						// 	inputWidth: 40,
-						// 	inputHeight: 40,
-						// 	width: 40,
-						// 	height: 40,
-						// 	// click: () => {
-						// 	// 	let deleteBool = this.organizeButtonsAction("line");
-						// 	// 	this.enableSwitch(deleteBool);
-						// 	// 	if (!deleteBool) {
-						// 	// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["line"]));
-						// 	// 	}
-						// 	// 	else this.app.callEvent("disabledDrawingPointer", []);
-						// 	// 	this.setFullpageButtonHandle();
-						// 	// }
-						// },
-						{
-							view: "button",
-							type: "icon",
-							localId: "default",
-							icon: "fas fa-hand-paper",
-							tooltip: "Default",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40,
-							// click: () => {
-							// 	let deleteBool = this.organizeButtonsAction("line");
-							// 	this.enableSwitch(deleteBool);
-							// 	if (!deleteBool) {
-							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["line"]));
-							// 	}
-							// 	else this.app.callEvent("disabledDrawingPointer", []);
-							// 	this.setFullpageButtonHandle();
-							// }
-						},
-						{
-							view: "button",
-							type: "icon",
-							localId: "polygon",
-							icon: "fab fa-connectdevelop",
-							tooltip: "Polygon",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40
-							// click: () => {
-							// 	let deleteBool = this.organizeButtonsAction("polygon");
-							// 	this.enableSwitch(deleteBool);
-							// 	if (!deleteBool) {
-							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["polygon"]));
-							// 	}
-							// 	else this.app.callEvent("disabledDrawingPointer", []);
-							// 	this.setFullpageButtonHandle();
-							// }
-						},
-						{
-							view: "button",
-							type: "icon",
-							localId: "rectangle",
-							icon: "far fa-square",
-							tooltip: "Rectangle",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40,
-							// click: () => {
-							// 	let deleteBool = this.organizeButtonsAction("rectangle");
-							// 	this.enableSwitch(deleteBool);
-							// 	if (!deleteBool) {
-							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["rectangle"]));
-							// 	}
-							// 	else this.app.callEvent("disabledDrawingPointer", []);
-							// 	this.setFullpageButtonHandle();
-							// }
-						},
-						// TODO: enable after implement
-						// {
-						// 	view: "button",
-						// 	type: "icon",
-						// 	localId: "point",
-						// 	icon: "fa fa-map-marker",
-						// 	tooltip: "Point",
-						// 	css: "drawing_buttons",
-						// 	inputWidth: 40,
-						// 	inputHeight: 40,
-						// 	width: 40,
-						// 	height: 40,
-						// 	// click: () => {
-						// 	// 	let deleteBool = this.organizeButtonsAction("point");
-						// 	// 	this.enableSwitch(deleteBool);
-						// 	// 	if (!deleteBool) {
-						// 	// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["point"]));
-						// 	// 	}
-						// 	// 	else this.app.callEvent("disabledDrawingPointer", []);
-						// 	// 	this.setFullpageButtonHandle();
-						// 	// }
-						// },
-						// TODO: enable after implement
-						{
-							view: "button",
-							type: "icon",
-							localId: "select",
-							icon: "fas fa-hand-pointer",
-							tooltip: "Select",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40
-						},
-						{
-							view: "button",
-							type: "icon",
-							localId: "ellipse",
-							icon: "far fa-circle",
-							tooltip: "Ellipse",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40
-							// click: () => {
-							// 	let deleteBool = this.organizeButtonsAction("polygon");
-							// 	this.enableSwitch(deleteBool);
-							// 	if (!deleteBool) {
-							// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["polygon"]));
-							// 	}
-							// 	else this.app.callEvent("disabledDrawingPointer", []);
-							// 	this.setFullpageButtonHandle();
-							// }
-						},
-						// TODO: enable after implement
-						// {
-						// 	view: "button",
-						// 	type: "icon",
-						// 	localId: "text",
-						// 	icon: "fas fa-font",
-						// 	tooltip: "Text",
-						// 	css: "drawing_buttons",
-						// 	inputWidth: 40,
-						// 	inputHeight: 40,
-						// 	width: 40,
-						// 	height: 40
-						// 	// click: () => {
-						// 	// 	let deleteBool = this.organizeButtonsAction("polygon");
-						// 	// 	this.enableSwitch(deleteBool);
-						// 	// 	if (!deleteBool) {
-						// 	// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["polygon"]));
-						// 	// 	}
-						// 	// 	else this.app.callEvent("disabledDrawingPointer", []);
-						// 	// 	this.setFullpageButtonHandle();
-						// 	// }
-						// },
-						// TODO: enable after implement
-						// {
-						// 	view: "button",
-						// 	type: "icon",
-						// 	localId: "brush",
-						// 	icon: "fas fa-paint-brush",
-						// 	tooltip: "Brush",
-						// 	css: "drawing_buttons",
-						// 	inputWidth: 40,
-						// 	inputHeight: 40,
-						// 	width: 40,
-						// 	height: 40
-						// 	// click: () => {
-						// 	// 	let deleteBool = this.organizeButtonsAction("polygon");
-						// 	// 	this.enableSwitch(deleteBool);
-						// 	// 	if (!deleteBool) {
-						// 	// 		window.showAttentionPopup(() => this.app.callEvent("drawFigure", ["polygon"]));
-						// 	// 	}
-						// 	// 	else this.app.callEvent("disabledDrawingPointer", []);
-						// 	// 	this.setFullpageButtonHandle();
-						// 	// }
-						// },
-						{
-							view: "button",
-							type: "icon",
-							localId: "wand",
-							icon: "fas fa-magic",
-							tooltip: "Magic wand",
-							css: "drawing_buttons",
-							inputWidth: 40,
-							inputHeight: 40,
-							width: 40,
-							height: 40
-						},
+						defaultButton,
+						selectButton,
+						transformButton,
+						styleButton,
+						rectangleButton,
+						ellipseButton,
+						pointButton,
+						textButton,
+						polygonButton,
+						brushButton,
+						wandButton,
+						lineStringButton,
+						rasterButton,
 					],
 					name: "drawing_buttons_layout"
 				},
@@ -372,28 +256,14 @@ export default class ToolbarView extends JetView {
 				switchElement.setValue(false);
 			}
 		};
+	}
 
-		const polygonControl = this.getRoot().queryView({localId: "polygon"});
-		const lineControl = this.getRoot().queryView({localId: "line"});
-		const rectangleControl = this.getRoot().queryView({localId: "rectangle"});
-		const pointControl = this.getRoot().queryView({localId: "point"});
-		const selectControl = this.getRoot().queryView({localId: "select"});
-		const ellipseControl = this.getRoot().queryView({localId: "ellipse"});
-		const textControl = this.getRoot().queryView({localId: "text"});
-		const brushControl = this.getRoot().queryView({localId: "brush"});
+	ready(view) {
+		this.view = view;
+		this.disableControls();
+		const toolbarControls = this.getToolbarControls();
 
-		const toolbarControl = [
-			polygonControl,
-			lineControl,
-			rectangleControl,
-			pointControl,
-			selectControl,
-			ellipseControl,
-			textControl,
-			brushControl
-		];
-
-		toolbarControl.forEach((control) => {
+		toolbarControls.forEach((control) => {
 			if (control) {
 				control.deactivate = (id) => {
 					this.organizeButtonsAction(id);
@@ -404,19 +274,43 @@ export default class ToolbarView extends JetView {
 			}
 		});
 
-		rectangleControl?.attachEvent("onClick", () => {
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.rectangle].attachEvent("onClick", () => {
 			let deleteBool = this.organizeButtonsAction("rectangle");
 			this.enableSwitch(deleteBool);
 			this.setFullpageButtonHandle();
 		});
+	}
 
-		// TODO: Disable if necessary
-		// let buttonLayout = this.getRoot().queryView({name: "drawing_buttons_layout"}).getChildViews();
-		// for (let i = 0; i < buttonLayout.length; i++) {
-		// 	if (buttonLayout[i].isEnabled()) {
-		// 		buttonLayout[i].disable();
-		// 	}
-		// }
+	attachAnnotationToolkitEvents() {
+		this._tk.paperScope.project.on({
+			"item-replaced": () => {
+				this.setMode();
+			},
+			"item-selected": () => {
+				this.setMode();
+			},
+			"item-deselected": () => {
+				this.setMode();
+			},
+			"item-removed": () => {
+				this.setMode();
+			},
+			"items-changed": () => {
+				this.setMode();
+			}
+		});
+	}
+
+	attachControlsEvents() {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([k, c]) => {
+			if (this._toolControlEvents[k]) {
+				webix.detachEvent(this._toolControlEvents[k]);
+			}
+			this._toolControlEvents[k] = c.attachEvent("onItemClick", () => {
+				this._tools[k].activate();
+			});
+		});
 	}
 
 	refreshRightLabel(obj, label) {
@@ -525,27 +419,33 @@ export default class ToolbarView extends JetView {
 	}
 
 	getToolbarControls() {
-		const defaultControl = this.getRoot().queryView({localId: "default"});
-		const polygonControl = this.getRoot().queryView({localId: "polygon"});
-		const lineControl = this.getRoot().queryView({localId: "line"});
-		const rectangleControl = this.getRoot().queryView({localId: "rectangle"});
-		const pointControl = this.getRoot().queryView({localId: "point"});
-		const selectControl = this.getRoot().queryView({localId: "select"});
-		const ellipseControl = this.getRoot().queryView({localId: "ellipse"});
-		const textControl = this.getRoot().queryView({localId: "text"});
-		const brushControl = this.getRoot().queryView({localId: "brush"});
-		const wandControl = this.getRoot().queryView({localId: "wand"});
+		const defaultControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.default);
+		const selectControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.select);
+		const styleControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.style);
+		const transformControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.transform);
+		const rectangleControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.rectangle);
+		const ellipseControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.ellipse);
+		const pointControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.point);
+		const textControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.text);
+		const polygonControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.polygon);
+		const brushControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.brush);
+		const wandControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.wand);
+		const lineControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.linestring);
+		const rasterControl = this.getControlById(constants.ANNOTATION_TOOL_IDS.raster);
 		const toolbarControls = {};
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.default] = defaultControl;
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.select] = selectControl;
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.transform] = transformControl;
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.style] = styleControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.polygon] = polygonControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.rectangle] = rectangleControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.ellipse] = ellipseControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.linestring] = lineControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.point] = pointControl;
-		toolbarControls[constants.ANNOTATION_TOOL_IDS.select] = selectControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.text] = textControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.brush] = brushControl;
 		toolbarControls[constants.ANNOTATION_TOOL_IDS.wand] = wandControl;
+		toolbarControls[constants.ANNOTATION_TOOL_IDS.raster] = rasterControl;
 		return toolbarControls;
 	}
 
@@ -562,31 +462,21 @@ export default class ToolbarView extends JetView {
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.point] = PointTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.text] = PointTextTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.raster] = RasterTool;
+		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.transform] = TransformTool;
+		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.style] = StyleTool;
 		return this.toolConstructors;
 	}
 
+	/**
+	 * Update annotation paperjs toolkit
+	 *
+	 * @param {AnnotationToolkit} tk 
+	 */
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
 		this.updateToolsAndControls();
-		const paperScope = this._tk.paperScope;
-		paperScope.project.on({
-			"item-replaced": () => {
-				this.setMode();
-			},
-
-			"item-selected": () => {
-				this.setMode();
-			},
-			"item-deselected": () => {
-				this.setMode();
-			},
-			"item-removed": () => {
-				this.setMode();
-			},
-			"items-changed": () => {
-				this.setMode();
-			}
-		});
+		this.attachAnnotationToolkitEvents();
+		this.attachControlsEvents();
 	}
 
 	updateToolsAndControls() {
@@ -602,73 +492,275 @@ export default class ToolbarView extends JetView {
 			if (control) {
 				control.detachEvent(this._toolControlEvents[toolId]);
 				this._toolControlEvents[toolId] = control.attachEvent("onItemClick", () => {
-					const group = this._tk.addEmptyFeatureCollectionGroup();
-					let props = group.defaultStyle;
-					let clonedProperties = {
-						fillColor: new paper.Color(props.fillColor),
-						strokeColor: new paper.Color(props.strokeColor),
-						rescale: OpenSeadragon.extend(true, {}, props.rescale),
-						fillOpacity: props.fillOpacity,
-						strokeOpacity: props.strokeOpacity,
-						strokeWidth: props.strokeWidth,
-					};
-					const placeHolder = new Placeholder(clonedProperties);
-					const item = placeHolder.paperItem;
-					item.select();
-					group.addChild(placeHolder.paperItem);
-					toolObj.activate();
+					// TODO: implement
 				});
 			}
 			toolObj.addEventListener("deactivated", (ev) => {
-				// If deactivation is triggered by another tool being activated, this condition will fail
-				if (ev.target === paperScope.getActiveTool()) {
-					this._tools.default.activate();
-				}
+				// TODO: implement
 			});
 		});
+		this.setMode();
 	}
 
 	setMode() {
-		const self = this;
 		const paperScope = this._tk.paperScope;
-		if (this.setModeTimeout) {
-			clearTimeout(this.setModeTimeout);
+		const selection = paperScope.findSelectedItems();
+		const activeTool = paperScope.getActiveTool();
+		const toolbarControls = this.getToolbarControls();
+		if (selection.length === 0) {
+			this._currentMode = "select";
 		}
-		this.setModeTimeout = setTimeout(() => {
-			this.setModeTimeout = null;
-			let selection = paperScope.findSelectedItems();
-			let activeTool = paperScope.getActiveTool();
-			if (selection.length === 0) {
-				this._currentMode = "select";
+		else if (selection.length === 1) {
+			const item = selection[0];
+			const def = item.annotationItem || {};
+			let type = def.type;
+			if (def.subtype) {
+				type += `:${def.subtype}`;
 			}
-			else if (selection.length === 1) {
-				const item = selection[0];
-				const def = item.annotationItem || {};
-				let type = def.type;
-				if (def.subtype) type += `:${def.subtype}`;
-				const mode = type === null ? "new" : type;
-				this._currentMode = mode;
-			}
-			else {
-				this._currentMode = "multiselection";
-			}
+			const mode = type === null ? "new" : type;
+			this._currentMode = mode;
+		}
+		else {
+			this._currentMode = "multiselection";
+		}
 
-			if (activeTool.getToolbarControl().isEnabledForMode(this._currentMode) === false) {
-				activeTool.deactivate(true);
-				this._tools.default.activate();
-			}
+		this.setControlsState(this._currentMode);
+	}
 
-			Object.values(this._tools).forEach((toolObj) => {
-				let t = toolObj.getToolbarControl();
-				if (t.isEnabledForMode(self.currentMode)) {
-					t.button.enable();
+	disableControls() {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([, c]) => {
+			if (c) {
+				c.disable();
+			}
+		});
+	}
+
+	enableControls() {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([, c]) => {
+			if (c) {
+				c.enable();
+			}
+		});
+	}
+
+	setControlsState(mode) {
+		const controls = this.getToolbarControls();
+		Object.entries(controls).forEach(([k, c]) => {
+			switch (k) {
+				case constants.ANNOTATION_TOOL_IDS.default: {
+					c.enable();
+					break;
 				}
-				else {
-					t.button.disable();
+				case constants.ANNOTATION_TOOL_IDS.select: {
+					if (
+						[
+							constants.ANNOTATION_MODE.default,
+							constants.ANNOTATION_MODE.select,
+							constants.ANNOTATION_MODE.multiSelection,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+							constants.ANNOTATION_MODE.pointRectangle,
+							constants.ANNOTATION_MODE.pointEllipse,
+							constants.ANNOTATION_MODE.point,
+							constants.ANNOTATION_MODE.lineString,
+							constants.ANNOTATION_MODE.multiLineString,
+							constants.ANNOTATION_MODE.geometryCollectionRaster,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
 				}
-			});
+				case constants.ANNOTATION_TOOL_IDS.transform: {
+					if (
+						[
+							constants.ANNOTATION_MODE.select,
+							constants.ANNOTATION_MODE.multiSelection,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+							constants.ANNOTATION_MODE.pointRectangle,
+							constants.ANNOTATION_MODE.pointEllipse,
+							/* Note from Tom
+							disable for Point because neither resize nor scaling work for that object type
+							*/
+							// constants.ANNOTATION_MODE.point,
+							constants.ANNOTATION_MODE.lineString,
+							constants.ANNOTATION_MODE.geometryCollectionRaster,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.style: {
+					c.enable();
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.rectangle: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.pointRectangle,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.ellipse: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.pointEllipse,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.point: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.point,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.text: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.pointText,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.polygon: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.brush: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.wand: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.linestring: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.lineString,
+							constants.ANNOTATION_MODE.multiLineString,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				case constants.ANNOTATION_TOOL_IDS.raster: {
+					if (
+						[
+							constants.ANNOTATION_MODE.new,
+							constants.ANNOTATION_MODE.polygon,
+							constants.ANNOTATION_MODE.multiPolygon,
+							constants.ANNOTATION_MODE.pointRectangle,
+							constants.ANNOTATION_MODE.pointEllipse,
+						].includes(mode)
+					) {
+						c.enable();
+					}
+					else {
+						c.disable();
+					}
+					break;
+				}
+				default: {
+					c.disable();
+					break;
+				}
+			}
+		});
+	}
 
-			activeTool.selectionChanged();
-		}, 0);
+	getControlById(controlId) {
+		return this.getRoot().queryView({localId: controlId});
+	}
+
+	getDrawingButton(id, icon, tooltip) {
+		return {
+			view: "button",
+			type: "icon",
+			localId: id,
+			icon,
+			tooltip,
+			css: "drawing_buttons",
+			inputWidth: 40,
+			inputHeight: 40,
+			width: 40,
+			height: 40
+		};
 	}
 }
