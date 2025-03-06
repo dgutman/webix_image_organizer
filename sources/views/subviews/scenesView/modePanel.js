@@ -112,7 +112,6 @@ export default class ModePanelView extends JetView {
 			this._togglePointsRadioVisibility(!isSplit);
 			this._toggleCombineCheckboxVisibility(!isSplit);
 			// TODO: uncomment after osd view fix
-			// TODO: recreate osd templates by makeSplitView
 			// this._toggleImagesOrientationSwitchVisibility(!isSplit);
 			this._toggleSyncCheckboxVisibility(hideSyncCheckbox);
 			this._callModeChangeEvent(id);

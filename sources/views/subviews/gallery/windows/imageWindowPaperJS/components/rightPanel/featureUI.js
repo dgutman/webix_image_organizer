@@ -48,10 +48,14 @@ export default class FeatureUI extends ListView {
 				list.unselect(itemId);
 			},
 			"selection:mouseenter": () => {
+				// TODO: implement
 			},
 			"selection:mouseleave": () => {
+				// TODO: implement
 			},
 			"item-replaced": (ev) => {
+				console.log("item-replaced", ev);
+				// TODO: implement
 			},
 			"display-name-changed": (ev) => {
 				const item = list.getItem(itemId);

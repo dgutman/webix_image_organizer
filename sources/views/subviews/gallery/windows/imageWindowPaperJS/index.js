@@ -17,6 +17,7 @@ import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
 import collapser from "../../../../components/collapser";
 import annotationApiRequests from "./services/api";
+import utils from "../../../../../utils/utils";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -61,6 +62,7 @@ export default class ImageWindowView extends JetView {
 			modal: true,
 			position: "center",
 			type: "clean",
+			fullscreen: false,
 			head: {
 				cols: [
 					{
@@ -69,6 +71,40 @@ export default class ImageWindowView extends JetView {
 						localId: WINDOW_TITLE_ID,
 						template: obj => obj.name,
 						borderless: true
+					},
+					{
+						view: "icon",
+						icon: "fas fa-expand",
+						tooltip: "enable fullscreen mode",
+						click: function changeWindowMode() {
+							const win = this.$scope.getRoot();
+							const state = utils.getAnnotationWindowState();
+							if (win?.config.fullscreen) {
+								win.define({
+									fullscreen: false,
+									width: state.width ?? WIDTH,
+									height: state.height ?? HEIGHT,
+									move: true,
+								});
+								win.setPosition(state.position.left, state.position.top);
+								this.define({icon: "fas  fa-expand", tooltip: "Enable fullscreen mode"});
+							}
+							else if (win) {
+								win.define({
+									fullscreen: true,
+									width: window.innerWidth,
+									height: window.innerHeight,
+									move: false,
+								});
+								state.position.left = win.config.left;
+								state.position.top = win.config.top;
+								win.setPosition(0, 0);
+								utils.setAnnotationWindowState(state);
+								this.define({icon: "fas fa-compress", tooltip: "Disable fullscreen mode"});
+							}
+							win.resize();
+							this.refresh();
+						},
 					},
 					{
 						view: "button",
