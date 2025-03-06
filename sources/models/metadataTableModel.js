@@ -344,6 +344,7 @@ function addColumnConfig(initialColumnsConfig, columnConfigToAdd, columnsConfig)
 			const headerValue = getHeaderTextValue(columnConfigToAdd);
 			lastHeaderItem = localColumnHeaderArray[localColumnHeaderArray.length - 1];
 			const isEditable = getSelectedFolderState() ? "webix_icon fas fa-pencil-alt" : "";
+			// if pencil is disappeared check if folder selected;
 			const headerText = `<span class="column-header-bottom-name">${headerValue}</span><span class="column-editable-icon ${isEditable}"></span>`;
 			if (lastHeaderItem instanceof Object && lastHeaderItem.hasOwnProperty("content")) {
 				localColumnHeaderArray.splice(-2, 2);
