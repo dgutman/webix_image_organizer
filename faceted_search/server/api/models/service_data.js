@@ -25,7 +25,7 @@ ServiceDataSchema.statics.addSkins = function(skins) {
     return this.getSkinsList()
     .then((result) => {
         if(result) {
-            return this.update({type: DATA_TYPES.SKINS}, {data: skins});
+            return this.updateOne({type: DATA_TYPES.SKINS}, {data: skins});
         } else {
             const doc = new this({
                 name: 'Skins',
@@ -45,7 +45,7 @@ ServiceDataSchema.statics.addSkinsExtensions = function(extensions) {
     return this.getSkinExtensionsList()
     .then((result) => {
         if(result) {
-            return this.update({type: DATA_TYPES.SKINS_EXTENSIONS}, {data: extensions});
+            return this.updateOne({type: DATA_TYPES.SKINS_EXTENSIONS}, {data: extensions});
         } else {
             const doc = new this({
                 name: 'Skins extensions',
@@ -66,7 +66,7 @@ ServiceDataSchema.statics.updateImagesHash = function(hash) {
     return this.getImagesHash()
     .then((existingHash) => {
         if(existingHash) {
-            return this.update({type: DATA_TYPES.IMG_HASH}, {data: hash});
+            return this.updateOne({type: DATA_TYPES.IMG_HASH}, {data: hash});
         } else {
             const doc = new this({
                 name: 'Last update hash',
@@ -87,7 +87,7 @@ ServiceDataSchema.statics.updateHosts = function(hosts) {
     return this.getHostsList()
     .then((result) => {
         if(result) {
-            return this.update({type: DATA_TYPES.HOSTS}, {data: hosts});
+            return this.updateOne({type: DATA_TYPES.HOSTS}, {data: hosts});
         } else {
             const doc = new this({
                 name: 'Hosts',
@@ -115,7 +115,7 @@ ServiceDataSchema.statics.addResources = async function(newResources) {
 		? Array.from(new Set([].concat(result.data, newResources)))
 		: Array.from(new Set(newResources));
 	if(result) {
-		return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
+		return this.updateOne({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: resources});
 	} else {
 		const doc = new this({
 			name: 'Downloaded resources',
@@ -137,7 +137,7 @@ ServiceDataSchema.statics.deleteDownloadedResource = async function(ids) {
 		if(result?.data) {
 			const resources = [...result.data];
 			const filteredResources = resources.filter((resourceId) => !ids.includes(resourceId));
-			return this.update({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: filteredResources});
+			return this.updateOne({type: DATA_TYPES.DOWNLOADED_RESOURCES}, {data: filteredResources});
 		}
 	});
 };

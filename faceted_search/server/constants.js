@@ -13,5 +13,11 @@ module.exports = {
         "meta.ioparams.thumbnailUrl",
         "largeImage"
     ],
-    RESYNC: "[RESYNC]"
+    RESYNC: "[RESYNC]",
+    FILTER_STATUS: {
+        MODIFIED: "modified",
+        ADDED: "added",
+        ALREADY_ADDED: "already_added",
+        REMOVED: "removed",
+    },
 };

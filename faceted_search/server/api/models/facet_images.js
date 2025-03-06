@@ -107,12 +107,11 @@ class FacetImages {
     }
 
 
-    getImagesCount(preQuery, cb) {
+    async getImagesCount(preQuery) {
         const query = buildQuery(preQuery);
 
-        facetImagesModel.find(query).count(function(err, count) {
-            cb(count);
-        });
+        const documentsCount = await facetImagesModel.find(query).countDocuments();
+        return documentsCount;
     }
 
 
