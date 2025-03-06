@@ -8,6 +8,8 @@ const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
 const DEFAULT_WIDTH = 150;
 const DEFAULT_HEIGHT = 135;
 
+const ANNOTATION_WINDOW_STATE = "annotation-window-state";
+
 function openInNewTab(url) {
 	const otherWindow = window.open();
 	otherWindow.opener = null;
@@ -370,6 +372,15 @@ function testJSON(text) {
 }
 
 
+function getAnnotationWindowState() {
+	const state = webix.storage.local.get(`${ANNOTATION_WINDOW_STATE}-${getUserId()}`);
+	return state ? JSON.parse(state) : {position: {}};
+}
+
+function setAnnotationWindowState(state) {
+	webix.storage.local.put(`${ANNOTATION_WINDOW_STATE}-${getUserId()}`, JSON.stringify(state));
+}
+
 export default {
 	openInNewTab,
 	downloadByLink,
@@ -412,4 +423,6 @@ export default {
 	getColorTemplateData,
 	setColorTemplateData,
 	testJSON,
+	getAnnotationWindowState,
+	setAnnotationWindowState,
 };

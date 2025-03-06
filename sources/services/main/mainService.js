@@ -1447,6 +1447,9 @@ class MainService {
 
 	async linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
 		const folder = this._finder.getItem(folderId);
+		this._finder.blockEvent();
+		this._finder.select(folderId);
+		this._finder.unblockEvent();
 		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
 		if (data.length === 0) {
 			folder.linear = null;

@@ -383,7 +383,7 @@ class AjaxActions {
 		}
 	}
 
-	async updateAnnotationById(annotationData, annotationId) {
+	async updateAnnotationById(annotationId, annotationData) {
 		const params = JSON.stringify(annotationData);
 		try {
 			if (annotationId) {
