@@ -349,7 +349,7 @@ class AjaxActions {
 			.catch(parseError);
 	}
 
-	postNewFolder(folder) {
+	postNewFolder(folder, skipErrorMessageFlag) {
 		const params = {
 			name: folder.name,
 			parentId: folder.parentId,
@@ -357,8 +357,14 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.post(`${this.getHostApiUrl()}/folder`, params)
-			.catch(parseError)
-			.then(result => this._parseData(result));
+			.catch((error) => {
+				if (skipErrorMessageFlag) {
+					return null;
+				}
+				parseError(error);
+				return null;
+			})
+			.then(result => (result ? this._parseData(result) : null));
 	}
 
 	openImageInNewTab(id) {

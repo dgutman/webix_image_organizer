@@ -9,13 +9,31 @@ require("dotenv").config();
 
 const pack = require("./package.json");
 
+function testJSON(text) {
+	if (typeof text !== "string") {
+        return false;
+    }
+    try {
+        JSON.parse(text);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
 	};
 
-	const serverList = JSON.parse(process.env.SERVER_LIST);
+	const serverList = testJSON(process.env.SERVER_LIST)
+		? JSON.parse(process.env.SERVER_LIST)
+		: null;
+	const singleServer = testJSON(process.env.SINGLE_SERVER)
+		? JSON.parse(process.env.SINGLE_SERVER)
+		: null;
+	const logoLabel = process.env.LOGO_LABEL;
 
 	const config = {
 		entry: "./sources/app.js",
@@ -104,13 +122,15 @@ module.exports = (env) => {
 			}),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: serverList,
+				SINGLE_SERVER: singleServer,
 				// ENABLE/DISABLE MODULES (TABS)
 				TABSTATE: {
 					metadata: "enable",
 					applyFilter: "enable",
 					pathologyReport: "enable",
 					aperioAnnotations: "disable"
-				}
+				},
+				LOGO_LABEL: logoLabel,
 			}),
 			new Dotenv({
 				path: path.resolve(__dirname, ".env") // Path to .env file
