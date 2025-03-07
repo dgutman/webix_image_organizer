@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const constants = require('../../constants');
 
 const facetFiltersSchema = new mongoose.Schema({
     id: {
@@ -31,27 +32,28 @@ class FacetFilters {
         const promises = [];
         body.forEach(function(requestItem) {
             return new Promise((resolve) => {
-                if (requestItem.status === "already_added") {
+                if (requestItem.status === constants.FILTER_STATUS.ALREADY_ADDED) {
                     return resolve();
                 }
-                facetFiltersModel.find({id: requestItem.id}, (err, filters) => {
-                    if (filters.length) {
-                        filters.forEach((item) => {
-                            if (requestItem.status === "modified" || requestItem.status === "added" || requestItem.status === "removed") {
-                                facetFiltersModel.remove({_id: item._id}, function(err) {
-                                    if (err) return handleError(err);
-                                    // removed!
-                                });
-                            }
-                        });
-                    }
-                    if (requestItem.status === "modified" || requestItem.status === "added") {
-                        const model = new facetFiltersModel(requestItem);
-                        model.save(() => {
-                            resolve();
-                        });
-                    }
-                });
+                const filters = facetFiltersModel.find({id: requestItem.id});
+                if (filters.length) {
+                    filters.forEach((item) => {
+                        if (
+                            requestItem.status === constants.FILTER_STATUS.MODIFIED
+                            || requestItem.status === constants.FILTER_STATUS.ADDED
+                            || requestItem.status === constants.FILTER_STATUS.REMOVED
+                        ) {
+                            facetFiltersModel.deleteOne({_id: item._id});
+                        }
+                    });
+                }
+                if (
+                    requestItem.status === constants.FILTER_STATUS.MODIFIED
+                    || requestItem.status === constants.FILTER_STATUS.ADDED
+                ) {
+                    const doc = new facetFiltersModel(requestItem);
+                    doc.save();
+                }
             });
         });
 
@@ -60,38 +62,14 @@ class FacetFilters {
         });
     }
 
-    getAll() {
-        return new Promise(
-            (resolve, reject) => {
-                facetFiltersModel
-                    .find({},
-                        (err, filters) => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(filters);
-                            }
-                        });
-            });
+    async getAll() {
+        const promise = await facetFiltersModel.find({}).exec();
+        return promise;
     }
     
 
     updateByParams(params, data) {
-        return new Promise(
-            (resolve, reject) => {
-                facetFiltersModel
-                    .findOneAndUpdate(
-                        params,
-                        data,
-                        (err, filters) => {
-                            if (err) {
-                                reject(err);
-                            }
-                            else {
-                                resolve(filters);
-                            }
-                        });
-            });
+        return facetFiltersModel.findOneAndUpdate(params, data).exec();
     }
 
 	async deleteAllDocuments() {

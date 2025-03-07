@@ -45,7 +45,7 @@ define([
 				},
 				type: type,
 				interface: data.values,
-				status: "added"
+				status: constants.FILTER_STATUS.ADDED
 			};
 			addedItems.push(t);
 		}
@@ -69,10 +69,10 @@ define([
 		let i = 0;
 		for(i = 0; i < addedItems.length; i++) {
 			if(addedItems[i].facet.id === facet.id) {
-				if(addedItems[i].status === "added") {
+				if(addedItems[i].status === constants.FILTER_STATUS.ADDED) {
 					addedItems.splice(i, 1);
 				} else {
-					addedItems[i].status = "removed";
+					addedItems[i].status = constants.FILTER_STATUS.REMOVED;
 				}
 				break;
 			}
@@ -101,10 +101,10 @@ define([
 		webix.ajax().post(saveURL, {data: filters}, function() {
 			let i = 0;
 			for(i = 0; i < addedItems.length; i++) {
-				if(addedItems[i].status === "removed") {
+				if(addedItems[i].status === constants.FILTER_STATUS.REMOVED) {
 					addedItems.splice(i, 1);
 				} else {
-					addedItems[i].status = "already_added";
+					addedItems[i].status = constants.FILTER_STATUS.ALREADY_ADDED;
 				}
 			}
 			initialItems = [...addedItems];
@@ -206,7 +206,7 @@ define([
 							},
 							type: data.filters[key].type,
 							interface: data.filters[key].values,
-							status: "already_added"
+							status: constants.FILTER_STATUS.ALREADY_ADDED
 						};
 						if (t.type === "radio" && t.interface.length === 0) {
 							continue;
@@ -249,7 +249,7 @@ define([
 				},
 				type: type,
 				interface: data.values,
-				status: "added"
+				status: constants.FILTER_STATUS.ADDED
 			};
 			addedItems.push(t);
 		}
@@ -273,7 +273,7 @@ define([
 			: true;
 		if (passed) {
 			return addedItems.every((item) => {
-				return item.status === "already_added";
+				return item.status === constants.FILTER_STATUS.ALREADY_ADDED;
 			});
 		}
 		return false;
