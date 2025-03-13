@@ -185,13 +185,13 @@ export default class AnnotationListView extends ListView {
 				rows: [
 					{
 						view: "text",
-						value: item.annotation.name,
+						value: item.annotation.name || "Annotation Name",
 						name: "edit-annotation-name",
 						placeholder: "name",
 					},
 					{
 						view: "textarea",
-						value: item.annotation.description,
+						value: item.annotation.description || "",
 						placeholder: "description",
 					},
 					{

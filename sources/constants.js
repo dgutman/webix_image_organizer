@@ -249,5 +249,10 @@ export default {
 		lineString: "LineString",
 		multiLineString: "MultiLineString",
 		geometryCollectionRaster: "GeometryCollection:Raster",
-	}
+	},
+	FETCH_PRIORITY: {
+		high: "high",
+		low: "low",
+		auto: "auto",
+	},
 };

@@ -417,7 +417,7 @@ export default class ItemsModel {
 	getItemWithRegionList(item) {
 		const newItem = webix.copy(item);
 		let isUpdated = false;
-		if (newItem.meta.npSchema?.regionName) {
+		if (newItem.meta?.npSchema?.regionName) {
 			if (!Array.isArray(newItem.meta.npSchema.regionNameList)) {
 				newItem.meta.npSchema.regionNameList = [];
 				newItem.meta.npSchema.regionNameList.push(newItem.meta.npSchema.regionName);
