@@ -125,7 +125,7 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	getImage(imageId, imageType, params) {
+	getImage(imageId, imageType, params, priority) {
 		const token = authService.getToken();
 		params = params || {};
 		params.token = token;
@@ -137,6 +137,9 @@ class AjaxActions {
 
 		return new Promise((resolve, reject) => {
 			const img = new Image();
+			if (priority) {
+				img.fetchPriority = priority;
+			}
 			img.src = url;
 			img.addEventListener("error", () => {
 				reject();

@@ -422,7 +422,7 @@ export default {
 	mergeDeep,
 	getColorTemplateData,
 	setColorTemplateData,
-	testJSON,
 	getAnnotationWindowState,
 	setAnnotationWindowState,
+	testJSON,
 };
