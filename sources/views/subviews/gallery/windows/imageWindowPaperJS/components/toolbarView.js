@@ -1,24 +1,21 @@
 import {JetView} from "webix-jet";
 
 import constants from "../../../../../../constants";
-import { Placeholder } from "../osd-annotation/js/paperitems/placeholder.mjs";
-import { BrushTool } from "../osd-annotation/js/papertools/brush.mjs";
-import { DefaultTool } from "../osd-annotation/js/papertools/default.mjs";
-import { EllipseTool } from "../osd-annotation/js/papertools/ellipse.mjs";
-import { LinestringTool } from "../osd-annotation/js/papertools/linestring.mjs";
-import { PointTool } from "../osd-annotation/js/papertools/point.mjs";
-import { PointTextTool } from "../osd-annotation/js/papertools/pointtext.mjs";
-import { PolygonTool } from "../osd-annotation/js/papertools/polygon.mjs";
-import { RasterTool } from "../osd-annotation/js/papertools/raster.mjs";
-import { RectangleTool } from "../osd-annotation/js/papertools/rectangle.mjs";
-import { SelectTool } from "../osd-annotation/js/papertools/select.mjs";
-import { StyleTool } from "../osd-annotation/js/papertools/style.mjs";
-import { TransformTool } from "../osd-annotation/js/papertools/transform.mjs";
-// style tool will be implemented in right panel
-// import { StyleTool } from "../osd-annotation/js/papertools/style.mjs";
-// import { TransformTool } from "../osd-annotation/js/papertools/transform.mjs";
-import { WandTool } from "../osd-annotation/js/papertools/wand.mjs";
-import { AnnotationToolkit } from "../osd-annotation/js/annotationtoolkit.mjs";
+import { Placeholder } from "../osd-paperjs-annotation";
+import { BrushTool } from "../osd-paperjs-annotation";
+import { DefaultTool } from "../osd-paperjs-annotation";
+import { EllipseTool } from "../osd-paperjs-annotation";
+import { LinestringTool } from "../osd-paperjs-annotation";
+import { PointTool } from "../osd-paperjs-annotation";
+import { PointTextTool } from "../osd-paperjs-annotation";
+import { PolygonTool } from "../osd-paperjs-annotation";
+import { RasterTool } from "../osd-paperjs-annotation";
+import { RectangleTool } from "../osd-paperjs-annotation";
+import { SelectTool } from "../osd-paperjs-annotation";
+import { StyleTool } from "../osd-paperjs-annotation";
+import { TransformTool } from "../osd-paperjs-annotation";
+import { WandTool } from "../osd-paperjs-annotation";
+import { AnnotationToolkit } from "../osd-paperjs-annotation";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, /* imageWindowViewModel, */ imageWindowView) {
