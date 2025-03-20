@@ -260,7 +260,7 @@ export default class ToolbarView extends JetView {
 		this.disableControls();
 		const toolbarControls = this.getToolbarControls();
 
-		toolbarControls.forEach((control) => {
+		Object.entries(toolbarControls).forEach(([, control]) => {
 			if (control) {
 				control.deactivate = (id) => {
 					this.organizeButtonsAction(id);
