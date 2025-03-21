@@ -4,8 +4,8 @@ import {JetView} from "webix-jet";
 import RightPanel from "./components/rightPanel/rightPanel";
 // import ToolbarView from "./components/toolbarView";
 import ControlsView from "./controlsView";
-import { AnnotationToolkit } from "./osd-annotation/js/annotationtoolkit.mjs";
-import { RotationControl } from "./osd-annotation/js/rotationcontrol.mjs";
+import { AnnotationToolkit } from "./osd-paperjs-annotation";
+import { RotationControl } from "./osd-paperjs-annotation";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
 import ToolbarView from "./components/toolbarView";
