@@ -47,7 +47,7 @@ module.exports = (env) => {
 		module: {
 			rules: [
 				{
-					test: /\.js?$/,
+					test: /\.m?js?$/,
 					exclude: {
 						and: [/node_modules/]
 					},
@@ -88,11 +88,11 @@ module.exports = (env) => {
 			]
 		},
 		resolve: {
-			extensions: [".js"],
+			extensions: [".js", ".mjs"],
 			modules: ["./sources", "node_modules"],
 			alias: {
 				"jet-views": path.resolve(__dirname, "sources/views"),
-				"jet-locales": path.resolve(__dirname, "sources/locales")
+				"jet-locales": path.resolve(__dirname, "sources/locales"),
 			}
 		},
 		devServer: {

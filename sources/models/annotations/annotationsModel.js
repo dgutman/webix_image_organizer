@@ -11,7 +11,7 @@ export default class AnnotationsModel {
 	 *
 	 * @constructor
 	 * @param {*} annotationsData
-	 * @param {import("../../views/subviews/gallery/windows/imageWindowPaperJS/osd-paperjs-annotation/annotationtoolkit").AnnotationToolkit} tk
+	 * @param {import("../../libs/osd-paperjs-annotation/dist/main.mjs").AnnotationToolkit} tk
 	 */
 	constructor(annotationsData) {
 		if (!AnnotationsModel.instance) {
