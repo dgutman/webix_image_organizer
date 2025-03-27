@@ -1363,21 +1363,6 @@ class MainService {
 				projectMetadataCollection.add(projectFolderMetadata);
 				this._projectFolderWindowButton.show();
 			}
-			else {
-				const newProjectMetadataFolder = {
-					parentType: constants.FOLDER_PARENT_TYPES.COLLECTION,
-					name: constants.PROJECT_METADATA_FOLDER_NAME,
-					parentId: collectionItem._id
-				};
-				projectFolderMetadata = await ajaxActions.postNewFolder(newProjectMetadataFolder, true);
-				if (projectFolderMetadata) {
-					projectMetadataCollection.add(projectFolderMetadata);
-					this._projectFolderWindowButton.show();
-				}
-				else {
-					this._projectFolderWindowButton.hide();
-				}
-			}
 
 			if (projectFolderMetadata) {
 				const projectMetadataContent = await this._view.$scope.getSubFinderView().loadTreeFolders(
