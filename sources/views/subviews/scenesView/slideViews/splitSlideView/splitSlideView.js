@@ -2,6 +2,7 @@ import MarkersService from "../../../../../services/scenesView/markersService";
 import SlideEventsService from "../../../../../services/scenesView/slidesService";
 import collapser from "../../../../components/collapser";
 import BaseSlideView from "../baseSlideView";
+import Mode from "../mode";
 
 
 const METADATA_PANEL_ID = "scenes-view_metadata-panel";
@@ -21,44 +22,64 @@ export default class SplitSlideView extends BaseSlideView {
 			this._createSlideViewElementsAndService(),
 			this._createSlideViewElementsAndService()
 		];
-		this.metadataPanelID = `${METADATA_PANEL_ID}-${webix.uid()}`;
-		this.controlsPanelID = `${CONTROLS_PANEL_ID}-${webix.uid()}`;
+		this._metadataPanelID = `${METADATA_PANEL_ID}-${webix.uid()}`;
+		this._controlsPanelID = `${CONTROLS_PANEL_ID}-${webix.uid()}`;
+		this._metadataCollapserName = "metadataPanelCollapser";
+		this._controlsPanelCollapserName = "controlsViewCollapser";
 	}
 
 	config() {
-		const metadataCollapserView = collapser.getConfig(this.metadataPanelID, {closed: false, type: "right"});
-		const controlsCollapserView = collapser.getConfig(this.controlsPanelID, {closed: false, type: "left"});
+		const metadataCollapserView = collapser.getConfig(this._metadataPanelID, {closed: false, type: "right"}, this._metadataCollapserName, "Metadata");
+		const controlsCollapserView = collapser.getConfig(this._controlsPanelID, {closed: false, type: "left"}, this._controlsPanelCollapserName, "Controls");
 		const [topSlideKeeper, bottomSlideKeeper] = this._slideKeepers;
+		const osdOrientation = Mode.getOrientationMode();
+		const osdViews = osdOrientation
+			? {
+				gravity: 3,
+				rows: [
+					{
+						rows: [
+							topSlideKeeper.osdView,
+						]
+					},
+					{
+						rows: [
+							bottomSlideKeeper.osdView
+						]
+					}
+				]
+			}
+			: {
+				gravity: 3,
+				cols: [
+					{
+						rows: [
+							topSlideKeeper.osdView,
+						]
+					},
+					{
+						rows: [
+							bottomSlideKeeper.osdView
+						]
+					}
+				]
+			};
 		return {
 			...this._cnf,
 			name: "scenesViewerWithControlsCell",
 			cols: [
 				{
-					id: this.controlsPanelID,
+					id: this._controlsPanelID,
 					rows: [
 						topSlideKeeper.controlsView,
 						bottomSlideKeeper.controlsView
 					]
 				},
 				controlsCollapserView,
-				{
-					gravity: 3,
-					cols: [
-						{
-							rows: [
-								topSlideKeeper.osdView,
-							]
-						},
-						{
-							rows: [
-								bottomSlideKeeper.osdView
-							]
-						}
-					]
-				},
+				osdViews,
 				metadataCollapserView,
 				{
-					id: this.metadataPanelID,
+					id: this._metadataPanelID,
 					rows: [
 						topSlideKeeper.metadataPanel,
 						bottomSlideKeeper.metadataPanel
