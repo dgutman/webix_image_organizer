@@ -6,7 +6,6 @@ export default class PaperJSLayersModel {
 	 * Creates an instance of PaperJSLayersModel.
 	 *
 	 * @constructor
-	 * @param {import("./../../views/subviews/gallery/windows/imageWindowPaperJS/osd-paperjs-annotation/annotationtoolkit").AnnotationToolkit} tk
 	 */
 	constructor(tk) {
 		this._tk = tk;
