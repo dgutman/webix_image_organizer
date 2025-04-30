@@ -220,11 +220,9 @@ define([
 									const list = webix.ui({
 										view: "list"
 									});
-									list.parse(JSON.stringify(filteredExportData));
-									const dataset = list.serialize();
 									try {
-										const result = await ajaxActions.postDataset(dataset, datasetName, filters, isPublic);
-										console.log(JSON.stringify(result));
+										const fileName = await ajaxActions.postDataset(filteredExportData, datasetName, filters, isPublic);
+										console.log(fileName);
 									} catch (err) {
 										console.error(JSON.stringify(err));
 									}

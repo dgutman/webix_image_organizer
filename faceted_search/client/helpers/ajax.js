@@ -402,13 +402,13 @@ define(["app", "constants"], function(app, constants) {
 					if (item.name) {
 						webix.message(`dataset with name "${item.name}" is created`);
 					}
+					return item.name;
 				}
 				catch (err) {
 					this._parseError(err.xhr);
 					return null;
 				}
 			}
-			return Promise.resolve();
 		}
 		async getDatasetPublicOrPrivateFolder(isPublic) {
 			const collections = await this.getCollectionByName(constants.DATASET_COLLECTION_NAME);
