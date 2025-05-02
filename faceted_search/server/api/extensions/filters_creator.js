@@ -38,11 +38,12 @@ const prepareQuery = (id, option) => {
 const countFacets = (filters) => {
     return new Promise((mainResolve, reject) => {
         const promises = [];
-        filters.forEach(function (item, index, filtersArr) {
-            filtersArr[index].options.forEach(function (option) {
+        filters.forEach(function(item, index, filtersArr) {
+            filtersArr[index].options.forEach(function(option) {
                 const preQuery = prepareQuery(item.id, option);
                 promises.push(new Promise((resolve) => {
-                    facetImages.getImagesCount(preQuery, (count) => {
+                    const promise = facetImages.getImagesCount(preQuery);
+                    promise.then((count) => {
                         resolve({index: index, name: option, count: count});
                     });
                 }));
@@ -50,7 +51,7 @@ const countFacets = (filters) => {
         });
 
         return Promise.all(promises).then((data) => {
-            let result = [];
+            const result = [];
             data.forEach((item) => {
                 if (!result[item.index]) {
                     result[item.index] = {};

@@ -1346,94 +1346,81 @@ class MainService {
 			this._metadataTemplate.setValues({});
 			this._metadataCollapser.config.setClosedState();
 			this._view.showProgress();
-			const subcollectionData = await this._view.$scope.getSubFinderView()
+			const subCollectionData = await this._view.$scope.getSubFinderView()
 				.loadTreeFolders(constants.FOLDER_PARENT_TYPES.COLLECTION, collectionItem._id);
 			this._folderNav.openFirstFolder();
-			let projectFolderMetadata = subcollectionData
-				.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
 			const collectionFolders = projectMetadata.getCollectionFolders();
 			// Clear collection folders before push folders from server
 			projectMetadata.clearCollectionFolders();
-			collectionFolders.push(...subcollectionData
+			collectionFolders.push(...subCollectionData
 				.filter(folder => folder._modelType === constants.MODEL_TYPE.FOLDER
 					&& folder.name !== constants.PROJECT_METADATA_FOLDER_NAME));
-			// projectMetadataCollection.clearAll();
 			projectMetadata.clearProjectFolderMetadata();
 			projectMetadata.clearWrongMetadata();
+			let projectFolderMetadata = subCollectionData
+				.find(folder => folder.name === constants.PROJECT_METADATA_FOLDER_NAME);
 			if (projectFolderMetadata) {
 				projectMetadataCollection.add(projectFolderMetadata);
 				this._projectFolderWindowButton.show();
 			}
-			else {
-				const newProjectMetadataFolder = {
-					parentType: constants.FOLDER_PARENT_TYPES.COLLECTION,
-					name: constants.PROJECT_METADATA_FOLDER_NAME,
-					parentId: collectionItem._id
-				};
-				projectFolderMetadata = await ajaxActions.postNewFolder(newProjectMetadataFolder);
-				if (projectFolderMetadata) {
-					projectMetadataCollection.add(projectFolderMetadata);
-					this._projectFolderWindowButton.show();
-				}
-				else {
-					this._projectFolderWindowButton.hide();
-				}
-			}
 
-			const projectMetadataContent = await this._view.$scope.getSubFinderView().loadTreeFolders(
-				projectFolderMetadata._modelType,
-				projectFolderMetadata._id
-			);
+			if (projectFolderMetadata) {
+				const projectMetadataContent = await this._view.$scope.getSubFinderView().loadTreeFolders(
+					projectFolderMetadata._modelType,
+					projectFolderMetadata._id
+				);
 
-			const validationSchemasFolder = projectMetadataContent
-				.find(item => item.name === constants.VALIDATION_SCHEMAS_FOLDER_NAME);
+				const validationSchemasFolder = projectMetadataContent
+					.find(item => item.name === constants.VALIDATION_SCHEMAS_FOLDER_NAME);
 
-			if (validationSchemasFolder) {
-				projectMetadata.setProjectValidationSchemasFolder(validationSchemasFolder);
-				const validationSchemasItems = await ajaxActions.getItems(validationSchemasFolder._id);
-				validationSchemasItems.forEach(async (schema) => {
-					const schemaBlob = await ajaxActions.getBlobFile(schema._id);
-					const jsonSchema = schemaBlob?.json();
-					if (jsonSchema) {
-						validationSchemas.push(jsonSchema);
-					}
-				});
-				validationSchemasFolder.meta?.folderAndSchemasMapping?.forEach((map) => {
-					folderAndSchemasMapping.set(map.folderName, map.schemas);
-				});
-			}
-			else {
-				const newFolder = {
-					name: constants.VALIDATION_SCHEMAS_FOLDER_NAME,
-					parentId: projectFolderMetadata._id,
-					parentType: projectFolderMetadata._modelType
-				};
-				const newValidationSchemasFolder = ajaxActions.postNewFolder(newFolder);
-				projectMetadata.setProjectValidationSchemasFolder(newValidationSchemasFolder);
-			}
-
-			// TODO: think about folder name for patient data
-			const schemaFolder = subcollectionData
-				.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
-			patientsDataCollection.clearAll();
-			if (schemaFolder && schemaFolder._id && schemaFolder._modelType) {
-				const schemafolderData = await this._view.$scope.getSubFinderView()
-					.loadTreeFolders(schemaFolder._modelType, schemaFolder._id);
-				const patientsDataFolder = schemafolderData
-					.find(folder => folder.name === constants.PATIENTS_METADATA_FOLDER_NAME);
-				if (patientsDataFolder) {
-					patientsDataModel.setPatientsDataFolderId(patientsDataFolder);
-					const patientsFolderData = await this._view.$scope.getSubFinderView()
-						.getFolderItems(patientsDataFolder);
-					patientsFolderData.forEach((patientData) => {
-						patientsDataCollection.add(patientData);
+				if (validationSchemasFolder) {
+					projectMetadata.setProjectValidationSchemasFolder(validationSchemasFolder);
+					const validationSchemasItems = await ajaxActions.getItems(validationSchemasFolder._id);
+					validationSchemasItems.forEach(async (schema) => {
+						const schemaBlob = await ajaxActions.getBlobFile(schema._id);
+						const jsonSchema = schemaBlob?.json();
+						if (jsonSchema) {
+							validationSchemas.push(jsonSchema);
+						}
+					});
+					validationSchemasFolder.meta?.folderAndSchemasMapping?.forEach((map) => {
+						folderAndSchemasMapping.set(map.folderName, map.schemas);
 					});
 				}
+				else {
+					const newFolder = {
+						name: constants.VALIDATION_SCHEMAS_FOLDER_NAME,
+						parentId: projectFolderMetadata._id,
+						parentType: projectFolderMetadata._modelType
+					};
+					const newValidationSchemasFolder = ajaxActions.postNewFolder(newFolder);
+					projectMetadata.setProjectValidationSchemasFolder(newValidationSchemasFolder);
+				}
+
+				// TODO: think about folder name for patient data
+				const schemaFolder = subCollectionData
+					.find(folder => folder.name === constants.SCHEMA_METADATA_FOLDER_NAME);
+				patientsDataCollection.clearAll();
+				if (schemaFolder && schemaFolder._id && schemaFolder._modelType) {
+					const schemafolderData = await this._view.$scope.getSubFinderView()
+						.loadTreeFolders(schemaFolder._modelType, schemaFolder._id);
+					const patientsDataFolder = schemafolderData
+						.find(folder => folder.name === constants.PATIENTS_METADATA_FOLDER_NAME);
+					if (patientsDataFolder) {
+						patientsDataModel.setPatientsDataFolderId(patientsDataFolder);
+						const patientsFolderData = await this._view.$scope.getSubFinderView()
+							.getFolderItems(patientsDataFolder);
+						patientsFolderData.forEach((patientData) => {
+							patientsDataCollection.add(patientData);
+						});
+					}
+				}
 			}
+
 			utils.putHostsCollectionInLocalStorage(collectionItem);
 			// define datatable columns
 			metadataTableModel.refreshDatatableColumns();
-			this._itemsModel.parseItems(subcollectionData);
+			this._itemsModel.parseItems(subCollectionData);
 			this.pendingCollectionChange = false;
 			this._view.hideProgress();
 		}
@@ -1445,6 +1432,9 @@ class MainService {
 
 	async linearStructureHandler(folderId, sourceParams, addBatch, isCollapsed) {
 		const folder = this._finder.getItem(folderId);
+		this._finder.blockEvent();
+		this._finder.select(folderId);
+		this._finder.unblockEvent();
 		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
 		if (data.length === 0) {
 			folder.linear = null;

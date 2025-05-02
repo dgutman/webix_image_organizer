@@ -23,7 +23,12 @@ export default class TableRightPanelView extends JetView {
 						const previewImageUrl = galleryImageUrl.getPreviewImageUrl(obj._id);
 						const labelPreviewImageUrl = galleryImageUrl.getLabelPreviewImageUrl(obj._id);
 						if (typeof previewImageUrl === "undefined") {
-							ajaxActions.getImage(obj._id, "thumbnail", {width: IMAGE_WIDTH, height: IMAGE_HEIGHT})
+							ajaxActions.getImage(
+								obj._id,
+								"thumbnail",
+								{width: IMAGE_WIDTH, height: IMAGE_HEIGHT},
+								constants.FETCH_PRIORITY.high
+							)
 								.then((url) => {
 									galleryImageUrl.setPreviewImageUrl(obj._id, url);
 									this.getRoot().refresh();
@@ -33,7 +38,11 @@ export default class TableRightPanelView extends JetView {
 								});
 						}
 						if (typeof labelPreviewImageUrl === "undefined") {
-							ajaxActions.getImage(obj._id, "images/label")
+							ajaxActions.getImage(
+								obj._id, "images/label",
+								null,
+								constants.FETCH_PRIORITY.high
+							)
 								.then((url) => {
 									galleryImageUrl.setPreviewLabelImageUrl(obj._id, url);
 									this.getRoot().refresh();
@@ -46,9 +55,9 @@ export default class TableRightPanelView extends JetView {
 
 					return `<div class='datatable-template'>
 							<span class='datatable-template-text'>Thumbnail image:</span>
-							<img class='datatable-template-image' imageType='thumbnail-image' src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
+							<img class='datatable-template-image' imageType='thumbnail-image' fetchPriority="high" src="${galleryImageUrl.getPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
 							<span class='datatable-template-text'>Label image:</span>
-							<img class='datatable-template-image' imageType='label-image' src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
+							<img class='datatable-template-image' imageType='label-image' fetchPriority="high" src="${galleryImageUrl.getLabelPreviewImageUrl(obj._id) || nonImageUrls.getNonImageUrl(obj)}">
 						</div>`;
 				}
 				return `<div class='datatable-template' style='position: relative; top: 50%;'>

@@ -125,7 +125,7 @@ class AjaxActions {
 			.then(result => this._parseData(result));
 	}
 
-	getImage(imageId, imageType, params) {
+	getImage(imageId, imageType, params, priority) {
 		const token = authService.getToken();
 		params = params || {};
 		params.token = token;
@@ -137,6 +137,9 @@ class AjaxActions {
 
 		return new Promise((resolve, reject) => {
 			const img = new Image();
+			if (priority) {
+				img.fetchPriority = priority;
+			}
 			img.src = url;
 			img.addEventListener("error", () => {
 				reject();
@@ -349,7 +352,7 @@ class AjaxActions {
 			.catch(parseError);
 	}
 
-	postNewFolder(folder) {
+	postNewFolder(folder, skipErrorMessageFlag) {
 		const params = {
 			name: folder.name,
 			parentId: folder.parentId,
@@ -357,8 +360,14 @@ class AjaxActions {
 		};
 		return this._ajax()
 			.post(`${this.getHostApiUrl()}/folder`, params)
-			.catch(parseError)
-			.then(result => this._parseData(result));
+			.catch((error) => {
+				if (skipErrorMessageFlag) {
+					return null;
+				}
+				parseError(error);
+				return null;
+			})
+			.then(result => (result ? this._parseData(result) : null));
 	}
 
 	openImageInNewTab(id) {
@@ -377,7 +386,7 @@ class AjaxActions {
 		}
 	}
 
-	async updateAnnotationById(annotationData, annotationId) {
+	async updateAnnotationById(annotationId, annotationData) {
 		const params = JSON.stringify(annotationData);
 		try {
 			if (annotationId) {

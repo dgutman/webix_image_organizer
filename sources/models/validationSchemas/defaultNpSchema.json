@@ -68,7 +68,14 @@
                         "FUS",
                         "RBFUS",
                         "TDP-43",
-                        "HUNTINGTIN"
+                        "HUNTINGTIN",
+                        "CD20",
+                        "CD3",
+                        "CD68",
+                        "GFAP",
+                        "NeuN",
+                        "NEUROFIL",
+                        "ALPHA-INT"
                     ]
                 }
             },

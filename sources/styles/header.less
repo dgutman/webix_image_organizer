@@ -19,14 +19,14 @@
     }
   }
 
-  .main-header-logo,
+  .main-header-label,
   .login-menu {
     background-color: transparent;
   }
 
 
-  /* main-header-logo */
-  .main-header-logo {
+  /* main-header-label */
+  .main-header-label {
     color: @header-logo-color;
     font-size: @logo-font-size;
     font-weight: 700;
@@ -39,6 +39,17 @@
     }
   }
 
+
+  /* .main-header__logo-container */
+  .main-header__logo-container {
+    width: auto;
+    height: 60px;
+    .main-header__logo {
+      height: 60px;
+      width: auto;
+      object-fit: contain;
+    }
+  }
 
   /* .header-base-menu */
   .header-base-menu {

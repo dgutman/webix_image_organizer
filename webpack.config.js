@@ -9,13 +9,31 @@ require("dotenv").config();
 
 const pack = require("./package.json");
 
+function testJSON(text) {
+	if (typeof text !== "string") {
+        return false;
+    }
+    try {
+        JSON.parse(text);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
 module.exports = (env) => {
 	const production = !!(env && env.production === "true");
 	const babelSettings = {
 		extends: path.join(__dirname, "/.babelrc")
 	};
 
-	const serverList = JSON.parse(process.env.SERVER_LIST);
+	const serverList = testJSON(process.env.SERVER_LIST)
+		? JSON.parse(process.env.SERVER_LIST)
+		: null;
+	const singleServer = testJSON(process.env.SINGLE_SERVER)
+		? JSON.parse(process.env.SINGLE_SERVER)
+		: null;
+	const logoLabel = process.env.LOGO_LABEL;
 
 	const config = {
 		entry: "./sources/app.js",
@@ -29,7 +47,7 @@ module.exports = (env) => {
 		module: {
 			rules: [
 				{
-					test: /\.js?$/,
+					test: /\.m?js?$/,
 					exclude: {
 						and: [/node_modules/]
 					},
@@ -70,11 +88,11 @@ module.exports = (env) => {
 			]
 		},
 		resolve: {
-			extensions: [".js"],
+			extensions: [".js", ".mjs"],
 			modules: ["./sources", "node_modules"],
 			alias: {
 				"jet-views": path.resolve(__dirname, "sources/views"),
-				"jet-locales": path.resolve(__dirname, "sources/locales")
+				"jet-locales": path.resolve(__dirname, "sources/locales"),
 			}
 		},
 		devServer: {
@@ -104,13 +122,15 @@ module.exports = (env) => {
 			}),
 			new webpack.EnvironmentPlugin({
 				SERVER_LIST: serverList,
+				SINGLE_SERVER: singleServer,
 				// ENABLE/DISABLE MODULES (TABS)
 				TABSTATE: {
 					metadata: "enable",
 					applyFilter: "enable",
 					pathologyReport: "enable",
 					aperioAnnotations: "disable"
-				}
+				},
+				LOGO_LABEL: logoLabel,
 			}),
 			new Dotenv({
 				path: path.resolve(__dirname, ".env") // Path to .env file

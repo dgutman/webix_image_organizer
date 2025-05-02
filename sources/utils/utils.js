@@ -8,6 +8,8 @@ const wrongMetadataCollection = projectMetadata.getWrongMetadataCollection();
 const DEFAULT_WIDTH = 150;
 const DEFAULT_HEIGHT = 135;
 
+const ANNOTATION_WINDOW_STATE = "annotation-window-state";
+
 function openInNewTab(url) {
 	const otherWindow = window.open();
 	otherWindow.opener = null;
@@ -356,6 +358,28 @@ function mergeDeep(target, source) {
 	}
 	return output;
 }
+function testJSON(text) {
+	if (typeof text !== "string") {
+		return false;
+	}
+	try {
+		JSON.parse(text);
+		return true;
+	}
+	catch (error) {
+		return false;
+	}
+}
+
+
+function getAnnotationWindowState() {
+	const state = webix.storage.local.get(`${ANNOTATION_WINDOW_STATE}-${getUserId()}`);
+	return state ? JSON.parse(state) : {position: {}};
+}
+
+function setAnnotationWindowState(state) {
+	webix.storage.local.put(`${ANNOTATION_WINDOW_STATE}-${getUserId()}`, JSON.stringify(state));
+}
 
 export default {
 	openInNewTab,
@@ -397,5 +421,8 @@ export default {
 	isObject,
 	mergeDeep,
 	getColorTemplateData,
-	setColorTemplateData
+	setColorTemplateData,
+	getAnnotationWindowState,
+	setAnnotationWindowState,
+	testJSON,
 };

@@ -11,6 +11,8 @@ export default {
 	},
 
 	SERVER_LIST: JSON.parse(process.env.SERVER_LIST),
+	SINGLE_SERVER: JSON.parse(process.env.SINGLE_SERVER),
+	LOGO_LABEL: process.env.LOGO_LABEL,
 
 	PATTERN_PASSWORD: "^[!@_#$%^&?*()\"\\0-9a-zA-Z]{6,15}$",
 	PATTERN_PASSWORD_HAS_SPEC_SYMBOLS: "[!@_#$%^&?*()\"\\0-9]+",
@@ -220,15 +222,37 @@ export default {
 	],
 	ANNOTATION_TOOL_IDS: {
 		default: "default",
-		polygon: "polygon",
-		linestring: "linestring",
-		rectangle: "rectangle",
 		select: "select",
+		transform: "transform",
+		style: "style",
+		rectangle: "rectangle",
 		ellipse: "ellipse",
 		point: "point",
 		text: "text",
+		polygon: "polygon",
 		brush: "brush",
+		linestring: "linestring",
+		wand: "wand",
 		raster: "raster",
-		wand: "wand"
-	}
+	},
+	ANNOTATION_MODE: {
+		new: "new",
+		default: "default",
+		select: "select",
+		multiSelection: "multiselection",
+		polygon: "Polygon",
+		multiPolygon: "MultiPolygon",
+		pointRectangle: "Point:Rectangle",
+		pointEllipse: "Point:Ellipse",
+		pointText: "Point:PointText",
+		point: "Point",
+		lineString: "LineString",
+		multiLineString: "MultiLineString",
+		geometryCollectionRaster: "GeometryCollection:Raster",
+	},
+	FETCH_PRIORITY: {
+		high: "high",
+		low: "low",
+		auto: "auto",
+	},
 };
