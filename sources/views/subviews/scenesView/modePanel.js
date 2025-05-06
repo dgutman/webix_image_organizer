@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 
+import Mode from "./slideViews/mode";
 import constants from "../../../constants";
 
 const MODE_PANEL_ID = "mode-panel-id";
@@ -36,6 +37,7 @@ export default class ModePanelView extends JetView {
 			hidden: true,
 			label: "Arrange images: ",
 			labelWidth: 120,
+			value: Mode.getOrientationMode(),
 		};
 		return {
 			...this._cnf,
@@ -111,8 +113,7 @@ export default class ModePanelView extends JetView {
 			}
 			this._togglePointsRadioVisibility(!isSplit);
 			this._toggleCombineCheckboxVisibility(!isSplit);
-			// TODO: uncomment after osd view fix
-			// this._toggleImagesOrientationSwitchVisibility(!isSplit);
+			this._toggleImagesOrientationSwitchVisibility(!isSplit);
 			this._toggleSyncCheckboxVisibility(hideSyncCheckbox);
 			this._callModeChangeEvent(id);
 		});
@@ -232,6 +233,11 @@ export default class ModePanelView extends JetView {
 		return this.$$(this._modePanelId);
 	}
 
+	/**
+	 * Description placeholder
+	 *
+	 * @returns {webix.ui.switchButton}
+	 */
 	$imageOrientationSwitch() {
 		return this.$$(this._imagesOrientationSwitchId);
 	}

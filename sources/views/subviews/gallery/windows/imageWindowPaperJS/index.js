@@ -5,19 +5,20 @@ import RightPanel from "./components/rightPanel/rightPanel";
 // import ToolbarView from "./components/toolbarView";
 import ControlsView from "./controlsView";
 import { AnnotationToolkit } from "./osd-paperjs-annotation";
+// TODO: add rotation control
 import { RotationControl } from "./osd-paperjs-annotation";
+import annotationApiRequests from "./services/api";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
 import ToolbarView from "./components/toolbarView";
-import AnnotationApi from "./services/api";
+// TODO: add annotation API
 import galleryImageUrls from "../../../../../models/galleryImageUrls";
 import nonImageUrls from "../../../../../models/nonImageUrls";
 import ajax from "../../../../../services/ajaxActions";
 import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
-import collapser from "../../../../components/collapser";
-import annotationApiRequests from "./services/api";
 import utils from "../../../../../utils/utils";
+import collapser from "../../../../components/collapser";
 
 const HEIGHT = 600;
 const WIDTH = 1050;
@@ -335,11 +336,11 @@ export default class ImageWindowView extends JetView {
 					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
+					this._tk.addAnnotationUI({autoOpen: true});
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updateOSDViewer(this._openSeadragonViewer);
-					this._tk.addAnnotationUI({autoOpen: true});
 					const annotations = await annotationApiRequests.getAnnotations(obj._id);
 					if (annotations) {
 						annotations.forEach((a) => {

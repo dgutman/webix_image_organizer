@@ -334,11 +334,6 @@ export default class ItemsModel {
 					incorrectKeys.forEach((incorrectKeyObject) => {
 						highlight.add((incorrectKeyObject.incorrectKey.replaceAll("/", ".")).slice(1));
 					});
-					const fixedItem = findAndFixErrors(item);
-					if (fixedItem?.meta) {
-						Object.assign(item.meta, fixedItem.meta);
-						ajaxActions.updateItemMetadata(item._id, fixedItem.meta, item._modelType);
-					}
 				}
 			}
 			catch (err) {

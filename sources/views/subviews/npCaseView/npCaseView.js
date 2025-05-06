@@ -12,7 +12,6 @@ import ScenesView from "../scenesView/scenesView";
 const npPanelCollapserName = "npPanelCollapser";
 const imagesRowSliderCollapserName = "imagesRowSliderCollapserName";
 const toggleStainAndRegionId = "toggleStainAndRegionId";
-const REPOSITION_IMAGES_EVENT = constants.REPOSITION_IMAGES_EVENT_NAME;
 
 export default class NPCaseView extends ScenesView {
 	constructor(app, config) {
@@ -195,44 +194,7 @@ export default class NPCaseView extends ScenesView {
 		});
 	}
 
-	// TODO: fix osd problem
-	_attachNPCaseViewEvents() {
-		this.on(this._modePanelView.getRoot(), REPOSITION_IMAGES_EVENT, (value) => {
-			const slideView = this._slideViewContainer.getCurrentSlideView();
-			const imagesLayout = slideView.getImagesLayout
-				? slideView.getImagesLayout()
-				: null;
-			const slideKeepers = slideView.getSlideKeepers
-				? slideView.getSlideKeepers()
-				: null;
-			const [topSlideKeeper, bottomSlideKeeper] = slideKeepers;
-			if (imagesLayout && topSlideKeeper && bottomSlideKeeper) {
-				const images = [
-					{
-						rows: [
-							slideView.getImageInfoConfig(slideView.getLeftImageInfoName()),
-							topSlideKeeper.osdView,
-						]
-					},
-					{
-						rows: [
-							slideView.getImageInfoConfig(slideView.getRightImageInfoName()),
-							bottomSlideKeeper.osdView
-						]
-					}
-				];
-				if (value === 1) {
-					imagesLayout.define("rows", images);
-				}
-				else {
-					imagesLayout.define("cols", images);
-				}
-				imagesLayout.reconstruct();
-				this.closeCollapsers();
-				this.getRoot().callEvent("onViewShow");
-			}
-		});
-	}
+	_attachNPCaseViewEvents() {}
 
 	syncSlider(dataCollection) {
 		this.dataCollection.sync(dataCollection);

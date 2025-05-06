@@ -1,21 +1,22 @@
 import {JetView} from "webix-jet";
 
 import constants from "../../../../../../constants";
-import { Placeholder } from "../osd-paperjs-annotation";
-import { BrushTool } from "../osd-paperjs-annotation";
-import { DefaultTool } from "../osd-paperjs-annotation";
-import { EllipseTool } from "../osd-paperjs-annotation";
-import { LinestringTool } from "../osd-paperjs-annotation";
-import { PointTool } from "../osd-paperjs-annotation";
-import { PointTextTool } from "../osd-paperjs-annotation";
-import { PolygonTool } from "../osd-paperjs-annotation";
-import { RasterTool } from "../osd-paperjs-annotation";
-import { RectangleTool } from "../osd-paperjs-annotation";
-import { SelectTool } from "../osd-paperjs-annotation";
-import { StyleTool } from "../osd-paperjs-annotation";
-import { TransformTool } from "../osd-paperjs-annotation";
-import { WandTool } from "../osd-paperjs-annotation";
-import { AnnotationToolkit } from "../osd-paperjs-annotation";
+import {
+	DefaultTool,
+	SelectTool,
+	TransformTool,
+	StyleTool,
+	RectangleTool,
+	EllipseTool,
+	PolygonTool,
+	LinestringTool,
+	PointTool,
+	PointTextTool,
+	BrushTool,
+	WandTool,
+	RasterTool,
+} from "../osd-paperjs-annotation";
+import magicWandToolBar from "./toolbars/magicWand";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, /* imageWindowViewModel, */ imageWindowView) {
@@ -483,8 +484,17 @@ export default class ToolbarView extends JetView {
 		const toolIdsKeys = Object.keys(constants.ANNOTATION_TOOL_IDS);
 		toolIdsKeys.forEach((key) => {
 			const toolId = constants.ANNOTATION_TOOL_IDS[key];
-			const toolObj = new toolsConstructors[toolId](paperScope);
-			this._tools[key] = toolObj;
+			const annotationUI = this._tk.annotationUI;
+			const annotationToolbar = annotationUI._toolbar;
+			const annotationTools = annotationToolbar.tools;
+			const annotationToolsKeys = Object.keys(annotationTools);
+			annotationToolsKeys.find((tKey) => {
+				if (annotationTools[tKey] instanceof toolsConstructors[toolId]) {
+					this._tools[toolId] = annotationTools[tKey];
+					return true;
+				}
+				return false;
+			});
 			const control = toolsControls[toolId];
 			if (control) {
 				control.detachEvent(this._toolControlEvents[toolId]);
@@ -492,7 +502,8 @@ export default class ToolbarView extends JetView {
 					// TODO: implement
 				});
 			}
-			toolObj.addEventListener("deactivated", (ev) => {
+			const toolObj = this._tools[toolId];
+			toolObj?.addEventListener("deactivated", (ev) => {
 				// TODO: implement
 			});
 		});
