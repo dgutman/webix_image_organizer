@@ -140,6 +140,13 @@ class HeaderService {
 	setValueAndParseData() {
 		const paramsHostId = this._view.$scope.getParam("host");
 
+		const singleMode = !!constants.SINGLE_SERVER;
+		if (singleMode) {
+			this._view.$scope.setParam("host", constants.SINGLE_SERVER.id, true);
+			this.setSingleHostData();
+			this.parseCollectionData();
+			return;
+		}
 		const firstHostItemId = constants.SERVER_LIST[0].id;
 		const paramsHost = constants.SERVER_LIST.find(item => item.id === paramsHostId);
 		if (paramsHost) {

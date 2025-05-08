@@ -119,6 +119,12 @@ function markWrongMetadata(value, obj, rowId, columnId) {
 	if (obj?.highlightedValues?.find(highlightedValue => highlightedValue === columnId)) {
 		style = {"background-color": "#ff5d5d", color: "#FFFFFF"};
 	}
+	if (value === "No present metadata") {
+		style = {"background-color": "#fc8b18", color: "#FFFFFF"};
+	}
+	if (value?.trim() === "" || value === null || value === undefined) {
+		style = {"background-color": "#ff5d5d", color: "#FFFFFF"};
+	}
 	return style;
 }
 
@@ -133,14 +139,14 @@ function getMetadataColumnTemplate(obj, config, columnId) {
 					&& obj.highlightedValues.find(highlightedValue => highlightedValue === columnId)) {
 				config.cssFormat = markWrongMetadata;
 			}
-			return `<span class="metadata-column-template">${metadataColumnValue}</span>`;
+			return metadataColumnValue;
 		}
 	}
 	else if (obj.hasOwnProperty("patient-meta")) {
 		const metadataColumnValue = getOrEditMetadataColumnValue(obj, `patient-meta.${columnId}`);
 
 		if (metadataColumnValue !== undefined && !(metadataColumnValue instanceof Object)) {
-			return `<span class="metadata-column-template">${metadataColumnValue}</span>`;
+			return metadataColumnValue;
 		}
 	}
 	return "No present metadata";

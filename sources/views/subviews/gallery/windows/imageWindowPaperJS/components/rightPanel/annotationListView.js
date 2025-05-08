@@ -116,6 +116,7 @@ export default class AnnotationListView extends ListView {
 		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", (id) => {
 			const annotation = list.getItem(id);
 			const fc = adapter.annotationToFeatureCollections(annotation);
+			this._tk.addFeatureCollections([], true);
 			if (fc) {
 				this._tk.addFeatureCollections(
 					fc,
