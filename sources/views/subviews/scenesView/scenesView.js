@@ -3,11 +3,13 @@ import {JetView} from "webix-jet";
 import ImagesRowSlider from "./imagesRowSlider";
 import ModePanelView from "./modePanel";
 import SlideViewContainer from "./slideViewContainer";
+import Mode from "./slideViews/mode";
 import constants from "../../../constants";
 import TimedOutBehavior from "../../../utils/timedOutBehavior";
 
 const MODE_CHANGE_EVENT = constants.SCENES_VIEW_CHANGE_MODE_EVENT_NAME;
 const POINTS_MODE_CHANGE_EVENT = constants.SCENES_VIEW_CHANGE_POINTS_MODE_EVENT_NAME;
+const REPOSITION_IMAGES_EVENT = constants.REPOSITION_IMAGES_EVENT_NAME;
 
 export default class ScenesView extends JetView {
 	constructor(app, config) {
@@ -35,6 +37,9 @@ export default class ScenesView extends JetView {
 
 	ready(view) {
 		webix.extend(view, webix.OverlayBox);
+		const switchOrientationValue = Mode.getOrientationMode();
+		const imageOrientationSwitch = this._modePanelView.$imageOrientationSwitch();
+		imageOrientationSwitch.define("value", switchOrientationValue);
 		this._attachSliderEvents();
 		this._attachChangeModeEvents();
 	}
@@ -108,6 +113,15 @@ export default class ScenesView extends JetView {
 		this.on(modePanelView, POINTS_MODE_CHANGE_EVENT, (value) => {
 			this._slideViewContainer.changePointsMode(value);
 		});
+
+		this.on(this._modePanelView.getRoot(), REPOSITION_IMAGES_EVENT, (value) => {
+			Mode.setOrientationMode(value);
+			const imagesSliderListUI = this._imagesSlider.$sliderList();
+			const selectedImages = imagesSliderListUI.getSelectedId(true);
+			imagesSliderListUI.unselectAll();
+			this._modePanelView._callModeChangeEvent("split");
+			selectedImages.forEach(i => imagesSliderListUI.select(i));
+		});
 	}
 
 	_syncApplyHandler(listSlider) {
@@ -129,7 +143,9 @@ export default class ScenesView extends JetView {
 	async _setSelectedImagesToViewer() {
 		const listSlider = this._imagesSlider.$sliderList();
 		const images = listSlider.getSelectedItem(true);
-		await this._slideViewContainer.onImageSelect(images);
+		if (images.length > 0) {
+			await this._slideViewContainer.onImageSelect(images);
+		}
 	}
 
 	_toggleViewOverlay(hide) {

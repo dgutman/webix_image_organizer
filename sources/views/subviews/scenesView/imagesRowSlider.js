@@ -140,6 +140,11 @@ export default class ImagesRowSlider extends JetView {
 		this._attachListEvents();
 	}
 
+	/**
+	 * Description placeholder
+	 *
+	 * @returns {webix.ui.list}
+	 */
 	$sliderList() {
 		this._sliderList = this._sliderList || this.$$(this._sliderId);
 		return this._sliderList;
@@ -290,5 +295,10 @@ export default class ImagesRowSlider extends JetView {
 			}
 		}
 		list.refresh();
+	}
+
+	unselectAll() {
+		const list = this.$sliderList();
+		list.unselectAll();
 	}
 }

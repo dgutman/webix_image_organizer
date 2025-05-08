@@ -1,9 +1,4 @@
 export default class PaperScope {
-	/**
-	 * 
-	 * @param {import("../../views/subviews/gallery/windows/imageWindowPaperJS/osd-paperjs-annotation/annotationtoolkit")} tk 
-	 * @returns 
-	 */
 	constructor(tk) {
 		this._tk = tk;
 		if (!PaperScope.instance) {

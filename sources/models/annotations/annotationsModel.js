@@ -11,7 +11,6 @@ export default class AnnotationsModel {
 	 *
 	 * @constructor
 	 * @param {*} annotationsData
-	 * @param {import("../../libs/osd-paperjs-annotation/dist/main.mjs").AnnotationToolkit} tk
 	 */
 	constructor(annotationsData) {
 		if (!AnnotationsModel.instance) {

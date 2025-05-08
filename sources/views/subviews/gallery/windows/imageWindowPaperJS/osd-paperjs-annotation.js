@@ -24,8 +24,7 @@ import {
 	StyleTool,
 	TransformTool,
 	WandTool
-} from "../../../../../libs/osd-paperjs-annotation/dist/main";
-
+} from "../../../../../libs/osd-paperjs-annotation/dist/main.mjs";
 
 export {
 	AnnotationToolkit,

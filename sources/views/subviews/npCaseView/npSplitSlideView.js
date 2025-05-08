@@ -1,5 +1,6 @@
 import getImageInfo from "./parts/imageInfo";
 import collapser from "../../components/collapser";
+import Mode from "../scenesView/slideViews/mode";
 import SplitSlideView from "../scenesView/slideViews/splitSlideView/splitSlideView";
 
 export default class NPSplitSlideView extends SplitSlideView {
@@ -8,18 +9,57 @@ export default class NPSplitSlideView extends SplitSlideView {
 		this.leftImageInfoName = "left-image-info-name";
 		this.rightImageInfoName = "right-image-info-name";
 		this.imagesLayoutID = `imagesLayoutID-${webix.uid()}`;
+		this._metadataCollapserName = "metadataPanelCollapser";
+		this._controlsPanelCollapserName = "controlsViewCollapser";
 	}
 
 	config() {
-		const metadataCollapserView = collapser.getConfig(this.metadataPanelID, {closed: false, type: "right"}, "metadataPanelCollapser", "Metadata");
-		const controlsCollapserView = collapser.getConfig(this.controlsPanelID, {closed: false, type: "left"}, "controlPanelCollapser", "Controls");
+		const metadataCollapserView = collapser.getConfig(this._metadataPanelID, {closed: false, type: "right"}, this._metadataCollapserName, "Metadata");
+		const controlsCollapserView = collapser.getConfig(this._controlsPanelID, {closed: false, type: "left"}, this._controlsPanelCollapserName, "Controls");
 		const [topSlideKeeper, bottomSlideKeeper] = this._slideKeepers;
+		const osdOrientationMode = Mode.getOrientationMode();
+		const osdViews = osdOrientationMode
+			? {
+				gravity: 3,
+				id: this.imagesLayoutID,
+				rows: [
+					{
+						rows: [
+							getImageInfo(this.leftImageInfoName),
+							topSlideKeeper.osdView,
+						]
+					},
+					{
+						rows: [
+							getImageInfo(this.rightImageInfoName),
+							bottomSlideKeeper.osdView
+						]
+					}
+				]
+			}
+			: {
+				gravity: 3,
+				cols: [
+					{
+						rows: [
+							getImageInfo(this.leftImageInfoName),
+							topSlideKeeper.osdView,
+						]
+					},
+					{
+						rows: [
+							getImageInfo(this.rightImageInfoName),
+							bottomSlideKeeper.osdView
+						]
+					}
+				]
+			};
 		return {
 			...this._cnf,
 			name: "scenesViewerWithControlsCell",
 			cols: [
 				{
-					id: this.controlsPanelID,
+					id: this._controlsPanelID,
 					rows: [
 						getImageInfo(this.leftImageInfoName),
 						topSlideKeeper.controlsView,
@@ -28,27 +68,10 @@ export default class NPSplitSlideView extends SplitSlideView {
 					]
 				},
 				controlsCollapserView,
-				{
-					gravity: 3,
-					id: this.imagesLayoutID,
-					cols: [
-						{
-							rows: [
-								getImageInfo(this.leftImageInfoName),
-								topSlideKeeper.osdView,
-							]
-						},
-						{
-							rows: [
-								getImageInfo(this.rightImageInfoName),
-								bottomSlideKeeper.osdView
-							]
-						}
-					]
-				},
+				osdViews,
 				metadataCollapserView,
 				{
-					id: this.metadataPanelID,
+					id: this._metadataPanelID,
 					rows: [
 						getImageInfo(this.leftImageInfoName),
 						topSlideKeeper.metadataPanel,
@@ -76,7 +99,7 @@ export default class NPSplitSlideView extends SplitSlideView {
 				if (i === 0) {
 					this.updateLeftImageInfo(images[i]);
 				}
-				else {
+				else if (images[i]) {
 					this.updateRightImageInfo(images[i]);
 				}
 				return mapLayer;
@@ -121,8 +144,8 @@ export default class NPSplitSlideView extends SplitSlideView {
 	}
 
 	closeCollapsers() {
-		this.getRoot().queryView({id: this.metadataPanelID}).config.setClosedState();
-		this.getRoot().queryView({id: this.controlsPanelID}).config.setClosedState();
+		this.getRoot().queryView({name: this._metadataCollapserName}).config.setClosedState();
+		this.getRoot().queryView({name: this._controlsPanelCollapserName}).config.setClosedState();
 	}
 
 	getImagesLayout() {
