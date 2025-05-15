@@ -99,7 +99,7 @@ export default class NPSplitSlideView extends SplitSlideView {
 				if (i === 0) {
 					this.updateLeftImageInfo(images[i]);
 				}
-				else {
+				else if (images[i]) {
 					this.updateRightImageInfo(images[i]);
 				}
 				return mapLayer;
