@@ -1,4 +1,5 @@
 import ListView from "../../../../../../components/listView";
+import {FeatureCollectionUI} from "../../osd-paperjs-annotation";
 
 /**
  * Description placeholder
@@ -70,6 +71,6 @@ export default class LayerUI extends ListView {
 		this.element.querySelector(".annotation-ui-feature-collections").appendChild(fc.element);
 		this._dragAndDrop.refresh();
 		fc.element.dispatchEvent(new Event("element-added"));
-		setTimeout(function() {fc.element.classList.add("inserted"); }, 30);//this allows opacity fade-in to be triggered
+		setTimeout(function() {fc.element.classList.add("inserted"); }, 30); //this allows opacity fade-in to be triggered
 	}
 }

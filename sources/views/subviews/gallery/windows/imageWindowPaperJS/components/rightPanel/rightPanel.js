@@ -84,6 +84,7 @@ export default class RightPanel extends JetView {
 
 	attachLayersEvents() {
 		this._tk.paperScope.project.on("feature-collection-added", (ev) => {
+			this.features.clearAll();
 			const group = ev.group;
 			// group.on({
 				// TODO: implement

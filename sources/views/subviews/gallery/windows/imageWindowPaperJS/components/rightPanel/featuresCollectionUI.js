@@ -50,6 +50,7 @@ export default class FeaturesCollection extends ListView {
 
 	addGroup(group) {
 		const list = this.getList();
+		this.featuresView.clearAll();
 		const lastId = list.getLastId() ?? 0;
 		const itemId = list.add({name: `${group.displayName} ${lastId + 1}`, id: Number(lastId) + 1, group});
 		list.select(`${lastId + 1}`);
@@ -73,6 +74,9 @@ export default class FeaturesCollection extends ListView {
 				list.updateItem(itemId, item);
 			},
 			removed: () => {
+				if (Number(itemId) === Number(list.getSelectedId())) {
+					this.featuresView.clearAll();
+				}
 				if (list.getItem(itemId)) {
 					list.remove(itemId);
 				}
@@ -94,23 +98,7 @@ export default class FeaturesCollection extends ListView {
 	}
 
 	editStyle() {
-	}
-
-	updatePaperJSToolkit(tk) {
-		this._tk = tk;
-	}
-
-	/**
-	 * set view for features list
-	 *
-	 * @param {FeatureUI} view
-	 */
-	setFeaturesView(view) {
-		this.featuresView = view;
-	}
-
-	addChild(item) {
-		this.featuresView.addItem(item);
+		// TODO: implement
 	}
 
 	updatePaperJSToolkit(tk) {

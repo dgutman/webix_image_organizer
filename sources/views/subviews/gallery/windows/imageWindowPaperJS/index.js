@@ -11,7 +11,6 @@ import annotationApiRequests from "./services/api";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
 import ToolbarView from "./components/toolbarView";
-// TODO: add annotation API
 import galleryImageUrls from "../../../../../models/galleryImageUrls";
 import nonImageUrls from "../../../../../models/nonImageUrls";
 import ajax from "../../../../../services/ajaxActions";
