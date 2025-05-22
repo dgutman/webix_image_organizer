@@ -1,6 +1,6 @@
 #### Overview
 
-The image organizer app and the tagger application can be run directly from command line, but we also have dockerized versions to simplify deployment.  Docker can be a bit confusing, as you need to expose ports within a container for it to work at all.  Also remember the internal exposed port "within" the container can be mapped to any external port.  
+The image organizer app can be run directly from command line, but we also have dockerized versions to simplify deployment.  Docker can be a bit confusing, as you need to expose ports within a container for it to work at all.  Also remember the internal exposed port "within" the container can be mapped to any external port.  
 
 ### Building a standalone image organizer app
 
@@ -24,7 +24,7 @@ This will run the app imgorg and you can access it on port 3000.  The port on th
 
 ## Testing in a local environment...
 
-We have set up a docker-compose script that will build tagger, image organizer, faceted search, rcm and an additional container that runs some basic image analysis scripts.  To build the containers, type:
+We have set up a docker-compose script that will build image organizer, faceted search, rcm and an additional container that runs some basic image analysis scripts.  To build the containers, type:
 
 ```bash
     docker-compose up -d --build
@@ -32,22 +32,15 @@ We have set up a docker-compose script that will build tagger, image organizer, 
 
 ## NOTES
 
-For now you can run Images Organizer and/or Tagger client by following the instruction:
-1. go to directory with Dockerfile (project directory for IO and ./tagger directory for Tagger)
+For now you can run Images Organizer and/or Faceted Search by following the instruction:
+1. go to directory with Dockerfile (project directory for IO and ./faceted_search directory for Faceted Search)
 2. run "docker build -t <your name> ." command (this will build the image);
 3. run "docker run -itd -p <your port>:80 <image name>"
 
 this will run the app on the specified port.
 
-Don't forget to run the taggerAPI separately (build image and run the container from ./tagger/server directory).
-it uses 4000 port by default, so to run the container use the following command:
-
-```bash
-    docker run -itd -p <your port>:4000 <image name>
-```
-
 Added it to "docker" branch
-So try to run docker-compose up -d --build now and check /tagger, /io /api, /marker /label /sticker routes
+So try to run docker-compose up -d --build now and check /io /api, /marker /label /sticker routes
 
 ## Stopping all running docker containers
 ```bash
@@ -72,4 +65,4 @@ You should see something like this if you run `docker ps` which indicates the va
 
 ## Accessing services
 
-In this configuration, the image organizer is running on port 3000, faceted  search on port 8000, rcm on port 6000, tagger on port 2000, tagger api on port 4000 and the image recognition service is running on port 5000.
+In this configuration, the image organizer is running on port 3000, faceted  search on port 8000, rcm on port 6000 and the image recognition service is running on port 5000.
