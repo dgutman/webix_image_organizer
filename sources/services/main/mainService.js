@@ -2,6 +2,7 @@ import {isObject} from "lodash/lang";
 import lodashObject from "lodash/object";
 
 import constants from "../../constants";
+import { getAnnotationCounts, setAnnotationCounts } from "../../models/annotationCounts";
 import downloadFiles from "../../models/downloadFiles";
 import editableFoldersModel from "../../models/editableFoldersModel";
 import FilterModel from "../../models/filterModel";
@@ -264,6 +265,9 @@ class MainService {
 
 			const warning = obj.imageWarning ? `<span class='webix_icon fas fa-exclamation-triangle warning-icon' style='${this._getPositionFloat(obj)}'></span>` : "";
 			const starHtml = obj.starColor ? `<span class='webix_icon fa fa-star gallery-images-star-icon' style='color: ${obj.starColor}'></span>` : "";
+			const annotationsCount = getAnnotationCounts();
+			const annotationsCountHintHtml = "<span class='gallery-images-annotations-count-hint'>Annotations count</span>";
+			const annotationsCountHtml = `<span class='gallery-images-annotations-count'>${annotationsCount[obj._id] ? annotationsCount[obj._id] : ""}</span>`;
 
 			if (obj.imageWarning) {
 				this._filterModel.addFilterValue("warning");
@@ -294,6 +298,8 @@ class MainService {
 					<div class="gallery-image-wrap" style="height: ${this._checkForImageHeight(IMAGE_HEIGHT)}px">
 						${starHtml}
 						${warning}
+						${annotationsCountHtml}
+						${annotationsCountHintHtml}
 						<img
 							style="${bgIcon}"
 							height="${this._checkForImageHeight(IMAGE_HEIGHT)}"
@@ -1436,6 +1442,9 @@ class MainService {
 		this._finder.select(folderId);
 		this._finder.unblockEvent();
 		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
+		const itemsIdsString = data.map(i => (i._id ? i._id : null)).filter(itemId => itemId !== null).join(",");
+		const itemsAnnotationsCounts = await ajaxActions.getAnnotationsCountsForItems(itemsIdsString);
+		setAnnotationCounts(itemsAnnotationsCounts);
 		if (data.length === 0) {
 			folder.linear = null;
 			this._itemsModel.updateItems(this._finderFolder);
@@ -1460,7 +1469,8 @@ class MainService {
 			const isClearDataCollection = sourceParams.offset === 0;
 			this._itemsModel.parseDataToViews(
 				webix.copy(data),
-				true, folderId,
+				true,
+				folderId,
 				false,
 				isClearDataCollection
 			);

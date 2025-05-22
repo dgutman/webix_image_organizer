@@ -432,6 +432,21 @@ class AjaxActions {
 			return null;
 		}
 	}
+
+	async getAnnotationsCountsForItems(itemIds) {
+		try {
+			const params = {
+				items: itemIds
+			};
+			const url = `${this.getHostApiUrl()}/annotation/counts`;
+			const response = await this._ajax().get(url, params);
+			return this._parseData(response);
+		}
+		catch (error) {
+			parseError(error);
+			return null;
+		}
+	}
 }
 
 const instance = new AjaxActions();
