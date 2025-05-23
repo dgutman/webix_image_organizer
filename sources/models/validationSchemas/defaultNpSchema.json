@@ -75,7 +75,11 @@
                         "GFAP",
                         "NeuN",
                         "NEUROFIL",
-                        "ALPHA-INT"
+                        "ALPHA-INT",
+                        "INT",
+                        "IRON",
+                        "CP13",
+                        "PAS"
                     ]
                 }
             },
