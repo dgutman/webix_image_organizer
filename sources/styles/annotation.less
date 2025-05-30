@@ -78,8 +78,20 @@ body.theme-compact{
 		.right-panel-list__item{
 			.right-panel-list__item_name{
 				display: inline-block;
-				width: 70%;
+				width: 50%;
+				white-space: nowrap;
+				overflow: hidden;
+				height: 24px;
+				padding-right: 5px;
+				text-overflow: ellipsis;
+			}
+			.icon {
+				vertical-align: text-top;
 			}
 		}
 	}
+}
+
+.font-size-12{
+	font-size: 12px;
 }

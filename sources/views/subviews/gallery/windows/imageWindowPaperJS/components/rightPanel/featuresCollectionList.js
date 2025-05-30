@@ -1,3 +1,4 @@
+import FeaturesListView from "./featuresList";
 import ListView from "../../../../../../components/listView";
 
 /**
@@ -8,7 +9,7 @@ import ListView from "../../../../../../components/listView";
  * @typedef {LayerUI}
  * @extends {ListView}
  */
-export default class FeaturesCollection extends ListView {
+export default class FeaturesCollectionListView extends ListView {
 	/**
 	 * Creates an instance of LayerUI.
 	 *
@@ -21,6 +22,8 @@ export default class FeaturesCollection extends ListView {
 		this._tk = annotationToolkit;
 		this.paperScope = this._tk?.paperScope;
 		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+		this.featuresView = null;
+		this._view = null;
 	}
 
 	init() {}
@@ -38,8 +41,13 @@ export default class FeaturesCollection extends ListView {
 			const children = group.getChildren();
 			this.featuresView.clearAll();
 			children.forEach((child) => {
-				this.featuresView.addItem(child);
+				this.featuresView.handleAddItem(child);
 			});
+			this.featuresView.setActiveGroup(group);
+		});
+		list.attachEvent("onAfterDelete", () => {
+			const selectedItem = list.getSelectedItem();
+			this.featuresView.setActiveGroup(selectedItem?.group ?? null);
 		});
 	}
 
@@ -50,7 +58,7 @@ export default class FeaturesCollection extends ListView {
 
 	addGroup(group) {
 		const list = this.getList();
-		this.featuresView.clearAll();
+		this.clearFeaturesItems();
 		const lastId = list.getLastId() ?? 0;
 		const itemId = list.add({name: `${group.displayName} ${lastId + 1}`, id: Number(lastId) + 1, group});
 		list.select(`${lastId + 1}`);
@@ -108,13 +116,28 @@ export default class FeaturesCollection extends ListView {
 	/**
 	 * set view for features list
 	 *
-	 * @param {FeatureUI} view
+	 * @param {FeaturesListView} view
 	 */
 	setFeaturesView(view) {
 		this.featuresView = view;
 	}
 
 	addChild(item) {
-		this.featuresView.addItem(item);
+		this.featuresView.handleAddItem(item);
+	}
+
+	clearFeaturesItems() {
+		if (this.featuresView) {
+			this.featuresView.clearAll();
+		}
+	}
+
+	getActiveGroup() {
+		const list = this.getList();
+		const selectedId = list.getSelectedId();
+		if (selectedId) {
+			return list.getItem(selectedId).group;
+		}
+		return null;
 	}
 }

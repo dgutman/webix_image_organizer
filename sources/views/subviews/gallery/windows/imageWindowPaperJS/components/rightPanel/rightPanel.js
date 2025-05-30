@@ -2,8 +2,9 @@ import { JetView } from "webix-jet";
 
 // import { LayerUI } from "./osd-annotation/js/layerui.mjs";
 import AnnotationListView from "./annotationListView";
-import FeaturesUI from "./featureUI";
-import FeaturesCollectionUI from "./featuresCollectionUI";
+import FeaturesCollectionListView from "./featuresCollectionList";
+import FeaturesListView from "./featuresList";
+import { setAnnotationCounts } from "../../../../../../../models/annotationCounts";
 import annotationApiRequests from "../../services/api";
 
 export default class RightPanel extends JetView {
@@ -12,12 +13,16 @@ export default class RightPanel extends JetView {
 		// TODO: overwrite add items methods;
 		this.annotationsView = new AnnotationListView(app);
 		this.annotationsView.gravity = 0.5;
-		this.featuresGroups = new FeaturesCollectionUI(app, {name: "Feature Collections", newItemName: "Group"});
+		this.featuresGroups = new FeaturesCollectionListView(app, {name: "Feature Collections", newItemName: "Group"});
 		this.featuresGroups.gravity = 1;
-		this.features = new FeaturesUI(app, {name: "Features", newItemName: "Creating..."});
+		this.features = new FeaturesListView(app, {name: "Features", newItemName: "Creating..."});
 		this.features.gravity = 1;
 		this.featuresGroups.setFeaturesView(this.features);
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
+		this.deletedAnnotations = [];
+		this._tk = null; // PaperJS toolkit
+		this._view = null;
+		this._itemId = null; // Item id set in index.js
 	}
 
 	config() {
@@ -41,24 +46,7 @@ export default class RightPanel extends JetView {
 	ready(view) {
 		this._view = view;
 		const saveButtonView = this.getSaveButton();
-		saveButtonView.attachEvent("onItemClick", () => {
-			const annotationsListView = this.getAnnotationsListView();
-			const annotationListItems = annotationsListView.serialize();
-			annotationListItems.forEach(async (annotationItem) => {
-				if (annotationItem._id) {
-					annotationApiRequests.updateAnnotation(annotationItem._id, annotationItem.annotation);
-				}
-				else {
-					const itemId = annotationItem.itemId;
-					const newAnnotation = itemId
-						? await annotationApiRequests.createAnnotation(itemId, annotationItem.annotation)
-						: null;
-					if (newAnnotation) {
-						this.annotationsView.updateAnnotation(annotationItem.id, newAnnotation);
-					}
-				}
-			});
-		});
+		saveButtonView.attachEvent("onItemClick", () => this.saveAnnotationState());
 	}
 
 	getAnnotationsListView() {
@@ -105,12 +93,44 @@ export default class RightPanel extends JetView {
 	}
 
 	saveAnnotationState() {
-		// TODO: implement
+		this.annotationsView.updateAnnotation();
+		const annotationsListView = this.getAnnotationsListView();
+		const annotationListItems = annotationsListView.serialize();
+		annotationListItems.forEach(async (annotationItem) => {
+			if (annotationItem._id) {
+				annotationApiRequests.updateAnnotation(annotationItem._id, annotationItem.annotation);
+			}
+			else {
+				const itemId = annotationItem.itemId || this._itemId;
+				const newAnnotation = itemId
+					? await annotationApiRequests.createAnnotation(itemId, annotationItem.annotation)
+					: null;
+				if (newAnnotation) {
+					this.annotationsView.updateAnnotation(annotationItem.id, newAnnotation);
+				}
+			}
+		});
+		this.deletedAnnotations.forEach(async (deletedAnnotation) => {
+			if (deletedAnnotation._id) {
+				await annotationApiRequests.deleteAnnotation(deletedAnnotation._id);
+			}
+		});
+		this.deletedAnnotations = [];
+	}
+
+	setItemId(itemId) {
+		this._itemId = itemId;
+	}
+
+	async updateAnnotationsCount() {
+		const count = await annotationApiRequests.getAnnotationsCount(this._itemId);
+		setAnnotationCounts(this._itemId, count);
 	}
 
 	reset() {
 		this.annotationsView.clearAll();
 		this.featuresGroups.clearAll();
 		this.features.clearAll();
+		this.deletedAnnotations = [];
 	}
 }

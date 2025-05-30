@@ -1,5 +1,7 @@
+import { setAnnotationCounts } from "./annotationCounts";
 import constants from "../constants";
 import projectMetadata from "./projectMetadata";
+import ajaxActions from "../services/ajaxActions";
 
 export default class FinderModel {
 	constructor(view, finder, itemsModel) {
@@ -30,6 +32,13 @@ export default class FinderModel {
 							if (items) {
 								array.push(...items);
 								itemsArray.push(...items);
+							}
+							if (items.length > 0) {
+								const itemsIdsString = items.map(i => (i._id ? i._id : null)).filter(itemId => itemId !== null).join(",");
+								ajaxActions.getAnnotationsCountsForItems(itemsIdsString)
+									.then((itemsAnnotationsCounts) => {
+										setAnnotationCounts(itemsAnnotationsCounts);
+									});
 							}
 							itemsModel.parseItems(array, item.id);
 							itemsModel.parseDataToViews(itemsArray, false, item.id, results.length, true);

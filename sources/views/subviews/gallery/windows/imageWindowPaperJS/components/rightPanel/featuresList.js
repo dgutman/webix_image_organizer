@@ -1,14 +1,15 @@
+import TimedOutBehavior from "../../../../../../../utils/timedOutBehavior";
 import ListView from "../../../../../../components/listView";
 
 /**
  * Description placeholder
  *
  * @export
- * @class LayerUI
- * @typedef {LayerUI}
+ * @class FeaturesListView
+ * @typedef {FeaturesListView}
  * @extends {ListView}
  */
-export default class FeatureUI extends ListView {
+export default class FeaturesListView extends ListView {
 	/**
 	 * Creates an instance of LayerUI.
 	 *
@@ -20,7 +21,9 @@ export default class FeatureUI extends ListView {
 		super(app, config);
 		this._tk = annotationToolkit;
 		this.paperScope = this._tk?.paperScope;
-		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+		this.attachEvents();
+		this._view = null;
+		this.activeGroup = null;
 	}
 
 	init() {}
@@ -30,15 +33,17 @@ export default class FeatureUI extends ListView {
 		this.attachEvents();
 	}
 
-	attachEvents() {}
+	attachEvents() {
+		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+	}
 
-	addItem(paperjsItem) {
+	handleAddItem(paperjsItem) {
 		if (!paperjsItem) {
 			return;
 		}
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${paperjsItem.displayName} ${lastId + 1}`, id: Number(lastId) + 1});
+		const itemId = list.add({name: `${paperjsItem.displayName} ${lastId + 1}`, id: Number(lastId) + 1, feature: paperjsItem});
 		list.select(`${lastId + 1}`);
 		paperjsItem.on({
 			selected: () => {
@@ -72,8 +77,20 @@ export default class FeatureUI extends ListView {
 		});
 	}
 
-	editItem() {
+	addItem() {
+		// const list = this.getList();
+		// list.add({name: this.config.newItemName, id: list.getLastId() + 1});
+		const group = this.activeGroup;
+		if (group) {
+			const item = group.featureCollectionUI.createFeature();
+			item.select();
+		}
+	}
+
+	editItem(ev, id) {
 		// TODO: implement
+		const list = this.getList();
+		const item = list.getItem(id);
 	}
 
 	deleteItem(id) {
@@ -111,5 +128,52 @@ export default class FeatureUI extends ListView {
 			list.add(f);
 		});
 		this.app.callEvent("app:feature-ui-element-added");
+	}
+
+	setActiveGroup(activeGroup) {
+		this.activeGroup = activeGroup;
+		this.updateAddButtonState();
+	}
+
+	updateAddButtonState() {
+		const addButton = this.getAddButton();
+		if (this.activeGroup) {
+			addButton.enable();
+		}
+		else {
+			addButton.disable();
+		}
+	}
+
+	handleFocus(event, id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		if (item) {
+			const feature = item.feature;
+			this.centerItem(feature);
+		}
+	}
+
+	centerItem(paperItem, immediately = false) {
+		const viewport = paperItem.project.overlay.viewer.viewport;
+		const bounds = paperItem.bounds;
+		const center = viewport.imageToViewportCoordinates(bounds.center.x, bounds.center.y);
+		const scale = 1.5;
+		const xy = viewport.imageToViewportCoordinates(
+			bounds.center.x - bounds.width / scale,
+			bounds.center.y - bounds.height / scale
+		);
+		const wh = viewport.imageToViewportCoordinates(
+			2 * bounds.width / scale,
+			2 * bounds.height / scale
+		);
+		const rect = new OpenSeadragon.Rect(xy.x, xy.y, wh.x, wh.y);
+		const vb = viewport.getBounds();
+		if (rect.width > vb.width || rect.height > vb.height) {
+			viewport.fitBounds(rect, immediately);
+		}
+		else {
+			viewport.panTo(center, immediately);
+		}
 	}
 }

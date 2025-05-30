@@ -5,6 +5,7 @@ export default class AnnotationListView extends ListView {
 	constructor(app, config = {name: "Annotations", newItemName: "Annotation"}, openSeadragonViewer) {
 		super(app, config);
 		this._openSeadragonViewer = openSeadragonViewer;
+		this.eventsList = [];
 	}
 
 	config() {
@@ -15,12 +16,12 @@ export default class AnnotationListView extends ListView {
 			template: (obj) => {
 				// TODO check item for visibility
 				const hidden = true;
-				const editIcon = '<span class="edit-item fas fa-edit"></span>';
-				const deleteIcon = '<span class="delete-item fas fa-times-circle"></span>';
-				const visibleIcon = `<span class="visible fas fa-eye ${hidden ? "hidden-block" : ""}"></span>`;
-				const invisibleIcon = `<span class="invisible fas fa-eye-slash ${hidden ? "hidden-block" : ""}"></span>`;
+				const editIcon = '<span class="icon edit-item fas fa-edit font-size-12"></span>';
+				const deleteIcon = '<span class="icon delete-item fas fa-times-circle font-size-12"></span>';
+				const visibleIcon = `<span class="icon visible fas fa-eye ${hidden ? "hidden-block" : ""} font-size-12"></span>`;
+				const invisibleIcon = `<span class="icon invisible fas fa-eye-slash ${hidden ? "hidden-block" : ""} font-size-12"></span>`;
 				const name = `<span class="right-panel-list__item_name">${obj.annotation.name}</span>`;
-				const element = `<div class="right-panel-list__item" style="padding-left:18px" title="${obj.annotation.description}">
+				const element = `<div class="right-panel-list__item" style="padding-left:18px" title="${obj.annotation.name}\n${obj.annotation.description}">
 									${name}
 									${invisibleIcon}
 									${visibleIcon}
@@ -62,7 +63,7 @@ export default class AnnotationListView extends ListView {
 			view: "button",
 			id: this.ID_ADD_BUTTON,
 			click: () => {
-				this.addItem({annotation: {elements: []}});
+				this.addItem({annotation: {elements: []}, itemId: this.itemId});
 			},
 			label: "Add new",
 			height: 30,
@@ -74,6 +75,7 @@ export default class AnnotationListView extends ListView {
 			rows: [
 				{
 					cols: [
+						{width: 10},
 						label,
 						addButton
 					]
@@ -99,7 +101,6 @@ export default class AnnotationListView extends ListView {
 
 	attachEvents() {
 		const list = this.getList();
-		// TODO: use array for events
 		this._onBeforeSelectEvent = list.attachEvent("onBeforeSelect", (id, selectionFlag) => {
 			const selectedId = list.getSelectedId();
 			if (selectedId === id) {
@@ -107,9 +108,7 @@ export default class AnnotationListView extends ListView {
 			}
 			const selectedItem = list.getSelectedItem();
 			if (selectedItem) {
-				const geoJSON = this._tk.toGeoJSON();
-				selectedItem.annotation.elements = adapter.featureCollectionsToElements(geoJSON);
-				list.updateItem(selectedId, selectedItem);
+				this.updateAnnotation(selectedId);
 			}
 			return selectionFlag;
 		});
@@ -147,21 +146,51 @@ export default class AnnotationListView extends ListView {
 		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", (id) => {
 			// TODO: implement
 		});
+		this.eventsList.push(
+			this._onBeforeSelectEvent,
+			this._onAfterSelectEvent,
+			this._onAfterAddEvent,
+			this._onAfterDeleteEvent
+		);
+		list.attachEvent("onDestruct", () => {
+			this.detachEvents();
+		});
 	}
 
 	detachEvents() {
 		const list = this.getList();
-		list.detachEvent(this._onAfterSelectEvent);
-		list.detachEvent(this._onAfterAddEvent);
-		list.detachEvent(this._onAfterDeleteEvent);
+		this.eventsList.forEach((eventId) => {
+			list.detachEvent(eventId);
+		});
 	}
 
-	deleteItem() {
-		// TODO: implement
+	deleteItem(id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		const selectedId = list.getSelectedId();
+		if (item) {
+			list.remove(id);
+			if (selectedId === id) {
+				const firstId = list.getFirstId();
+				if (firstId) {
+					list.select(firstId);
+				}
+				else {
+					this._tk.clear();
+				}
+			}
+		}
 	}
 
-	updateAnnotation(annotationData, annotationId) {
-		// TODO: implement
+	updateAnnotation(annotationId) {
+		const list = this.getList();
+		const currentAnnotationId = annotationId || list.getSelectedId();
+		const item = list.getItem(currentAnnotationId);
+		if (item) {
+			const geoJSON = this._tk.toGeoJSON();
+			const elements = adapter.featureCollectionsToElements(geoJSON);
+			item.annotation.elements = elements;
+		}
 	}
 
 	addAnnotation(annotation) {

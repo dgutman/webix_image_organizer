@@ -24,8 +24,14 @@ const WIDTH = 1050;
 const LEFT_PANEL_ID = "#left-window-panel-id";
 const CONTROLS_PANEL_ID = "#openseadragon-viewer-controls-id";
 const RIGHT_PANEL_ID = `right-window-panel-id-${webix.uid()}`;
+const RIGHT_PANEL_WITH_COLLAPSER_ID = `right-panel-collapser-id-${webix.uid()}`;
 const WINDOW_TITLE_ID = "#window-title-id";
 const IMAGE_CONTAINER_ID = "#image-container-id";
+const WEBIX_TOOLBAR_BUTTON_ID = `webix-toolbar-button-id-${webix.uid()}`;
+
+const webixToolbarState = {
+	webixToolbarShow: true
+};
 
 export default class ImageWindowView extends JetView {
 	constructor(app, config) {
@@ -71,6 +77,15 @@ export default class ImageWindowView extends JetView {
 						localId: WINDOW_TITLE_ID,
 						template: obj => obj.name,
 						borderless: true
+					},
+					{
+						width: 150,
+						view: "button",
+						label: `Webix toolbar ${webixToolbarState.webixToolbarShow ? "ON" : "OFF"}`,
+						id: WEBIX_TOOLBAR_BUTTON_ID,
+						click: () => {
+							this.changeState();
+						},
 					},
 					{
 						view: "icon",
@@ -204,6 +219,7 @@ export default class ImageWindowView extends JetView {
 								]
 							},
 							{
+								id: RIGHT_PANEL_WITH_COLLAPSER_ID,
 								cols: [
 									rightPanelCollapser,
 									{
@@ -340,6 +356,7 @@ export default class ImageWindowView extends JetView {
 					this._toolbarView.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updateOSDViewer(this._openSeadragonViewer);
+					this._rightPanel.setItemId(obj._id);
 					const annotations = await annotationApiRequests.getAnnotations(obj._id);
 					if (annotations) {
 						annotations.forEach((a) => {
@@ -378,6 +395,7 @@ export default class ImageWindowView extends JetView {
 				})
 				.finally(() => this.view.hideProgress());
 		}
+		this.changeState(false);
 	}
 
 	// Initializing Seadragon, setting needed options
@@ -429,5 +447,21 @@ export default class ImageWindowView extends JetView {
 		}
 		this.$imageContainer.parse({emptyObject: true});
 		this.getRoot().hide();
+	}
+
+	changeState(state) {
+		webixToolbarState.webixToolbarShow = state ?? !webixToolbarState.webixToolbarShow;
+		const rightPanelWithCollapser = this.$$(RIGHT_PANEL_WITH_COLLAPSER_ID);
+		if (webixToolbarState.webixToolbarShow) {
+			this._toolbarView.getRoot().show();
+			rightPanelWithCollapser.show();
+		}
+		else {
+			this._toolbarView.getRoot().hide();
+			rightPanelWithCollapser.hide();
+		}
+		const webixToolbarButton = this.getRoot().queryView({id: WEBIX_TOOLBAR_BUTTON_ID});
+		webixToolbarButton.define("label", `Webix toolbar ${webixToolbarState.webixToolbarShow ? "ON" : "OFF"}`);
+		webixToolbarButton.refresh();
 	}
 }
