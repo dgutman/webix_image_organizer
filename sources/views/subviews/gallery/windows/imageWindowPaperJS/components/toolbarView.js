@@ -1,6 +1,7 @@
 import {JetView} from "webix-jet";
 
 import constants from "../../../../../../constants";
+import annotationConstants from "../constants";
 import {
 	DefaultTool,
 	SelectTool,
@@ -98,6 +99,7 @@ export default class ToolbarView extends JetView {
 		);
 		const drawingToolbar = {
 			view: "toolbar",
+			id: annotationConstants.ANNOTATION_TOOLBAR_ID,
 			name: "drawing_toolbar",
 			cols: [
 				{

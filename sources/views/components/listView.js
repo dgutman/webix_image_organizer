@@ -20,9 +20,11 @@ export default class ListView extends JetView {
 
 	config() {
 		const list = {
-			view: "list",
+			view: this.viewName,
 			id: this.ID_LIST,
 			css: "right-panel-list",
+			editable: true,
+			editor: "custom",
 			template: (obj) => {
 				// TODO check item for visibility
 				const iconsVisibility = Object.assign({}, this.iconsVisibility);
@@ -106,15 +108,38 @@ export default class ListView extends JetView {
 	addItem(attributes) {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({name: `${this._newItemName} ${lastId + 1}`, id: Number(lastId) + 1, ...attributes});
+		list.add({name: `${this._newItemName}`, id: Number(lastId) + 1, ...attributes});
 	}
 
 	editItem(event, id) {
 		const list = this.getList();
 		const item = list.getItem(id);
-		if (item) {
-			list.editItem(id);
-		}
+		const node = list.getItemNode(id);
+		const nameEditor = {
+			view: "text",
+			value: item.name || "Name",
+			name: "edit-name",
+			placeholder: "name",
+		};
+		const editPopup = this.webix.ui({
+			view: "popup",
+			body: {
+				rows: [
+					nameEditor,
+					{
+						view: "button",
+						value: "Save",
+						click: () => {
+							const name = editPopup.queryView({view: "text"}).getValue();
+							item.name = name;
+							list.updateItem(item.id, item);
+							editPopup.close();
+						}
+					},
+				]
+			}
+		});
+		editPopup.show(node);
 	}
 
 	deleteItem(id) {

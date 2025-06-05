@@ -43,7 +43,7 @@ export default class FeaturesListView extends ListView {
 		}
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${paperjsItem.displayName} ${lastId + 1}`, id: Number(lastId) + 1, feature: paperjsItem});
+		const itemId = list.add({name: `${paperjsItem.displayName}`, id: Number(lastId) + 1, feature: paperjsItem});
 		list.select(`${lastId + 1}`);
 		paperjsItem.on({
 			selected: () => {
@@ -78,8 +78,6 @@ export default class FeaturesListView extends ListView {
 	}
 
 	addItem() {
-		// const list = this.getList();
-		// list.add({name: this.config.newItemName, id: list.getLastId() + 1});
 		const group = this.activeGroup;
 		if (group) {
 			const item = group.featureCollectionUI.createFeature();
@@ -87,10 +85,36 @@ export default class FeaturesListView extends ListView {
 		}
 	}
 
-	editItem(ev, id) {
-		// TODO: implement
+	editItem(event, id) {
 		const list = this.getList();
 		const item = list.getItem(id);
+		const node = list.getItemNode(id);
+		const nameEditor = {
+			view: "text",
+			value: item.name || "Name",
+			name: "edit-name",
+			placeholder: "name",
+		};
+		const editPopup = this.webix.ui({
+			view: "popup",
+			body: {
+				rows: [
+					nameEditor,
+					{
+						view: "button",
+						value: "Save",
+						click: () => {
+							const name = editPopup.queryView({view: "text"}).getValue();
+							item.name = name;
+							list.updateItem(item.id, item);
+							item.feature.displayName = name;
+							editPopup.close();
+						}
+					},
+				]
+			}
+		});
+		editPopup.show(node);
 	}
 
 	deleteItem(id) {

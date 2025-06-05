@@ -209,21 +209,23 @@ export default class AnnotationListView extends ListView {
 	}
 
 	editItem(item, node) {
+		const nameEditor = {
+			view: "text",
+			value: item.annotation.name || "Annotation Name",
+			name: "edit-name",
+			placeholder: "name",
+		};
+		const descriptionEditor = {
+			view: "textarea",
+			value: item.annotation.description || "",
+			placeholder: "description",
+		};
 		const editPopup = this.webix.ui({
 			view: "popup",
 			body: {
 				rows: [
-					{
-						view: "text",
-						value: item.annotation.name || "Annotation Name",
-						name: "edit-annotation-name",
-						placeholder: "name",
-					},
-					{
-						view: "textarea",
-						value: item.annotation.description || "",
-						placeholder: "description",
-					},
+					nameEditor,
+					descriptionEditor,
 					{
 						view: "button",
 						value: "Save",

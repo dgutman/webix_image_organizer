@@ -1,5 +1,7 @@
 import FeaturesListView from "./featuresList";
 import ListView from "../../../../../../components/listView";
+import editStyle from "../toolbars/styleEditor";
+import annotationConstants from "../../constants";
 
 /**
  * Description placeholder
@@ -24,6 +26,8 @@ export default class FeaturesCollectionListView extends ListView {
 		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
 		this.featuresView = null;
 		this._view = null;
+		this.activeGroup = null;
+		this.iconsVisibility.focusIcon = false;
 	}
 
 	init() {}
@@ -96,8 +100,36 @@ export default class FeaturesCollectionListView extends ListView {
 		});
 	}
 
-	editItem() {
-		// TODO: implement
+	editItem(event, id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		const node = list.getItemNode(id);
+		const nameEditor = {
+			view: "text",
+			value: item.name || "Name",
+			name: "edit-name",
+			placeholder: "name",
+		};
+		const editPopup = this.webix.ui({
+			view: "popup",
+			body: {
+				rows: [
+					nameEditor,
+					{
+						view: "button",
+						value: "Save",
+						click: () => {
+							const name = editPopup.queryView({view: "text"}).getValue();
+							item.name = name;
+							list.updateItem(item.id, item);
+							item.group.displayName = name;
+							editPopup.close();
+						}
+					},
+				]
+			}
+		});
+		editPopup.show(node);
 	}
 
 	deleteItem(id) {
@@ -107,6 +139,15 @@ export default class FeaturesCollectionListView extends ListView {
 
 	editStyle() {
 		// TODO: implement
+		const activeGroup = this.getActiveGroup();
+		const editStyleConfig = editStyle.getConfig(activeGroup, "group");
+		const editStylePopup = webix.ui(editStyleConfig);
+		editStyle.attachEvents("group");
+		const toolbarNode = this.getRoot()
+			.getTopParentView()
+			.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})
+			?.getNode();
+		editStylePopup.show(toolbarNode);
 	}
 
 	updatePaperJSToolkit(tk) {
