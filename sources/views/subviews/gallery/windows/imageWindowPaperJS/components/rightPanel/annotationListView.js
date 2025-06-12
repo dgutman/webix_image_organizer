@@ -14,7 +14,6 @@ export default class AnnotationListView extends ListView {
 			id: this.ID_LIST,
 			css: "right-panel-list",
 			template: (obj) => {
-				// TODO check item for visibility
 				const hidden = true;
 				const editIcon = '<span class="icon edit-item fas fa-edit font-size-12"></span>';
 				const deleteIcon = '<span class="icon delete-item fas fa-times-circle font-size-12"></span>';

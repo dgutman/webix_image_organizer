@@ -3,6 +3,7 @@ import {JetView} from "webix-jet";
 
 import RightPanel from "./components/rightPanel/rightPanel";
 // import ToolbarView from "./components/toolbarView";
+import magicWandToolbar from "./components/toolbars/magicWand";
 import ControlsView from "./controlsView";
 import { AnnotationToolkit } from "./osd-paperjs-annotation";
 // TODO: add rotation control
@@ -442,9 +443,11 @@ export default class ImageWindowView extends JetView {
 		// to clear setted template
 		// to destroy Open Seadragon viewer
 		if (this._openSeadragonViewer) {
+			// TODO: check the feature search
 			this._tk.close();
 			this._openSeadragonViewer.destroy();
 		}
+		magicWandToolbar.closeMagicWandToolbar();
 		this.$imageContainer.parse({emptyObject: true});
 		this.getRoot().hide();
 	}

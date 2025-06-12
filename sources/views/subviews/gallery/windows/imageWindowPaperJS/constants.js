@@ -9,4 +9,8 @@ export default {
 	IMAGE_CONTAINER_ID: "#image-container-id",
 	WEBIX_TOOLBAR_BUTTON_ID: `webix-toolbar-button-id-${webix.uid()}`,
 	ANNOTATION_TOOLBAR_ID: `annotation-toolbar-id-${webix.uid()}`,
+	ANNOTATION_PAPERJS_TYPES: {
+		GROUP: "group",
+		FEATURE: "feature",
+	},
 };

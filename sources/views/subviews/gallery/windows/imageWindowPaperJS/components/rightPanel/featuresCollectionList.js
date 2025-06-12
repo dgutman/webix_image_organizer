@@ -22,8 +22,7 @@ export default class FeaturesCollectionListView extends ListView {
 	constructor(app, config = {name: "Feature Collections", newItemName: "Annotation Group"}, annotationToolkit) {
 		super(app, config);
 		this._tk = annotationToolkit;
-		this.paperScope = this._tk?.paperScope;
-		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+		this.updatePaperJSToolkit(annotationToolkit);
 		this.featuresView = null;
 		this._view = null;
 		this.activeGroup = null;
@@ -132,26 +131,36 @@ export default class FeaturesCollectionListView extends ListView {
 		editPopup.show(node);
 	}
 
-	deleteItem(id) {
+	deleteItem(ev, id) {
 		const listView = this.getList();
 		listView.remove(id);
 	}
 
-	editStyle() {
-		// TODO: implement
-		const activeGroup = this.getActiveGroup();
-		const editStyleConfig = editStyle.getConfig(activeGroup, "group");
-		const editStylePopup = webix.ui(editStyleConfig);
-		editStyle.attachEvents("group");
-		const toolbarNode = this.getRoot()
-			.getTopParentView()
-			.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})
-			?.getNode();
-		editStylePopup.show(toolbarNode);
+	editStyle(ev, id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		const group = item.group;
+		if (group) {
+			const editStyleConfig = editStyle.getConfig(
+				group,
+				annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP
+			);
+			const editStylePopup = webix.ui(editStyleConfig);
+			editStyle.attachEvents(group, annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP);
+			const toolbarNode = this.getRoot()
+				.getTopParentView()
+				.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})
+				?.getNode();
+			editStylePopup.show(toolbarNode);
+		}
+		else {
+			webix.message(`the group is not defined for item ${id}`, "error");
+		}
 	}
 
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
+		this.paperScope = this._tk?.paperScope;
 	}
 
 	/**
@@ -180,5 +189,13 @@ export default class FeaturesCollectionListView extends ListView {
 			return list.getItem(selectedId).group;
 		}
 		return null;
+	}
+
+	togglePaperJSVisibility(item, isVisible) {
+		const group = item.group;
+		if (group) {
+			group.visible = !isVisible;
+			this.paperScope?.project.view.update();
+		}
 	}
 }

@@ -1,5 +1,6 @@
-import TimedOutBehavior from "../../../../../../../utils/timedOutBehavior";
 import ListView from "../../../../../../components/listView";
+import styleEditor from "../toolbars/styleEditor";
+import annotationConstants from "../../constants";
 
 /**
  * Description placeholder
@@ -20,7 +21,7 @@ export default class FeaturesListView extends ListView {
 	constructor(app, config = {name: "Features", newItemName: "Creating..."}, annotationToolkit) {
 		super(app, config);
 		this._tk = annotationToolkit;
-		this.paperScope = this._tk?.paperScope;
+		this.updatePaperJSToolkit(annotationToolkit);
 		this.attachEvents();
 		this._view = null;
 		this.activeGroup = null;
@@ -117,17 +118,33 @@ export default class FeaturesListView extends ListView {
 		editPopup.show(node);
 	}
 
-	deleteItem(id) {
+	deleteItem(ev, id) {
 		const listView = this.getList();
 		listView.remove(id);
 	}
 
-	editStyle() {
-		// TODO: implement
+	editStyle(ev, id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		if (item?.feature) {
+			const popupConfig = styleEditor.getConfig(
+				item.feature,
+				annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE
+			);
+			const popup = this.webix.ui(popupConfig);
+			styleEditor.attachEvents(item.feature, annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE);
+			popup.show();
+			const toolbarNode = this.getRoot()
+				.getTopParentView()
+				.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})
+				?.getNode();
+			popup.show(toolbarNode);
+		}
 	}
 
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
+		this.paperScope = this._tk?.paperScope;
 	}
 
 	/**
@@ -136,7 +153,6 @@ export default class FeaturesListView extends ListView {
 	 * @private
 	 */
 	_onFeatureCollectionAdded(ev) {
-		// TODO: rewrite for webix
 		let grp = ev.group;
 
 		// // TODO: add item to LayerUI
@@ -198,6 +214,13 @@ export default class FeaturesListView extends ListView {
 		}
 		else {
 			viewport.panTo(center, immediately);
+		}
+	}
+
+	togglePaperJSVisibility(item, isVisible) {
+		if (item.feature) {
+			item.feature.visible = !isVisible;
+			this.paperScope?.project.view.update();
 		}
 	}
 }

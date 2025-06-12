@@ -10,7 +10,6 @@ import annotationApiRequests from "../../services/api";
 export default class RightPanel extends JetView {
 	constructor(app, config = {}) {
 		super(app, config);
-		// TODO: overwrite add items methods;
 		this.annotationsView = new AnnotationListView(app);
 		this.annotationsView.gravity = 0.5;
 		this.featuresGroups = new FeaturesCollectionListView(app, {name: "Feature Collections", newItemName: "Group"});
@@ -75,7 +74,7 @@ export default class RightPanel extends JetView {
 			this.features.clearAll();
 			const group = ev.group;
 			// group.on({
-				// TODO: implement
+			// TODO: implement if necessary
 			// })
 			this.featuresGroups.addGroup(group);
 		});

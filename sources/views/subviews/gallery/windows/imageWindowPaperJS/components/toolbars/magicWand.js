@@ -1,10 +1,19 @@
-import { view } from "paper/dist/paper-core";
+const annotationMagicWandToolbarId = "annotationMagicWandToolbar";
 
-function getConfig() {
+function getConfig(wandTool) {
 	const config = {
-		view: "popup",
+		view: "window",
+		id: annotationMagicWandToolbarId,
 		height: 80,
-		width: 700,
+		width: 800,
+		head: {
+			height: 1,
+		},
+		on: {
+			onBeforeHide() {
+				return false;
+			}
+		},
 		body: {
 			height: 60,
 			cols: [
@@ -14,20 +23,18 @@ function getConfig() {
 						{
 							view: "label",
 							label: "Threshold",
+							height: 22,
 						},
 						{
 							view: "slider",
 							id: "magicWandThreshold",
 							min: 0,
 							max: 255,
-							value: 0,
+							value: wandTool.startThreshold,
 							step: 1,
 							on: {
 								onChange(newValue) {
-									const magicWand = $$("magicWand");
-									if (magicWand) {
-										magicWand.setValue(newValue);
-									}
+									wandTool.setThreshold(newValue);
 								}
 							}
 						}
@@ -35,11 +42,12 @@ function getConfig() {
 				},
 				{width: 10},
 				{
-					width: 100,
+					width: 120,
 					rows: [
 						{
 							view: "label",
 							label: "On click:",
+							height: 22,
 						},
 						{
 							view: "button",
@@ -47,13 +55,28 @@ function getConfig() {
 							label: "Start new mask",
 							on: {
 								onItemClick() {
-									const magicWand = $$("magicWand");
-									if (magicWand) {
-										magicWand.setValue(0);
-									}
+									const isReplaceMode = true;
+									$$("magicWandStartNewMaskButton").hide();
+									$$("magicWandAddToCurrentMaskButton").show();
+									wandTool.setReplaceMode(isReplaceMode);
 								}
 							}
-						}
+						},
+						{
+							view: "button",
+							id: "magicWandAddToCurrentMaskButton",
+							label: "Add to current",
+							hidden: true,
+							on: {
+								onItemClick() {
+									const isReplaceMode = false;
+									$$("magicWandStartNewMaskButton").show();
+									$$("magicWandAddToCurrentMaskButton").hide();
+									wandTool.setReplaceMode(isReplaceMode);
+								}
+							}
+						},
+
 					]
 				},
 				{
@@ -62,6 +85,7 @@ function getConfig() {
 						{
 							view: "label",
 							label: "Fill rule:",
+							height: 22,
 						},
 						{
 							view: "button",
@@ -69,32 +93,60 @@ function getConfig() {
 							label: "Contiguous",
 							on: {
 								onItemClick() {
-									const magicWand = $$("magicWand");
-									if (magicWand) {
-										magicWand.setValue(0);
-									}
+									const isFloodMode = true;
+									$$("magicWandContiguousButton").hide();
+									$$("magicWandAnywhereButton").show();
+									wandTool.setFloodMode(isFloodMode);
+								}
+							}
+						},
+						{
+							view: "button",
+							id: "magicWandAnywhereButton",
+							hidden: true,
+							label: "Anywhere",
+							on: {
+								onItemClick() {
+									const isFloodMode = false;
+									$$("magicWandAnywhereButton").hide();
+									$$("magicWandContiguousButton").show();
+									wandTool.setFloodMode(isFloodMode);
 								}
 							}
 						}
 					]
 				},
 				{
-					width: 100,
+					width: 120,
 					rows: [
 						{
 							view: "label",
 							label: "Use to:",
+							height: 22,
 						},
 						{
 							view: "button",
 							id: "magicWandExpandSelectionButton",
-							label: "ExpandSelection",
+							label: "Expand Selection",
 							on: {
 								onItemClick() {
-									const magicWand = $$("magicWand");
-									if (magicWand) {
-										magicWand.setValue(0);
-									}
+									const isReduceMode = false;
+									$$("magicWandExpandSelectionButton").hide();
+									wandTool.setReduceMode(isReduceMode);
+								}
+							}
+						},
+						{
+							view: "button",
+							id: "magicWandReduceSelectionButton",
+							label: "Reduce Selection",
+							hidden: true,
+							on: {
+								onItemClick() {
+									const isReduceMode = true;
+									$$("magicWandReduceSelectionButton").hide();
+									$$("magicWandExpandSelectionButton").show();
+									wandTool.setReduceMode(isReduceMode);
 								}
 							}
 						}
@@ -107,10 +159,7 @@ function getConfig() {
 					label: "Apply",
 					on: {
 						onItemClick() {
-							const magicWand = $$("magicWand");
-							if (magicWand) {
-								magicWand.setValue(0);
-							}
+							wandTool.applyChanges();
 						}
 					}
 				},
@@ -121,9 +170,10 @@ function getConfig() {
 					label: "Done",
 					on: {
 						onItemClick() {
-							const magicWand = $$("magicWand");
-							if (magicWand) {
-								magicWand.setValue(0);
+							wandTool.finish();
+							const magicWandToolbar = $$("annotationMagicWandToolbar");
+							if (magicWandToolbar) {
+								magicWandToolbar.destructor();
 							}
 						}
 					}
@@ -134,6 +184,11 @@ function getConfig() {
 	return config;
 }
 
+function closeMagicWandToolbar() {
+	$$(annotationMagicWandToolbarId).destructor();
+}
+
 export default {
-	getConfig
+	getConfig,
+	closeMagicWandToolbar
 };

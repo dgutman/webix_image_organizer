@@ -31,8 +31,8 @@ export default class ListView extends JetView {
 				const editNameIcon = `<span class="icon edit-item fas fa-edit ${iconsVisibility.editIcon ? "" : "hidden-block"} font-size-12"></span>`;
 				const editStyleIcon = `<span class="icon edit-style fas fa-palette ${iconsVisibility.editStyleIcon ? "" : "hidden-block"} font-size-12"></span>`;
 				const deleteIcon = `<span class="icon delete-item fas fa-times-circle ${iconsVisibility.deleteIcon ? "" : "hidden-block"} font-size-12"></span>`;
-				const visibleIcon = `<span class="icon visible fas fa-eye ${iconsVisibility.visibleIcon ? "" : "hidden-block"} font-size-12"></span>`;
-				const invisibleIcon = `<span class="icon invisible fas fa-eye-slash ${iconsVisibility.visibleIcon ? "hidden-block" : ""} font-size-12"></span>`;
+				const visibleIcon = `<span class="icon visible fas fa-eye ${obj.visible ?? iconsVisibility.visibleIcon ? "" : "hidden-block"} font-size-12"></span>`;
+				const invisibleIcon = `<span class="icon invisible fas fa-eye-slash ${obj.visible ?? iconsVisibility.visibleIcon ? "hidden-block" : ""} font-size-12"></span>`;
 				const focusIcon = `<span class="icon focus fas fa-crosshairs ${iconsVisibility.focusIcon ? "" : "hidden-block"} font-size-12"></span>`;
 				const name = `<span class="right-panel-list__item_name">${obj.name}</span>`;
 				const element = `<div class="right-panel-list__item" style='padding-left:10px'>
@@ -50,12 +50,24 @@ export default class ListView extends JetView {
 				height: 30
 			},
 			onClick: {
-				"edit-item": this.editItem.bind(this),
-				"delete-item": this.deleteItem.bind(this),
-				"edit-style": this.editStyle.bind(this),
-				visible: this.handleVisibility.bind(this, true),
-				invisible: this.handleVisibility.bind(this, false),
-				focus: this.handleFocus.bind(this),
+				"edit-item": (ev, id) => {
+					this.editItem.bind(this, ev, id)();
+				},
+				"delete-item": (ev, id) => {
+					this.deleteItem.bind(this, ev, id)();
+				},
+				"edit-style": (ev, id) => {
+					this.editStyle.bind(this, ev, id)();
+				},
+				visible: (ev, id) => {
+					this.handleVisibility.bind(this, ev, id, true)();
+				},
+				invisible: (ev, id) => {
+					this.handleVisibility.bind(this, ev, id, false)();
+				},
+				focus: (ev, id) => {
+					this.handleFocus.bind(this)(ev, id);
+				},
 			},
 			select: true,
 			autowidth: true,
@@ -142,7 +154,7 @@ export default class ListView extends JetView {
 		editPopup.show(node);
 	}
 
-	deleteItem(id) {
+	deleteItem(ev, id) {
 		const listView = this.getList();
 		listView.remove(id);
 	}
@@ -168,17 +180,23 @@ export default class ListView extends JetView {
 		return this.getRoot().queryView({id: this.ID_ADD_BUTTON});
 	}
 
-	handleVisibility(isVisible) {
+	handleVisibility(ev, id, isVisible) {
 		const list = this.getList();
-		const item = list.getSelectedItem();
+		const item = list.getItem(id);
 		if (item) {
-			item.visible = isVisible;
+			item.visible = !isVisible;
 			list.updateItem(item.id, item);
 		}
+		this.togglePaperJSVisibility(item, isVisible);
 	}
 
-	handleFocus() {
-		// TODO: implement in descendants
+	togglePaperJSVisibility(item, isVisible) {
+		// TODO: implement
+		throw new Error(`Implement paperJS element visibility: ${isVisible}`);
+	}
+
+	handleFocus(ev, id) {
+		// TODO: implement
 	}
 
 
