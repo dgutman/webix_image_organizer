@@ -352,7 +352,7 @@ export default class ImageWindowView extends JetView {
 					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
-					this._tk.addAnnotationUI({autoOpen: true});
+					this._tk.addAnnotationUI({autoOpen: false});
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updatePaperJSToolkit(this._tk);
@@ -396,7 +396,6 @@ export default class ImageWindowView extends JetView {
 				})
 				.finally(() => this.view.hideProgress());
 		}
-		this.changeState(false);
 	}
 
 	// Initializing Seadragon, setting needed options
