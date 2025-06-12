@@ -185,7 +185,7 @@ function getConfig(wandTool) {
 }
 
 function closeMagicWandToolbar() {
-	$$(annotationMagicWandToolbarId).destructor();
+	$$(annotationMagicWandToolbarId)?.destructor();
 }
 
 export default {
