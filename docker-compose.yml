@@ -24,29 +24,6 @@ services:
     #         - ./conf/nginx/data/certbot/www/:/var/www/certbot/
     #     restart: always
     #     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    tagger_client:
-        container_name: tagger_client
-        env_file: ./tagger/.env
-        build:
-            context: ./tagger/
-            dockerfile: ./Dockerfile
-        expose:
-            - "80"
-        ports:
-            - 2000:80
-    tagger_backend:
-        container_name: tagger_backend
-        env_file: ./tagger/.env
-        environment:
-            - MONGODB_HOST=mongodb
-        build:
-            context: ./tagger/
-            dockerfile: sources/server/Dockerfile
-        expose:
-            - "4000"
-        ports:
-            - 4000:4000
-    #    restart: always
     images_organizer:
         container_name: images_organizer
         build: ./

@@ -1,6 +1,6 @@
 # Building Docker containers
 
-We have set up containers for the webix_image_organizer service, as well as for tagger.  There is even a container
+We have set up containers for the webix_image_organizer service.  There is even a container
 to do OCR!  However this is currently a bit confusing.
 
 ## Building the image organizer app
@@ -47,16 +47,4 @@ docker build -t  fs -f ./faceted_search/Dockerfile ./faceted_search/
 
 ```bash
 docker build -t  rcm -f ./rcm/Dockerfile ./rcm/
-```
-
-#### Build the Tagger API
-
-```bash
-docker build -t  tagger-api -f ./tagger/sources/server/Dockerfile ./tagger/
-```
-
-#### Build the Tagger client
-
-```bash
-docker build -t  tagger-client -f ./tagger/Dockerfile ./tagger/
 ```
