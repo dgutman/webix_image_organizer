@@ -113,7 +113,10 @@ class MetadataTableService {
 			let columnId = obj.column;
 			this._metadataTable.eachRow((rowId) => {
 				let columnValue = this._metadataTable.getText(rowId, columnId);
-				if (columnValue && uniqueValuesArray.indexOf(columnValue) === -1 && columnValue !== "No metadata for item") {
+				if (columnValue === "" && uniqueValuesArray.indexOf(columnValue) === -1) {
+					uniqueValuesArray.push(columnValue);
+				}
+				else if (columnValue && uniqueValuesArray.indexOf(columnValue) === -1 && columnValue !== "No metadata for item") {
 					uniqueValuesArray.push(columnValue);
 				}
 			});
