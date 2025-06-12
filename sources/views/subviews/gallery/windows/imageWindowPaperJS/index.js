@@ -442,9 +442,8 @@ export default class ImageWindowView extends JetView {
 		// to clear setted template
 		// to destroy Open Seadragon viewer
 		if (this._openSeadragonViewer) {
-			// TODO: check the feature search
-			this._tk.close();
-			this._openSeadragonViewer.destroy();
+			this._tk.destroy();
+			this._openSeadragonViewer?.destroy();
 		}
 		magicWandToolbar.closeMagicWandToolbar();
 		this.$imageContainer.parse({emptyObject: true});
