@@ -18,11 +18,17 @@ async function deleteAnnotation(annotationData) {
 	await ajaxActions.deleteAnnotation(annotationData);
 }
 
+async function getAnnotationsCount(itemId) {
+	const count = await ajaxActions.getAnnotationsCountByItemId(itemId);
+	return count;
+}
+
 const annotationApiRequests = {
 	getAnnotations,
 	createAnnotation,
 	updateAnnotation,
 	deleteAnnotation,
+	getAnnotationsCount,
 };
 
 export default annotationApiRequests;
