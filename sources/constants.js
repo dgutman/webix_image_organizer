@@ -66,6 +66,7 @@ export default {
 	STORAGE_COLUMNS_CONFIG: "storage-columns-config",
 	STORAGE_NEW_ITEM_META_FIELDS: "new-meta-fields",
 	STORAGE_PATIENTS_DATA_FIELDS: "patients-data-fields",
+	STORAGE_NEW_PATIENTS_DATA_FIELDS: "new-patients-data-fields",
 	STORAGE_HOTKEYS_CONFIG: "hotkeys-config",
 	STORAGE_HOTKEYS_LETTERS_USAGE: "hotkeys-letter-usage",
 

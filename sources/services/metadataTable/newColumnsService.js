@@ -29,9 +29,11 @@ export default class NewColumnsClass {
 					const isNotUnique = newFieldsForms.find(form => form.getValues().itemField === value
 						&& form !== currentFieldForm);
 					const initialColumnIds = Object.values(constants.INITIAL_COLUMNS_IDS);
-					return result && result[0] === value &&
-						!metadataTableModel.metadataDotObject.hasOwnProperty(value) &&
-						!isNotUnique && !initialColumnIds.includes(value);
+					return result && result[0] === value
+						&& !metadataTableModel.metadataDotObject.hasOwnProperty(value)
+						&& !metadataTableModel.patientsDataDotObject.hasOwnProperty(value)
+						&& !isNotUnique
+						&& !initialColumnIds.includes(value);
 				},
 				columnName: webix.rules.isNotEmpty
 			},
@@ -82,7 +84,7 @@ export default class NewColumnsClass {
 				{
 					view: "radio",
 					name: "fieldType",
-					value: 1,
+					value: "item",
 					options: [
 						{id: "item", value: "Item field"},
 						{id: "patient", value: "Patient field"}
@@ -137,8 +139,8 @@ export default class NewColumnsClass {
 		}
 	}
 
-	addPatientsColumnsFromLS() {
-		let patientsFields = metadataTableModel.getLocalStoragePatientsFields();
+	addNewPatientsColumnsFromLS() {
+		let patientsFields = metadataTableModel.getLocalStorageNewPatientFields();
 		if (patientsFields) {
 			patientsFields = patientsFields.filter((field) => {
 				if (metadataTableModel.patientsDataDotObject.hasOwnProperty(field)) {
@@ -147,7 +149,7 @@ export default class NewColumnsClass {
 				metadataTableModel.patientsDataDotObject[field] = "";
 				return field;
 			});
-			metadataTableModel.putPatientsFieldsToStorage(patientsFields, this.userInfo._id);
+			metadataTableModel.putNewPatientFieldsToStorage(patientsFields, this.userInfo._id);
 		}
 	}
 
@@ -155,7 +157,7 @@ export default class NewColumnsClass {
 		const idsToDelete = {};
 
 		const localNewItemFields = metadataTableModel.getLocalStorageNewItemFields() || [];
-		const localNewPatientsFields = metadataTableModel.getLocalStoragePatientsFields() || [];
+		const localNewPatientsFields = metadataTableModel.getLocalStorageNewPatientFields() || [];
 		const newFields = this.newColumnsForm.queryView({view: "form"}, "all")
 			.filter((view) => {
 				const field = view.getValues().itemField;
@@ -177,7 +179,7 @@ export default class NewColumnsClass {
 		});
 
 		metadataTableModel.putNewItemFieldsToStorage(localNewItemFields, this.userInfo._id);
-		metadataTableModel.putPatientsFieldsToStorage(localNewPatientsFields, this.userInfo._id);
+		metadataTableModel.putNewPatientFieldsToStorage(localNewPatientsFields, this.userInfo._id);
 
 		const itemFieldsConfig = newFields.map((obj) => {
 			const dotNotation = obj.field.split(".");
