@@ -424,13 +424,27 @@ function putNewItemFieldsToStorage(fields, userId) {
 	webix.storage.local.put(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`, fields);
 }
 
+function putNewPatientFieldsToStorage(fields, userId) {
+	webix.storage.local.put(`${constants.STORAGE_NEW_PATIENTS_DATA_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`, fields);
+}
+
 function clearNewItemFieldsInStorage(userId) {
 	webix.storage.local.remove(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+}
+
+function clearNewPatientFieldsInStorage(userId) {
+	webix.storage.local.remove(`${constants.STORAGE_NEW_PATIENTS_DATA_FIELDS}-${userId}-${utils.getHostsCollectionFromLocalStorage()._id}`);
 }
 
 function getLocalStorageNewItemFields() {
 	if (authService.isLoggedIn()) {
 		return webix.storage.local.get(`${constants.STORAGE_NEW_ITEM_META_FIELDS}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
+	} return false;
+}
+
+function getLocalStorageNewPatientFields() {
+	if (authService.isLoggedIn()) {
+		return webix.storage.local.get(`${constants.STORAGE_NEW_PATIENTS_DATA_FIELDS}-${authService.getUserInfo()._id}-${utils.getHostsCollectionFromLocalStorage()._id}`);
 	} return false;
 }
 
@@ -492,5 +506,8 @@ export default {
 	setFaIconsForDatatable,
 	refreshDatatableColumns,
 	metadataDotObject,
-	patientsDataDotObject
+	patientsDataDotObject,
+	getLocalStorageNewPatientFields,
+	putNewPatientFieldsToStorage,
+	clearNewPatientFieldsInStorage,
 };

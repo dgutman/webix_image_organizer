@@ -280,7 +280,7 @@ export default class EditColumnsWindow extends JetView {
 
 	createFormElement(columnConfig, buttonIcon) {
 		const newFields = metadataTableModel.getLocalStorageNewItemFields() || [];
-		const patientsFields = metadataTableModel.getLocalStoragePatientsFields() || [];
+		const patientsFields = metadataTableModel.getLocalStorageNewPatientFields() || [];
 		const isNew = newFields.includes(columnConfig.id);
 		const isPatient = patientsFields.includes(columnConfig.id);
 		const isInitial = columnConfig.initial;
@@ -300,6 +300,9 @@ export default class EditColumnsWindow extends JetView {
 				const localNewItemFields = metadataTableModel.getLocalStorageNewItemFields() || [];
 				const remainingItemFields = localNewItemFields.filter(id => id !== columnConfig.id);
 				metadataTableModel.putNewItemFieldsToStorage(remainingItemFields, this.userInfo._id);
+				const localNewPatientsFields = metadataTableModel.getLocalStorageNewPatientFields() || [];
+				const remainingPatientFields = localNewPatientsFields.filter(id => id !== columnConfig.id);
+				metadataTableModel.putNewPatientFieldsToStorage(remainingPatientFields, this.userInfo._id);
 				const usersSection = $$("users-section");
 				if (!remainingItemFields.length && usersSection) {
 					this.getWindowForm().removeView(usersSection.config.id);
@@ -381,7 +384,8 @@ export default class EditColumnsWindow extends JetView {
 		let elements = [];
 		const windowForm = this.getWindowForm();
 
-		const newFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+		const newItemFields = metadataTableModel.getLocalStorageNewItemFields() || [];
+		const newPatientFields = metadataTableModel.getLocalStorageNewPatientFields() || [];
 
 		const columns = {
 			users: [],
@@ -393,7 +397,8 @@ export default class EditColumnsWindow extends JetView {
 
 		columnsToAdd.forEach((config) => {
 			const formElement = config.columnType === "image" ? this.imageColumnService.getFormElementForImageColumn(false) : this.createFormElement(config, buttonPlusIcon);
-			if (newFields.includes(config.id)) columns.users.push(formElement);
+			if (newItemFields.includes(config.id)) columns.users.push(formElement);
+			else if (newPatientFields.includes(config.id)) columns.patients.push(formElement);
 			else if (config.initial) columns.initial.push(formElement);
 			else if (config.columnType === "image") columns.image.push(formElement);
 			else columns.generated.push(formElement);
@@ -401,7 +406,8 @@ export default class EditColumnsWindow extends JetView {
 
 		columnsToDelete.forEach((config) => {
 			const formElement = config.columnType === "image" ? this.imageColumnService.getFormElementForImageColumn(true, config) : this.createFormElement(config, buttonMinusIcon);
-			if (newFields.includes(config.id)) columns.users.push(formElement);
+			if (newItemFields.includes(config.id)) columns.users.push(formElement);
+			else if (newPatientFields.includes(config.id)) columns.patients.push(formElement);
 			else if (config.initial) columns.initial.push(formElement);
 			else if (config.columnType === "image") columns.image.push(formElement);
 			else columns.generated.push(formElement);
@@ -502,10 +508,21 @@ export default class EditColumnsWindow extends JetView {
 
 			// add columns of not existing item fields to window form
 			this.newColumnsService.addNewColumnsFromLS();
+			this.newColumnsService.addNewPatientsColumnsFromLS();
 
-			this.createColumnsConfig(columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete);
+			this.createColumnsConfig(
+				columnsToAdd,
+				columnsToDelete,
+				patientsColumnsToAdd,
+				patientsColumnsToDelete
+			);
 
-			return success([columnsToAdd, columnsToDelete, patientsColumnsToAdd, patientsColumnsToDelete]);
+			return success([
+				columnsToAdd,
+				columnsToDelete,
+				patientsColumnsToAdd,
+				patientsColumnsToDelete
+			]);
 		});
 		return promise;
 	}
@@ -544,8 +561,10 @@ export default class EditColumnsWindow extends JetView {
 		patientsKeys.forEach((patientsKey) => {
 			const dotNotation = patientsKey.split(".");
 			const header = dotNotation.map(text => ({text}));
-			const toDelete = patientsColumnsToDelete.find(patientColumnToDelete => patientColumnToDelete.id === patientsKey);
-			if (!toDelete && !patientsColumnsToAdd.find(patientColumn => patientColumn.id === patientsKey)) {
+			const toDelete = patientsColumnsToDelete
+				.find(patientColumnToDelete => patientColumnToDelete.id === patientsKey);
+			if (!toDelete
+				&& !patientsColumnsToAdd.find(patientColumn => patientColumn.id === patientsKey)) {
 				patientsColumnsToAdd.push({
 					id: patientsKey,
 					header,

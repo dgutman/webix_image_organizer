@@ -8,7 +8,17 @@ import downloadFiles from "../../models/downloadFiles";
 
 
 export default class MetaDatatableService {
-	constructor({datatable, rootInput, itemsCollection, itemsHash, imageWindow, pdfWindow, loadingWindow, compareWindow, view}) {
+	constructor({
+		datatable,
+		rootInput,
+		itemsCollection,
+		itemsHash,
+		imageWindow,
+		pdfWindow,
+		loadingWindow,
+		compareWindow,
+		view
+	}) {
 		this.datatable = datatable;
 		this.itemsCollection = itemsCollection;
 		this.itemsHash = itemsHash;
@@ -44,7 +54,8 @@ export default class MetaDatatableService {
 		});
 
 		// set customizable datatable events
-		const settingsValues = utils.getLocalStorageSettingsValues() || utils.getDefaultMouseSettingsValues();
+		const settingsValues = utils.getLocalStorageSettingsValues()
+			|| utils.getDefaultMouseSettingsValues();
 		this.setSettingsMouseEvents(settingsValues);
 		this.view.$scope.on(this.view.$scope.app, "change-event-settings", (values) => {
 			this.setSettingsMouseEvents(values);
@@ -184,7 +195,9 @@ export default class MetaDatatableService {
 	acceptMetadata(metaItem) {
 		const item = this.itemsCollection.getItem(metaItem.itemId);
 
-		const promise = Object.keys(metaItem.meta).length ? ajaxActions.updateItemMetadata(item._id, metaItem.meta) : Promise.resolve(item);
+		const promise = Object.keys(metaItem.meta).length
+			? ajaxActions.updateItemMetadata(item._id, metaItem.meta)
+			: Promise.resolve(item);
 		return promise.then((data) => {
 			this.datatable.updateItem(metaItem.metaId, {
 				_accepted: true,
@@ -221,16 +234,22 @@ export default class MetaDatatableService {
 
 		let fieldsToDelete = Object.keys(metaItem._acceptedMeta.meta || {});
 		// substitute fields if it possible to optimize the process
-		let fieldsToReturn = Object.keys(metaItem._acceptedMeta.oldMeta).filter(field => fieldsToDelete.includes(field));
+		let fieldsToReturn = Object
+			.keys(metaItem._acceptedMeta.oldMeta)
+			.filter(field => fieldsToDelete.includes(field));
 		fieldsToDelete = fieldsToDelete.filter(field => !fieldsToReturn.includes(field));
 		const metaToReturn = fieldsToReturn
 			.reduce((acc, a) => ({...acc, [a]: metaItem._acceptedMeta.oldMeta[a]}), {});
 
 		if (item) {
-			const removeMetaPromise = fieldsToDelete.length ? ajaxActions.deleteItemMetadata(item._id, fieldsToDelete, item._modelType) : Promise.resolve(item);
+			const removeMetaPromise = fieldsToDelete.length
+				? ajaxActions.deleteItemMetadata(item._id, fieldsToDelete, item._modelType)
+				: Promise.resolve(item);
 			this.view.showProgress();
 			return removeMetaPromise
-				.then(data => (fieldsToReturn.length ? ajaxActions.updateItemMetadata(item._id, metaToReturn) : data)) // return old metadata
+				.then(data => (fieldsToReturn.length
+					? ajaxActions.updateItemMetadata(item._id, metaToReturn)
+					: data)) // return old metadata
 				.then((data) => {
 					delete metaItem._accepted;
 					delete metaItem._acceptedMeta;
