@@ -274,7 +274,11 @@ export default class ItemsModel {
 		else if (item.hasOwnProperty("meta")) {
 			// Validate with JSON Schema
 			try {
-				const {/* valid: isValid, */missedKeys, incorrectKeys} = validate(item?.meta);
+				const {/* valid: isValid, */missedKeys, incorrectKeys, fixedData} = validate(item?.meta);
+				if (fixedData) {
+					item.meta = fixedData;
+					this.updateItems([item]);
+				}
 
 				// TODO: uncomment when old validation will be removed
 				// if (isValid) {
@@ -326,7 +330,11 @@ export default class ItemsModel {
 			});
 
 			try {
-				const {isDataValid: isValid, missedKeys, incorrectKeys} = validate(item?.meta);
+				const {isDataValid: isValid, missedKeys, incorrectKeys, fixedData} = validate(item?.meta);
+				if (fixedData) {
+					item.meta = fixedData;
+					this.updateItems([item]);
+				}
 				if (!isValid) {
 					missedKeys.forEach((missedKeyObject) => {
 						highlight.add((missedKeyObject.missedKey.replaceAll("/", ".")).slice(1));
@@ -340,6 +348,24 @@ export default class ItemsModel {
 				console.error(err);
 			}
 			return Array.from(highlight);
+		}
+		try {
+			const {isDataValid: isValid, missedKeys, incorrectKeys, fixedData} = validate(item?.meta);
+			if (fixedData) {
+				item.meta = fixedData;
+				this.updateItems([item]);
+			}
+			if (!isValid) {
+				missedKeys.forEach((missedKeyObject) => {
+					highlight.add((missedKeyObject.missedKey.replaceAll("/", ".")).slice(1));
+				});
+				incorrectKeys.forEach((incorrectKeyObject) => {
+					highlight.add((incorrectKeyObject.incorrectKey.replaceAll("/", ".")).slice(1));
+				});
+			}
+		}
+		catch (err) {
+			console.error(err);
 		}
 		return Array.from(highlight);
 	}
