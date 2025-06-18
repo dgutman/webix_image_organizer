@@ -3,33 +3,45 @@ import {JetView} from "webix-jet";
 export default class ListView extends JetView {
 	constructor(app, config = {}) {
 		super(app);
-		const {name, newItemName} = config;
+		const {name, newItemName, view} = config;
 		this._name = name;
 		this._newItemName = newItemName;
+		this.viewName = view || "list";
 		this.ID_LIST = `list-id-${webix.uid()}`;
 		this.ID_ADD_BUTTON = `add-item-button-id-${webix.uid()}`;
+		this.iconsVisibility = {
+			editIcon: true,
+			editStyleIcon: true,
+			deleteIcon: true,
+			visibleIcon: true,
+			focusIcon: true,
+		};
 	}
 
 	config() {
 		const list = {
-			view: "list",
+			view: this.viewName,
 			id: this.ID_LIST,
 			css: "right-panel-list",
+			editable: true,
+			editor: "custom",
 			template: (obj) => {
 				// TODO check item for visibility
-				const hidden = true;
-				const editNameIcon = '<span class="edit-item fas fa-edit"></span>';
-				const editStyleIcon = '<span class="edit-style fas fa-palette"></span>';
-				const deleteIcon = '<span class="delete-item fas fa-times-circle"></span>';
-				const visibleIcon = `<span class="visible fas fa-eye ${hidden ? "hidden-block" : ""}"></span>`;
-				const invisibleIcon = `<span class="invisible fas fa-eye-slash ${hidden ? "hidden-block" : ""}"></span>`;
+				const iconsVisibility = Object.assign({}, this.iconsVisibility);
+				const editNameIcon = `<span class="icon edit-item fas fa-edit ${iconsVisibility.editIcon ? "" : "hidden-block"} font-size-12"></span>`;
+				const editStyleIcon = `<span class="icon edit-style fas fa-palette ${iconsVisibility.editStyleIcon ? "" : "hidden-block"} font-size-12"></span>`;
+				const deleteIcon = `<span class="icon delete-item fas fa-times-circle ${iconsVisibility.deleteIcon ? "" : "hidden-block"} font-size-12"></span>`;
+				const visibleIcon = `<span class="icon visible fas fa-eye ${obj.visible ?? iconsVisibility.visibleIcon ? "" : "hidden-block"} font-size-12"></span>`;
+				const invisibleIcon = `<span class="icon invisible fas fa-eye-slash ${obj.visible ?? iconsVisibility.visibleIcon ? "hidden-block" : ""} font-size-12"></span>`;
+				const focusIcon = `<span class="icon focus fas fa-crosshairs ${iconsVisibility.focusIcon ? "" : "hidden-block"} font-size-12"></span>`;
 				const name = `<span class="right-panel-list__item_name">${obj.name}</span>`;
-				const element = `<div class="right-panel-list__item" style='padding-left:18px'>
-									${name}
+				const element = `<div class="right-panel-list__item" style='padding-left:10px'>
 									${invisibleIcon}
 									${visibleIcon}
+									${name}
 									${editNameIcon}
 									${editStyleIcon}
+									${focusIcon}
 									${deleteIcon}
 								</div>`;
 				return element;
@@ -38,15 +50,24 @@ export default class ListView extends JetView {
 				height: 30
 			},
 			onClick: {
-				"edit-item": () => {
-					this.editItem();
+				"edit-item": (ev, id) => {
+					this.editItem.bind(this, ev, id)();
 				},
-				"delete-item": (event, id) => {
-					this.deleteItem(id);
+				"delete-item": (ev, id) => {
+					this.deleteItem.bind(this, ev, id)();
 				},
-				"edit-style": (event, id) => {
-					this.editStyle();
-				}
+				"edit-style": (ev, id) => {
+					this.editStyle.bind(this, ev, id)();
+				},
+				visible: (ev, id) => {
+					this.handleVisibility.bind(this, ev, id, true)();
+				},
+				invisible: (ev, id) => {
+					this.handleVisibility.bind(this, ev, id, false)();
+				},
+				focus: (ev, id) => {
+					this.handleFocus.bind(this)(ev, id);
+				},
 			},
 			select: true,
 			autowidth: true,
@@ -79,6 +100,7 @@ export default class ListView extends JetView {
 			rows: [
 				{
 					cols: [
+						{width: 10},
 						label,
 						addButton
 					]
@@ -98,14 +120,41 @@ export default class ListView extends JetView {
 	addItem(attributes) {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({name: `${this._newItemName} ${lastId + 1}`, id: Number(lastId) + 1, ...attributes});
+		list.add({name: `${this._newItemName}`, id: Number(lastId) + 1, ...attributes});
 	}
 
-	editItem() {
-		// TODO: implement in descendants
+	editItem(event, id) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		const node = list.getItemNode(id);
+		const nameEditor = {
+			view: "text",
+			value: item.name || "Name",
+			name: "edit-name",
+			placeholder: "name",
+		};
+		const editPopup = this.webix.ui({
+			view: "popup",
+			body: {
+				rows: [
+					nameEditor,
+					{
+						view: "button",
+						value: "Save",
+						click: () => {
+							const name = editPopup.queryView({view: "text"}).getValue();
+							item.name = name;
+							list.updateItem(item.id, item);
+							editPopup.close();
+						}
+					},
+				]
+			}
+		});
+		editPopup.show(node);
 	}
 
-	deleteItem(id) {
+	deleteItem(ev, id) {
 		const listView = this.getList();
 		listView.remove(id);
 	}
@@ -123,9 +172,33 @@ export default class ListView extends JetView {
 		return this.getRoot().queryView({id: this.ID_LIST});
 	}
 
+	/**
+	 *
+	 * @returns {webix.ui.button}
+	 */
 	getAddButton() {
 		return this.getRoot().queryView({id: this.ID_ADD_BUTTON});
 	}
+
+	handleVisibility(ev, id, isVisible) {
+		const list = this.getList();
+		const item = list.getItem(id);
+		if (item) {
+			item.visible = !isVisible;
+			list.updateItem(item.id, item);
+		}
+		this.togglePaperJSVisibility(item, isVisible);
+	}
+
+	togglePaperJSVisibility(item, isVisible) {
+		// TODO: implement
+		throw new Error(`Implement paperJS element visibility: ${isVisible}`);
+	}
+
+	handleFocus(ev, id) {
+		// TODO: implement
+	}
+
 
 	clearAll() {
 		const listView = this.getList();
