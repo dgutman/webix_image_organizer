@@ -1,17 +1,24 @@
 # Use an official Python runtime as a parent image
-FROM jjanzic/docker-python3-opencv:opencv-4.0.1
+FROM python:3.11-slim-bullseye
 
 # Set the working directory to /app
 WORKDIR /app
 
+# Install system dependencies for OpenCV
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python packages
+RUN pip install --upgrade pip && pip install opencv-python
 
 RUN  apt-get update
 
-RUN  apt-get install -y \
-    tesseract-ocr
+RUN  apt-get install -y tesseract-ocr
 
-RUN  apt-get install -y \
-    tesseract-ocr-eng libdmtx-*
+RUN  apt-get install -y tesseract-ocr-eng libdmtx-*
 
 # Copy the current directory contents into the container at /app
 COPY requirements.txt /app
@@ -27,8 +34,8 @@ COPY . /app
 EXPOSE 5000
 
 # Define environment variable
-ENV NAME insearch
-ENV FLASK_APP /app/server.py
+ENV NAME=insearch
+ENV FLASK_APP=/app/server.py
 
 
 CMD ["flask" , "run",  "--host=0.0.0.0"]
