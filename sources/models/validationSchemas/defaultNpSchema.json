@@ -57,12 +57,14 @@
                     "enum": [
                         "pTDP",
                         "HE",
+			"HE-FISH",
                         "aBeta",
                         "Ubiq",
                         "Tau",
                         "Biels",
                         "Syn",
                         "p62",
+			"p53",
                         "LFB",
                         "LFB-PAS",
                         "FUS",
@@ -73,13 +75,18 @@
                         "CD3",
                         "CD68",
                         "GFAP",
+			"MIB1",
                         "NeuN",
                         "NEUROFIL",
                         "ALPHA-INT",
                         "INT",
                         "IRON",
                         "CP13",
-                        "PAS"
+			"SOX2",
+			"SV40",
+                        "PAS",
+			"IDH1",
+			"OLIG2"
                     ]
                 }
             },
