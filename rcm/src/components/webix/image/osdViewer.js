@@ -88,14 +88,15 @@ export default class OpenSeaDragonViewer {
     });
   }
   
-  addNewTile(tileSource, index = 0, opacity = 1) {
+  addNewTile(tileSource, index = 0, opacity) {
     const viewer = this.$viewer();
     viewer.addTiledImage({
       tileSource,
       index,
+      opacity,
     });
   }
-  
+
   flipTiles(firstIndex, secondIndex) {
     const tileIndexes = [firstIndex, secondIndex];
     const viewer = this.$viewer();
@@ -141,29 +142,30 @@ export default class OpenSeaDragonViewer {
     viewer.viewport.fitBounds(bounds);
   }
 
-  /** @return {OpenSeaDragonViewer} */
+  /** @return {OpenSeadragon.Viewer} */
   $viewer() {
     return this._viewer;
   }
 
   createViewer(opts = {}, node = this.node) {
     const options = {...this.defaultOptions, ...opts}
-		this._viewer = new openseadragon.Viewer({
+    this._viewer = new openseadragon.Viewer({
       options,
-			element: node,
-		});
+      element: node,
+     
+    });
 
-		const viewer = this.$viewer();
+    const viewer = this.$viewer();
 
-		return new Promise((resolve, reject) => {
-			viewer.addOnceHandler("open", () => {
-				resolve();
-			});
-			viewer.addOnceHandler("open-failed", () => {
-				reject();
-			});
-		});
-	}
+    return new Promise((resolve, reject) => {
+      viewer.addOnceHandler("open", () => {
+        resolve();
+      });
+      viewer.addOnceHandler("open-failed", () => {
+        reject();
+      });
+    });
+  }
 
   destroy() {
     const viewer = this.$viewer();
@@ -199,5 +201,9 @@ export default class OpenSeaDragonViewer {
 
   getMouseTracker() {
     return this.mouseTracker;
+  }
+
+  open(tileSources, page) {
+    this.$viewer().open(tileSources, page);
   }
 }
