@@ -189,13 +189,19 @@ async function getTileFrameInfo(itemID) {
 }
 
 function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
-  const token = localStorageService.getToken()
+  const token = localStorageService.getToken();
   const urlSearchParams = new URLSearchParams();
   urlSearchParams.append("edge", "crop");
   if (token) {
     urlSearchParams.append("token", localStorageService.getToken());
   }
   return `${getHostAPI()}/item/${itemID}/tiles/fzxy/${frame}/${z}/${x}/${y}?${urlSearchParams.toString()}`;
+}
+
+function getImageDeepZoomCompatibleMetadataURL(itemId, frame) {
+  const urlSearchParams = new URLSearchParams();
+  urlSearchParams.append("frame", frame);
+  return `${getHostAPI()}/item/${itemId}/tiles/dzi.dzi?${urlSearchParams.toString()}`;
 }
 
 const ajaxActions = {
@@ -211,6 +217,7 @@ const ajaxActions = {
   getImageTileUrl,
   getTileFrameInfo,
   getImageTileUrlWithFrameNumber,
+  getImageDeepZoomCompatibleMetadataURL,
 }
 
 export default ajaxActions;
