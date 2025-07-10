@@ -41,29 +41,3 @@ services:
         ports:
             - 5000:5000
         restart: always
-    mongodb:
-        image: mongo:4.2.6
-        volumes:
-            - mongodb_volume:/data/db
-        restart: always
-    faceted_search:
-        container_name: faceted_search
-        environment:
-            - MONGODB_HOST=mongodb
-            - PORT=80
-        build:
-            context: ./faceted_search/
-            dockerfile: ./Dockerfile
-        expose:
-            - "8000"
-        ports:
-            - 8000:80
-    rcm:
-        container_name: rcm
-        build:
-            context: ./rcm
-            dockerfile: ./Dockerfile
-        expose:
-            - "3000"
-        ports:
-            - 6000:3000
