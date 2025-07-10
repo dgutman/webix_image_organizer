@@ -4,6 +4,7 @@ define([], function() {
 		LOGIN_PANEL_ID: "login-panel",
 		HOST_BOX_ID: "host-box",
 		FOLDER_TREE_ID: "folder-tree-view",
+		LOGOUT_MENU_ID: "logout-menu-id",
 		LOCAL_API: `${window.location.origin}/api`,
 		// begin channel list
 		LIST_ID: "channels-list",

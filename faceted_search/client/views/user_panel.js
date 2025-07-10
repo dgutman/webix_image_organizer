@@ -59,6 +59,7 @@ define([
 
 	const logoutMenu = {
 		view: "menu",
+		id: constants.LOGOUT_MENU_ID,
 		name: "logoutMenu",
 		css: "logout-menu",
 		openAction: "click",
@@ -72,7 +73,7 @@ define([
 						value: "Skin",
 						subMenuPos: "left",
 						submenu: skins
-						},
+					},
 					{id: "logout", value: "<span class='fas fa-arrow-right'></span> Logout"}
 				]
 			}
@@ -127,6 +128,7 @@ define([
 				$$(constants.LOGOUT_PANEL_ID).show(false, false);
 				setUserName();
 			}
+			$$(constants.LOGOUT_MENU_ID).getSubMenu("toggle_skin_id").select(window.data.skin)
         }
     };
 });
