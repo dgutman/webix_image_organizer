@@ -51,22 +51,22 @@ export default class ListView extends JetView {
 			},
 			onClick: {
 				"edit-item": (ev, id) => {
-					this.editItem.bind(this, ev, id)();
+					this.editItem.call(this, ev, id);
 				},
 				"delete-item": (ev, id) => {
-					this.deleteItem.bind(this, ev, id)();
+					this.deleteItem.call(this, ev, id);
 				},
 				"edit-style": (ev, id) => {
-					this.editStyle.bind(this, ev, id)();
+					this.editStyle.call(this, ev, id);
 				},
 				visible: (ev, id) => {
-					this.handleVisibility.bind(this, ev, id, true)();
+					this.handleVisibility.call(this, ev, id, true);
 				},
 				invisible: (ev, id) => {
-					this.handleVisibility.bind(this, ev, id, false)();
+					this.handleVisibility.call(this, ev, id, false);
 				},
 				focus: (ev, id) => {
-					this.handleFocus.bind(this)(ev, id);
+					this.handleFocus.call(this, ev, id);
 				},
 			},
 			select: true,

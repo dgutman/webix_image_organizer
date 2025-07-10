@@ -1,7 +1,15 @@
 import ajaxActions from "../../../../../../services/ajaxActions";
 
-async function getAnnotations(itemId) {
+async function getItemAnnotations(itemId) {
 	const data = await ajaxActions.getAnnotationsByItemId(itemId);
+	return data;
+}
+
+async function getAnnotations(itemId) {
+	const params = {
+		itemId,
+	};
+	const data = await ajaxActions.getAnnotations(params);
 	return data;
 }
 
@@ -23,12 +31,19 @@ async function getAnnotationsCount(itemId) {
 	return count;
 }
 
+async function getAnnotationById(id) {
+	const annotation = await ajaxActions.getAnnotationById(id);
+	return annotation;
+}
+
 const annotationApiRequests = {
+	getItemAnnotations,
 	getAnnotations,
 	createAnnotation,
 	updateAnnotation,
 	deleteAnnotation,
 	getAnnotationsCount,
+	getAnnotationById,
 };
 
 export default annotationApiRequests;

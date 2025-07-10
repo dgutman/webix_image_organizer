@@ -35,8 +35,9 @@ function getConfig(item, type) {
 		strokeColor.blue,
 	);
 	const config = {
-		view: "popup",
+		view: "window",
 		id: popupId,
+		head: {height: 1},
 		height: 100,
 		width: 700,
 		body: {
@@ -99,11 +100,10 @@ function getConfig(item, type) {
 							height: 30,
 							on: {
 								onItemClick() {
-									const popup = $$(popupId);
-									if (popup) {
-										popup.hide();
-										popup.destructor();
-									}
+									destructPopup();
+								},
+								onHide() {
+									destructPopup();
 								}
 							}
 						}
@@ -346,7 +346,28 @@ function rgbToHex(r, g, b) {
 	return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
 }
 
+function destructPopup() {
+	const popup = $$(popupId);
+	if (popup) {
+		popup.destructor();
+		console.log("styleEditor destructed");
+	}
+	else {
+		console.log("styleeditor destruction failed");
+	}
+}
+
+function isOpened() {
+	const popup = $$(popupId);
+	if (popup) {
+		return popup.isVisible();
+	}
+	return false;
+}
+
 export default {
 	getConfig,
 	attachEvents,
+	destructPopup,
+	isOpened,
 };
