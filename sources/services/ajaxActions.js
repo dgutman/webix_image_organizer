@@ -386,13 +386,41 @@ class AjaxActions {
 		}
 	}
 
+	async getAnnotations(params) {
+		let url = `${this.getHostApiUrl()}/annotation`;
+		const urlSearchParams = new URLSearchParams(params);
+		try {
+			const data = await this._ajax().get(url, urlSearchParams);
+			return this._parseData(data);
+		}
+		catch (error) {
+			parseError(error);
+			return [];
+		}
+	}
+
+	async getAnnotationById(annotationId) {
+		try {
+			if (annotationId) {
+				const url = `${this.getHostApiUrl()}/annotation/${annotationId}`;
+				const response = await this._ajax().get(url);
+				return this._parseData(response);
+			}
+			return null;
+		}
+		catch (error) {
+			parseError(error);
+			return null;
+		}
+	}
+
 	async updateAnnotationById(annotationId, annotationData) {
 		const params = JSON.stringify(annotationData);
 		try {
 			if (annotationId) {
 				const url = `${this.getHostApiUrl()}/annotation/${annotationId}`;
 				const response = await this._ajax().headers({
-					"Accept": "application/json",
+					Accept: "application/json",
 					"Content-type": "application/json"
 				}).put(url, params);
 				return this._parseData(response);

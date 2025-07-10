@@ -1,5 +1,7 @@
-import ListView from "../../../../../../components/listView";
-import adapter from "../../services/adapter";
+import annotationModel from "./annotationModel";
+import ListView from "../../../../../../../components/listView";
+import adapter from "../../../services/adapter";
+import editorPopup from "../editorPopup";
 
 export default class AnnotationListView extends ListView {
 	constructor(app, config = {name: "Annotations", newItemName: "Annotation"}, openSeadragonViewer) {
@@ -38,8 +40,16 @@ export default class AnnotationListView extends ListView {
 					const item = listView.getItem(id);
 					this.editItem(item, node);
 				},
-				"delete-item": (event, id) => {
-					this.deleteItem(id);
+				"delete-item": async (event, id) => {
+					const result = await webix.confirm({
+						title: "Confirm delete",
+						ok: "Yes",
+						cancel: "No",
+						text: "Delete annotation?"
+					});
+					if (result) {
+						this.deleteItem(id);
+					}
 				},
 			},
 			select: true,
@@ -62,7 +72,7 @@ export default class AnnotationListView extends ListView {
 			view: "button",
 			id: this.ID_ADD_BUTTON,
 			click: () => {
-				this.addItem({annotation: {elements: []}, itemId: this.itemId});
+				this.addItem({annotation: {}, itemId: this.itemId});
 			},
 			label: "Add new",
 			height: 30,
@@ -88,6 +98,10 @@ export default class AnnotationListView extends ListView {
 
 	ready(/* view */) {}
 
+	/**
+	 * 
+	 * @param { AnnotationToolkit} tk
+	 */
 	updatePaperJSToolkit(tk) {
 		this.detachEvents();
 		this._tk = tk;
@@ -111,9 +125,11 @@ export default class AnnotationListView extends ListView {
 			}
 			return selectionFlag;
 		});
-		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", (id) => {
-			const annotation = list.getItem(id);
-			const fc = adapter.annotationToFeatureCollections(annotation);
+		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", async (id) => {
+			const annotation = await annotationModel.getAnnotation(id);
+			const fc = annotation
+				? adapter.annotationToFeatureCollections(annotation)
+				: null;
 			this._tk.addFeatureCollections([], true);
 			if (fc) {
 				this._tk.addFeatureCollections(
@@ -122,8 +138,11 @@ export default class AnnotationListView extends ListView {
 					this._openSeadragonViewer.world.getItemAt(0)
 				);
 			}
+			this._tk.getFeatureCollectionGroups();
 		});
 		this._onAfterAddEvent = list.attachEvent("onAfterAdd", (id) => {
+			const addedItem = list.getItem(id);
+			annotationModel.addListViewItem(addedItem);
 			const selectedItem = list.getSelectedItem();
 			if (!selectedItem) {
 				const firstId = list.getFirstId();
@@ -181,66 +200,45 @@ export default class AnnotationListView extends ListView {
 		}
 	}
 
-	updateAnnotation(annotationId) {
+	async updateAnnotation(itemId) {
 		const list = this.getList();
-		const currentAnnotationId = annotationId || list.getSelectedId();
-		const item = list.getItem(currentAnnotationId);
-		if (item) {
+		const currentItemId = itemId || list.getSelectedId();
+		const annotation = await annotationModel.getAnnotation(currentItemId);
+		if (annotation) {
 			const geoJSON = this._tk.toGeoJSON();
 			const elements = adapter.featureCollectionsToElements(geoJSON);
-			item.annotation.elements = elements;
+			// annotation.annotation.elements = elements;
+			await annotationModel.updateAnnotation(itemId, elements);
 		}
 	}
 
-	addAnnotation(annotation) {
+	addAnnotationToList(annotation) {
 		const list = this.getList();
+		const lastId = list.getLastId() ?? 0;
+		annotation.id = String(Number(lastId) + 1);
 		list.add(annotation);
 	}
 
 	createAnnotation() {
-		this.addItem();
+		const item = this.addItem();
+		annotationModel.addListViewItem(item);
 	}
 
 	addItem() {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? 0;
-		list.add({annotation: {name: `${this._newItemName} ${lastId + 1}`, elements: []}});
+		const newId = lastId + 1;
+		list.add({annotation: {name: `${this._newItemName} ${lastId + 1}`, elements: []}, id: newId});
+		list.refresh();
+		const newItem = list.getItem(newId);
+		const node = list.getItemNode(newId);
+		this.editItem(newItem, node);
 	}
 
 	editItem(item, node) {
-		const nameEditor = {
-			view: "text",
-			value: item.annotation.name || "Annotation Name",
-			name: "edit-name",
-			placeholder: "name",
-		};
-		const descriptionEditor = {
-			view: "textarea",
-			value: item.annotation.description || "",
-			placeholder: "description",
-		};
-		const editPopup = this.webix.ui({
-			view: "popup",
-			body: {
-				rows: [
-					nameEditor,
-					descriptionEditor,
-					{
-						view: "button",
-						value: "Save",
-						click: () => {
-							const name = editPopup.queryView({view: "text"}).getValue();
-							const description = editPopup.queryView({view: "textarea"}).getValue();
-							const list = this.getList();
-							item.annotation.name = name;
-							item.annotation.description = description;
-							list.updateItem(item.id, item);
-							editPopup.close();
-						}
-					},
-				]
-			}
-		});
+		const list = this.getList();
+		const config = editorPopup.getConfig(item, editorPopup.ITEM_TYPES.ANNOTATION, list);
+		const editPopup = webix.ui(config);
 		editPopup.show(node);
 	}
 

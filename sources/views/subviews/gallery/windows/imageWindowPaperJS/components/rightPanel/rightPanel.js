@@ -1,9 +1,9 @@
 import { JetView } from "webix-jet";
 
 // import { LayerUI } from "./osd-annotation/js/layerui.mjs";
-import AnnotationListView from "./annotationListView";
-import FeaturesCollectionListView from "./featuresCollectionList";
-import FeaturesListView from "./featuresList";
+import AnnotationListView from "./annotationList/annotationListView";
+import FeaturesCollectionListView from "./featuresCollectionList/featuresCollectionListView";
+import FeaturesListView from "./featuresList/featuresListView";
 import { setAnnotationCounts } from "../../../../../../../models/annotationCounts";
 import annotationApiRequests from "../../services/api";
 
@@ -88,7 +88,7 @@ export default class RightPanel extends JetView {
 	}
 
 	addAnnotation(annotation) {
-		this.annotationsView.addAnnotation(annotation);
+		this.annotationsView.addAnnotationToList(annotation);
 	}
 
 	saveAnnotationState() {
@@ -97,7 +97,11 @@ export default class RightPanel extends JetView {
 		const annotationListItems = annotationsListView.serialize();
 		annotationListItems.forEach(async (annotationItem) => {
 			if (annotationItem._id) {
-				annotationApiRequests.updateAnnotation(annotationItem._id, annotationItem.annotation);
+				const updatedAnnotation = await annotationApiRequests
+					.updateAnnotation(annotationItem._id, annotationItem.annotation);
+				if (updatedAnnotation) {
+					this.annotationsView.updateAnnotation(annotationItem.id, updatedAnnotation);
+				}
 			}
 			else {
 				const itemId = annotationItem.itemId || this._itemId;
@@ -114,6 +118,11 @@ export default class RightPanel extends JetView {
 				await annotationApiRequests.deleteAnnotation(deletedAnnotation._id);
 			}
 		});
+		webix.message(`Saved annotations:<br>
+			${annotationListItems.map(a => a.annotation.name).join(",<br>  ")}<br>
+			Deleted annotations:<br>
+			${this.deletedAnnotations.map(a => a.annotation.name).join(",<br>  ")}<br>
+		`, "success", 10000);
 		this.deletedAnnotations = [];
 	}
 

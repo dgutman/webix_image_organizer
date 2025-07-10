@@ -488,7 +488,7 @@ export default class ToolbarView extends JetView {
 	/**
 	 * Update annotation paperjs toolkit
 	 *
-	 * @param {AnnotationToolkit} tk 
+	 * @param {AnnotationToolkit} tk
 	 */
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;

@@ -1,7 +1,7 @@
-import FeaturesListView from "./featuresList";
-import ListView from "../../../../../../components/listView";
-import editStyle from "../toolbars/styleEditor";
-import annotationConstants from "../../constants";
+import ListView from "../../../../../../../components/listView";
+import annotationConstants from "../../../constants";
+import editStyle from "../../toolbars/styleEditor";
+import editorPopup from "../editorPopup";
 
 /**
  * Description placeholder
@@ -63,8 +63,9 @@ export default class FeaturesCollectionListView extends ListView {
 		const list = this.getList();
 		this.clearFeaturesItems();
 		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${group.displayName} ${lastId + 1}`, id: Number(lastId) + 1, group});
-		list.select(`${lastId + 1}`);
+		const newItemId = lastId + 1;
+		const itemId = list.add({name: `${group.displayName} ${newItemId}`, id: newItemId, group});
+		list.select(`${newItemId}`);
 		group.on({
 			"selection:mouseenter": () => {
 				// TODO: implement if necessary
@@ -103,37 +104,22 @@ export default class FeaturesCollectionListView extends ListView {
 		const list = this.getList();
 		const item = list.getItem(id);
 		const node = list.getItemNode(id);
-		const nameEditor = {
-			view: "text",
-			value: item.name || "Name",
-			name: "edit-name",
-			placeholder: "name",
-		};
-		const editPopup = this.webix.ui({
-			view: "popup",
-			body: {
-				rows: [
-					nameEditor,
-					{
-						view: "button",
-						value: "Save",
-						click: () => {
-							const name = editPopup.queryView({view: "text"}).getValue();
-							item.name = name;
-							list.updateItem(item.id, item);
-							item.group.displayName = name;
-							editPopup.close();
-						}
-					},
-				]
-			}
-		});
+		const config = editorPopup.getConfig(item, editorPopup.ITEM_TYPES.GROUP, list);
+		const editPopup = webix.ui(config);
 		editPopup.show(node);
 	}
 
-	deleteItem(ev, id) {
-		const listView = this.getList();
-		listView.remove(id);
+	async deleteItem(ev, id) {
+		const result = await webix.confirm({
+			title: "Confirm delete",
+			ok: "Yes",
+			cancel: "No",
+			text: "Delete group?"
+		});
+		if (result) {
+			const listView = this.getList();
+			listView.remove(id);
+		}
 	}
 
 	editStyle(ev, id) {

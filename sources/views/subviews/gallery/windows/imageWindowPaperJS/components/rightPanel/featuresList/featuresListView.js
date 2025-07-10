@@ -1,6 +1,7 @@
-import ListView from "../../../../../../components/listView";
-import styleEditor from "../toolbars/styleEditor";
-import annotationConstants from "../../constants";
+import editorPopup from "../editorPopup";
+import ListView from "../../../../../../../components/listView";
+import annotationConstants from "../../../constants";
+import styleEditor from "../../toolbars/styleEditor";
 
 /**
  * Description placeholder
@@ -90,43 +91,31 @@ export default class FeaturesListView extends ListView {
 		const list = this.getList();
 		const item = list.getItem(id);
 		const node = list.getItemNode(id);
-		const nameEditor = {
-			view: "text",
-			value: item.name || "Name",
-			name: "edit-name",
-			placeholder: "name",
-		};
-		const editPopup = this.webix.ui({
-			view: "popup",
-			body: {
-				rows: [
-					nameEditor,
-					{
-						view: "button",
-						value: "Save",
-						click: () => {
-							const name = editPopup.queryView({view: "text"}).getValue();
-							item.name = name;
-							list.updateItem(item.id, item);
-							item.feature.displayName = name;
-							editPopup.close();
-						}
-					},
-				]
-			}
-		});
+		const config = editorPopup.getConfig(item, editorPopup.ITEM_TYPES.FEATURE, list);
+		const editPopup = webix.ui(config);
 		editPopup.show(node);
 	}
 
-	deleteItem(ev, id) {
-		const listView = this.getList();
-		listView.remove(id);
+	async deleteItem(ev, id) {
+		const result = await webix.confirm({
+			title: "Confirm delete",
+			ok: "Yes",
+			cancel: "No",
+			text: "Delete feature?"
+		});
+		if (result) {
+			const listView = this.getList();
+			listView.remove(id);
+		}
 	}
 
 	editStyle(ev, id) {
 		const list = this.getList();
 		const item = list.getItem(id);
 		if (item?.feature) {
+			if (styleEditor.isOpened()) {
+				styleEditor.destructPopup();
+			}
 			const popupConfig = styleEditor.getConfig(
 				item.feature,
 				annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE
