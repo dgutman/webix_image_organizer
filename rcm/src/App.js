@@ -3,7 +3,6 @@ import './styles/App.css';
 import Header from "./components/react/header/header";
 import Main from "./components/react/main/main";
 import SelectedFolderContext from './context/selectedFolderContext';
-import foldersModel from './models/foldersModel';
 
 function App() {
   const [selectedFolder, setSelectedFolder] = useState(null);
