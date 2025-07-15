@@ -439,19 +439,23 @@ export default class ImageWindowView extends JetView {
 	}
 
 	close() {
-		styleEditor.destructPopup();
-		this._controlsView.reset();
-		this._rightPanel.reset();
-		// to clear setted template
-		// to destroy Open Seadragon viewer
-		if (this._openSeadragonViewer) {
-			// TODO: check the feature search
-			this._tk.close();
-			this._openSeadragonViewer.destroy();
+		try {
+			styleEditor.destructPopup();
+			this._controlsView.reset();
+			this._rightPanel.reset();
+			// to clear setted template
+			// to destroy Open Seadragon viewer
+			if (this._openSeadragonViewer) {
+				// TODO: check the feature search
+				this._openSeadragonViewer.destroy();
+			}
+			magicWandToolbar.closeMagicWandToolbar();
+			this.$imageContainer.parse({emptyObject: true});
+			this.getRoot().hide();
 		}
-		magicWandToolbar.closeMagicWandToolbar();
-		this.$imageContainer.parse({emptyObject: true});
-		this.getRoot().hide();
+		catch (error) {
+			console.error(error);
+		}
 	}
 
 	changeState(state) {
