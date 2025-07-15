@@ -1,8 +1,13 @@
+import lodash from "lodash";
+
 import annotationApiRequests from "../../../services/api";
 
 const listViewItemsMap = new Map();
 const annotationsMap = new Map();
 const deletedAnnotationsMap = new Map();
+const values = {
+	itemId: null,
+};
 
 function addListViewItem(item) {
 	const id = getItemId(item);
@@ -27,12 +32,26 @@ async function getAnnotation(itemId) {
 		return annotationsMap.get(itemId);
 	}
 	try {
-		const annotation = await annotationApiRequests.getAnnotationById(id);
-		if (annotation) {
-			annotationsMap.set(itemId, annotation);
-			return annotation;
+		if (id) {
+			const annotation = await annotationApiRequests.getAnnotationById(id);
+			if (annotation) {
+				// INFO: this flag is used to track if the annotation was modified locally
+				annotation.isModified = false;
+				annotationsMap.set(itemId, annotation);
+				return annotation;
+			}
 		}
-		return null;
+		// TODO: improve (create with schema)
+		const annotation = {
+			annotation: {
+				description: item.annotation?.description || "",
+				elements: [],
+				name: item.annotation?.name || "",
+			},
+			itemId: item.itemId
+		};
+		annotationsMap.set(itemId, annotation);
+		return annotation;
 	}
 	catch (error) {
 		console.error(error);
@@ -41,25 +60,15 @@ async function getAnnotation(itemId) {
 	}
 }
 
-function createAnnotation(listItem, annotation) {
-	const listItemId = getAnnotationIdFromListViewItem(listItem);
-	listViewItemsMap.set(listItemId, listItem);
-	annotationsMap.set(listItemId, annotation);
-}
-
-async function updateAnnotation(itemId, elements) {
+async function updateAnnotation(itemId, updatedAnnotation, isModified = false) {
 	const annotation = await getAnnotation(itemId);
 	if (annotation) {
-		annotation.elements = elements;
-		const id = getAnnotationId(annotation);
-		annotationsMap.set(id, annotation);
+		lodash.merge(annotation, updatedAnnotation);
+		annotation.isModified = isModified;
+		annotationsMap.set(itemId, annotation);
 		return annotation;
 	}
 	return null;
-}
-
-function getAnnotationIdFromListViewItem(annotationListItem) {
-	return annotationListItem.annotation.id;
 }
 
 function getAnnotationIdFromItem(item) {
@@ -84,23 +93,29 @@ function clearAll() {
 function deleteAnnotation(itemId) {
 	listViewItemsMap.delete(itemId);
 	const annotation = annotationsMap.get(itemId);
-	const id = getAnnotationId(annotation);
-	deletedAnnotationsMap.set(id, annotation);
+	deletedAnnotationsMap.set(itemId, annotation);
+	annotationsMap.delete(itemId);
 }
 
 async function saveAnnotations() {
 	annotationsMap.forEach(async (a, itemId) => {
 		const id = getAnnotationId(a);
+		const annotationData = {
+			...a.annotation,
+		};
 		if (id) {
-			const updatedAnnotation = await annotationApiRequests.updateAnnotation(id, a);
+			const updatedAnnotation = a.isModified
+				? await annotationApiRequests.updateAnnotation(id, annotationData)
+				: null;
 			if (updatedAnnotation) {
-				await updateAnnotation(itemId, updatedAnnotation);
+				await updateAnnotation(itemId, updatedAnnotation, false);
 			}
 		}
 		else {
-			const createdAnnotation = annotationApiRequests.createAnnotation(a);
+			const createdAnnotation = await annotationApiRequests
+				.createAnnotation(a.itemId, annotationData);
 			if (createdAnnotation) {
-				await updateAnnotation(itemId, createdAnnotation);
+				await updateAnnotation(itemId, createdAnnotation, false);
 			}
 		}
 	});
@@ -113,14 +128,18 @@ async function saveAnnotations() {
 	deletedAnnotationsMap.clear();
 }
 
+function setItemId(itemId) {
+	values.itemId = itemId;
+}
+
 const annotationModel = {
-	createAnnotation,
 	getAnnotation,
 	updateAnnotation,
 	addListViewItem,
 	clearAll,
 	saveAnnotations,
 	deleteAnnotation,
+	setItemId,
 };
 
 export default annotationModel;

@@ -23,9 +23,9 @@ export default class FeaturesListView extends ListView {
 		super(app, config);
 		this._tk = annotationToolkit;
 		this.updatePaperJSToolkit(annotationToolkit);
-		this.attachEvents();
 		this._view = null;
 		this.activeGroup = null;
+		this.eventsList = [];
 	}
 
 	init() {}
@@ -37,6 +37,23 @@ export default class FeaturesListView extends ListView {
 
 	attachEvents() {
 		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+		const list = this.getList();
+		this._onItemClick = list.attachEvent("onItemClick", (id) => {
+			const item = list.getItem(id);
+			if (item?.feature) {
+				item.feature.select();
+			}
+		});
+		this.eventsList.push(
+			this._onItemClick,
+		);
+	}
+
+	detachEvents() {
+		const list = this.getList();
+		this.eventsList.forEach((eventId) => {
+			list.detachEvent(eventId);
+		});
 	}
 
 	handleAddItem(paperjsItem) {
@@ -44,9 +61,27 @@ export default class FeaturesListView extends ListView {
 			return;
 		}
 		const list = this.getList();
-		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${paperjsItem.displayName}`, id: Number(lastId) + 1, feature: paperjsItem});
-		list.select(`${lastId + 1}`);
+		const lastId = list.getLastId() ?? "0";
+		const itemId = list.add({name: `${paperjsItem.displayName}`, id: String(Number(lastId) + 1), feature: paperjsItem});
+		list.select(`${itemId}`);
+		this.attachPaperjsItemEvents(paperjsItem, itemId);
+	}
+
+	handleReplaceItem(itemId, paperjsItem) {
+		if (!paperjsItem) {
+			return;
+		}
+		const list = this.getList();
+		const item = list.getItem(itemId);
+		if (item) {
+			item.feature = paperjsItem;
+			list.updateItem(itemId, item);
+			this.attachPaperjsItemEvents(paperjsItem, itemId);
+		}
+	}
+
+	attachPaperjsItemEvents(paperjsItem, itemId) {
+		const list = this.getList();
 		paperjsItem.on({
 			selected: () => {
 				list.select(itemId);
@@ -62,7 +97,7 @@ export default class FeaturesListView extends ListView {
 			},
 			"item-replaced": (ev) => {
 				console.log("item-replaced", ev);
-				// TODO: implement
+				this.detachPaperjsItemEvents(paperjsItem);
 			},
 			"display-name-changed": (ev) => {
 				const item = list.getItem(itemId);
@@ -76,6 +111,18 @@ export default class FeaturesListView extends ListView {
 					}
 				}
 			}
+		});
+	}
+
+	detachPaperjsItemEvents(paperjsItem) {
+		paperjsItem.off({
+			selected: () => {},
+			deselected: () => {},
+			"selection:mouseenter": () => {},
+			"selection:mouseleave": () => {},
+			"item-replaced": () => {},
+			"display-name-changed": () => {},
+			removed: () => {}
 		});
 	}
 

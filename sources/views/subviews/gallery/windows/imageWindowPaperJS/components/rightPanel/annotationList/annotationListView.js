@@ -41,11 +41,12 @@ export default class AnnotationListView extends ListView {
 					this.editItem(item, node);
 				},
 				"delete-item": async (event, id) => {
+					const item = this.getList().getItem(id);
 					const result = await webix.confirm({
 						title: "Confirm delete",
 						ok: "Yes",
 						cancel: "No",
-						text: "Delete annotation?"
+						text: `Delete annotation "${item.annotation.name}"?`
 					});
 					if (result) {
 						this.deleteItem(id);
@@ -194,22 +195,26 @@ export default class AnnotationListView extends ListView {
 					list.select(firstId);
 				}
 				else {
-					this._tk.clear();
+					this._tk.close();
 				}
 			}
 		}
+		annotationModel.deleteAnnotation(id);
 	}
 
 	async updateAnnotation(itemId) {
 		const list = this.getList();
 		const currentItemId = itemId || list.getSelectedId();
-		const annotation = await annotationModel.getAnnotation(currentItemId);
-		if (annotation) {
-			const geoJSON = this._tk.toGeoJSON();
-			const elements = adapter.featureCollectionsToElements(geoJSON);
-			// annotation.annotation.elements = elements;
-			await annotationModel.updateAnnotation(itemId, elements);
-		}
+		const geoJSON = this._tk.toGeoJSON();
+		const elements = adapter.featureCollectionsToElements(geoJSON);
+		const groups = this._tk.getFeatureCollectionGroups().map(g => g.name);
+		const data = {
+			annotation: {
+				elements,
+			},
+			groups,
+		};
+		await annotationModel.updateAnnotation(currentItemId, data);
 	}
 
 	addAnnotationToList(annotation) {
@@ -226,10 +231,13 @@ export default class AnnotationListView extends ListView {
 
 	addItem() {
 		const list = this.getList();
-		const lastId = list.getLastId() ?? 0;
-		const newId = lastId + 1;
-		list.add({annotation: {name: `${this._newItemName} ${lastId + 1}`, elements: []}, id: newId});
+		const lastId = list.getLastId() ?? "0";
+		const newId = String(Number(lastId) + 1);
+		const addedItemId = list.add({annotation: {name: `${this._newItemName} ${newId}`, elements: []}, id: newId, itemId: this.itemId});
 		list.refresh();
+		if (addedItemId) {
+			list.select(addedItemId);
+		}
 		const newItem = list.getItem(newId);
 		const node = list.getItemNode(newId);
 		this.editItem(newItem, node);
@@ -242,9 +250,13 @@ export default class AnnotationListView extends ListView {
 		editPopup.show(node);
 	}
 
-	getAnnotations() {
-		const list = this.getList();
-		const annotations = list.serialize();
-		return annotations;
+	saveAnnotations() {
+		this.updateAnnotation();
+		annotationModel.saveAnnotations();
+	}
+
+	setItemId(itemId) {
+		this.itemId = itemId;
+		annotationModel.setItemId(itemId);
 	}
 }

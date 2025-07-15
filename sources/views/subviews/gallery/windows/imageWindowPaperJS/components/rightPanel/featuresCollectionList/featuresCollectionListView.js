@@ -27,6 +27,8 @@ export default class FeaturesCollectionListView extends ListView {
 		this._view = null;
 		this.activeGroup = null;
 		this.iconsVisibility.focusIcon = false;
+		this.eventList = [];
+		this.groupForDelete = null;
 	}
 
 	init() {}
@@ -38,7 +40,7 @@ export default class FeaturesCollectionListView extends ListView {
 
 	attachEvents() {
 		const list = this.getList();
-		list.attachEvent("onAfterSelect", (id) => {
+		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", (id) => {
 			const item = list.getItem(id);
 			const group = item.group;
 			const children = group.getChildren();
@@ -48,10 +50,22 @@ export default class FeaturesCollectionListView extends ListView {
 			});
 			this.featuresView.setActiveGroup(group);
 		});
-		list.attachEvent("onAfterDelete", () => {
+		this._onBeforeDeleteEvent = list.attachEvent("onBeforeDelete", (id) => {
+			const item = list.getItem(id);
+			if (item.group) {
+				this.groupForDelete = item.group;
+				this.featuresView.clearAll();
+			}
+		});
+		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", () => {
+			this.groupForDelete.remove();
 			const selectedItem = list.getSelectedItem();
 			this.featuresView.setActiveGroup(selectedItem?.group ?? null);
 		});
+		this.eventList.push(
+			this._onAfterSelectEvent,
+			this._onAfterDeleteEvent,
+		);
 	}
 
 	addItem() {
@@ -98,6 +112,24 @@ export default class FeaturesCollectionListView extends ListView {
 				this.addChild(item);
 			}
 		});
+	}
+
+	detachEvents() {
+		const list = this.getList();
+		this.eventList.forEach((event) => {
+			list.detachEvent(event);
+		});
+		if (this.activeGroup) {
+			this.activeGroup.off({
+				"selection:mouseenter": () => {},
+				"selection:mouseleave": () => {},
+				selected: () => {},
+				deselected: () => {},
+				"display-name-changed": () => {},
+				removed: () => {},
+				"child-added": () => {}
+			});
+		}
 	}
 
 	editItem(event, id) {

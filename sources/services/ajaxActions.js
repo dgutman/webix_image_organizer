@@ -390,7 +390,7 @@ class AjaxActions {
 		let url = `${this.getHostApiUrl()}/annotation`;
 		const urlSearchParams = new URLSearchParams(params);
 		try {
-			const data = await this._ajax().get(url, urlSearchParams);
+			const data = await this._ajax().get(url, urlSearchParams.toString());
 			return this._parseData(data);
 		}
 		catch (error) {
@@ -448,9 +448,8 @@ class AjaxActions {
 		}
 	}
 
-	async deleteAnnotation(annotationData) {
+	async deleteAnnotation(id) {
 		try {
-			const id = annotationData._id;
 			const url = `${this.getHostApiUrl()}/annotation/${id}`;
 			await this._ajax().del(url);
 			return true;
@@ -468,6 +467,18 @@ class AjaxActions {
 			};
 			const url = `${this.getHostApiUrl()}/annotation/counts`;
 			const response = await this._ajax().get(url, params);
+			return this._parseData(response);
+		}
+		catch (error) {
+			parseError(error);
+			return null;
+		}
+	}
+
+	async getAnnotationSchema() {
+		try {
+			const url = `${this.getHostApiUrl()}/annotation/schema`;
+			const response = await this._ajax().get(url);
 			return this._parseData(response);
 		}
 		catch (error) {
