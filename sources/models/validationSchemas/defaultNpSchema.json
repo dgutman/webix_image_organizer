@@ -10,12 +10,7 @@
     "properties": {
         "npSchema": {
             "type": "object",
-            "default": {
-                "blockID": "",
-                "caseID": "",
-                "verified": "",
-                "stainID": ""
-            },
+            "default": {},
             "title": "The npSchema Schema",
             "required": [
                 "blockID",
