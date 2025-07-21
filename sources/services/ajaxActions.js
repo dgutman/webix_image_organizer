@@ -463,7 +463,7 @@ class AjaxActions {
 	async getAnnotationsCountsForItems(itemIds) {
 		try {
 			const params = {
-				items: itemIds
+				items: itemIds ?? ""
 			};
 			const url = `${this.getHostApiUrl()}/annotation/counts`;
 			const response = await this._ajax().get(url, params);

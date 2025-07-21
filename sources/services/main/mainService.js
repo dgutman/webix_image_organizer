@@ -1442,9 +1442,15 @@ class MainService {
 		this._finder.select(folderId);
 		this._finder.unblockEvent();
 		const data = await ajaxActions.getLinearStructure(folder._id, sourceParams);
-		const itemsIdsString = data.map(i => (i._id ? i._id : null)).filter(itemId => itemId !== null).join(",");
-		const itemsAnnotationsCounts = await ajaxActions.getAnnotationsCountsForItems(itemsIdsString);
-		setAnnotationCounts(itemsAnnotationsCounts);
+		const itemsIdsString = data.length > 0
+			? data.map(i => (i._id ? i._id : null)).filter(itemId => itemId !== null).join(",")
+			: null;
+		const itemsAnnotationsCounts = itemsIdsString
+			? await ajaxActions.getAnnotationsCountsForItems(itemsIdsString)
+			: null;
+		if (itemsAnnotationsCounts) {
+			setAnnotationCounts(itemsAnnotationsCounts);
+		}
 		if (data.length === 0) {
 			folder.linear = null;
 			this._itemsModel.updateItems(this._finderFolder);

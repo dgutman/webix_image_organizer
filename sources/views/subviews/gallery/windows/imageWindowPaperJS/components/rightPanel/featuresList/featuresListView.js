@@ -1,7 +1,7 @@
-import editorPopup from "../editorPopup";
 import ListView from "../../../../../../../components/listView";
 import annotationConstants from "../../../constants";
 import styleEditor from "../../toolbars/styleEditor";
+import editorPopup from "../editorPopup";
 
 /**
  * Description placeholder
@@ -32,6 +32,9 @@ export default class FeaturesListView extends ListView {
 
 	ready(view) {
 		this._view = view;
+		const list = this.getList();
+		list.define("multiselect", true);
+		list.refresh();
 		this.attachEvents();
 	}
 
@@ -84,7 +87,15 @@ export default class FeaturesListView extends ListView {
 		const list = this.getList();
 		paperjsItem.on({
 			selected: () => {
-				list.select(itemId);
+				if (list.getItem(itemId)) {
+					const selectedCount = this._tk?.paperScope?.project?.selectedItems?.length || 0;
+					if (selectedCount > 1) {
+						list.select(itemId, true);
+					}
+					else {
+						list.select(itemId);
+					}
+				}
 			},
 			deselected: () => {
 				list.unselect(itemId);

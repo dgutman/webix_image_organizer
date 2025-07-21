@@ -6,9 +6,8 @@ import RightPanel from "./components/rightPanel/rightPanel";
 import magicWandToolbar from "./components/toolbars/magicWand";
 import styleEditor from "./components/toolbars/styleEditor";
 import ControlsView from "./controlsView";
-import { AnnotationToolkit } from "./osd-paperjs-annotation";
+import { AnnotationToolkit, RotationControlOverlay} from "./osd-paperjs-annotation";
 // TODO: add rotation control
-import { RotationControlOverlay } from "./osd-paperjs-annotation";
 import annotationApiRequests from "./services/api";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
@@ -439,23 +438,18 @@ export default class ImageWindowView extends JetView {
 	}
 
 	close() {
-		try {
-			styleEditor.destructPopup();
-			this._controlsView.reset();
-			this._rightPanel.reset();
-			// to clear setted template
-			// to destroy Open Seadragon viewer
-			if (this._openSeadragonViewer) {
-				// TODO: check the feature search
-				this._openSeadragonViewer.destroy();
-			}
-			magicWandToolbar.closeMagicWandToolbar();
-			this.$imageContainer.parse({emptyObject: true});
-			this.getRoot().hide();
+		styleEditor.destructPopup();
+		this._controlsView.reset();
+		this._rightPanel.reset();
+		// to clear setted template
+		// to destroy Open Seadragon viewer
+		if (this._openSeadragonViewer && window.project) {
+			this._tk.close();
+			this._openSeadragonViewer.destroy();
 		}
-		catch (error) {
-			console.error(error);
-		}
+		magicWandToolbar.closeMagicWandToolbar();
+		this.$imageContainer.parse({emptyObject: true});
+		this.getRoot().hide();
 	}
 
 	changeState(state) {
