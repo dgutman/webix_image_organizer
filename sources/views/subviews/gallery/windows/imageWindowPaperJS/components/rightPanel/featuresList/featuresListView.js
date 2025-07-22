@@ -1,6 +1,7 @@
-import ListView from "../../../../../../components/listView";
-import styleEditor from "../toolbars/styleEditor";
-import annotationConstants from "../../constants";
+import ListView from "../../../../../../../components/listView";
+import annotationConstants from "../../../constants";
+import styleEditor from "../../toolbars/styleEditor";
+import editorPopup from "../editorPopup";
 
 /**
  * Description placeholder
@@ -22,20 +23,40 @@ export default class FeaturesListView extends ListView {
 		super(app, config);
 		this._tk = annotationToolkit;
 		this.updatePaperJSToolkit(annotationToolkit);
-		this.attachEvents();
 		this._view = null;
 		this.activeGroup = null;
+		this.eventsList = [];
 	}
 
 	init() {}
 
 	ready(view) {
 		this._view = view;
+		const list = this.getList();
+		list.define("multiselect", true);
+		list.refresh();
 		this.attachEvents();
 	}
 
 	attachEvents() {
 		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
+		const list = this.getList();
+		this._onItemClick = list.attachEvent("onItemClick", (id) => {
+			const item = list.getItem(id);
+			if (item?.feature) {
+				item.feature.select();
+			}
+		});
+		this.eventsList.push(
+			this._onItemClick,
+		);
+	}
+
+	detachEvents() {
+		const list = this.getList();
+		this.eventsList.forEach((eventId) => {
+			list.detachEvent(eventId);
+		});
 	}
 
 	handleAddItem(paperjsItem) {
@@ -43,12 +64,38 @@ export default class FeaturesListView extends ListView {
 			return;
 		}
 		const list = this.getList();
-		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${paperjsItem.displayName}`, id: Number(lastId) + 1, feature: paperjsItem});
-		list.select(`${lastId + 1}`);
+		const lastId = list.getLastId() ?? "0";
+		const itemId = list.add({name: `${paperjsItem.displayName}`, id: String(Number(lastId) + 1), feature: paperjsItem});
+		list.select(`${itemId}`);
+		this.attachPaperjsItemEvents(paperjsItem, itemId);
+	}
+
+	handleReplaceItem(itemId, paperjsItem) {
+		if (!paperjsItem) {
+			return;
+		}
+		const list = this.getList();
+		const item = list.getItem(itemId);
+		if (item) {
+			item.feature = paperjsItem;
+			list.updateItem(itemId, item);
+			this.attachPaperjsItemEvents(paperjsItem, itemId);
+		}
+	}
+
+	attachPaperjsItemEvents(paperjsItem, itemId) {
+		const list = this.getList();
 		paperjsItem.on({
 			selected: () => {
-				list.select(itemId);
+				if (list.getItem(itemId)) {
+					const selectedCount = this._tk?.paperScope?.project?.selectedItems?.length || 0;
+					if (selectedCount > 1) {
+						list.select(itemId, true);
+					}
+					else {
+						list.select(itemId);
+					}
+				}
 			},
 			deselected: () => {
 				list.unselect(itemId);
@@ -61,7 +108,7 @@ export default class FeaturesListView extends ListView {
 			},
 			"item-replaced": (ev) => {
 				console.log("item-replaced", ev);
-				// TODO: implement
+				this.detachPaperjsItemEvents(paperjsItem);
 			},
 			"display-name-changed": (ev) => {
 				const item = list.getItem(itemId);
@@ -78,6 +125,18 @@ export default class FeaturesListView extends ListView {
 		});
 	}
 
+	detachPaperjsItemEvents(paperjsItem) {
+		paperjsItem.off({
+			selected: () => {},
+			deselected: () => {},
+			"selection:mouseenter": () => {},
+			"selection:mouseleave": () => {},
+			"item-replaced": () => {},
+			"display-name-changed": () => {},
+			removed: () => {}
+		});
+	}
+
 	addItem() {
 		const group = this.activeGroup;
 		if (group) {
@@ -90,43 +149,31 @@ export default class FeaturesListView extends ListView {
 		const list = this.getList();
 		const item = list.getItem(id);
 		const node = list.getItemNode(id);
-		const nameEditor = {
-			view: "text",
-			value: item.name || "Name",
-			name: "edit-name",
-			placeholder: "name",
-		};
-		const editPopup = this.webix.ui({
-			view: "popup",
-			body: {
-				rows: [
-					nameEditor,
-					{
-						view: "button",
-						value: "Save",
-						click: () => {
-							const name = editPopup.queryView({view: "text"}).getValue();
-							item.name = name;
-							list.updateItem(item.id, item);
-							item.feature.displayName = name;
-							editPopup.close();
-						}
-					},
-				]
-			}
-		});
+		const config = editorPopup.getConfig(item, editorPopup.ITEM_TYPES.FEATURE, list);
+		const editPopup = webix.ui(config);
 		editPopup.show(node);
 	}
 
-	deleteItem(ev, id) {
-		const listView = this.getList();
-		listView.remove(id);
+	async deleteItem(ev, id) {
+		const result = await webix.confirm({
+			title: "Confirm delete",
+			ok: "Yes",
+			cancel: "No",
+			text: "Delete feature?"
+		});
+		if (result) {
+			const listView = this.getList();
+			listView.remove(id);
+		}
 	}
 
 	editStyle(ev, id) {
 		const list = this.getList();
 		const item = list.getItem(id);
 		if (item?.feature) {
+			if (styleEditor.isOpened()) {
+				styleEditor.destructPopup();
+			}
 			const popupConfig = styleEditor.getConfig(
 				item.feature,
 				annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE

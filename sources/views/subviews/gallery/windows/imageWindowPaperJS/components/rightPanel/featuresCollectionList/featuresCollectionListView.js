@@ -1,7 +1,7 @@
-import FeaturesListView from "./featuresList";
-import ListView from "../../../../../../components/listView";
-import editStyle from "../toolbars/styleEditor";
-import annotationConstants from "../../constants";
+import ListView from "../../../../../../../components/listView";
+import annotationConstants from "../../../constants";
+import editStyle from "../../toolbars/styleEditor";
+import editorPopup from "../editorPopup";
 
 /**
  * Description placeholder
@@ -27,6 +27,8 @@ export default class FeaturesCollectionListView extends ListView {
 		this._view = null;
 		this.activeGroup = null;
 		this.iconsVisibility.focusIcon = false;
+		this.eventList = [];
+		this.groupForDelete = null;
 	}
 
 	init() {}
@@ -38,7 +40,7 @@ export default class FeaturesCollectionListView extends ListView {
 
 	attachEvents() {
 		const list = this.getList();
-		list.attachEvent("onAfterSelect", (id) => {
+		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", (id) => {
 			const item = list.getItem(id);
 			const group = item.group;
 			const children = group.getChildren();
@@ -48,10 +50,22 @@ export default class FeaturesCollectionListView extends ListView {
 			});
 			this.featuresView.setActiveGroup(group);
 		});
-		list.attachEvent("onAfterDelete", () => {
+		this._onBeforeDeleteEvent = list.attachEvent("onBeforeDelete", (id) => {
+			const item = list.getItem(id);
+			if (item.group) {
+				this.groupForDelete = item.group;
+				this.featuresView.clearAll();
+			}
+		});
+		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", () => {
+			this.groupForDelete.remove();
 			const selectedItem = list.getSelectedItem();
 			this.featuresView.setActiveGroup(selectedItem?.group ?? null);
 		});
+		this.eventList.push(
+			this._onAfterSelectEvent,
+			this._onAfterDeleteEvent,
+		);
 	}
 
 	addItem() {
@@ -63,8 +77,9 @@ export default class FeaturesCollectionListView extends ListView {
 		const list = this.getList();
 		this.clearFeaturesItems();
 		const lastId = list.getLastId() ?? 0;
-		const itemId = list.add({name: `${group.displayName} ${lastId + 1}`, id: Number(lastId) + 1, group});
-		list.select(`${lastId + 1}`);
+		const newItemId = lastId + 1;
+		const itemId = list.add({name: `${group.displayName} ${newItemId}`, id: newItemId, group});
+		list.select(`${newItemId}`);
 		group.on({
 			"selection:mouseenter": () => {
 				// TODO: implement if necessary
@@ -99,41 +114,44 @@ export default class FeaturesCollectionListView extends ListView {
 		});
 	}
 
+	detachEvents() {
+		const list = this.getList();
+		this.eventList.forEach((event) => {
+			list.detachEvent(event);
+		});
+		if (this.activeGroup) {
+			this.activeGroup.off({
+				"selection:mouseenter": () => {},
+				"selection:mouseleave": () => {},
+				selected: () => {},
+				deselected: () => {},
+				"display-name-changed": () => {},
+				removed: () => {},
+				"child-added": () => {}
+			});
+		}
+	}
+
 	editItem(event, id) {
 		const list = this.getList();
 		const item = list.getItem(id);
 		const node = list.getItemNode(id);
-		const nameEditor = {
-			view: "text",
-			value: item.name || "Name",
-			name: "edit-name",
-			placeholder: "name",
-		};
-		const editPopup = this.webix.ui({
-			view: "popup",
-			body: {
-				rows: [
-					nameEditor,
-					{
-						view: "button",
-						value: "Save",
-						click: () => {
-							const name = editPopup.queryView({view: "text"}).getValue();
-							item.name = name;
-							list.updateItem(item.id, item);
-							item.group.displayName = name;
-							editPopup.close();
-						}
-					},
-				]
-			}
-		});
+		const config = editorPopup.getConfig(item, editorPopup.ITEM_TYPES.GROUP, list);
+		const editPopup = webix.ui(config);
 		editPopup.show(node);
 	}
 
-	deleteItem(ev, id) {
-		const listView = this.getList();
-		listView.remove(id);
+	async deleteItem(ev, id) {
+		const result = await webix.confirm({
+			title: "Confirm delete",
+			ok: "Yes",
+			cancel: "No",
+			text: "Delete group?"
+		});
+		if (result) {
+			const listView = this.getList();
+			listView.remove(id);
+		}
 	}
 
 	editStyle(ev, id) {

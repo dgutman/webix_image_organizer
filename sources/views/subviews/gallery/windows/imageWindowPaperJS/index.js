@@ -4,10 +4,10 @@ import {JetView} from "webix-jet";
 import RightPanel from "./components/rightPanel/rightPanel";
 // import ToolbarView from "./components/toolbarView";
 import magicWandToolbar from "./components/toolbars/magicWand";
+import styleEditor from "./components/toolbars/styleEditor";
 import ControlsView from "./controlsView";
-import { AnnotationToolkit } from "./osd-paperjs-annotation";
+import { AnnotationToolkit, RotationControlOverlay} from "./osd-paperjs-annotation";
 // TODO: add rotation control
-import { RotationControl } from "./osd-paperjs-annotation";
 import annotationApiRequests from "./services/api";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
@@ -349,6 +349,7 @@ export default class ImageWindowView extends JetView {
 					this.$controlsPanel.show();
 					const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
 					await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
+					new RotationControlOverlay(this._openSeadragonViewer);
 					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
@@ -437,13 +438,14 @@ export default class ImageWindowView extends JetView {
 	}
 
 	close() {
+		styleEditor.destructPopup();
 		this._controlsView.reset();
 		this._rightPanel.reset();
 		// to clear setted template
 		// to destroy Open Seadragon viewer
-		if (this._openSeadragonViewer) {
-			this._tk.destroy();
-			this._openSeadragonViewer?.destroy();
+		if (this._openSeadragonViewer && window.project) {
+			this._tk.close();
+			this._openSeadragonViewer.destroy();
 		}
 		magicWandToolbar.closeMagicWandToolbar();
 		this.$imageContainer.parse({emptyObject: true});

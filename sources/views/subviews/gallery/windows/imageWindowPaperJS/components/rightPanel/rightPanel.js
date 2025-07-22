@@ -1,9 +1,9 @@
 import { JetView } from "webix-jet";
 
 // import { LayerUI } from "./osd-annotation/js/layerui.mjs";
-import AnnotationListView from "./annotationListView";
-import FeaturesCollectionListView from "./featuresCollectionList";
-import FeaturesListView from "./featuresList";
+import AnnotationListView from "./annotationList/annotationListView";
+import FeaturesCollectionListView from "./featuresCollectionList/featuresCollectionListView";
+import FeaturesListView from "./featuresList/featuresListView";
 import { setAnnotationCounts } from "../../../../../../../models/annotationCounts";
 import annotationApiRequests from "../../services/api";
 
@@ -88,37 +88,16 @@ export default class RightPanel extends JetView {
 	}
 
 	addAnnotation(annotation) {
-		this.annotationsView.addAnnotation(annotation);
+		this.annotationsView.addAnnotationToList(annotation);
 	}
 
 	saveAnnotationState() {
-		this.annotationsView.updateAnnotation();
-		const annotationsListView = this.getAnnotationsListView();
-		const annotationListItems = annotationsListView.serialize();
-		annotationListItems.forEach(async (annotationItem) => {
-			if (annotationItem._id) {
-				annotationApiRequests.updateAnnotation(annotationItem._id, annotationItem.annotation);
-			}
-			else {
-				const itemId = annotationItem.itemId || this._itemId;
-				const newAnnotation = itemId
-					? await annotationApiRequests.createAnnotation(itemId, annotationItem.annotation)
-					: null;
-				if (newAnnotation) {
-					this.annotationsView.updateAnnotation(annotationItem.id, newAnnotation);
-				}
-			}
-		});
-		this.deletedAnnotations.forEach(async (deletedAnnotation) => {
-			if (deletedAnnotation._id) {
-				await annotationApiRequests.deleteAnnotation(deletedAnnotation._id);
-			}
-		});
-		this.deletedAnnotations = [];
+		this.annotationsView.saveAnnotations();
 	}
 
 	setItemId(itemId) {
 		this._itemId = itemId;
+		this.annotationsView.setItemId(itemId);
 	}
 
 	async updateAnnotationsCount() {
@@ -127,8 +106,11 @@ export default class RightPanel extends JetView {
 	}
 
 	reset() {
+		this.annotationsView.detachEvents();
 		this.annotationsView.clearAll();
+		this.featuresGroups.detachEvents();
 		this.featuresGroups.clearAll();
+		this.features.detachEvents();
 		this.features.clearAll();
 		this.deletedAnnotations = [];
 	}

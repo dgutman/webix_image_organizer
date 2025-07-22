@@ -1,5 +1,6 @@
 import {JetView} from "webix-jet";
 
+import magicWandToolBar from "./toolbars/magicWand";
 import constants from "../../../../../../constants";
 import annotationConstants from "../constants";
 import {
@@ -17,7 +18,6 @@ import {
 	WandTool,
 	RasterTool,
 } from "../osd-paperjs-annotation";
-import magicWandToolBar from "./toolbars/magicWand";
 
 export default class ToolbarView extends JetView {
 	constructor(app, config = {}, /* imageWindowViewModel, */ imageWindowView) {
@@ -488,7 +488,7 @@ export default class ToolbarView extends JetView {
 	/**
 	 * Update annotation paperjs toolkit
 	 *
-	 * @param {AnnotationToolkit} tk 
+	 * @param {AnnotationToolkit} tk
 	 */
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
@@ -533,28 +533,35 @@ export default class ToolbarView extends JetView {
 	setMode() {
 		const paperScope = this._tk.paperScope;
 		if (paperScope) {
-			paperScope.activate();
-			const selection = paperScope.findSelectedItems();
-			const activeTool = paperScope.getActiveTool();
-			const toolbarControls = this.getToolbarControls();
-			if (selection.length === 0) {
-				this._currentMode = "select";
+			if (this.setModeTimeout) {
+				clearTimeout(this.setModeTimeout);
 			}
-			else if (selection.length === 1) {
-				const item = selection[0];
-				const def = item.annotationItem || {};
-				let type = def.type;
-				if (def.subtype) {
-					type += `:${def.subtype}`;
+			this.setModeTimeout = setTimeout(() => {
+				this.setModeTimeout = null;
+				if (!paperScope.project) {
+					return;
 				}
-				const mode = type === null ? "new" : type;
-				this._currentMode = mode;
-			}
-			else {
-				this._currentMode = "multiselection";
-			}
+				paperScope.activate();
+				const selection = paperScope.findSelectedItems();
+				if (selection.length === 0) {
+					this._currentMode = "select";
+				}
+				else if (selection.length === 1) {
+					const item = selection[0];
+					const def = item.annotationItem || {};
+					let type = def.type;
+					if (def.subtype) {
+						type += `:${def.subtype}`;
+					}
+					const mode = type === null ? "new" : type;
+					this._currentMode = mode;
+				}
+				else {
+					this._currentMode = "multiselection";
+				}
 
-			this.setControlsState(this._currentMode);
+				this.setControlsState(this._currentMode);
+			}, 0);
 		}
 	}
 
