@@ -18,14 +18,24 @@ export default class FeaturesListView extends ListView {
 	 * @constructor
 	 * @param {*} app
 	 * @param {{ name: string; newItemName: string; }} [config={name: "Layer", newItemName: "Layer"}]
+	 * @param {PaperJSToolkit} [annotationToolkit=null]
+	 * @param {RightPanel} [rightPanel]
 	 */
-	constructor(app, config = {name: "Features", newItemName: "Creating..."}, annotationToolkit) {
+	constructor(
+		app,
+		config = {name: "Features", newItemName: "Creating..."},
+		annotationToolkit,
+		rightPanel,
+	) {
 		super(app, config);
 		this._tk = annotationToolkit;
-		this.updatePaperJSToolkit(annotationToolkit);
+		if (annotationToolkit) {
+			this.updatePaperJSToolkit(annotationToolkit);
+		}
 		this._view = null;
 		this.activeGroup = null;
 		this.eventsList = [];
+		this._rightPanel = rightPanel;
 	}
 
 	init() {}
@@ -50,12 +60,13 @@ export default class FeaturesListView extends ListView {
 		this.eventsList.push(
 			this._onItemClick,
 		);
-	}
-
-	detachEvents() {
-		const list = this.getList();
-		this.eventsList.forEach((eventId) => {
-			list.detachEvent(eventId);
+		list.attachEvent("onDestruct", () => {
+			if (list) {
+				this.eventsList.forEach((eventId) => {
+					list.detachEvent(eventId);
+				});
+			}
+			this.eventsList = [];
 		});
 	}
 
@@ -85,6 +96,7 @@ export default class FeaturesListView extends ListView {
 
 	attachPaperjsItemEvents(paperjsItem, itemId) {
 		const list = this.getList();
+		const rightPanel = this._rightPanel;
 		paperjsItem.on({
 			selected: () => {
 				if (list.getItem(itemId)) {
@@ -109,8 +121,9 @@ export default class FeaturesListView extends ListView {
 			"item-replaced": (ev) => {
 				console.log("item-replaced", ev);
 				this.detachPaperjsItemEvents(paperjsItem);
+				rightPanel.setModifiedFlag(true);
 			},
-			"display-name-changed": (ev) => {
+			"display-name-changed": (/* ev */) => {
 				const item = list.getItem(itemId);
 				item.name = paperjsItem.displayName;
 				list.updateItem(itemId, item);

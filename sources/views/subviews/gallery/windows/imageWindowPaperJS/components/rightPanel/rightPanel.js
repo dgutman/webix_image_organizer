@@ -14,7 +14,7 @@ export default class RightPanel extends JetView {
 		this.annotationsView.gravity = 0.5;
 		this.featuresGroups = new FeaturesCollectionListView(app, {name: "Feature Collections", newItemName: "Group"});
 		this.featuresGroups.gravity = 1;
-		this.features = new FeaturesListView(app, {name: "Features", newItemName: "Creating..."});
+		this.features = new FeaturesListView(app, {name: "Features", newItemName: "Creating..."}, null, this);
 		this.features.gravity = 1;
 		this.featuresGroups.setFeaturesView(this.features);
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
@@ -22,6 +22,7 @@ export default class RightPanel extends JetView {
 		this._tk = null; // PaperJS toolkit
 		this._view = null;
 		this._itemId = null; // Item id set in index.js
+		this._appEvents = [];
 	}
 
 	config() {
@@ -46,10 +47,50 @@ export default class RightPanel extends JetView {
 		this._view = view;
 		const saveButtonView = this.getSaveButton();
 		saveButtonView.attachEvent("onItemClick", () => this.saveAnnotationState());
+		const featuresGroupsListView = this.getFeaturesGroupsListView();
+		const featuresListView = this.getFeaturesListView();
+		const loadingEvent = this.app.attachEvent("app:paperjs:annotation:loading", () => {
+			if (!featuresGroupsListView.showProgress) {
+				webix.extend(featuresGroupsListView, webix.ProgressBar);
+			}
+			if (!featuresListView.showProgress) {
+				webix.extend(featuresListView, webix.ProgressBar);
+			}
+			featuresGroupsListView.showProgress();
+			featuresListView.showProgress();
+		});
+		const loadedEvent = this.app.attachEvent("app:paperjs:annotation:loaded", () => {
+			console.log("Annotations loaded");
+			if (featuresGroupsListView.hideProgress) {
+				featuresGroupsListView.hideProgress();
+			}
+			if (featuresListView.hideProgress) {
+				featuresListView.hideProgress();
+			}
+		});
+		this._appEvents.push(
+			loadingEvent,
+			loadedEvent
+		);
+	}
+
+	destroy() {
+		this._appEvents.forEach((eventId) => {
+			this.app.detachEvent(eventId);
+		});
+		this._appEvents = [];
 	}
 
 	getAnnotationsListView() {
 		return this.annotationsView.getList();
+	}
+
+	getFeaturesGroupsListView() {
+		return this.featuresGroups.getList();
+	}
+
+	getFeaturesListView() {
+		return this.features.getList();
 	}
 
 	getSaveButton() {
@@ -87,12 +128,28 @@ export default class RightPanel extends JetView {
 		});
 	}
 
-	addAnnotation(annotation) {
-		this.annotationsView.addAnnotationToList(annotation);
+	async addItemAnnotations(itemId) {
+		const id = itemId ?? this._itemId;
+		const annotations = await annotationApiRequests.getAnnotations(id);
+		if (annotations) {
+			annotations.forEach((a) => {
+				// this._rightPanel.addItemAnnotations(a);
+				this.annotationsView.addAnnotationToList(a);
+			});
+		}
 	}
 
-	saveAnnotationState() {
-		this.annotationsView.saveAnnotations();
+	async saveAnnotationState() {
+		try {
+			await this.annotationsView.saveAnnotations();
+		}
+		catch (error) {
+			if (error.annotationsToRestore) {
+				error.annotationsToRestore.forEach((/* a */) => {
+					// TODO: restore annotations
+				});
+			}
+		}
 	}
 
 	setItemId(itemId) {
@@ -105,12 +162,13 @@ export default class RightPanel extends JetView {
 		setAnnotationCounts(this._itemId, count);
 	}
 
+	setModifiedFlag(isModified) {
+		this.annotationsView.setModifiedFlag(isModified);
+	}
+
 	reset() {
-		this.annotationsView.detachEvents();
 		this.annotationsView.clearAll();
-		this.featuresGroups.detachEvents();
 		this.featuresGroups.clearAll();
-		this.features.detachEvents();
 		this.features.clearAll();
 		this.deletedAnnotations = [];
 	}

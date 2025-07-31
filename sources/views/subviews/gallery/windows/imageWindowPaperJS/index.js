@@ -359,12 +359,7 @@ export default class ImageWindowView extends JetView {
 					this._rightPanel.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updateOSDViewer(this._openSeadragonViewer);
 					this._rightPanel.setItemId(obj._id);
-					const annotations = await annotationApiRequests.getAnnotations(obj._id);
-					if (annotations) {
-						annotations.forEach((a) => {
-							this._rightPanel.addAnnotation(a);
-						});
-					}
+					this._rightPanel.addItemAnnotations(obj._id);
 
 					// put annotations without annotation panel
 					/*

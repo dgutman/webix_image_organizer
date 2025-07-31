@@ -50,6 +50,7 @@ export default class AnnotationListView extends ListView {
 					});
 					if (result) {
 						this.deleteItem(id);
+						annotationModel.deleteItemAnnotation(id);
 					}
 				},
 			},
@@ -99,10 +100,6 @@ export default class AnnotationListView extends ListView {
 
 	ready(/* view */) {}
 
-	/**
-	 * 
-	 * @param { AnnotationToolkit} tk
-	 */
 	updatePaperJSToolkit(tk) {
 		this.detachEvents();
 		this._tk = tk;
@@ -127,17 +124,30 @@ export default class AnnotationListView extends ListView {
 			return selectionFlag;
 		});
 		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", async (id) => {
-			const annotation = await annotationModel.getAnnotation(id);
-			const fc = annotation
-				? adapter.annotationToFeatureCollections(annotation)
-				: null;
-			this._tk.addFeatureCollections([], true);
-			if (fc) {
-				this._tk.addFeatureCollections(
-					fc,
-					true,
-					this._openSeadragonViewer.world.getItemAt(0)
-				);
+			this.app.callEvent("app:paperjs:annotation:loading", []);
+			try {
+				const annotation = await annotationModel.getAnnotation(id);
+				const fc = annotation
+					? adapter.annotationToFeatureCollections(annotation)
+					: null;
+				this._tk.addFeatureCollections([], true);
+				if (fc) {
+					this._tk.addFeatureCollections(
+						fc,
+						true,
+						this._openSeadragonViewer.world.getItemAt(0)
+					);
+				}
+			}
+			catch (error) {
+				console.error(error);
+				webix.message({
+					type: "error",
+					text: "Error loading annotation"
+				});
+			}
+			finally {
+				this.app.callEvent("app:paperjs:annotation:loaded", []);
 			}
 			this._tk.getFeatureCollectionGroups();
 		});
@@ -162,14 +172,18 @@ export default class AnnotationListView extends ListView {
 			// 	);
 			// }
 		});
-		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", (id) => {
+		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", (/* id */) => {
 			// TODO: implement
+		});
+		this._onDataUpdate = list.attachEvent("onDataUpdate", (id, data) => {
+			annotationModel.updateAnnotationNameAndDescription(id, data);
 		});
 		this.eventsList.push(
 			this._onBeforeSelectEvent,
 			this._onAfterSelectEvent,
 			this._onAfterAddEvent,
-			this._onAfterDeleteEvent
+			this._onAfterDeleteEvent,
+			this._onDataUpdate
 		);
 		list.attachEvent("onDestruct", () => {
 			this.detachEvents();
@@ -199,7 +213,6 @@ export default class AnnotationListView extends ListView {
 				}
 			}
 		}
-		annotationModel.deleteAnnotation(id);
 	}
 
 	async updateAnnotation(itemId) {
@@ -250,13 +263,20 @@ export default class AnnotationListView extends ListView {
 		editPopup.show(node);
 	}
 
-	saveAnnotations() {
-		this.updateAnnotation();
-		annotationModel.saveAnnotations();
+	async saveAnnotations() {
+		await this.updateAnnotation();
+		await annotationModel.saveAnnotations();
 	}
 
 	setItemId(itemId) {
 		this.itemId = itemId;
 		annotationModel.setItemId(itemId);
+	}
+
+	setModifiedFlag(isModified) {
+		const list = this.getList();
+		const selectedId = list.getSelectedId();
+		annotationModel.setModifiedFlag(selectedId, isModified);
+		console.log("annotation modified");
 	}
 }

@@ -350,10 +350,6 @@ function destructPopup() {
 	const popup = $$(popupId);
 	if (popup) {
 		popup.destructor();
-		console.log("styleEditor destructed");
-	}
-	else {
-		console.log("styleeditor destruction failed");
 	}
 }
 
