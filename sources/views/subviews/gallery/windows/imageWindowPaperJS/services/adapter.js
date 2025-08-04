@@ -230,8 +230,10 @@ function featureCollectionsToElements(fcArray) {
 			element.group = `${geojson.label}`;
 			return element;
 		})).flat();
-
-	return elements;
+	const filteredElements = elements.filter((e) => {
+		return e?.points?.length > 0;
+	});
+	return filteredElements;
 }
 
 // convert a GeoJSON Feature into a DSA annotation element
