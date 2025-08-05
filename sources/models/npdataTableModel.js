@@ -84,15 +84,24 @@ function _transpose(source) {
 function setImageTemplate(source) {
 	const result = source.map(async (obj) => {
 		const newObj = webix.copy(obj);
-		newObj.imageSrc = await ajax.getImage(newObj._id, "thumbnail", {width: 256, height: 256});
-		newObj.image = `<img 
-			src=${newObj.imageSrc}
-			width=256
-			height=256
-			alt="${newObj.name}">
-		`;
-		newObj.$css = "npdataView";
-		return newObj;
+		try {
+			newObj.imageSrc = await ajax.getImage(newObj._id, "thumbnail", {width: 256, height: 256});
+			newObj.image = newObj.imageSrc
+				? `<img 
+					src=${newObj.imageSrc}
+					width=256
+					height=256
+					alt="${newObj.name}">
+				`
+				: "<div>No Image</div>";
+			newObj.$css = "npdataView";
+			return newObj;
+		}
+		catch (error) {
+			newObj.image = "<div>No Image</div>";
+			newObj.$css = "npdataView";
+			return newObj;
+		}
 	});
 	return Promise.all(result);
 }
