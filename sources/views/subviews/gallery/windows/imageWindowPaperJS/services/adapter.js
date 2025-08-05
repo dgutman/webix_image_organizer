@@ -63,6 +63,9 @@ function annotationToFeatureCollections(dsa) {
 function elementArrayToFeatureCollection(annotationId, label, elements, description, groupName) {
 	let grouped = elements.reduce((acc, f) => {
 		let feature = elementToFeature(f);
+		if (!feature) {
+			return acc; // skip empty element
+		}
 		if (f.user && f.user.MultiPolygon) {
 			if (!acc.multiPolygons[f.user.MultiPolygon]) {
 				acc.multiPolygons[f.user.MultiPolygon] = feature;
@@ -124,6 +127,9 @@ function elementArrayToFeatureCollection(annotationId, label, elements, descript
 }
 
 function elementToFeature(element) {
+	if (isElementPointsEmpty(element)) {
+		return null; // skip empty elements
+	}
 	function mapElementToGeometryType(e) {
 		let g = {
 			type: null,
@@ -216,6 +222,21 @@ function elementToFeature(element) {
 
 
 	return f;
+}
+
+function isElementPointsEmpty(element) {
+	if (
+		element.type === "polyline"
+		|| element.type === "arrow"
+	) {
+		if (
+			!element?.points?.length
+			|| !element?.points?.length === 0
+		) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function featureCollectionsToElements(fcArray) {
