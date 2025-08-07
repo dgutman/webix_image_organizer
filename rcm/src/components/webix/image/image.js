@@ -66,22 +66,18 @@ export default class Image {
     // TODO: add tiles for framed image
     if (isFrame) {
       this.openSeaDragonViewer.removeAllTiles();
-      const promises = []
+      const tileSources = [];
       for (let i = 0; i < maxFrame; i++) {
-        const tileSourcePromise = imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions, i, true)
-        promises.push(tileSourcePromise);
+        const s = imageTilesModel.getDZITileSource(imageID, i)
+        tileSources.push(s);
       }
-      const tileSources = await Promise.all(promises);
-      tileSources.forEach((t, index) => {
-        const opacity = index === 0 ? 1 : 0;
-        this.openSeaDragonViewer.addNewTile(t, index, opacity);
-      })
+      this.openSeaDragonViewer.open(tileSources, 0);
     }
     else {
       const tileSource = await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions);
       tileSource.index = 0;
       this.openSeaDragonViewer.removeAllTiles();
-      this.openSeaDragonViewer.addNewTile(tileSource);
+      this.openSeaDragonViewer.open(tileSource, 0);
     }
   }
 

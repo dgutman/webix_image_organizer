@@ -43,8 +43,13 @@ async function getTileSources(imageID, incomeTilesOptions = {}, useSourceOptions
   return tileSources;
 }
 
+function getDZITileSource(itemId, frame) {
+  return ajaxActions.getImageDeepZoomCompatibleMetadataURL(itemId, frame);
+}
+
 const imageTilesModel = {
   getTileSources,
+  getDZITileSource,
 };
 
 export default imageTilesModel
