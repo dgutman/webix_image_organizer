@@ -43,7 +43,7 @@ export default class FeaturesCollectionListView extends ListView {
 		this._onAfterSelectEvent = list.attachEvent("onAfterSelect", (id) => {
 			const item = list.getItem(id);
 			const group = item.group;
-			const children = group.getChildren();
+			const children = group?.getChildren() ?? [];
 			this.featuresView.clearAll();
 			children.forEach((child) => {
 				this.featuresView.handleAddItem(child);
@@ -66,6 +66,14 @@ export default class FeaturesCollectionListView extends ListView {
 			this._onAfterSelectEvent,
 			this._onAfterDeleteEvent,
 		);
+		list.attachEvent("onDestruct", () => {
+			if (list) {
+				this.eventList.forEach((event) => {
+					list.detachEvent(event);
+				});
+			}
+			this.eventList = [];
+		});
 	}
 
 	addItem() {
@@ -88,7 +96,6 @@ export default class FeaturesCollectionListView extends ListView {
 				// TODO: implement if necessary
 			},
 			selected: () => {
-				// TODO: implement if necessary
 				list.select(itemId);
 			},
 			deselected: () => {
@@ -114,13 +121,9 @@ export default class FeaturesCollectionListView extends ListView {
 		});
 	}
 
-	detachEvents() {
-		const list = this.getList();
-		this.eventList.forEach((event) => {
-			list.detachEvent(event);
-		});
-		if (this.activeGroup) {
-			this.activeGroup.off({
+	detachGroupEvents(group) {
+		if (group) {
+			group.off({
 				"selection:mouseenter": () => {},
 				"selection:mouseleave": () => {},
 				selected: () => {},
@@ -150,6 +153,9 @@ export default class FeaturesCollectionListView extends ListView {
 		});
 		if (result) {
 			const listView = this.getList();
+			const item = listView.getItem(id);
+			const group = item.group;
+			this.detachGroupEvents(group);
 			listView.remove(id);
 		}
 	}
