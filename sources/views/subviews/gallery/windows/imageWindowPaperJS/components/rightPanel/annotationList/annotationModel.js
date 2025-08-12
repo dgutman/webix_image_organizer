@@ -110,8 +110,10 @@ async function deleteItemAnnotation(itemId) {
 	const annotation = annotationsMap.get(itemId);
 	const id = getAnnotationId(annotation);
 	if (id) {
-		await annotationApiRequests.deleteAnnotation(id);
-		webix.message(`Annotation "${annotation.annotation.name}" was deleted`);
+		const result = await annotationApiRequests.deleteAnnotation(id);
+		if (result) {
+			webix.message(`Annotation "${annotation.annotation.name}" was deleted`);
+		}
 	}
 }
 
