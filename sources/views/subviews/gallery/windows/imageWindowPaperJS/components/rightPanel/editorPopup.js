@@ -42,7 +42,7 @@ function getConfig(item, type, list) {
 		}
 		: {height: 1};
 
-	const saveAnnotationHandler = function() {
+	const saveAnnotationHandler = function () {
 		const editPopup = this.getTopParentView();
 		const name = editPopup.queryView({view: "text"}).getValue();
 		const description = editPopup.queryView({view: "textarea"}).getValue();

@@ -1,7 +1,6 @@
 import PaperScope from "./paperjsScopeModel";
 
 export default class PaperJSLayersModel {
-	
 	/**
 	 * Creates an instance of PaperJSLayersModel.
 	 *
@@ -37,9 +36,6 @@ export default class PaperJSLayersModel {
 		if (layer?.activate) {
 			this._activeLayer = layer;
 			layer.activate();
-		}
-		else {
-			debugger;
 		}
 	}
 
