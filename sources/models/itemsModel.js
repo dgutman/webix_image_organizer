@@ -3,7 +3,7 @@ import dot from "dot-object";
 import projectMetadata from "./projectMetadata";
 import constants from "../constants";
 import ajaxActions from "../services/ajaxActions";
-import findAndFixErrors from "../services/gallery/fixValidationErrors";
+// import findAndFixErrors from "../services/gallery/fixValidationErrors";
 import validate from "../services/gallery/npValidator";
 
 const projectMetadataCollection = projectMetadata.getProjectFolderMetadata();

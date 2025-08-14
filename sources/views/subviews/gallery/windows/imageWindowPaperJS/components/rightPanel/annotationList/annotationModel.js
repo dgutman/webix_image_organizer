@@ -2,7 +2,6 @@ import annotationApiRequests from "../../../services/api";
 
 const listViewItemsMap = new Map();
 const annotationsMap = new Map();
-const deletedAnnotationsMap = new Map();
 const values = {
 	itemId: null,
 };
@@ -63,6 +62,10 @@ async function updateAnnotation(itemId, updatedAnnotation) {
 	if (annotation) {
 		annotation.annotation.elements = updatedAnnotation.annotation.elements;
 		annotation.groups = updatedAnnotation.groups;
+		const id = getAnnotationId(updatedAnnotation);
+		if (id) {
+			annotation._id = id;
+		}
 		annotationsMap.set(itemId, annotation);
 		return annotation;
 	}
@@ -100,7 +103,6 @@ function getAnnotationId(annotation) {
 function clearAll() {
 	listViewItemsMap.clear();
 	annotationsMap.clear();
-	deletedAnnotationsMap.clear();
 }
 
 async function deleteItemAnnotation(itemId) {
@@ -108,36 +110,52 @@ async function deleteItemAnnotation(itemId) {
 	const annotation = annotationsMap.get(itemId);
 	const id = getAnnotationId(annotation);
 	if (id) {
-		await annotationApiRequests.deleteAnnotation(id);
-		webix.message(`Annotation "${annotation.annotation.name}" was deleted`);
+		const result = await annotationApiRequests.deleteAnnotation(id);
+		if (result) {
+			webix.message(`Annotation "${annotation.annotation.name}" was deleted`);
+			annotationsMap.delete(itemId);
+		}
 	}
 }
 
 async function saveAnnotations() {
 	console.log("Saving annotations...");
-	annotationsMap.forEach(async (a, itemId) => {
-		const id = getAnnotationId(a);
-		const annotationData = {
-			...a.annotation,
-		};
-		if (id) {
-			const updatedAnnotation = a.isModified
-				? await annotationApiRequests.updateAnnotation(id, annotationData)
-				: null;
-			if (updatedAnnotation) {
-				webix.message(`Annotation "${updatedAnnotation.annotation.name}" was updated`);
-				await updateAnnotation(itemId, updatedAnnotation);
+	if (annotationsMap.size === 0) {
+		webix.message("No annotations to save");
+		return;
+	}
+	const sentRequestsFlagArray = await Promise.all(
+		Array.from(annotationsMap).map(async ([itemId, a]) => {
+			const id = getAnnotationId(a);
+			const annotationData = {
+				...a.annotation,
+			};
+			if (id) {
+				const updatedAnnotation = a.isModified
+					? await annotationApiRequests.updateAnnotation(id, annotationData)
+					: null;
+				if (updatedAnnotation) {
+					webix.message(`Annotation "${updatedAnnotation.annotation.name}" was updated`);
+					await updateAnnotation(itemId, updatedAnnotation);
+					return true;
+				}
 			}
-		}
-		else {
-			const createdAnnotation = await annotationApiRequests
-				.createAnnotation(a.itemId, annotationData);
-			if (createdAnnotation) {
-				webix.message(`Annotation "${createdAnnotation.annotation.name}" was created`);
-				await updateAnnotation(itemId, createdAnnotation);
+			else {
+				const createdAnnotation = await annotationApiRequests
+					.createAnnotation(a.itemId, annotationData);
+				if (createdAnnotation) {
+					webix.message(`Annotation "${createdAnnotation.annotation.name}" was created`);
+					await updateAnnotation(itemId, createdAnnotation);
+					return true;
+				}
 			}
-		}
-	});
+			return false;
+		})
+	);
+	const isRequestSent = sentRequestsFlagArray.some(flag => flag);
+	if (!isRequestSent) {
+		webix.message("No annotations to save");
+	}
 }
 
 function setItemId(itemId) {

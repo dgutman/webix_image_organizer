@@ -42,7 +42,7 @@ async function updateAnnotation(annotationId, annotationData) {
 }
 
 async function deleteAnnotation(annotationId) {
-	await ajaxActions.deleteAnnotation(annotationId);
+	return ajaxActions.deleteAnnotation(annotationId);
 }
 
 async function getAnnotationsCount(itemId) {

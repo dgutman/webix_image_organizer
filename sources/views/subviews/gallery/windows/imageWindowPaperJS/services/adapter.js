@@ -252,7 +252,10 @@ function featureCollectionsToElements(fcArray) {
 			return element;
 		})).flat();
 	const filteredElements = elements.filter((e) => {
-		return e?.points?.length > 0;
+		if (e.points) {
+			return e.points.length > 0;
+		}
+		return true;
 	});
 	return filteredElements;
 }

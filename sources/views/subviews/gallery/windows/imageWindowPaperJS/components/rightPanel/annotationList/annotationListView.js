@@ -218,6 +218,9 @@ export default class AnnotationListView extends ListView {
 	async updateAnnotation(itemId) {
 		const list = this.getList();
 		const currentItemId = itemId || list.getSelectedId();
+		if (!currentItemId) {
+			return;
+		}
 		const geoJSON = this._tk.toGeoJSON();
 		const elements = adapter.featureCollectionsToElements(geoJSON);
 		const groups = this._tk.getFeatureCollectionGroups().map(g => g.name);
