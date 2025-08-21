@@ -12,8 +12,8 @@ const state = {
 	FILL: "fill",
 	STROKE: "stroke",
 	currentState: null,
-	oldStrokeStyle: null,
-	oldFillStyle: null,
+	oldStrokeColor: null,
+	oldFillColor: null,
 };
 
 function getConfig(item, type) {
@@ -57,10 +57,27 @@ function getConfig(item, type) {
 								<span style="font-weight: bold; color: ${contrastingFillColor};">Fill Color</span>
 							</button>`,
 							onClick: {
-								"annotation-fill-button": (ev, id) => {
+								"annotation-fill-button": (/* ev, id */) => {
 									const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 									if (annotationStyleEditorPanel) {
 										state.currentState = state.FILL;
+										switch (type) {
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+												state.oldFillColor = item.style.fillColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+												state.oldFillColor = item.defaultStyle.fillColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+												const project = annotationAppState.project;
+												state.oldFillColor = project.defaultStyle.fillColor.clone();
+												break;
+											}
+											default:
+												break;
+										}
 										updateColors(item, type);
 										annotationStyleEditorPanel.show();
 									}
@@ -77,10 +94,28 @@ function getConfig(item, type) {
 								<span style="font-weight: bold; color: ${contrastingStrokeColor};">Stroke Color</span>
 							</button>`,
 							onClick: {
-								"annotation-style-button": (ev, id) => {
+								"annotation-style-button": (/* ev, id */) => {
 									const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 									if (annotationStyleEditorPanel) {
 										state.currentState = state.STROKE;
+										switch (type) {
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+												state.oldStrokeColor = item.style.strokeColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+												state.oldStrokeColor = item.defaultStyle.strokeColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+												const project = annotationAppState.project;
+												state.oldStrokeColor = project.defaultStyle.strokeColor.clone();
+												break;
+											}
+											default:
+												break;
+										}
+										state.oldStrokeColor = item.style.strokeColor.clone();
 										updateColors(item, type);
 										annotationStyleEditorPanel?.show();
 									}
@@ -123,6 +158,7 @@ function getConfig(item, type) {
 							max: 1,
 							step: 0.01,
 							value: opacity,
+							moveTitle: false,
 						},
 						{
 							id: annotationStyleEditorApplyButtonId,
@@ -158,12 +194,14 @@ function getConfig(item, type) {
 								<span style="font-weight: bold; color: ${fontColor};">Fill Color</span>
 							</button>`);
 									editorFillButton.refresh();
+									state.oldFillColor = null;
 								}
 								else if (state.currentState === state.STROKE) {
 									editorStrokeButton.define("template", `<button class="annotation-style-button annotation-stroke-button" style="width: 100%; height: 100%; background-color: ${backgroundColor};">
 								<span style="font-weight: bold; color: ${fontColor};">Stroke Color</span>
 							</button>`);
 									editorStrokeButton.refresh();
+									state.oldStrokeColor = null;
 								}
 								const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 								if (annotationStyleEditorPanel) {
@@ -189,6 +227,7 @@ function attachEvents(item, type) {
 	const events = {
 		opacitySliderChangeEvent: null,
 		colorChangeEvent: null,
+		closeEvent: null,
 	};
 
 	popup.attachEvent("onShow", () => {
@@ -244,29 +283,41 @@ function attachEvents(item, type) {
 				switch (type) {
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
 						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
 							item.style.fillColor = newColor;
+							item.style.fillColor.setAlpha(opacity);
 						}
 						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
 							item.style.strokeColor = newColor;
+							item.style.strokeColor.setAlpha(opacity);
 						}
 						break;
 					}
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
 						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
 							item.defaultStyle.fillColor = newColor;
+							item.defaultStyle.fillColor.setAlpha(opacity);
 						}
 						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
 							item.defaultStyle.strokeColor = newColor;
+							item.defaultStyle.strokeColor.setAlpha(opacity);
 						}
 						break;
 					}
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
 						const project = annotationAppState.project;
 						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
 							project.defaultStyle.fillColor = newColor;
+							project.defaultStyle.fillColor.setAlpha(opacity);
 						}
 						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
 							project.defaultStyle.strokeColor = newColor;
+							project.defaultStyle.strokeColor.setAlpha(opacity);
 						}
 						break;
 					}
@@ -284,6 +335,46 @@ function attachEvents(item, type) {
 		if (events.colorChangeEvent) {
 			const colorPicker = webix.$$(annotationStyleEditorColorPickerId);
 			colorPicker?.detachEvent(events.colorChangeEvent);
+		}
+		if (state.oldFillColor) {
+			switch (type) {
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+					item.style.fillColor = state.oldFillColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+					item.defaultStyle.fillColor = state.oldFillColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+					const project = annotationAppState.project;
+					project.defaultStyle.fillColor = state.oldFillColor;
+					break;
+				}
+				default:
+					break;
+			}
+			state.oldFillColor = null;
+		}
+		if (state.oldStrokeColor) {
+			switch (type) {
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+					item.style.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+					item.defaultStyle.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+					const project = annotationAppState.project;
+					project.defaultStyle.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				default:
+					break;
+			}
+			state.oldStrokeColor = null;
 		}
 	});
 }
@@ -318,7 +409,7 @@ function updateColors(item, type) {
 		const opacity = getOpacity(
 			item,
 			type,
-			annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.FILL
+			state.FILL
 		);
 		colorPicker.setValue(hexColor);
 		opacitySlider.setValue(opacity);
@@ -329,7 +420,7 @@ function updateColors(item, type) {
 		const opacity = getOpacity(
 			item,
 			type,
-			annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.STROKE
+			state.STROKE
 		);
 		colorPicker.setValue(hexColor);
 		opacitySlider.setValue(opacity);
@@ -392,10 +483,10 @@ function getOpacity(item, type, style) {
 	switch (type) {
 		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
 			switch (style) {
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.FILL: {
+				case state.FILL: {
 					return item.defaultStyle.fillColor.alpha;
 				}
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.STROKE: {
+				case state.STROKE: {
 					return item.defaultStyle.strokeColor.alpha;
 				}
 				default:
@@ -404,10 +495,10 @@ function getOpacity(item, type, style) {
 		}
 		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
 			switch (style) {
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.FILL: {
+				case state.FILL: {
 					return item.style.fillColor.alpha;
 				}
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.STROKE: {
+				case state.STROKE: {
 					return item.style.strokeColor.alpha;
 				}
 				default:
@@ -416,11 +507,11 @@ function getOpacity(item, type, style) {
 		}
 		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
 			switch (style) {
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.FILL: {
+				case state.FILL: {
 					const project = annotationAppState.project;
 					return project ? project.defaultStyle.fillColor.alpha : null;
 				}
-				case annotationConstants.ANNOTATION_PAPERJS_STYLE_ELEMENTS.STROKE: {
+				case state.STROKE: {
 					const project = annotationAppState.project;
 					return project ? project.defaultStyle.strokeColor.alpha : null;
 				}
