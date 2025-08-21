@@ -176,6 +176,8 @@ export default class FeaturesListView extends ListView {
 		});
 		if (result) {
 			const listView = this.getList();
+			const item = listView.getItem(id);
+			item?.feature.remove();
 			listView.remove(id);
 		}
 	}
@@ -189,11 +191,13 @@ export default class FeaturesListView extends ListView {
 			}
 			const popupConfig = styleEditor.getConfig(
 				item.feature,
-				annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE
+				annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE
 			);
 			const popup = this.webix.ui(popupConfig);
-			styleEditor.attachEvents(item.feature, annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE);
-			popup.show();
+			styleEditor.attachEvents(
+				item.feature,
+				annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE
+			);
 			const toolbarNode = this.getRoot()
 				.getTopParentView()
 				.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})

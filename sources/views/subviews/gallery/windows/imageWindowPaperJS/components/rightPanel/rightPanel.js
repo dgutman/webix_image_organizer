@@ -157,6 +157,10 @@ export default class RightPanel extends JetView {
 		this.annotationsView.setItemId(itemId);
 	}
 
+	getItemId() {
+		return this._itemId;
+	}
+
 	async updateAnnotationsCount() {
 		const count = await annotationApiRequests.getAnnotationsCount(this._itemId);
 		setAnnotationCounts(this._itemId, count);

@@ -9,8 +9,13 @@ export default {
 	IMAGE_CONTAINER_ID: "#image-container-id",
 	WEBIX_TOOLBAR_BUTTON_ID: `webix-toolbar-button-id-${webix.uid()}`,
 	ANNOTATION_TOOLBAR_ID: `annotation-toolbar-id-${webix.uid()}`,
-	ANNOTATION_PAPERJS_TYPES: {
+	ANNOTATION_PAPERJS_ELEMENTS: {
 		GROUP: "group",
 		FEATURE: "feature",
+		DEFAULT: "default",
 	},
+	ANNOTATION_PAPERJS_STYLE_ELEMENTS: {
+		STROKE: "stroke",
+		FILL: "fill"
+	}
 };

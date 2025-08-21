@@ -1,4 +1,3 @@
-import PaperScopeModel from "../../../../../../models/annotations/paperjsScopeModel";
 import OrganizerFilters from "../../../../../../services/organizer/organizerFilters";
 import TimedOutBehavior from "../../../../../../utils/timedOutBehavior";
 
