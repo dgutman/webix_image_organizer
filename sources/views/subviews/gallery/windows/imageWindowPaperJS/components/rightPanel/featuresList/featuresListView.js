@@ -76,7 +76,7 @@ export default class FeaturesListView extends ListView {
 		}
 		const list = this.getList();
 		const lastId = list.getLastId() ?? "0";
-		const itemId = list.add({name: `${paperjsItem.displayName}`, id: String(Number(lastId) + 1), feature: paperjsItem});
+		const itemId = list.add({name: `${paperjsItem.displayName}`, isNameUserDefined: false, id: String(Number(lastId) + 1), feature: paperjsItem});
 		list.select(`${itemId}`);
 		this.attachPaperjsItemEvents(paperjsItem, itemId);
 	}
@@ -120,13 +120,21 @@ export default class FeaturesListView extends ListView {
 			},
 			"item-replaced": (ev) => {
 				console.log("item-replaced", ev);
+				const newPaperjsItem = ev.item;
+				const item = list.getItem(itemId);
+				if (item?.isNameUserDefined) {
+					newPaperjsItem.displayName = paperjsItem.displayName;
+				}
 				this.detachPaperjsItemEvents(paperjsItem);
 				rightPanel.setModifiedFlag(true);
 			},
 			"display-name-changed": (/* ev */) => {
 				const item = list.getItem(itemId);
-				item.name = paperjsItem.displayName;
-				list.updateItem(itemId, item);
+				if (item) {
+					item.isNameUserDefined = true;
+					item.name = paperjsItem.displayName;
+					list.updateItem(itemId, item);
+				}
 			},
 			removed: (ev) => {
 				if (ev.item === paperjsItem) {
