@@ -46,7 +46,7 @@ async function deleteAnnotation(annotationId) {
 }
 
 async function getAnnotationsCount(itemId) {
-	const count = await ajaxActions.getAnnotationsCountByItemId(itemId);
+	const count = await ajaxActions.getAnnotationsCountsForItems(itemId);
 	return count;
 }
 

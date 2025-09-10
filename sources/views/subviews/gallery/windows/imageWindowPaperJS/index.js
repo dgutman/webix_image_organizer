@@ -6,14 +6,17 @@ import RightPanel from "./components/rightPanel/rightPanel";
 import magicWandToolbar from "./components/toolbars/magicWand";
 import styleEditor from "./components/toolbars/styleEditor";
 import ControlsView from "./controlsView";
+import state from "./models/state";
 import { AnnotationToolkit, RotationControlOverlay} from "./osd-paperjs-annotation";
 // TODO: add rotation control
 import annotationApiRequests from "./services/api";
 import ControlsEventsService from "./services/controlsEventsService";
 // DO NOT MOVE ToolbarView MODULE, it will cause an error
 import ToolbarView from "./components/toolbarView";
+import { getAnnotationCounts, setAnnotationCounts } from "../../../../../models/annotationCounts";
 import galleryImageUrls from "../../../../../models/galleryImageUrls";
 import nonImageUrls from "../../../../../models/nonImageUrls";
+import appState from "../../../../../models/state";
 import ajax from "../../../../../services/ajaxActions";
 import auth from "../../../../../services/authentication";
 import MakerLayer from "../../../../../services/organizer/makerLayer";
@@ -353,6 +356,7 @@ export default class ImageWindowView extends JetView {
 					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
+					state.project = this._tk.overlay.paperScope.project;
 					this._tk.addAnnotationUI({autoOpen: false});
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
@@ -432,7 +436,7 @@ export default class ImageWindowView extends JetView {
 		templateNode.appendChild(formatter.render());
 	}
 
-	close() {
+	async close() {
 		styleEditor.destructPopup();
 		this._controlsView.reset();
 		this._rightPanel.reset();
@@ -444,6 +448,16 @@ export default class ImageWindowView extends JetView {
 		}
 		magicWandToolbar.closeMagicWandToolbar();
 		this.$imageContainer.parse({emptyObject: true});
+		const itemId = this._rightPanel.getItemId();
+		const itemAnnotationsCount = itemId
+			? await annotationApiRequests.getAnnotationsCount(itemId)
+			: null;
+		if (itemAnnotationsCount[itemId] !== null) {
+			const annotationCounts = getAnnotationCounts();
+			annotationCounts[itemId] = itemAnnotationsCount[itemId];
+			setAnnotationCounts(annotationCounts);
+			appState.app.callEvent("app:annotationCounts:updated");
+		}
 		this.getRoot().hide();
 	}
 

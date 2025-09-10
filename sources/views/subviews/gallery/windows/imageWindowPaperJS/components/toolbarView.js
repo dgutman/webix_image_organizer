@@ -1,13 +1,13 @@
 import {JetView} from "webix-jet";
 
 import magicWandToolBar from "./toolbars/magicWand";
+import styleEditor from "./toolbars/styleEditor";
 import constants from "../../../../../../constants";
 import annotationConstants from "../constants";
 import {
 	DefaultTool,
 	SelectTool,
 	TransformTool,
-	StyleTool,
 	RectangleTool,
 	EllipseTool,
 	PolygonTool,
@@ -325,8 +325,22 @@ export default class ToolbarView extends JetView {
 							wandTool.expandSelection();
 						}
 					});
+					this._tools[k].activate();
 				}
-				this._tools[k].activate();
+				else if (k === constants.ANNOTATION_TOOL_IDS.style) {
+					const popupConfig = styleEditor.getConfig(
+						null,
+						annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT
+					);
+					const popup = this.webix.ui(popupConfig);
+					// TODO: improve
+					styleEditor.attachEvents(null, annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT);
+					const toolbarNode = this.getRoot().getNode();
+					popup.show(toolbarNode);
+				}
+				else {
+					this._tools[k].activate();
+				}
 			});
 		});
 	}
@@ -481,7 +495,6 @@ export default class ToolbarView extends JetView {
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.text] = PointTextTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.raster] = RasterTool;
 		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.transform] = TransformTool;
-		this.toolConstructors[constants.ANNOTATION_TOOL_IDS.style] = StyleTool;
 		return this.toolConstructors;
 	}
 
@@ -509,7 +522,8 @@ export default class ToolbarView extends JetView {
 			const annotationTools = annotationToolbar.tools;
 			const annotationToolsKeys = Object.keys(annotationTools);
 			annotationToolsKeys.find((tKey) => {
-				if (annotationTools[tKey] instanceof toolsConstructors[toolId]) {
+				if (toolsConstructors[toolId]
+					&& annotationTools[tKey] instanceof toolsConstructors[toolId]) {
 					this._tools[toolId] = annotationTools[tKey];
 					return true;
 				}

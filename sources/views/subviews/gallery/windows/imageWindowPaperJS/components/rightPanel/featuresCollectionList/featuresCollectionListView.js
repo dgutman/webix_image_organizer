@@ -1,6 +1,6 @@
 import ListView from "../../../../../../../components/listView";
 import annotationConstants from "../../../constants";
-import editStyle from "../../toolbars/styleEditor";
+import styleEditor from "../../toolbars/styleEditor";
 import editorPopup from "../editorPopup";
 
 /**
@@ -161,21 +161,27 @@ export default class FeaturesCollectionListView extends ListView {
 	}
 
 	editStyle(ev, id) {
+		if (styleEditor.isOpened()) {
+			styleEditor.destructPopup();
+		}
 		const list = this.getList();
 		const item = list.getItem(id);
 		const group = item.group;
 		if (group) {
-			const editStyleConfig = editStyle.getConfig(
+			const popupConfig = styleEditor.getConfig(
 				group,
-				annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP
+				annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP
 			);
-			const editStylePopup = webix.ui(editStyleConfig);
-			editStyle.attachEvents(group, annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP);
+			const popup = webix.ui(popupConfig);
+			styleEditor.attachEvents(
+				group,
+				annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP
+			);
 			const toolbarNode = this.getRoot()
 				.getTopParentView()
 				.queryView({id: annotationConstants.ANNOTATION_TOOLBAR_ID})
 				?.getNode();
-			editStylePopup.show(toolbarNode);
+			popup.show(toolbarNode);
 		}
 		else {
 			webix.message(`the group is not defined for item ${id}`, "error");

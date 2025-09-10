@@ -17,6 +17,7 @@ import patientsDataModel from "../../models/patientsDataModel";
 import projectMetadata from "../../models/projectMetadata";
 import recognizedItemsModel from "../../models/recognizedItems";
 import selectDataviewItems from "../../models/selectGalleryDataviewItems";
+import state from "../../models/state";
 import webixViews from "../../models/webixViews";
 import utils from "../../utils/utils";
 import viewMouseEvents from "../../utils/viewMouseEvents";
@@ -992,6 +993,15 @@ class MainService {
 		});
 
 		this._setGallerySelectedItemsFromLocalStorage();
+
+		const app = state.app;
+		if (app) {
+			app.attachEvent("app:annotationCounts:updated", () => {
+				if (this._galleryDataview?.refresh) {
+					this._galleryDataview.refresh();
+				}
+			});
+		}
 	}
 
 	_updateMetadataTableData() {

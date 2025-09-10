@@ -1,4 +1,5 @@
 import annotationConstants from "../../constants";
+import annotationAppState from "../../models/state";
 
 const popupId = "annotationStyleEditorId";
 const annotationStyleEditorFillButtonId = "annotationStyleEditorFillButton";
@@ -11,19 +12,15 @@ const state = {
 	FILL: "fill",
 	STROKE: "stroke",
 	currentState: null,
-	oldStrokeStyle: null,
-	oldFillStyle: null,
+	oldStrokeColor: null,
+	oldFillColor: null,
 };
 
 function getConfig(item, type) {
-	const fillColor = type === annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP
-		? item.defaultStyle.fillColor
-		: item.style.fillColor;
-	const strokeColor = type === annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP
-		? item.defaultStyle.strokeColor
-		: item.style.strokeColor;
-	const opacity = item.opacity;
-	const elementName = item.displayName;
+	const fillColor = getFillColor(item, type);
+	const strokeColor = getStrokeColor(item, type);
+	const opacity = item?.opacity || 1;
+	const elementName = item ? item?.displayName || "Unnamed element" : "Default style";
 	const contrastingFillColor = getContrastFromRGB(
 		fillColor.red,
 		fillColor.green,
@@ -56,15 +53,31 @@ function getConfig(item, type) {
 							id: annotationStyleEditorFillButtonId,
 							width: 120,
 							height: 30,
-							borderless: true,
-							template: `<button class="annotation-style-button annotation-fill-button" style="width: 120px; height: 30px; background-color: rgb(${fillColor.red}, ${fillColor.green}, ${fillColor.blue});">
+							template: `<button class="annotation-style-button annotation-fill-button" style="width: 100%; height: 100%; background-color: ${fillColor.toCSS(true)};">
 								<span style="font-weight: bold; color: ${contrastingFillColor};">Fill Color</span>
 							</button>`,
 							onClick: {
-								"annotation-fill-button": (ev, id) => {
-									const annotationStyleEditorPanel = $$(annotationStyleEditorPanelId);
+								"annotation-fill-button": (/* ev, id */) => {
+									const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 									if (annotationStyleEditorPanel) {
 										state.currentState = state.FILL;
+										switch (type) {
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+												state.oldFillColor = item.style.fillColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+												state.oldFillColor = item.defaultStyle.fillColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+												const project = annotationAppState.project;
+												state.oldFillColor = project.defaultStyle.fillColor.clone();
+												break;
+											}
+											default:
+												break;
+										}
 										updateColors(item, type);
 										annotationStyleEditorPanel.show();
 									}
@@ -77,15 +90,32 @@ function getConfig(item, type) {
 							id: annotationStyleEditorStrokeButtonId,
 							width: 120,
 							height: 30,
-							borderless: true,
-							template: `<button class="annotation-style-button annotation-stroke-button" style="width: 120px; height: 30px; background-color: rgb(${strokeColor.red}, ${strokeColor.green}, ${strokeColor.blue});">
+							template: `<button class="annotation-style-button annotation-stroke-button" style="width: 100%; height: 100%; background-color: ${strokeColor.toCSS(true)};">
 								<span style="font-weight: bold; color: ${contrastingStrokeColor};">Stroke Color</span>
 							</button>`,
 							onClick: {
-								"annotation-style-button": (ev, id) => {
-									const annotationStyleEditorPanel = $$(annotationStyleEditorPanelId);
+								"annotation-style-button": (/* ev, id */) => {
+									const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 									if (annotationStyleEditorPanel) {
 										state.currentState = state.STROKE;
+										switch (type) {
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+												state.oldStrokeColor = item.style.strokeColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+												state.oldStrokeColor = item.defaultStyle.strokeColor.clone();
+												break;
+											}
+											case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+												const project = annotationAppState.project;
+												state.oldStrokeColor = project.defaultStyle.strokeColor.clone();
+												break;
+											}
+											default:
+												break;
+										}
+										state.oldStrokeColor = item.style.strokeColor.clone();
 										updateColors(item, type);
 										annotationStyleEditorPanel?.show();
 									}
@@ -128,30 +158,31 @@ function getConfig(item, type) {
 							max: 1,
 							step: 0.01,
 							value: opacity,
+							moveTitle: false,
 						},
 						{
 							id: annotationStyleEditorApplyButtonId,
 							view: "button",
 							label: "Apply",
-							width: 120,
+							width: 110,
 							height: 30,
 							click: () => {
-								const colorPicker = $$(annotationStyleEditorColorPickerId);
+								const colorPicker = webix.$$(annotationStyleEditorColorPickerId);
 								if (!colorPicker) {
 									webix.message("Color picker not found");
 									return;
 								}
-								const opacitySlider = $$(annotationStyleEditorOpacitySliderId);
+								const opacitySlider = webix.$$(annotationStyleEditorOpacitySliderId);
 								if (!opacitySlider) {
 									webix.message("Opacity slider not found");
 									return;
 								}
-								const editorFillButton = $$(annotationStyleEditorFillButtonId);
+								const editorFillButton = webix.$$(annotationStyleEditorFillButtonId);
 								if (!editorFillButton) {
 									webix.message("Fill button not found");
 									return;
 								}
-								const editorStrokeButton = $$(annotationStyleEditorStrokeButtonId);
+								const editorStrokeButton = webix.$$(annotationStyleEditorStrokeButtonId);
 								if (!editorStrokeButton) {
 									webix.message("Stroke button not found");
 									return;
@@ -159,18 +190,20 @@ function getConfig(item, type) {
 								const backgroundColor = colorPicker.getValue();
 								const fontColor = getContrastFromHex(backgroundColor);
 								if (state.currentState === state.FILL) {
-									editorFillButton.define("template", `<button class="annotation-style-button annotation-fill-button" style="width: 120px; height: 30px; background-color: ${backgroundColor};">
+									editorFillButton.define("template", `<button class="annotation-style-button annotation-fill-button" style="width: 100%; height: 100%; background-color: ${backgroundColor};">
 								<span style="font-weight: bold; color: ${fontColor};">Fill Color</span>
 							</button>`);
 									editorFillButton.refresh();
+									state.oldFillColor = null;
 								}
 								else if (state.currentState === state.STROKE) {
-									editorStrokeButton.define("template", `<button class="annotation-style-button annotation-stroke-button" style="width: 120px; height: 30px; background-color: ${backgroundColor};">
+									editorStrokeButton.define("template", `<button class="annotation-style-button annotation-stroke-button" style="width: 100%; height: 100%; background-color: ${backgroundColor};">
 								<span style="font-weight: bold; color: ${fontColor};">Stroke Color</span>
 							</button>`);
 									editorStrokeButton.refresh();
+									state.oldStrokeColor = null;
 								}
-								const annotationStyleEditorPanel = $$(annotationStyleEditorPanelId);
+								const annotationStyleEditorPanel = webix.$$(annotationStyleEditorPanelId);
 								if (annotationStyleEditorPanel) {
 									annotationStyleEditorPanel.hide();
 								}
@@ -186,179 +219,309 @@ function getConfig(item, type) {
 }
 
 function attachEvents(item, type) {
-	const popup = $$(popupId);
+	const popup = webix.$$(popupId);
 	if (!popup) {
 		webix.message("Popup not found");
 		return;
 	}
 	const events = {
 		opacitySliderChangeEvent: null,
+		colorChangeEvent: null,
+		closeEvent: null,
 	};
 
 	popup.attachEvent("onShow", () => {
-		const colorPicker = $$(annotationStyleEditorColorPickerId);
+		const colorPicker = webix.$$(annotationStyleEditorColorPickerId);
 		if (!colorPicker) {
 			webix.message("Color picker not found");
 			return;
 		}
-		const opacitySlider = $$(annotationStyleEditorOpacitySliderId);
+		const opacitySlider = webix.$$(annotationStyleEditorOpacitySliderId);
 		if (!opacitySlider) {
 			webix.message("Opacity slider not found");
 			return;
 		}
-		events.opacitySliderChangeEvent = opacitySlider.attachEvent("onChange", (newValue) => {
-			if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP) {
-				if (state.currentState === state.FILL) {
-					item.defaultStyle.fillColor.opacity = newValue;
+		if (!events.opacitySliderChangeEvent) {
+			events.opacitySliderChangeEvent = opacitySlider.attachEvent("onChange", (newValue) => {
+				switch (type) {
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+						if (state.currentState === state.FILL) {
+							item.style.fillColor.setAlpha(newValue);
+						}
+						else if (state.currentState === state.STROKE) {
+							item.style.strokeColor.setAlpha(newValue);
+						}
+						break;
+					}
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+						if (state.currentState === state.FILL) {
+							item.defaultStyle.fillColor.setAlpha(newValue);
+						}
+						else if (state.currentState === state.STROKE) {
+							item.defaultStyle.strokeColor.setAlpha(newValue);
+						}
+						break;
+					}
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+						const project = annotationAppState.project;
+						if (state.currentState === state.FILL) {
+							project.defaultStyle.fillColor.setAlpha(newValue);
+						}
+						else if (state.currentState === state.STROKE) {
+							project.defaultStyle.strokeColor.setAlpha(newValue);
+						}
+						break;
+					}
+					default:
+						break;
 				}
-				item.defaultStyle.strokeColor.opacity = newValue;
-			}
-			else if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE) {
-				if (state.currentState === state.FILL) {
-					item.style.fillColor.opacity = newValue;
+			});
+		}
+
+		if (!events.colorChangeEvent) {
+			events.colorChangeEvent = colorPicker.attachEvent("onChange", (newColor) => {
+				switch (type) {
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
+							item.style.fillColor = newColor;
+							item.style.fillColor.setAlpha(opacity);
+						}
+						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
+							item.style.strokeColor = newColor;
+							item.style.strokeColor.setAlpha(opacity);
+						}
+						break;
+					}
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
+							item.defaultStyle.fillColor = newColor;
+							item.defaultStyle.fillColor.setAlpha(opacity);
+						}
+						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
+							item.defaultStyle.strokeColor = newColor;
+							item.defaultStyle.strokeColor.setAlpha(opacity);
+						}
+						break;
+					}
+					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+						const project = annotationAppState.project;
+						if (state.currentState === state.FILL) {
+							const opacity = getOpacity(item, type, state.FILL);
+							project.defaultStyle.fillColor = newColor;
+							project.defaultStyle.fillColor.setAlpha(opacity);
+						}
+						else if (state.currentState === state.STROKE) {
+							const opacity = getOpacity(item, type, state.STROKE);
+							project.defaultStyle.strokeColor = newColor;
+							project.defaultStyle.strokeColor.setAlpha(opacity);
+						}
+						break;
+					}
+					default:
+						break;
 				}
-				item.style.strokeColor.opacity = newValue;
-			}
-		});
-		events.colorChangeEvent = colorPicker.attachEvent("onChange", (newColor) => {
-			const rgb = hexToRgb(newColor);
-			if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP) {
-				if (state.currentState === state.FILL) {
-					item.defaultStyle.fillColor.red = rgb;
-					item.defaultStyle.fillColor.green = rgb.g;
-					item.defaultStyle.fillColor.blue = rgb.b;
-				}
-				else if (state.currentState === state.STROKE) {
-					item.defaultStyle.strokeColor.red = rgb.r;
-					item.defaultStyle.strokeColor.green = rgb.g;
-					item.defaultStyle.strokeColor.blue = rgb.b;
-				}
-			}
-			else if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE) {
-				if (state.currentState === state.FILL) {
-					item.style.fillColor.red = rgb.r;
-					item.style.fillColor.green = rgb.g;
-					item.style.fillColor.blue = rgb.b;
-				}
-				else if (state.currentState === state.STROKE) {
-					item.style.strokeColor.red = rgb.r;
-					item.style.strokeColor.green = rgb.g;
-					item.style.strokeColor.blue = rgb.b;
-				}
-			}
-		});
+			});
+		}
 	});
 	popup.attachEvent("onDestruct", () => {
 		if (events.opacitySliderChangeEvent) {
-			const opacitySlider = $$(annotationStyleEditorOpacitySliderId);
+			const opacitySlider = webix.$$(annotationStyleEditorOpacitySliderId);
 			opacitySlider?.detachEvent(events.opacitySliderChangeEvent);
+		}
+		if (events.colorChangeEvent) {
+			const colorPicker = webix.$$(annotationStyleEditorColorPickerId);
+			colorPicker?.detachEvent(events.colorChangeEvent);
+		}
+		if (state.oldFillColor) {
+			switch (type) {
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+					item.style.fillColor = state.oldFillColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+					item.defaultStyle.fillColor = state.oldFillColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+					const project = annotationAppState.project;
+					project.defaultStyle.fillColor = state.oldFillColor;
+					break;
+				}
+				default:
+					break;
+			}
+			state.oldFillColor = null;
+		}
+		if (state.oldStrokeColor) {
+			switch (type) {
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+					item.style.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+					item.defaultStyle.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+					const project = annotationAppState.project;
+					project.defaultStyle.strokeColor = state.oldStrokeColor;
+					break;
+				}
+				default:
+					break;
+			}
+			state.oldStrokeColor = null;
 		}
 	});
 }
 
 function getContrastFromRGB(r, g, b) {
-	const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+	const yiq = ((r * 255) * 299 + (g * 255) * 587 + (b * 255) * 114) / 1000;
 	return yiq >= 128 ? "black" : "white";
 }
 
 function getContrastFromHex(hex) {
-	const r = parseInt(hex.slice(1, 3), 16);
-	const g = parseInt(hex.slice(3, 5), 16);
-	const b = parseInt(hex.slice(5, 7), 16);
+	const r = parseInt(hex.slice(1, 3), 16) / 255;
+	const g = parseInt(hex.slice(3, 5), 16) / 255;
+	const b = parseInt(hex.slice(5, 7), 16) / 255;
 	return getContrastFromRGB(r, g, b);
 }
 
-function hexToRgb(hex) {
-	const bigint = parseInt(hex.slice(1), 16);
-	const r = (bigint >> 16) & 255;
-	const g = (bigint >> 8) & 255;
-	const b = bigint & 255;
-	return {r, g, b};
-}
-
 function updateColors(item, type) {
-	const colorPicker = $$(annotationStyleEditorColorPickerId);
+	const colorPicker = webix.$$(annotationStyleEditorColorPickerId);
 	if (!colorPicker) {
 		webix.message("Color picker not found");
 		return;
 	}
-	const opacitySlider = $$(annotationStyleEditorOpacitySliderId);
+	const opacitySlider = webix.$$(annotationStyleEditorOpacitySliderId);
 	if (!opacitySlider) {
 		webix.message("Opacity slider not found");
 		return;
 	}
 	const currentState = state.currentState;
-	if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.GROUP) {
-		if (currentState === state.FILL) {
-			const {r, g, b} = {
-				r: item.defaultStyle.fillColor.red,
-				g: item.defaultStyle.fillColor.green,
-				b: item.defaultStyle.fillColor.blue,
-			};
-			const hexColor = rgbToHex(r, g, b);
-			colorPicker.setValue(hexColor);
-			opacitySlider.setValue(item.defaultStyle.fillColor.opacity);
-		}
-		else if (currentState === state.STROKE) {
-			const {r, g, b} = {
-				r: item.defaultStyle.strokeColor.red,
-				g: item.defaultStyle.strokeColor.green,
-				b: item.defaultStyle.strokeColor.blue,
-			};
-			const hexColor = rgbToHex(r, g, b);
-			colorPicker.setValue(hexColor);
-			opacitySlider.setValue(item.defaultStyle.strokeColor.opacity);
-		}
+	if (currentState === state.FILL) {
+		const fillColor = getFillColor(item, type);
+		const hexColor = fillColor.toCSS(true);
+		const opacity = getOpacity(
+			item,
+			type,
+			state.FILL
+		);
+		colorPicker.setValue(hexColor);
+		opacitySlider.setValue(opacity);
 	}
-	else if (type === annotationConstants.ANNOTATION_PAPERJS_TYPES.FEATURE) {
-		if (currentState === state.FILL) {
-			const {r, g, b} = {
-				r: item.style.fillColor.red,
-				g: item.style.fillColor.green,
-				b: item.style.fillColor.blue,
-			};
-			const hexColor = rgbToHex(r, g, b);
-			colorPicker.setValue(hexColor);
-			opacitySlider.setValue(item.style.fillColor.opacity);
-		}
-		else if (currentState === state.STROKE) {
-			const {r, g, b} = {
-				r: item.style.strokeColor.red,
-				g: item.style.strokeColor.green,
-				b: item.style.strokeColor.blue,
-			};
-			const hexColor = rgbToHex(r, g, b);
-			colorPicker.setValue(hexColor);
-			opacitySlider.setValue(item.style.strokeColor.opacity);
-		}
+	else if (currentState === state.STROKE) {
+		const strokeColor = getStrokeColor(item, type);
+		const hexColor = strokeColor.toCSS(true);
+		const opacity = getOpacity(
+			item,
+			type,
+			state.STROKE
+		);
+		colorPicker.setValue(hexColor);
+		opacitySlider.setValue(opacity);
 	}
 	else {
 		webix.message("Unknown type");
 	}
 }
 
-function componentToHex(c) {
-	const hex = c.toString(16);
-	return hex.length === 1 ? `0${hex}` : hex;
-}
-
-function rgbToHex(r, g, b) {
-	return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
-}
-
 function destructPopup() {
-	const popup = $$(popupId);
+	const popup = webix.$$(popupId);
 	if (popup) {
 		popup.destructor();
 	}
 }
 
 function isOpened() {
-	const popup = $$(popupId);
+	const popup = webix.$$(popupId);
 	if (popup) {
 		return popup.isVisible();
 	}
 	return false;
+}
+
+function getFillColor(item, type) {
+	switch (type) {
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+			return item.defaultStyle.fillColor.clone();
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+			return item.style.fillColor.clone();
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+			const project = annotationAppState.project;
+			return project ? project.defaultStyle.fillColor.clone() : null;
+		}
+		default:
+			return null;
+	}
+}
+
+function getStrokeColor(item, type) {
+	switch (type) {
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+			return item.defaultStyle.strokeColor.clone();
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+			return item.style.strokeColor.clone();
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+			const project = annotationAppState.project;
+			return project ? project.defaultStyle.strokeColor.clone() : null;
+		}
+		default:
+			return null;
+	}
+}
+
+function getOpacity(item, type, style) {
+	switch (type) {
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
+			switch (style) {
+				case state.FILL: {
+					return item.defaultStyle.fillColor.alpha;
+				}
+				case state.STROKE: {
+					return item.defaultStyle.strokeColor.alpha;
+				}
+				default:
+					return null;
+			}
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
+			switch (style) {
+				case state.FILL: {
+					return item.style.fillColor.alpha;
+				}
+				case state.STROKE: {
+					return item.style.strokeColor.alpha;
+				}
+				default:
+					return null;
+			}
+		}
+		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
+			switch (style) {
+				case state.FILL: {
+					const project = annotationAppState.project;
+					return project ? project.defaultStyle.fillColor.alpha : null;
+				}
+				case state.STROKE: {
+					const project = annotationAppState.project;
+					return project ? project.defaultStyle.strokeColor.alpha : null;
+				}
+				default:
+					return null;
+			}
+		}
+		default:
+			return null;
+	}
 }
 
 export default {
