@@ -1,13 +1,13 @@
+import ajaxActions from "../services/ajaxActions";
 import authService from "../services/authentication";
 import utils from "../utils/utils";
-import ajaxActions from "../services/ajaxActions";
 
 function openOrDownloadFiles(item, imageWindow, pdfViewerWindow, csvViewerWindow) {
 	const itemType = utils.searchForFileType(item);
 	if (item.label) {
 		imageWindow.showWindow(item, "standard");
 		item.label = false; // To prevent openning label image 2nd time
-		return true;
+		return;
 	}
 	switch (itemType) {
 		case "png":

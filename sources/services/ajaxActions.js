@@ -22,12 +22,11 @@ function parseError(xhr) {
 			}
 			if (!webix.message.pull[message]) {
 				const expire = message === connectionMessage ? -1 : 5000;
-				webix.message({text: message, expire, id: message});
+				webix.message({type: "error", text: message, expire, id: message});
 			}
 			break;
 		}
 	}
-	return Promise.reject(xhr);
 }
 
 webix.attachEvent("onBeforeAjax", (mode, url, data, request, headers, files, promise) => {
