@@ -4,7 +4,7 @@ import styleEditor from "../../toolbars/styleEditor";
 import editorPopup from "../editorPopup";
 
 /**
- * Description placeholder
+ * List for paperjs groups
  *
  * @export
  * @class LayerUI
@@ -12,20 +12,13 @@ import editorPopup from "../editorPopup";
  * @extends {ListView}
  */
 export default class FeaturesCollectionListView extends ListView {
-	/**
-	 * Creates an instance of LayerUI.
-	 *
-	 * @constructor
-	 * @param {*} app
-	 * @param {{ name: string; newItemName: string; }} [config={name: "Feature Collections", newItemName: "Annotation Group"}]
-	 */
-	constructor(app, config = {name: "Feature Collections", newItemName: "Annotation Group"}, annotationToolkit) {
+	constructor(app, config = {name: "Feature Collections", newItemName: "Annotation Group"}, annotationToolkit, rightPanel) {
 		super(app, config);
 		this._tk = annotationToolkit;
 		this.updatePaperJSToolkit(annotationToolkit);
+		this.rightPanel = rightPanel;
 		this.featuresView = null;
 		this._view = null;
-		this.activeGroup = null;
 		this.iconsVisibility.focusIcon = false;
 		this.eventList = [];
 		this.groupForDelete = null;
@@ -117,6 +110,9 @@ export default class FeaturesCollectionListView extends ListView {
 			"child-added": (ev) => {
 				const item = ev.item;
 				this.addChild(item);
+			},
+			"item-updated": () => {
+				this.rightPanel.setModifiedFlag(true);
 			}
 		});
 	}
@@ -130,7 +126,8 @@ export default class FeaturesCollectionListView extends ListView {
 				deselected: () => {},
 				"display-name-changed": () => {},
 				removed: () => {},
-				"child-added": () => {}
+				"child-added": () => {},
+				"item-updated": () => {},
 			});
 		}
 	}
@@ -219,6 +216,13 @@ export default class FeaturesCollectionListView extends ListView {
 			return list.getItem(selectedId).group;
 		}
 		return null;
+	}
+
+	getGroups() {
+		const list = this.getList();
+		const items = list.serialize();
+		const groups = items.map(i => i.group);
+		return groups;
 	}
 
 	togglePaperJSVisibility(item, isVisible) {

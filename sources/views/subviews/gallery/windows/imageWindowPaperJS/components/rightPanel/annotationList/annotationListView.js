@@ -100,6 +100,10 @@ export default class AnnotationListView extends ListView {
 
 	ready(/* view */) {}
 
+	destroy() {
+		annotationModel.clearAll();
+	}
+
 	updatePaperJSToolkit(tk) {
 		this.detachEvents();
 		this._tk = tk;
@@ -281,5 +285,11 @@ export default class AnnotationListView extends ListView {
 		const selectedId = list.getSelectedId();
 		annotationModel.setModifiedFlag(selectedId, isModified);
 		console.log("annotation modified");
+	}
+
+	clearAll() {
+		const listView = this.getList();
+		listView.clearAll();
+		annotationModel.clearAll();
 	}
 }

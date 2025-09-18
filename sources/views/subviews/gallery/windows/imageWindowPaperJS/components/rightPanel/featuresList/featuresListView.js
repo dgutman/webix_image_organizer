@@ -142,6 +142,9 @@ export default class FeaturesListView extends ListView {
 						list.remove(itemId);
 					}
 				}
+			},
+			"item-updated": () => {
+				rightPanel.setModifiedFlag(true);
 			}
 		});
 	}
@@ -154,7 +157,8 @@ export default class FeaturesListView extends ListView {
 			"selection:mouseleave": () => {},
 			"item-replaced": () => {},
 			"display-name-changed": () => {},
-			removed: () => {}
+			removed: () => {},
+			"item-updated": () => {},
 		});
 	}
 
@@ -185,8 +189,11 @@ export default class FeaturesListView extends ListView {
 		if (result) {
 			const listView = this.getList();
 			const item = listView.getItem(id);
-			item?.feature.remove();
-			listView.remove(id);
+			const feature = item.feature;
+			if (item) {
+				feature?.remove();
+				listView.remove(id);
+			}
 		}
 	}
 
