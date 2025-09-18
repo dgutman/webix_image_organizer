@@ -20,7 +20,9 @@ function getConfig(item, type) {
 	const fillColor = getFillColor(item, type);
 	const strokeColor = getStrokeColor(item, type);
 	const opacity = item?.opacity || 1;
-	const elementName = item ? item?.displayName || "Unnamed element" : "Default style";
+	const elementName = item
+		? item?.displayName || "Unnamed element"
+		: "Default style";
 	const contrastingFillColor = getContrastFromRGB(
 		fillColor.red,
 		fillColor.green,
@@ -115,7 +117,6 @@ function getConfig(item, type) {
 											default:
 												break;
 										}
-										state.oldStrokeColor = item.style.strokeColor.clone();
 										updateColors(item, type);
 										annotationStyleEditorPanel?.show();
 									}
@@ -246,29 +247,39 @@ function attachEvents(item, type) {
 				switch (type) {
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
 						if (state.currentState === state.FILL) {
-							item.style.fillColor.setAlpha(newValue);
+							item.style.fillOpacity = newValue;
 						}
 						else if (state.currentState === state.STROKE) {
-							item.style.strokeColor.setAlpha(newValue);
+							item.style.strokeOpacity = newValue;
 						}
+						if (item.isGeoJSONFeature) {
+							item.updateFillOpacity();
+							item.updateStrokeOpacity();
+						}
+						item.emit("item-updated");
 						break;
 					}
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
 						if (state.currentState === state.FILL) {
-							item.defaultStyle.fillColor.setAlpha(newValue);
+							item.defaultStyle.fillOpacity = newValue;
 						}
 						else if (state.currentState === state.STROKE) {
-							item.defaultStyle.strokeColor.setAlpha(newValue);
+							item.defaultStyle.strokeOpacity = newValue;
 						}
+						if (item.isGeoJSONFeature) {
+							item.updateFillOpacity();
+							item.updateStrokeOpacity();
+						}
+						item.emit("item-updated");
 						break;
 					}
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
 						const project = annotationAppState.project;
 						if (state.currentState === state.FILL) {
-							project.defaultStyle.fillColor.setAlpha(newValue);
+							project.defaultStyle.fillOpacity = newValue;
 						}
 						else if (state.currentState === state.STROKE) {
-							project.defaultStyle.strokeColor.setAlpha(newValue);
+							project.defaultStyle.strokeOpacity = newValue;
 						}
 						break;
 					}
@@ -283,12 +294,12 @@ function attachEvents(item, type) {
 				switch (type) {
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
 						if (state.currentState === state.FILL) {
-							const opacity = getOpacity(item, type, state.FILL);
+							const alpha = getAlpha(item, type, state.FILL);
 							item.style.fillColor = newColor;
-							item.style.fillColor.setAlpha(opacity);
+							item.style.fillColor.setAlpha(alpha);
 						}
 						else if (state.currentState === state.STROKE) {
-							const opacity = getOpacity(item, type, state.STROKE);
+							const opacity = getAlpha(item, type, state.STROKE);
 							item.style.strokeColor = newColor;
 							item.style.strokeColor.setAlpha(opacity);
 						}
@@ -296,12 +307,12 @@ function attachEvents(item, type) {
 					}
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
 						if (state.currentState === state.FILL) {
-							const opacity = getOpacity(item, type, state.FILL);
+							const opacity = getAlpha(item, type, state.FILL);
 							item.defaultStyle.fillColor = newColor;
 							item.defaultStyle.fillColor.setAlpha(opacity);
 						}
 						else if (state.currentState === state.STROKE) {
-							const opacity = getOpacity(item, type, state.STROKE);
+							const opacity = getAlpha(item, type, state.STROKE);
 							item.defaultStyle.strokeColor = newColor;
 							item.defaultStyle.strokeColor.setAlpha(opacity);
 						}
@@ -310,12 +321,12 @@ function attachEvents(item, type) {
 					case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.DEFAULT: {
 						const project = annotationAppState.project;
 						if (state.currentState === state.FILL) {
-							const opacity = getOpacity(item, type, state.FILL);
+							const opacity = getAlpha(item, type, state.FILL);
 							project.defaultStyle.fillColor = newColor;
 							project.defaultStyle.fillColor.setAlpha(opacity);
 						}
 						else if (state.currentState === state.STROKE) {
-							const opacity = getOpacity(item, type, state.STROKE);
+							const opacity = getAlpha(item, type, state.STROKE);
 							project.defaultStyle.strokeColor = newColor;
 							project.defaultStyle.strokeColor.setAlpha(opacity);
 						}
@@ -406,7 +417,7 @@ function updateColors(item, type) {
 	if (currentState === state.FILL) {
 		const fillColor = getFillColor(item, type);
 		const hexColor = fillColor.toCSS(true);
-		const opacity = getOpacity(
+		const opacity = getAlpha(
 			item,
 			type,
 			state.FILL
@@ -417,7 +428,7 @@ function updateColors(item, type) {
 	else if (currentState === state.STROKE) {
 		const strokeColor = getStrokeColor(item, type);
 		const hexColor = strokeColor.toCSS(true);
-		const opacity = getOpacity(
+		const opacity = getAlpha(
 			item,
 			type,
 			state.STROKE
@@ -479,15 +490,15 @@ function getStrokeColor(item, type) {
 	}
 }
 
-function getOpacity(item, type, style) {
+function getAlpha(item, type, style) {
 	switch (type) {
 		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.GROUP: {
 			switch (style) {
 				case state.FILL: {
-					return item.defaultStyle.fillColor.alpha;
+					return item.defaultStyle.fillOpacity;
 				}
 				case state.STROKE: {
-					return item.defaultStyle.strokeColor.alpha;
+					return item.defaultStyle.strokeOpacity;
 				}
 				default:
 					return null;
@@ -496,10 +507,10 @@ function getOpacity(item, type, style) {
 		case annotationConstants.ANNOTATION_PAPERJS_ELEMENTS.FEATURE: {
 			switch (style) {
 				case state.FILL: {
-					return item.style.fillColor.alpha;
+					return item.style.fillOpacity;
 				}
 				case state.STROKE: {
-					return item.style.strokeColor.alpha;
+					return item.style.strokeOpacity;
 				}
 				default:
 					return null;
@@ -509,11 +520,11 @@ function getOpacity(item, type, style) {
 			switch (style) {
 				case state.FILL: {
 					const project = annotationAppState.project;
-					return project ? project.defaultStyle.fillColor.alpha : null;
+					return project ? project.defaultStyle.fillOpacity : null;
 				}
 				case state.STROKE: {
 					const project = annotationAppState.project;
-					return project ? project.defaultStyle.strokeColor.alpha : null;
+					return project ? project.defaultStyle.strokeOpacity : null;
 				}
 				default:
 					return null;

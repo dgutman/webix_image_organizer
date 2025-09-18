@@ -103,6 +103,14 @@ function getAnnotationId(annotation) {
 function clearAll() {
 	listViewItemsMap.clear();
 	annotationsMap.clear();
+	clearValues();
+}
+
+function clearValues() {
+	const valuesKeys = Object.keys(values);
+	for (let key of valuesKeys) {
+		values[key] = null;
+	}
 }
 
 async function deleteItemAnnotation(itemId) {

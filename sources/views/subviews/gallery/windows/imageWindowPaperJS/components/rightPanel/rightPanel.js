@@ -4,6 +4,7 @@ import { JetView } from "webix-jet";
 import AnnotationListView from "./annotationList/annotationListView";
 import FeaturesCollectionListView from "./featuresCollectionList/featuresCollectionListView";
 import FeaturesListView from "./featuresList/featuresListView";
+import slider from "./slider";
 import { setAnnotationCounts } from "../../../../../../../models/annotationCounts";
 import annotationApiRequests from "../../services/api";
 
@@ -12,12 +13,14 @@ export default class RightPanel extends JetView {
 		super(app, config);
 		this.annotationsView = new AnnotationListView(app);
 		this.annotationsView.gravity = 0.5;
-		this.featuresGroups = new FeaturesCollectionListView(app, {name: "Feature Collections", newItemName: "Group"});
+		this.featuresGroups = new FeaturesCollectionListView(app, {name: "Feature Collections", newItemName: "Group"}, null, this);
 		this.featuresGroups.gravity = 1;
 		this.features = new FeaturesListView(app, {name: "Features", newItemName: "Creating..."}, null, this);
 		this.features.gravity = 1;
 		this.featuresGroups.setFeaturesView(this.features);
 		this.ID_SAVE_BUTTON = `save-button-id-${webix.uid()}`;
+		this.ID_TOTAL_OPACITY = `total-opacity-id-${webix.uid()}`;
+		this.ID_FILL_OPACITY = `fill-opacity-id-${webix.uid()}`;
 		this.deletedAnnotations = [];
 		this._tk = null; // PaperJS toolkit
 		this._view = null;
@@ -26,9 +29,37 @@ export default class RightPanel extends JetView {
 	}
 
 	config() {
+		const totalOpacityOptions = {
+			id: this.ID_TOTAL_OPACITY,
+			label: "Total Opacity",
+			min: 0,
+			max: 1,
+			step: 0.01,
+		};
+		const fillOpacityOptions = {
+			id: this.ID_FILL_OPACITY,
+			label: "Fill Opacity",
+			min: 0,
+			max: 1,
+			step: 0.01,
+		};
 		return {
 			rows: [
 				this.annotationsView,
+				{
+					cols: [
+						{width: 10},
+						slider.getConfig(totalOpacityOptions),
+					],
+					hidden: true,
+				},
+				{
+					cols: [
+						{width: 10},
+						slider.getConfig(fillOpacityOptions),
+					],
+					hidden: true,
+				},
 				this.featuresGroups,
 				this.features,
 				{
@@ -72,6 +103,18 @@ export default class RightPanel extends JetView {
 			loadingEvent,
 			loadedEvent
 		);
+		const fillOpacitySlider = this.getFillOpacitySlider();
+		fillOpacitySlider.attachEvent("onChange", (newValue) => {
+			const paperScope = this._tk.paperScope;
+			paperScope.view.fillOpacity = newValue;
+		});
+		const totalOpacitySlider = this.getTotalOpacitySlider();
+		totalOpacitySlider.attachEvent("onChange", (newValue) => {
+			const groups = this.featuresGroups.getGroups();
+			groups.forEach((g) => {
+				g.setOpacity(newValue);
+			});
+		});
 	}
 
 	destroy() {
@@ -97,6 +140,24 @@ export default class RightPanel extends JetView {
 		return this.getRoot().queryView({id: this.ID_SAVE_BUTTON});
 	}
 
+	/**
+	 * Get fill opacity slider
+	 *
+	 * @returns {webix.ui.slider}
+	 */
+	getFillOpacitySlider() {
+		return this.getRoot().queryView({id: this.ID_FILL_OPACITY});
+	}
+
+	/**
+	 * Get total opacity slider
+	 *
+	 * @returns {webix.ui.slider}
+	 */
+	getTotalOpacitySlider() {
+		return this.getRoot().queryView({id: this.ID_TOTAL_OPACITY});
+	}
+
 	updatePaperJSToolkit(tk) {
 		this._tk = tk;
 		this.annotationsView.updatePaperJSToolkit(tk);
@@ -104,6 +165,14 @@ export default class RightPanel extends JetView {
 		this.features.updatePaperJSToolkit(tk);
 		this.attachLayersEvents();
 		this.attachItemsEvents();
+		this.updateSliders();
+	}
+
+	updateSliders() {
+		const fillOpacitySlider = this.getFillOpacitySlider();
+		fillOpacitySlider.setValue(1);
+		const totalOpacitySlider = this.getTotalOpacitySlider();
+		totalOpacitySlider.setValue(1);
 	}
 
 	updateOSDViewer(openSeadragonViewer) {

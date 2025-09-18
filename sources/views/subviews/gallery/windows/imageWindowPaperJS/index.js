@@ -6,7 +6,7 @@ import RightPanel from "./components/rightPanel/rightPanel";
 import magicWandToolbar from "./components/toolbars/magicWand";
 import styleEditor from "./components/toolbars/styleEditor";
 import ControlsView from "./controlsView";
-import state from "./models/state";
+import osdPaperjsAnnotationState from "./models/state";
 import { AnnotationToolkit, RotationControlOverlay} from "./osd-paperjs-annotation";
 // TODO: add rotation control
 import annotationApiRequests from "./services/api";
@@ -97,15 +97,15 @@ export default class ImageWindowView extends JetView {
 						tooltip: "enable fullscreen mode",
 						click: function changeWindowMode() {
 							const win = this.$scope.getRoot();
-							const state = utils.getAnnotationWindowState();
+							const positionState = utils.getAnnotationWindowState();
 							if (win?.config.fullscreen) {
 								win.define({
 									fullscreen: false,
-									width: state.width ?? WIDTH,
-									height: state.height ?? HEIGHT,
+									width: positionState.width ?? WIDTH,
+									height: positionState.height ?? HEIGHT,
 									move: true,
 								});
-								win.setPosition(state.position.left, state.position.top);
+								win.setPosition(positionState.position.left, positionState.position.top);
 								this.define({icon: "fas  fa-expand", tooltip: "Enable fullscreen mode"});
 							}
 							else if (win) {
@@ -115,10 +115,10 @@ export default class ImageWindowView extends JetView {
 									height: window.innerHeight,
 									move: false,
 								});
-								state.position.left = win.config.left;
-								state.position.top = win.config.top;
+								positionState.position.left = win.config.left;
+								positionState.position.top = win.config.top;
 								win.setPosition(0, 0);
-								utils.setAnnotationWindowState(state);
+								utils.setAnnotationWindowState(positionState);
 								this.define({icon: "fas fa-compress", tooltip: "Disable fullscreen mode"});
 							}
 							win.resize();
@@ -356,8 +356,18 @@ export default class ImageWindowView extends JetView {
 					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
-					state.project = this._tk.overlay.paperScope.project;
-					this._tk.addAnnotationUI({autoOpen: false});
+					osdPaperjsAnnotationState.project = this._tk.overlay.paperScope.project;
+					this._tk.addAnnotationUI({
+						autoOpen: false,
+						// featureCollections: [],
+						addButton: false,
+						// addToolbar: true,
+						// tools: null,
+						// addLayerUI: true,
+						addFileButton: false,
+						// buttonTogglesToolbar: true,
+						// buttonTogglesLayerUI: true,
+					});
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updatePaperJSToolkit(this._tk);
@@ -461,8 +471,8 @@ export default class ImageWindowView extends JetView {
 		this.getRoot().hide();
 	}
 
-	changeState(state) {
-		webixToolbarState.webixToolbarShow = state ?? !webixToolbarState.webixToolbarShow;
+	changeState(flag) {
+		webixToolbarState.webixToolbarShow = flag ?? !webixToolbarState.webixToolbarShow;
 		const rightPanelWithCollapser = this.$$(RIGHT_PANEL_WITH_COLLAPSER_ID);
 		if (webixToolbarState.webixToolbarShow) {
 			this._toolbarView.getRoot().show();
