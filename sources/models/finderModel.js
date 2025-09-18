@@ -78,6 +78,7 @@ export default class FinderModel {
 				resolve();
 			});
 		}
+		return new Promise();
 	}
 }
 
