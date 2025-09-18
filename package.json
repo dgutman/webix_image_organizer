@@ -49,7 +49,7 @@
     "lodash": "4.17.21",
     "openseadragon": "5.0.1",
     "openseadragon-filtering": "1.0.0",
-    "osd-paperjs-annotation": "github:volishevko/osd-paperjs-annotation#build-without-osd-loader",
+    "osd-paperjs-annotation": "github:volishevko/osd-paperjs-annotation#dev",
     "papaparse": "5.2.0",
     "path": "0.12.7",
     "plotly.js-dist-min": "2.18.0",
