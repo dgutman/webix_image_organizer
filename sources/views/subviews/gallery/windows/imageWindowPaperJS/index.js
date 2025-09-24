@@ -353,18 +353,21 @@ export default class ImageWindowView extends JetView {
 					const layerOfViewer = this.createOpenSeadragonLayer(obj, data);
 					await this.createOpenSeadragonViewer(layerOfViewer, templateNode);
 					new RotationControlOverlay(this._openSeadragonViewer);
-					this._tk = new AnnotationToolkit(
-						this._openSeadragonViewer,
-						{
-							// addUI: false,
-							// overlay: null,
-							destroyOnViewerClose: true,
-							// cacheAnnotations: false,
-						}
-					);
+					this._tk = new AnnotationToolkit(this._openSeadragonViewer);
 					// TODO: avoid this
 					window.project = this._tk.overlay.paperScope.project;
 					osdPaperjsAnnotationState.project = this._tk.overlay.paperScope.project;
+					this._tk.addAnnotationUI({
+						autoOpen: false,
+						// featureCollections: [],
+						addButton: false,
+						// addToolbar: true,
+						// tools: null,
+						// addLayerUI: true,
+						addFileButton: false,
+						// buttonTogglesToolbar: true,
+						// buttonTogglesLayerUI: true,
+					});
 					this._controlsView.updatePaperJSToolkit(this._tk);
 					this._toolbarView.updatePaperJSToolkit(this._tk);
 					this._rightPanel.updatePaperJSToolkit(this._tk);
@@ -444,37 +447,28 @@ export default class ImageWindowView extends JetView {
 	}
 
 	async close() {
-		try {
-			styleEditor.destructPopup();
-			this._controlsView.reset();
-			this._rightPanel.reset();
-			// to clear setted template
-			// to destroy Open Seadragon viewer
-			if (this._openSeadragonViewer && window.project) {
-				this._tk.close();
-				this._openSeadragonViewer.destroy();
-			}
-			magicWandToolbar.closeMagicWandToolbar();
-			this.$imageContainer.parse({emptyObject: true});
-			const itemId = this._rightPanel.getItemId();
-			const itemAnnotationsCount = itemId
-				? await annotationApiRequests.getAnnotationsCount(itemId)
-				: null;
-			if (itemAnnotationsCount[itemId] !== null) {
-				const annotationCounts = getAnnotationCounts();
-				annotationCounts[itemId] = itemAnnotationsCount[itemId];
-				setAnnotationCounts(annotationCounts);
-				appState.app.callEvent("app:annotationCounts:updated");
-			}
+		styleEditor.destructPopup();
+		this._controlsView.reset();
+		this._rightPanel.reset();
+		// to clear setted template
+		// to destroy Open Seadragon viewer
+		if (this._openSeadragonViewer && window.project) {
+			this._tk.close();
+			this._openSeadragonViewer.destroy();
 		}
-		catch (e) {
-			console.error(e);
+		magicWandToolbar.closeMagicWandToolbar();
+		this.$imageContainer.parse({emptyObject: true});
+		const itemId = this._rightPanel.getItemId();
+		const itemAnnotationsCount = itemId
+			? await annotationApiRequests.getAnnotationsCount(itemId)
+			: null;
+		if (itemAnnotationsCount[itemId] !== null) {
+			const annotationCounts = getAnnotationCounts();
+			annotationCounts[itemId] = itemAnnotationsCount[itemId];
+			setAnnotationCounts(annotationCounts);
+			appState.app.callEvent("app:annotationCounts:updated");
 		}
-		finally {
-			if (this.getRoot()) {
-				this.getRoot().hide();
-			}
-		}
+		this.getRoot().hide();
 	}
 
 	changeState(flag) {
