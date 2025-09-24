@@ -39,19 +39,11 @@ export default class AnnotationListView extends ListView {
 					const listView = this.getList();
 					const item = listView.getItem(id);
 					this.editItem(item, node);
+					return false;
 				},
-				"delete-item": async (event, id) => {
-					const item = this.getList().getItem(id);
-					const result = await webix.confirm({
-						title: "Confirm delete",
-						ok: "Yes",
-						cancel: "No",
-						text: `Delete annotation "${item.annotation.name}"?`
-					});
-					if (result) {
-						this.deleteItem(id);
-						annotationModel.deleteItemAnnotation(id);
-					}
+				"delete-item": (event, id) => {
+					this.showDeleteConfirm(id);
+					return false;
 				},
 			},
 			select: true,
@@ -104,6 +96,20 @@ export default class AnnotationListView extends ListView {
 		annotationModel.clearAll();
 	}
 
+	async showDeleteConfirm(id) {
+		const item = this.getList().getItem(id);
+		const result = await webix.confirm({
+			title: "Confirm delete",
+			ok: "Yes",
+			cancel: "No",
+			text: `Delete annotation "${item.annotation.name}"?`
+		});
+		if (result) {
+			this.deleteItem(id);
+			annotationModel.deleteItemAnnotation(id);
+		}
+	}
+
 	updatePaperJSToolkit(tk) {
 		this.detachEvents();
 		this._tk = tk;
@@ -119,6 +125,7 @@ export default class AnnotationListView extends ListView {
 		this._onBeforeSelectEvent = list.attachEvent("onBeforeSelect", (id, selectionFlag) => {
 			const selectedId = list.getSelectedId();
 			if (selectedId === id) {
+				list.unselect(id);
 				return false;
 			}
 			const selectedItem = list.getSelectedItem();
@@ -158,13 +165,6 @@ export default class AnnotationListView extends ListView {
 		this._onAfterAddEvent = list.attachEvent("onAfterAdd", (id) => {
 			const addedItem = list.getItem(id);
 			annotationModel.addListViewItem(addedItem);
-			const selectedItem = list.getSelectedItem();
-			if (!selectedItem) {
-				const firstId = list.getFirstId();
-				if (firstId) {
-					list.select(firstId);
-				}
-			}
 			// TODO: uncomment after changing in left panel
 			// const annotation = list.getItem(id);
 			// const fc = adapter.annotationToFeatureCollections(annotation);
@@ -175,6 +175,12 @@ export default class AnnotationListView extends ListView {
 			// 		this._openSeadragonViewer.world.getItemAt(0)
 			// 	);
 			// }
+		});
+		this._onBeforeDeleteEvent = list.attachEvent("onBeforeDelete", (id) => {
+			const selectedId = list.getSelectedId();
+			if (id === selectedId) {
+				list.unselectAll();
+			}
 		});
 		this._onAfterDeleteEvent = list.attachEvent("onAfterDelete", (/* id */) => {
 			// TODO: implement
@@ -204,18 +210,8 @@ export default class AnnotationListView extends ListView {
 	deleteItem(id) {
 		const list = this.getList();
 		const item = list.getItem(id);
-		const selectedId = list.getSelectedId();
 		if (item) {
 			list.remove(id);
-			if (selectedId === id) {
-				const firstId = list.getFirstId();
-				if (firstId) {
-					list.select(firstId);
-				}
-				else {
-					this._tk.close();
-				}
-			}
 		}
 	}
 

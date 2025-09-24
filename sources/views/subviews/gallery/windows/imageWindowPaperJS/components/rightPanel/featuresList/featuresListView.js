@@ -52,8 +52,13 @@ export default class FeaturesListView extends ListView {
 		this.paperScope?.project.on("feature-collection-added", ev => this._onFeatureCollectionAdded(ev));
 		const list = this.getList();
 		this._onItemClick = list.attachEvent("onItemClick", (id) => {
+			const selectedId = list.getSelectedId();
 			const item = list.getItem(id);
-			if (item?.feature) {
+			if (item && id === selectedId) {
+				list.unselect(id);
+				item?.feature?.deselect(true);
+			}
+			else if (item?.feature) {
 				item.feature.select();
 			}
 		});
@@ -77,7 +82,6 @@ export default class FeaturesListView extends ListView {
 		const list = this.getList();
 		const lastId = list.getLastId() ?? "0";
 		const itemId = list.add({name: `${paperjsItem.displayName}`, isNameUserDefined: false, id: String(Number(lastId) + 1), feature: paperjsItem});
-		list.select(`${itemId}`);
 		this.attachPaperjsItemEvents(paperjsItem, itemId);
 	}
 
