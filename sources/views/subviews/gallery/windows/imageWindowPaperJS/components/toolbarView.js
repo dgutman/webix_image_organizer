@@ -512,9 +512,23 @@ export default class ToolbarView extends JetView {
 
 	updateToolsAndControls() {
 		const toolsControls = this.getToolbarControls();
+		const toolsConstructors = this.getToolsConstructors();
+		const paperScope = this._tk.paperScope;
 		const toolIdsKeys = Object.keys(constants.ANNOTATION_TOOL_IDS);
 		toolIdsKeys.forEach((key) => {
 			const toolId = constants.ANNOTATION_TOOL_IDS[key];
+			const annotationUI = this._tk.annotationUI;
+			const annotationToolbar = annotationUI._toolbar;
+			const annotationTools = annotationToolbar.tools;
+			const annotationToolsKeys = Object.keys(annotationTools);
+			annotationToolsKeys.find((tKey) => {
+				if (toolsConstructors[toolId]
+					&& annotationTools[tKey] instanceof toolsConstructors[toolId]) {
+					this._tools[toolId] = annotationTools[tKey];
+					return true;
+				}
+				return false;
+			});
 			const control = toolsControls[toolId];
 			if (control) {
 				control.detachEvent(this._toolControlEvents[toolId]);
