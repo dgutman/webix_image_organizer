@@ -53,25 +53,25 @@ export default class DataTable {
           */
           header: "x_max",
           select: "row",
-          minWidth: 200,
+          minWidth: 120,
         },
         {
           id: "x_min",
           header: "x_min",
           select: "row",
-          minWidth: 200,
+          minWidth: 120,
         },
         {
           id: "y_max",
           header: "y_max",
           select: "row",
-          minWidth: 200,
+          minWidth: 120,
         },
         {
           id: "y_min",
           header: "y_min",
           select: "row",
-          minWidth: 200,
+          minWidth: 120,
         },
         {
           id: "fov_mm_x",
@@ -102,9 +102,9 @@ export default class DataTable {
     }
   }
 
-  destructor() {}
+  destructor() { }
 
-   /** @returns {webix.ui.datatable}*/
+  /** @returns {webix.ui.datatable}*/
   getDatatable() {
     return $$(this._dataTableID);
   }

@@ -9,3 +9,4 @@ upload/
 tmp/
 jsconfig.json
 .vs/
+node_modules**

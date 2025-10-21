@@ -13,16 +13,16 @@ export default class MouseCoords {
       id: this._mouseCoordsTemplateID,
       template: (obj) => {
         const objWebPointX = typeof obj?.webPoint?.x === "number"
-          ? obj.imagePoint.x.toFixed(2)
-          : "Nan";
-        const objWebPointY = typeof obj?.webPoint?.y === "number"
-          ? obj.imagePoint.y.toFixed(2)
-          : "Nan";
-        const imagePointX = typeof obj?.imagePoint?.x === "number"
           ? obj.webPoint.x.toFixed(2)
           : "Nan";
-        const imagePointY = typeof obj?.imagePoint?.y === "number"
+        const objWebPointY = typeof obj?.webPoint?.y === "number"
           ? obj.webPoint.y.toFixed(2)
+          : "Nan";
+        const imagePointX = typeof obj?.imagePoint?.x === "number"
+          ? obj.imagePoint.x.toFixed(2)
+          : "Nan";
+        const imagePointY = typeof obj?.imagePoint?.y === "number"
+          ? obj.imagePoint.y.toFixed(2)
           : "Nan";
         const viewportPointX = typeof obj?.viewportPoint?.x === "number"
           ? obj.viewportPoint.x.toFixed(2)

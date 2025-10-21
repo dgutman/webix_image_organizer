@@ -38,7 +38,7 @@ function getFolderConfocalImages(f) {
 }
 
 function getFolderMacroscopicImages(f) {
-  return f?.meta?.imgStackDict[IMG_STACK_DICT.MACROSCOPIC_IMAGES][IMG_STACK_DICT.MACROSCOPIC_IMAGES][0];
+  return f?.meta?.imgStackDict?.[IMG_STACK_DICT.MACROSCOPIC_IMAGES]?.[IMG_STACK_DICT.MACROSCOPIC_IMAGES]?.[0];
 }
 
 function getVivaBlockImages(f) {

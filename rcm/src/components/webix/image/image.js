@@ -3,6 +3,7 @@ import { uid, $$ } from "webix";
 import OpenSeaDragonViewer from "./osdViewer";
 import imagesModel from "../../../models/imagesModel";
 import imageTilesModel from "../../../models/imageTilesModel";
+import localStorageService from "../../../services/localStorage";
 import "../../../styles/image.css";
 
 const OSD_CONTAINER = "osd-container";
@@ -10,7 +11,7 @@ const NON_IMAGE_SELECTED_CLASS = "image-container__non-image-selected";
 
 export default class Image {
   constructor() {
-    this.imageTemplateID = uid();
+    this.imageTemplateID = `image_template_${uid()}_${Date.now()}`;
     this.openSeaDragonViewer = null;
   }
 
@@ -63,15 +64,34 @@ export default class Image {
   async setImage(image, isMacroscopic, useSourceOptions, maxFrame, isFrame) {
     const tilesOptions = image.yamlId ? imagesModel.getTilesOptions(image, isMacroscopic) : {};
     const imageID = image.yamlId ?? imagesModel.getImageID(image);
-    // TODO: add tiles for framed image
+
     if (isFrame) {
-      this.openSeaDragonViewer.removeAllTiles();
-      const tileSources = [];
-      for (let i = 0; i < maxFrame; i++) {
-        const s = imageTilesModel.getDZITileSource(imageID, i)
-        tileSources.push(s);
+      // For ZStack: Pass entire stack to OSD - it will handle optimization
+      const startTime = performance.now();
+      if (this.openSeaDragonViewer) {
+        this.openSeaDragonViewer.removeAllTiles();
       }
-      this.openSeaDragonViewer.open(tileSources, 0);
+      const tileSources = [];
+      console.log('OpenSeaDragon: Starting to create tile sources for', maxFrame, 'frames');
+
+      const urlStartTime = performance.now();
+      for (let i = 0; i < maxFrame; i++) {
+        const dziUrl = imageTilesModel.getDZITileSource(imageID, i);
+        tileSources.push(dziUrl);
+      }
+      const urlEndTime = performance.now();
+      console.log(`OpenSeaDragon: URL creation took ${urlEndTime - urlStartTime} milliseconds`);
+
+      console.log('OpenSeaDragon: Created', tileSources.length, 'tile sources, about to open');
+      const openStartTime = performance.now();
+      if (this.openSeaDragonViewer) {
+        this.openSeaDragonViewer.open(tileSources, 0);
+        const openEndTime = performance.now();
+        console.log(`OpenSeaDragon: open() call took ${openEndTime - openStartTime} milliseconds`);
+        console.log(`OpenSeaDragon: Total setImage time ${openEndTime - startTime} milliseconds`);
+      } else {
+        console.error('OpenSeaDragon viewer not initialized');
+      }
     }
     else {
       const tileSource = await imageTilesModel.getTileSources(imageID, tilesOptions, useSourceOptions);
@@ -82,6 +102,7 @@ export default class Image {
   }
 
   showFrame(frame) {
+    console.log('showFrame called with frame:', frame);
     this.openSeaDragonViewer.showTiledImage(frame);
   }
 
@@ -99,7 +120,7 @@ export default class Image {
     }
     else {
       const osdNode = this.getNodeByClassName(OSD_CONTAINER);
-      this.openSeaDragonViewer.createViewer({element: osdNode}, osdNode);
+      this.openSeaDragonViewer.createViewer({ element: osdNode }, osdNode);
     }
   }
 
@@ -137,6 +158,7 @@ export default class Image {
     overlayElement.style.borderStyle = areaStyle.borderStyle ?? "dashed";
     overlayElement.style.borderWidth = areaStyle.borderWidth ?? "2px";
     overlayElement.style.visibility = "visible";
+
     if (clearOverlaysFlag) {
       this.openSeaDragonViewer.clearOverlays();
     }

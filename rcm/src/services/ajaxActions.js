@@ -10,7 +10,7 @@ function parseError(xhr) {
   switch (xhr.status) {
     case 404: {
       msg = "Not found";
-      message({type: "error", text: msg});
+      message({ type: "error", text: msg });
       break;
     }
     default: {
@@ -24,7 +24,7 @@ function parseError(xhr) {
       }
       if (!message.pull[msg]) {
         const expire = msg === connectionMessage ? -1 : 5000;
-        message({text: msg, expire, id: msg});
+        message({ text: msg, expire, id: msg });
       }
       break;
     }
@@ -44,14 +44,14 @@ function getHostAPI() {
   // return process.env.HOST_API;
 }
 
-async function login({username = 0, password = 0}) {
+async function login({ username = 0, password = 0 }) {
   let hash
   try {
     // TODO: change to argon2
     const tok = `${username}:${password}`;
     hash = btoa(tok);
   }
-  catch(e) {
+  catch (e) {
     console.log("Invalid character in password or login");
   }
 
@@ -64,7 +64,7 @@ async function login({username = 0, password = 0}) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -75,7 +75,7 @@ async function logout() {
       .del(`${getHostAPI()}/user/authentication`);
     return response.json();
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -86,7 +86,7 @@ async function getUserInfo() {
       .get(`${getHostAPI()}/user/me`);
     return response.json();
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -98,7 +98,7 @@ async function getItem(itemID) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -110,7 +110,7 @@ async function getItems(folderId) {
     const data = response.json()
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -122,7 +122,7 @@ async function getImageTiles(itemID) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -134,7 +134,7 @@ async function getFolder(folderId) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -151,7 +151,7 @@ async function getSubFolders(parentType, parentId) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -183,7 +183,7 @@ async function getTileFrameInfo(itemID) {
     const data = response.json();
     return data;
   }
-  catch(error) {
+  catch (error) {
     parseError(error);
   }
 }
@@ -199,8 +199,12 @@ function getImageTileUrlWithFrameNumber(itemID, frame, z, x, y) {
 }
 
 function getImageDeepZoomCompatibleMetadataURL(itemId, frame) {
+  const token = localStorageService.getToken();
   const urlSearchParams = new URLSearchParams();
   urlSearchParams.append("frame", frame);
+  if (token) {
+    urlSearchParams.append("token", token);
+  }
   return `${getHostAPI()}/item/${itemId}/tiles/dzi.dzi?${urlSearchParams.toString()}`;
 }
 

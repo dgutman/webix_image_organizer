@@ -34,12 +34,12 @@ const loginPanel = {
   css: "user-panel_login-menu",
   hidden: authService.isLoggedIn(),
   cols: [
-    {gravity: 1},
+    { gravity: 1 },
     {
       rows: [
-        {gravity: 0.8},
+        { gravity: 0.8 },
         loginMenu,
-        {gravity: 0.8},
+        { gravity: 0.8 },
       ]
     }
   ]
@@ -65,7 +65,8 @@ const DropDown = {
       view: "list",
       id: OPTIONS_LIST_ID,
       template: (obj) => {
-        return `<span title='${foldersModel.getFolderName(obj)}'>${foldersModel.getFolderName(obj)}</span>`;
+        const folderName = foldersModel.getFolderName(obj) || 'Unknown Folder';
+        return `<span title='${folderName}'>${folderName}</span>`;
       },
       css: "ellipsis-text"
     }
@@ -106,7 +107,7 @@ const logoutMenu = {
     }
   },
   on: {
-    
+
   }
 };
 
@@ -135,17 +136,17 @@ function getUI() {
     css: "header",
     height: 60,
     cols: [
-      {width: 20},
+      { width: 20 },
       logo,
-      {width: 20},
+      { width: 20 },
       {
         rows: [
-          {gravity: 0.01},
+          { gravity: 0.01 },
           DropDown,
-          {gravity: 0.01},
+          { gravity: 0.01 },
         ]
       },
-      {gravity: 1},
+      { gravity: 1 },
       userPanel,
     ]
   }

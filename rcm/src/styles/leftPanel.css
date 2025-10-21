@@ -1,5 +1,5 @@
 .left-panel {
-  display:grid;
+  display: grid;
   grid-template-rows: 60px 1fr;
 }
 

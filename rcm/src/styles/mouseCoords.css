@@ -2,9 +2,19 @@
   display: grid;
   gap: 10px;
   grid-template-columns: auto;
+
   .mouse-coords-container_item {
     font-size: 18px;
     font-weight: 600;
     text-align: start;
+  }
+
+  .hover-info {
+    background-color: #e3f2fd;
+    border: 2px solid #2196f3;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #1976d2;
+    font-weight: 700;
   }
 }
