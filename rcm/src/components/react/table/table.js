@@ -6,11 +6,13 @@ import DataTable from "../../webix/table/table";
 import foldersModel from "../../../models/foldersModel";
 import tableService from "../../../services/tableService";
 import tableModel from "../../../models/tableModel";
+import Image from "../../webix/image/image";
 
 export default function Table() {
   const { selectedFolder } = useContext(SelectedFolderContext);
   const { selectedImage, setSelectedImage } = useContext(SelectImageContext);
   const [dataTable] = useState(new DataTable())
+  const [imageTemplate] = useState(new Image())
 
   useEffect(() => {
     if (selectedFolder) {
@@ -44,6 +46,9 @@ export default function Table() {
     const attachEvents = () => {
       const dataTableView = dataTable.getDatatable();
       tableService.attachEvents(dataTableView, [selectedImage, setSelectedImage]);
+
+      // Attach coordinate editing events
+      dataTable.attachCoordinateEvents(imageTemplate);
     }
     attachEvents();
     return () => {

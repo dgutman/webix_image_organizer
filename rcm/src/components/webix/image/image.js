@@ -62,6 +62,18 @@ export default class Image {
   }
 
   async setImage(image, isMacroscopic, useSourceOptions, maxFrame, isFrame) {
+    // Clear everything first when switching images
+    if (this.openSeaDragonViewer) {
+      this.openSeaDragonViewer.removeAllTiles();
+    }
+
+    // Check if image is valid
+    if (!image) {
+      console.log('Image: No image provided, showing no image selected');
+      this.showNoImageSelected();
+      return;
+    }
+
     const tilesOptions = image.yamlId ? imagesModel.getTilesOptions(image, isMacroscopic) : {};
     const imageID = image.yamlId ?? imagesModel.getImageID(image);
 
@@ -176,6 +188,23 @@ export default class Image {
         nonImageSelectedNode.classList.remove("hidden");
       }
     }
+  }
+
+  clearAll() {
+    console.log('Image: Clearing all tiles and showing no image selected');
+    if (this.openSeaDragonViewer) {
+      this.openSeaDragonViewer.removeAllTiles();
+    }
+    this.showNoImageSelected();
+  }
+
+  updateTableFromROI(rowId, coordinates) {
+    // This method will be called when ROIs are drawn/modified on the viewer
+    console.log('Image: ROI updated on viewer, coordinates:', coordinates);
+    console.log('Image: Would update table row', rowId, 'with coordinates:', coordinates);
+
+    // TODO: Connect this to the actual table update
+    // This is where we'd update the table with new ROI coordinates
   }
 
   showOSD() {
