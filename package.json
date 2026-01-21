@@ -46,7 +46,7 @@
     "hotkeys-js": "3.10.1",
     "json-formatter-js": "2.2.0",
     "jsoneditor": "9.10.4",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "openseadragon": "5.0.1",
     "openseadragon-filtering": "1.0.0",
     "osd-paperjs-annotation": "github:volishevko/osd-paperjs-annotation#dev",
