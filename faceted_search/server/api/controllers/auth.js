@@ -1,9 +1,10 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
 const jwtBlacklist = require("express-jwt-blacklist");
+const {resolveGirderHost} = require("../../etc/girderHost");
 
 async function login(hostApi, authHeader) {
-	const url = new URL(hostApi);
+	const url = new URL(resolveGirderHost(hostApi));
 	const path = `${url}/user/authentication`;
 
 	const options = {
@@ -24,19 +25,20 @@ async function login(hostApi, authHeader) {
 		})
 		.catch((err) => {
 			const response = err.response;
-			const errorMessage = response && response.data.message ? `with message: ${response.data.message}` : "&lt;none&gt;";
-			const error = new Error(
-				`Request to ${url} failed\n
-				${errorMessage}\n
-				Status Code: ${response.status}`
-			);
+			const girderMessage = response?.data?.message;
+			const status = response?.status;
+			const detail = girderMessage
+				|| (status ? `HTTP ${status}` : null)
+				|| err.code
+				|| err.message;
+			const error = new Error(`Request to ${url} failed: ${detail}`);
 			error.name = "UnauthorizedError";
 			throw error;
 		});
 }
 
 async function logout(host, token, user) {
-	const url = new URL(host);
+	const url = new URL(resolveGirderHost(host));
 	const path = `${url}/user/authentication`;
 
 	const options = {
@@ -53,13 +55,13 @@ async function logout(host, token, user) {
 		})
 		.catch((err) => {
 			const response = err.response;
-			const errorMessage = response && response.data.message ? `with message: ${response.data.message}` : "&lt;none&gt;";
-			const error = new Error(
-				`Request to ${url} failed\n
-				${errorMessage}\n
-				Status Code: ${response.status}`
-			);
-			throw error;
+			const girderMessage = response?.data?.message;
+			const status = response?.status;
+			const detail = girderMessage
+				|| (status ? `HTTP ${status}` : null)
+				|| err.code
+				|| err.message;
+			throw new Error(`Request to ${url} failed: ${detail}`);
 		});
 }
 

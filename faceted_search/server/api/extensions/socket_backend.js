@@ -11,6 +11,7 @@ const approvedMetadataModel = require('../models/approved_metadata');
 const {default: axios} = require('axios');
 const filtersController = require('../controllers/filters');
 const updateLocalCache = require('./updateLocalCache');
+const {resolveGirderHost} = require('../../etc/girderHost');
 
 const RESYNC = require('../../constants').RESYNC;
 
@@ -65,7 +66,7 @@ class Backend {
 
     async loadGirderCollection(data) {
         const {host, id, token, name: collectionName} = data;
-        const url = `${host}/folder?parentType=collection&limit=0&parentId=${id}`;
+        const url = `${resolveGirderHost(host)}/folder?parentType=collection&limit=0&parentId=${id}`;
         const options = {
             headers: {
                 "girder-token": token
@@ -119,7 +120,8 @@ class Backend {
     async deleteResource(data) {
         try {
             const {host, id, token, name, type} = data;
-            const url = `${host}/folder?parentType=collection&parentId=${id}`;
+            const girderHost = resolveGirderHost(host);
+            const url = `${girderHost}/folder?parentType=collection&parentId=${id}`;
             this._message('[Looking images]: started', name);
             const images = [];
             const resourcesIds = [];

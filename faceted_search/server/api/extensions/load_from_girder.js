@@ -2,8 +2,10 @@ const axios = require("axios");
 const serviceData = require("../models/service_data");
 const facetImagesModel = require("../models/facet_images");
 const updateLocalCache = require("./updateLocalCache");
+const {resolveGirderHost} = require("../../etc/girderHost");
 
 async function getFoldersByIds({host, ids, token}) {
+	host = resolveGirderHost(host);
 	const options = {
 		headers: {
 			"girder-token": token
@@ -40,6 +42,7 @@ function addParentMetaToImages(images, folders) {
 }
 
 async function loadImagesFileFromGirderFolder({host, id, token}, folderName) {
+	host = resolveGirderHost(host);
 	const url = `${host}/resource/${id}/items?type=folder&limit=0&sort=_id&sortdir=1`;
 
 	const options = {
@@ -62,6 +65,7 @@ async function loadImagesFileFromGirderFolder({host, id, token}, folderName) {
 }
 
 async function resyncImages(host, token) {
+	host = resolveGirderHost(host);
 	try {
 		const existedFolderIds = await facetImagesModel.getImagesFolderIds(host);
 		const folders = await getFoldersByIds({host, ids: existedFolderIds, token});
@@ -100,6 +104,7 @@ async function resyncImages(host, token) {
 }
 
 async function getAllowedFolders(host, token) {
+	host = resolveGirderHost(host);
 	try {
 		const url = `${host}/folder`;
 		const urlParams = new URLSearchParams("limit=0");

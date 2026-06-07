@@ -57,8 +57,10 @@ db(() => {
         console.log("\nStopping...");
         process.exit();
     });
-    app.server.listen(process.env.PORT || 8000);
-    console.log(`Server started on port ${app.server.address().port}`);
+    const port = process.env.PORT || 8000;
+    app.server.listen(port, () => {
+        console.log(`Server started on port ${port}`);
+    });
 });
 
 module.exports = app;

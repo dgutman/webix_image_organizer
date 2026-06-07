@@ -19,6 +19,7 @@ services:
             - MONGODB_PASSWORD=$DB_PASSWORD
             - MONGODB_NAME=$DB_NAME
             - MONGODB_PORT=$DB_PORT
+            - GIRDER_HOST=host.docker.internal
 
     mongodb:
         image: mongo:4.2.6
